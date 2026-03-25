@@ -1,0 +1,37 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "/usr/include/glib-2.0",
+                "/usr/lib/glib-2.0/include",
+                "/usr/include/sysprof-6"
+            ],
+            "defines": [],
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "cStandard": "c20",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/source",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.*/um",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.*/shared"
+            ],
+            "defines": [
+                "_WIN32",
+                "WIN32_LEAN_AND_MEAN",
+                "NOMINMAX"
+            ],
+            "compilerPath": "C:/mingw64/bin/g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

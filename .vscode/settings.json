@@ -1,0 +1,8 @@
+{
+    "makefile.makefilePath": "",
+    "cmake.ignoreCMakeListsMissing": true,
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/include"
+    ],
+    "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/g++.exe"
+}
