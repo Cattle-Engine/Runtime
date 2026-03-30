@@ -1,6 +1,8 @@
 #include <string>
 
 #include "engine/core.hpp"
+#include "engine/gameinfo.hpp"
+#include "engine/renderers.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/vfs.hpp"
 #include "engine/common/vfs_stl.hpp"
@@ -13,7 +15,7 @@ namespace CE::Bootstrap::GameSetup {
         CE::Global::SetVFS(&g_vfs);
         CE::Global::GetVFS().MountArchive(CE::GameInfo::dataFileName, "/", LoadMode::OnDemand);
         
-        if (CE::Core::DebugMode) {
+        if (CE::Core::debugMode) {
             CE::Global::GetVFS().MountFolder("assets/", "/", LoadMode::OnDemand, 10);
         }
     }
@@ -60,5 +62,9 @@ namespace CE::Bootstrap::GameSetup {
         CE::GameInfo::windowHeight = ini.get_int("Graphics", "Window_Height", 0);
         CE::GameInfo::windowTitle = ini.get_string("Graphics", "Window_Title", "");
         CE::GameInfo::maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
+        CE::Renderers::rendererName = ini.get_string("Graphics", "Renderer", "None");
+
+        CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", CE::GameInfo::gameNameString);
+        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", CE::GameInfo::gameVersionString);
     }
 }

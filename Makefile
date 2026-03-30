@@ -73,9 +73,9 @@ CXXFLAGS := -Wall -Wextra -std=c++20 \
 # Linker flags
 # =========================
 ifeq ($(OS),Windows_NT)
-	LDFLAGS := -lraylib -lole32 -luuid -lcomdlg32 -limm32 -loleaut32 -Iinclude/third_party/imgui -Iinclude/third_party/lua 
+	LDFLAGS := -lSDL3 -lSDL3_image -lraylib -lopengl32 -lole32 -luuid -lcomdlg32 -limm32 -loleaut32 -Iinclude/third_party/imgui -Iinclude/third_party/lua 
 else
-	LDFLAGS := -lraylib -lm -lGL -lX11 -lpthread -ldl -lrt -lXi -Iinclude/third_party/imgui -Iinclude/third_party/lua 
+	LDFLAGS := -lSDL3 -lSDL3_image -lraylib -lm -lGL -lX11 -lpthread -ldl -lrt -lXi -Iinclude/third_party/imgui -Iinclude/third_party/lua 
 endif
 
 # Windows GUI subsystem
