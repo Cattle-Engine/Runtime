@@ -62,6 +62,7 @@ namespace CE::Renderers {
         int width;
         int height;
         TextureFormat format;
+        RendererBackend backend;
     };
 
     struct DrawTextureOptions {

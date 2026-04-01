@@ -49,7 +49,7 @@ namespace CE::Bootstrap::Video {
 
         SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
         if (CE::Renderers::renderer == RendererBackend::OpenGL) {
-            windowFlags = static_cast<SDL_WindowFlags>(windowFlags | SDL_WINDOW_OPENGL);
+            windowFlags = static_cast<SDL_WindowFlags>(windowFlags |=SDL_WINDOW_OPENGL);
         }
 
         CE::Global::gameWindow = SDL_CreateWindow(
@@ -58,6 +58,12 @@ namespace CE::Bootstrap::Video {
             CE::GameInfo::windowHeight,
             windowFlags
         );
+
+        if (CE::Global::gameWindow == nullptr) {
+            CE::Log(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
+            ShowError("Failed to create game window :{");
+            std::exit(3);
+        }
 
         CE::Renderers::Init(CE::Global::gameWindow);
     }

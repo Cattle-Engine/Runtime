@@ -46,9 +46,9 @@ namespace CE::Bootstrap::GameSetup {
             return;
         }
 
-        if (ini.has("Gameinfo", "Game_Name") || ini.has("Gameinfo", "Game_Version") 
-            ||  ini.has("Graphics", "Window_Width") || ini.has("Graphics", "Window_Height")
-            || ini.has("Graphics", "Max_FPS")) 
+        if (!ini.has("Gameinfo", "Game_Name") || !ini.has("Gameinfo", "Game_Version") 
+            ||  !ini.has("Graphics", "Window_Width") || !ini.has("Graphics", "Window_Height")
+            || !ini.has("Graphics", "Max_FPS")) 
             {
                 CE::Log(LogLevel::Fatal, "[Bootstrap] Missing required game info");
                 ShowError("[Bootstrap] Missing required game info");
@@ -63,6 +63,7 @@ namespace CE::Bootstrap::GameSetup {
         CE::GameInfo::windowTitle = ini.get_string("Graphics", "Window_Title", "");
         CE::GameInfo::maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
         CE::Renderers::rendererName = ini.get_string("Graphics", "Renderer", "None");
+        CE::GameInfo::enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
 
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", CE::GameInfo::gameNameString);
         CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", CE::GameInfo::gameVersionString);
