@@ -1,6 +1,4 @@
-#pragma once
-
-#include "engine/renderers.hpp"
+#include "engine/renderer.hpp"
 #include "engine/state.hpp"
 
 namespace CE {

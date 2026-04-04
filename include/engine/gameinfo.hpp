@@ -2,6 +2,10 @@
 
 #include <string>
 
+#ifndef CE_DATA_FILE_NAME
+    #define CE_DATA_FILE_NAME "data.tcf"
+#endif
+
 namespace CE::GameInfo {
     inline std::string gameNameString;
     inline std::string gameVersionString;

@@ -28,6 +28,8 @@ namespace CE::Platforms::Windows {
             ShowError("[Winows] Failed to find user home directory");
             std::exit(5);
         }
+
+        return std::format("{}/{}/config", user_profile_str, game_name);
     }
 
     std::string GetSavePath(const char* game_name) {

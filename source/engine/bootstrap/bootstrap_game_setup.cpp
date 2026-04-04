@@ -2,7 +2,7 @@
 
 #include "engine/core.hpp"
 #include "engine/gameinfo.hpp"
-#include "engine/renderers.hpp"
+#include "engine/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/vfs.hpp"
 #include "engine/common/vfs_stl.hpp"
@@ -62,7 +62,7 @@ namespace CE::Bootstrap::GameSetup {
         CE::GameInfo::windowHeight = ini.get_int("Graphics", "Window_Height", 0);
         CE::GameInfo::windowTitle = ini.get_string("Graphics", "Window_Title", "");
         CE::GameInfo::maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
-        CE::Renderers::rendererName = ini.get_string("Graphics", "Renderer", "None");
+        CE::Renderer::rendererName = ini.get_string("Graphics", "Renderer", "None");
         CE::GameInfo::enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
 
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", CE::GameInfo::gameNameString);
