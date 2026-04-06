@@ -8,27 +8,26 @@
 
 namespace CE::Bootstrap::Video {
     void Init() {
-        if(SDL_Init(SDL_INIT_VIDEO) != 0) {
+        if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
             std::exit(3);
         }
         
-        if (CE::Renderers::rendererName == "None") {
-            CE::Renderers::renderer = RendererBackend::None;
-        } else if (CE::Renderers::rendererName == "Software") {
-            CE::Renderers::renderer = RendererBackend::Software;
-        } else if (CE::Renderers::rendererName == "OpenGL") {
-            CE::Renderers::renderer = RendererBackend::OpenGL;
-        } else if (CE::Renderers::rendererName == "DirectX") {
+        if (CE::Renderer::rendererName == "None") {
+            CE::Renderer::renderer = RendererBackend::None;
+        } else if (CE::Renderer::rendererName == "Software") {
+            CE::Renderer::renderer = RendererBackend::Software;
+        } else if (CE::Renderer::rendererName == "OpenGL") {
+            CE::Renderer::renderer = RendererBackend::OpenGL;
+        } else if (CE::Renderer::rendererName == "DirectX") {
             CE::Log(LogLevel::Fatal, "[Bootstrap] DirectX is unsupported");
             ShowError("[Bootstrap] DirectX is unsupported");
-        } else if (CE::Renderers::rendererName == "Metal") {
+        } else if (CE::Renderer::rendererName == "Metal") {
             CE::Log(CE::LogLevel::Fatal, "[Bootstrap] Metal is unsupported");
             ShowError("[Bootstrap] Metal is not supported");
-        } else if (CE::Renderers::rendererName == "Vulkan") {
-            CE::Log(CE::LogLevel::Fatal, "[Bootstrap] Vulkan is unsupported");
-            ShowError("[Bootstrap] Vulkan is not supported");
+        } else if (CE::Renderer::rendererName == "Vulkan") {
+            CE::Renderer::renderer = RendererBackend::Vulkan;
         } else {
             CE::Log(CE::LogLevel::Fatal, "[Bootstrap] Unknown renderer");
             ShowError("[Bootstrap] Unknown renderer");
@@ -44,11 +43,11 @@ namespace CE::Bootstrap::Video {
 
         CE::Log(LogLevel::Info, "[Window] Window title: {}", CE::GameInfo::windowTitle);
         CE::Log(LogLevel::Info, "[Window] Window size: {} width, {} height", CE::GameInfo::windowWidth, CE::GameInfo::windowHeight);
-        CE::Log(LogLevel::Info, "[Window] Window renderer: {}", CE::Renderers::rendererName);
+        CE::Log(LogLevel::Info, "[Window] Window renderer: {}", CE::Renderer::rendererName);
         CE::Log(LogLevel::Info, "[Window] Max fps: {}", CE::GameInfo::maxFPS);
 
         SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
-        if (CE::Renderers::renderer == RendererBackend::OpenGL) {
+        if (CE::Renderer::renderer == RendererBackend::OpenGL) {
             windowFlags = static_cast<SDL_WindowFlags>(windowFlags |=SDL_WINDOW_OPENGL);
         }
 
@@ -65,6 +64,8 @@ namespace CE::Bootstrap::Video {
             std::exit(3);
         }
 
-        CE::Renderers::Init(CE::Global::gameWindow);
+        CE::Renderer::currentRenderer = CE::Renderer::CreateRenderer(CE::Renderer::renderer);
+
+        CE::Renderer::currentRenderer->Init(CE::Global::gameWindow);
     }
 }

@@ -581,7 +581,7 @@ MountPoint* VFS::FindMount(const std::string& virtual_path, std::string& relativ
         if (norm_path.rfind(mount->mount_path, 0) != 0)
             continue;
         const size_t mount_len = mount->mount_path.length();
-        if (norm_path.length() != mount_len && norm_path[mount_len] != '/')
+        if (mount->mount_path != "/" && norm_path.length() != mount_len && norm_path[mount_len] != '/')
             continue;
         candidates.push_back({mount.get(), mount_len});
     }

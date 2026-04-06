@@ -22,13 +22,13 @@ namespace CE::Bootstrap::GameSetup {
 
     void SetupGameInfo() {
         auto stream = CE::VFS::OpenIStream(CE::Global::GetVFS(), "/Gameinfo.txt");
-
+        
         if (!stream) {
             CE::Log(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
             ShowError("[Bootstrap] Gameinfo.txt is missing");
             std::exit(1);
         }
-
+        
         CE::Ini::IniFile ini;
         CE::Ini::ParseError err;
         CE::Ini::Options opts;

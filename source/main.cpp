@@ -3,6 +3,7 @@
 
 #include "engine/common/tracelog.hpp"
 #include "engine/core.hpp"
+#include "engine/bootstrap.hpp"
 
 int main(int argc, char *argv[]) {
     // Check for flags
@@ -12,5 +13,6 @@ int main(int argc, char *argv[]) {
     }
     CE::Log(CE::LogLevel::Info, "Cattle Engine");
     CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Core::engineVersionString);
+    CE::Bootstrap::Bootstrap();
     return 0;
 }

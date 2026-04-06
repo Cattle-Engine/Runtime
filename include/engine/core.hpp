@@ -13,6 +13,10 @@ namespace CE::Core {
     inline bool debugMode = true;
 }
 
+namespace CE {
+    void main();
+}
+
 namespace CE::Global {
     CE::VFS::VFS& GetVFS();
     void SetVFS(CE::VFS::VFS* vfs);

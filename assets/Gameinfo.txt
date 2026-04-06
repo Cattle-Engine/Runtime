@@ -1,0 +1,11 @@
+[Gameinfo]
+Game_Name = CE Engine Demo
+Game_Version = 1.0.0
+
+[Graphics]
+Window_Width = 1280
+Window_Height = 720
+Window_Title = CE Engine
+Max_FPS = 144
+Renderer = Vulkan
+Enable_VSync = false

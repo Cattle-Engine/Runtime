@@ -5,6 +5,10 @@ namespace CE::Bootstrap::GameSetup {
     void SetupGameInfo();
 }
 
+namespace CE::Bootstrap {
+    void Bootstrap();
+}
+
 namespace CE::Bootstrap::Video  {
     void Init();
 }
