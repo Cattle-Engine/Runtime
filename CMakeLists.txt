@@ -128,51 +128,37 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 # -------------------------
-# SDL3 + Windows linking
+# SDL3 (CROSS-PLATFORM FIX)
+# -------------------------
+find_package(SDL3 CONFIG QUIET)
+
+if(NOT SDL3_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3 REQUIRED sdl3)
+
+    target_include_directories(ce_engine PRIVATE ${SDL3_INCLUDE_DIRS})
+    target_link_libraries(ce_engine PRIVATE ${SDL3_LIBRARIES})
+else()
+    target_link_libraries(ce_engine PRIVATE SDL3::SDL3)
+endif()
+
+# -------------------------
+# Vulkan (needed for your renderer)
+# -------------------------
+find_package(Vulkan REQUIRED)
+target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
+
+# -------------------------
+# Windows-only extras
 # -------------------------
 if(WIN32)
-    # Try CONFIG first, then MODULE as fallback
-    find_package(SDL3 CONFIG QUIET)
-    if(NOT SDL3_FOUND)
-        find_package(SDL3 MODULE QUIET)
-    endif()
-    
-    if(SDL3_FOUND)
-        # SDL3::SDL3main may not exist in all SDL3 installations
-        if(TARGET SDL3::SDL3main)
-            target_link_libraries(ce_engine PRIVATE SDL3::SDL3 SDL3::SDL3main)
-        else()
-            target_link_libraries(ce_engine PRIVATE SDL3::SDL3)
-        endif()
-        message(STATUS "SDL3 found at: ${SDL3_DIR}")
-    else()
-        message(STATUS "SDL3 not found via find_package. Checking common installation paths...")
-        
-        # Check for manual SDL3 library installation
-        find_library(SDL3_LIB 
-            NAMES SDL3 SDL3-3.0 libSDL3.a libSDL3.dll.a
-            HINTS
-                "C:/SDL3/lib"
-                "C:/Program Files/SDL3/lib"
-                "${CMAKE_CURRENT_SOURCE_DIR}/SDL3/lib"
-            NO_DEFAULT_PATH
-        )
-        
-        if(SDL3_LIB)
-            message(STATUS "SDL3 library found: ${SDL3_LIB}")
-            target_link_libraries(ce_engine PRIVATE ${SDL3_LIB})
-        else()
-            message(FATAL_ERROR 
-                "SDL3 library not found! Please install SDL3:\\n"
-                "  Option 1 (vcpkg): vcpkg install sdl3:x64-windows\\n"
-                "  Option 2 (Manual install): Set -DSDL3_DIR when running CMake")
-        endif()
+    if(TARGET SDL3::SDL3main)
+        target_link_libraries(ce_engine PRIVATE SDL3::SDL3main)
     endif()
 
     target_link_libraries(ce_engine PRIVATE
         opengl32
 
-        # Win32 APIs (required by tinyfiledialogs)
         comdlg32
         ole32
         oleaut32
@@ -182,7 +168,6 @@ if(WIN32)
         gdi32
         shell32
     )
-
 endif()
 
 # -------------------------
