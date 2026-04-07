@@ -75,7 +75,17 @@ namespace CE::Renderer::Vulkan {
 
         SDL_ReleaseGPUTransferBuffer(gDevice, transferBuffer);
 
-        // Create shaders
+        SDL_GPUBufferCreateInfo uniformBufferInfo{};
+        uniformBufferInfo.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        uniformBufferInfo.size = sizeof(CE::Renderer::Uniforms);
+        uniformBufferInfo.props = 0;
+
+        gUniformBuffer = SDL_CreateGPUBuffer(gDevice, &uniformBufferInfo);
+        if (gUniformBuffer == nullptr) {
+            CE::Log(LogLevel::Fatal, "[Vulkan] Failed to create uniform buffer");
+            std::exit(1);
+        }
+
         SDL_GPUShaderCreateInfo vertexShaderInfo{};
         vertexShaderInfo.code = shader_vert_spv;
         vertexShaderInfo.code_size = shader_vert_spv_len;
@@ -112,7 +122,6 @@ namespace CE::Renderer::Vulkan {
             std::exit(1);
         }
 
-        // Create graphics pipeline
         SDL_GPUVertexBufferDescription vertexDesc{};
         vertexDesc.slot = 0;
         vertexDesc.pitch = sizeof(Vertex);
@@ -140,6 +149,12 @@ namespace CE::Renderer::Vulkan {
         pipelineInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         pipelineInfo.target_info.color_target_descriptions = &colorTargetDesc;
         pipelineInfo.target_info.num_color_targets = 1;
+        
+        // Configure rasterization state
+        pipelineInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+        pipelineInfo.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+        pipelineInfo.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+        pipelineInfo.rasterizer_state.enable_depth_bias = false;
 
         gPipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineInfo);
 
@@ -154,47 +169,63 @@ namespace CE::Renderer::Vulkan {
         if (gVertexShader) SDL_ReleaseGPUShader(gDevice, gVertexShader);
         if (gFragmentShader) SDL_ReleaseGPUShader(gDevice, gFragmentShader);
         if (gVertexBuffer) SDL_ReleaseGPUBuffer(gDevice, gVertexBuffer);
+        if (gUniformBuffer) SDL_ReleaseGPUBuffer(gDevice, gUniformBuffer);
         SDL_DestroyGPUDevice(gDevice);
     }
 
     void VulkanRenderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
-        if (gCommandBuffer == nullptr) {
-            CE::Log(LogLevel::Error, "[Vulkan] Failed to acquire command buffer");
+        if (!gCommandBuffer) {
             return;
         }
 
         SDL_GPUTexture* swapchainTexture;
         Uint32 width, height;
         if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchainTexture, &width, &height)) {
-            CE::Log(LogLevel::Error, "[Vulkan] Failed to acquire swapchain texture");
-            SDL_SubmitGPUCommandBuffer(gCommandBuffer);
-            return;
-        }
-
-        if (swapchainTexture == nullptr) {
             SDL_SubmitGPUCommandBuffer(gCommandBuffer);
             return;
         }
 
         SDL_GPUColorTargetInfo colorTargetInfo{};
-        colorTargetInfo.clear_color = {240.0f * inv255, 240.0f * inv255, 240.0f * inv255, 255.0f * inv255};
+        colorTargetInfo.clear_color = {240.0f * inv255, 240.0f * inv255, 240.0f * inv255, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
         colorTargetInfo.texture = swapchainTexture;
 
         gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, nullptr);
-        if (gRenderPass == nullptr) {
-            CE::Log(LogLevel::Error, "[Vulkan] Failed to begin render pass");
+        if (!gRenderPass) {
             SDL_SubmitGPUCommandBuffer(gCommandBuffer);
             return;
         }
 
+        // Set viewport
+        SDL_GPUViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.w = static_cast<float>(width);
+        viewport.h = static_cast<float>(height);
+        viewport.min_depth = 0.0f;
+        viewport.max_depth = 1.0f;
+        SDL_SetGPUViewport(gRenderPass, &viewport);
+
         SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
+
+        // Create and update uniform buffer
+        Uniforms u;
+        CE::Renderer::Utils::MakeIdentity(u.mvp);
+        CE::Renderer::Utils::MakeTranslate(u.mvp, 0.0f, 0.0f);
+
+        SDL_PushGPUVertexUniformData(
+            gCommandBuffer, 
+            0,
+            &u,
+            sizeof(u)
+        );
         SDL_GPUBufferBinding vertexBinding{};
         vertexBinding.buffer = gVertexBuffer;
         vertexBinding.offset = 0;
         SDL_BindGPUVertexBuffers(gRenderPass, 0, &vertexBinding, 1);
+
         SDL_DrawGPUPrimitives(gRenderPass, 3, 1, 0, 0);
     }
 

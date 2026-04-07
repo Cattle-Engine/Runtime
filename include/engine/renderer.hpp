@@ -40,6 +40,10 @@ namespace CE::Renderer {
         uint8_t a = 255;
     };
 
+    struct Uniforms {
+        float mvp[16];
+    };
+
     struct Vec2 {
         float x = 0.0f;
         float y = 0.0f;
@@ -71,11 +75,16 @@ namespace CE::Renderer {
 
            // virtual Texture* Load(const char* path) = 0;
            // virtual void Draw(Texture* texture, float x, float y, float w, float h, Colour colour) = 0;
-           //virtual void DrawRect(float x, float y, float w, float h) = 0;
+           // virtual void DrawRect(float x, float y, float w, float h) = 0;
            // virtual void DrawRectLines(float x, float y, float w, float h, float thickness = 1.0f) = 0;
-           //virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness = 1.0f) = 0;
-            //virtual void DrawCircleLines(float cx, float cy, float radius, int segments = 32, float thickness = 1.0f) = 0;
+           // virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness = 1.0f) = 0;
+           // virtual void DrawCircleLines(float cx, float cy, float radius, int segments = 32, float thickness = 1.0f) = 0;
 
             virtual ~IRenderer() = default;
     };
+}
+
+namespace CE::Renderer::Utils {
+    void MakeIdentity(float* m);
+    void MakeTranslate(float* m, float x, float y);
 }

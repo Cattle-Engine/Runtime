@@ -48,7 +48,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 # -------------------------
-# Shaders
+# Shaders (FIXED)
 # -------------------------
 file(GLOB SHADER_SOURCES
     ${SHADER_DIR}/*.frag
@@ -61,21 +61,27 @@ foreach(SHADER ${SHADER_SOURCES})
     get_filename_component(SHADER_NAME ${SHADER} NAME_WE)
     get_filename_component(SHADER_EXT ${SHADER} EXT)
 
-    if(SHADER_EXT STREQUAL ".frag")
-        set(HEADER ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders/${SHADER_NAME}_frag_spv.h)
-    elseif(SHADER_EXT STREQUAL ".vert")
-        set(HEADER ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders/${SHADER_NAME}_vert_spv.h)
-    endif()
+    # remove dot from extension (.frag -> frag)
+    string(REPLACE "." "" SHADER_EXT_CLEAN ${SHADER_EXT})
+
+    # clean symbol name used by xxd + C++
+    set(SYMBOL_NAME ${SHADER_NAME}_${SHADER_EXT_CLEAN}_spv)
+
+    set(HEADER ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders/${SYMBOL_NAME}.h)
 
     list(APPEND SHADER_HEADERS ${HEADER})
 
     add_custom_command(
         OUTPUT ${HEADER}
         DEPENDS ${SHADER}
+
         COMMAND ${CMAKE_COMMAND} -E make_directory
                 ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders
+
         COMMAND glslc ${SHADER} -o ${SHADER}.spv
-        COMMAND xxd -i ${SHADER}.spv > ${HEADER}
+
+        COMMAND xxd -i -n ${SYMBOL_NAME} ${SHADER}.spv ${HEADER}
+
         COMMAND ${CMAKE_COMMAND} -E rm ${SHADER}.spv
     )
 endforeach()
@@ -143,7 +149,7 @@ else()
 endif()
 
 # -------------------------
-# Vulkan (needed for your renderer)
+# Vulkan
 # -------------------------
 find_package(Vulkan REQUIRED)
 target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
@@ -158,7 +164,6 @@ if(WIN32)
 
     target_link_libraries(ce_engine PRIVATE
         opengl32
-
         comdlg32
         ole32
         oleaut32

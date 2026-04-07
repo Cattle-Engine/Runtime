@@ -20,6 +20,7 @@ namespace CE::Renderer::Vulkan {
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUShader* gVertexShader = nullptr;
             SDL_GPUShader* gFragmentShader = nullptr;
+            SDL_GPUBuffer* gUniformBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
             SDL_GPUColorTargetDescription colorTargetDesc{};
             
