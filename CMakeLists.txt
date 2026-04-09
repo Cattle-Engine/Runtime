@@ -80,6 +80,10 @@ foreach(SHADER ${SHADER_SOURCES})
 
         COMMAND glslc ${SHADER} -o ${SHADER}.spv
 
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV
+
+        COMMAND ${CMAKE_COMMAND} -E copy ${SHADER}.spv ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV/${SHADER_NAME}.${SHADER_EXT_CLEAN}.spv
+
         COMMAND xxd -i -n ${SYMBOL_NAME} ${SHADER}.spv ${HEADER}
 
         COMMAND ${CMAKE_COMMAND} -E rm ${SHADER}.spv

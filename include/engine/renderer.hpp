@@ -44,6 +44,11 @@ namespace CE::Renderer {
         float mvp[16];
     };
 
+    struct Vertex {
+        float x, y, z;   
+        Uint8 r, g, b, a;
+    };
+    
     struct Vec2 {
         float x = 0.0f;
         float y = 0.0f;
@@ -87,4 +92,13 @@ namespace CE::Renderer {
 namespace CE::Renderer::Utils {
     void MakeIdentity(float* m);
     void MakeTranslate(float* m, float x, float y);
+    SDL_GPUShader* LoadShader( 
+        SDL_GPUDevice* device,
+        const std::string& shaderfilename,
+        Uint32 samplercount,
+        Uint32 uniformbuffercount,
+        Uint32 storagebuffercount,
+        Uint32 storagetexturecount,
+        const std::string& basePath = "/shaders/"
+    );
 }
