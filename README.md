@@ -1,5 +1,7 @@
 # Cattle Engine - NO BULLSHIT
 
+THIS IS NOT IN A USABLE STATE AT ALL 
+
 Cattle engine (abbreviated to CE), is a general 2D game engine currently using Raylib (shall be moving to SDL3).
 Its techincally possible to make a game in its current state, you use lua ([Docs for it](lua_docs.md)).
 
@@ -56,9 +58,9 @@ end)
 
 ## ROADMAP!
 
-- [X] Core stuff
-- [x] Lua API
-- [X] Make game state more modular
+- [ ] Core stuff
+- [ ] Lua API
+- [ ] Make game state more modular
 - [ ] Make lua api more consistent
 - [ ] Make the plugin api
 - [ ] Make a VFS (Virtual file system, in memory)
