@@ -19,5 +19,6 @@ namespace CE::Renderer::Vulkan {
             SDL_GPURenderPass* gRenderPass = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
+            
     };
 }
