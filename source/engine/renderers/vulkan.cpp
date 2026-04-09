@@ -1,8 +1,11 @@
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/renderers/vulkan.hpp"
 #include "engine/renderer.hpp"
 #include "engine/core.hpp"
+#include "engine/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
 #include "engine/common/bootstrap.hpp"
@@ -29,7 +32,7 @@ namespace CE::Renderer::Vulkan {
         }
 
         CE::Log(LogLevel::Info, "[Vulkan] Loading vertex shader");
-        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "positioncolor.vert", 0, 0, 0, 0);
+        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0);
         
         if (vertexShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create vertex shader!");
@@ -37,7 +40,7 @@ namespace CE::Renderer::Vulkan {
         }
 
         CE::Log(LogLevel::Info, "[Vulkan] Loading fragment shader");
-        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "solidcolour.frag", 0, 0, 0, 0);
+        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 0, 1, 0, 0);
 
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create fragment shader!");
@@ -115,9 +118,9 @@ namespace CE::Renderer::Vulkan {
             transferBuffer,
             false
         ));
-        transferData[0] = (Vertex) {    -1,    -1, 0, 255,   0,   0, 255 };
-        transferData[1] = (Vertex) {     1,    -1, 0,   0, 255,   0, 255 };
-        transferData[2] = (Vertex) {     0,     1, 0,   0,   0, 255, 255 };
+        transferData[0] = { 100, 100, 0, 255, 0, 0, 255 };
+        transferData[1] = { 300, 100, 0, 0, 255, 0, 255 };
+        transferData[2] = { 300, 300, 0, 0, 0, 255, 255 };
 
         SDL_UnmapGPUTransferBuffer(gDevice, transferBuffer);
 
@@ -140,10 +143,15 @@ namespace CE::Renderer::Vulkan {
             &bufferRegion,
             false
         );
-
+        
         SDL_EndGPUCopyPass(copyPass);
         SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
         SDL_ReleaseGPUTransferBuffer(gDevice, transferBuffer);
+
+
+
+        gUBO.projection = gProjection;
+        gUBO.cameraPos = { gCamera2D.x, gCamera2D.y};
     }
 
     void VulkanRenderer::Shutdown() {

@@ -22,6 +22,7 @@ namespace CE::Renderer {
     inline std::string rendererName = "None";
 
     IRenderer* CreateRenderer(RendererBackend backend);
+    
     struct Camera2D {
         float x = 0.0f;
         float y = 0.0f;
@@ -48,17 +49,18 @@ namespace CE::Renderer {
         float x, y, z;   
         Uint8 r, g, b, a;
     };
-    
-    struct Vec2 {
-        float x = 0.0f;
-        float y = 0.0f;
-    };
 
     struct RectF {
         float x = 0.0f;
         float y = 0.0f;
         float w = 0.0f;
         float h = 0.0f;
+    };
+
+    struct CameraUBO {
+        glm::mat4 projection;
+        glm::vec2 cameraPos;
+        float pad[2];
     };
 
     struct Texture {

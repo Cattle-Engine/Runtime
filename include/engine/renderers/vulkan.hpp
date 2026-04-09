@@ -1,5 +1,8 @@
 #include "engine/renderer.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace CE::Renderer::Vulkan {
     class VulkanRenderer : public CE::Renderer::IRenderer {
         public:
@@ -19,6 +22,9 @@ namespace CE::Renderer::Vulkan {
             SDL_GPURenderPass* gRenderPass = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
-            
+            SDL_GPUBuffer* gUniformBuffer;
+            glm::mat4 gProjection;
+            CameraUBO gUBO;
+            Camera2D gCamera2D;
     };
 }
