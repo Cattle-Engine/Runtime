@@ -37,7 +37,7 @@ namespace CE::Renderer::Vulkan {
         }
 
         CE::Log(LogLevel::Info, "[Vulkan] Loading fragment shader");
-        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 0, 1, 0, 0);
+        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 0, 0, 0, 0);
 
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create fragment shader!");
@@ -69,6 +69,12 @@ namespace CE::Renderer::Vulkan {
         attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
         attrs[1].location = 1;
         attrs[1].offset = sizeof(float) * 3;
+
+        // UV, location: 2
+        attrs[2].buffer_slot = 0;
+        attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+        attrs[2].location = 2;
+        attrs[2].offset = sizeof(float) * 3 + sizeof(uint8_t) * 4;
 
         // Pipeline creation info
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
@@ -115,9 +121,9 @@ namespace CE::Renderer::Vulkan {
             transferBuffer,
             false
         ));
-        transferData[0] = (Vertex) {    -1,    -1, 0, 255,   0,   0, 255 };
-        transferData[1] = (Vertex) {     1,    -1, 0,   0, 255,   0, 255 };
-        transferData[2] = (Vertex) {     0,     1, 0,   0,   0, 255, 255 };
+        transferData[0] = (Vertex) { 100, 100, 0, 255,   0,   0, 255 };
+        transferData[1] = (Vertex) { 300, 100, 0,   0, 255,   0, 255 };
+        transferData[2] = (Vertex) { 200, 300, 0,   0,   0, 255, 255 };
 
         SDL_UnmapGPUTransferBuffer(gDevice, transferBuffer);
 
@@ -164,14 +170,12 @@ namespace CE::Renderer::Vulkan {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         int winW, winH;
         SDL_GetWindowSize(window, &winW, &winH);
-        /* glm::mat4 mvp = CE::Renderer::Utils::GetCameraMatrix(
+        glm::mat4 mvp = CE::Renderer::Utils::GetCameraMatrix(
             gCamera,
             (float)winW,
             (float)winH
-        );*/
+        );
 
-        glm::mat4 mvp = glm::mat4(1.0f);
-        
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[Vulkan] Failed to acquire command buffer");
             return;
@@ -216,13 +220,6 @@ namespace CE::Renderer::Vulkan {
                 sizeof(glm::mat4)
             );
 
-            SDL_PushGPUFragmentUniformData(
-                gCommandBuffer,
-                0,
-                &colors[gColorIndex],
-                sizeof(SDL_FColor)
-            );
-
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vertexBinding, 1);
             SDL_DrawGPUPrimitives(gRenderPass, 3, 1, 0, 0);
         }
@@ -234,5 +231,9 @@ namespace CE::Renderer::Vulkan {
         if (gCommandBuffer != nullptr) {
             SDL_SubmitGPUCommandBuffer(gCommandBuffer);
         }
+    }
+
+    void VulkanRenderer::ChangeCameraPos(float X, float Y, float zoom) {
+        gCamera = {X, Y, zoom};
     }
 }

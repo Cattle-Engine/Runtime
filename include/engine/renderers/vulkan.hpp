@@ -11,9 +11,9 @@ namespace CE::Renderer::Vulkan {
             void Init(SDL_Window* window) override;
             void Shutdown() override;
 
+            void ChangeCameraPos(float X, float Y, float zoom) override;
+        
             void BeginFrame(SDL_Window* window) override;
-            
-
             void EndFrame(SDL_Window* window) override;
 
         private:

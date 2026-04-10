@@ -43,8 +43,9 @@ namespace CE::Renderer {
     };
 
     struct Vertex {
-        float x, y, z;   
-        Uint8 r, g, b, a;
+        float x, y, z;
+        uint8_t r, g, b, a;
+        float u, v;
     };
 
     struct Texture {
@@ -64,7 +65,7 @@ namespace CE::Renderer {
             virtual void BeginFrame(SDL_Window* window) = 0;
             virtual void EndFrame(SDL_Window* window) = 0;
 
-           // virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
+            virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
            // virtual Texture* Load(const char* path) = 0;
            // virtual void Draw(Texture* texture, float x, float y, float w, float h, Colour colour) = 0;
            // virtual void DrawRect(float x, float y, float w, float h) = 0;

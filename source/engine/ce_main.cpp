@@ -7,6 +7,8 @@ namespace CE {
     void main() {
         SDL_Event event;
         
+        int prevZoom;
+
         while (!CE::State::shouldExit) {
             // Poll for events
             while (SDL_PollEvent(&event)) {
