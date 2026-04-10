@@ -1,4 +1,6 @@
 #include <SDL3/SDL.h>
+#include <limits>
+#include <cassert>
 
 #include "engine/renderers/vulkan.hpp"
 #include "engine/renderer.hpp"
@@ -8,13 +10,14 @@
 #include "engine/common/bootstrap.hpp"
 
 namespace CE::Renderer::Vulkan {
+
     void VulkanRenderer::PreWinInit() {
         return;
     }
 
     void VulkanRenderer::Init(SDL_Window* window) {
         gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
-        CE::Core::debugMode, "vulkan");
+            CE::Core::debugMode, "vulkan");
 
         if (gDevice == nullptr) {
             CE::Log(LogLevel::Fatal, "[Vulkan] Unable to find gpu with vulkan support");
@@ -25,12 +28,11 @@ namespace CE::Renderer::Vulkan {
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
             CE::Log(LogLevel::Fatal, "[Vulkan] Unable to bind window to GPU: {}", SDL_GetError());
             ShowError("[Vulkan] Unable to bind window to gpu device");
-            CE::Shutdown::DurBootstrapShutdown(); 
+            CE::Shutdown::DurBootstrapShutdown();
         }
 
         CE::Log(LogLevel::Info, "[Vulkan] Loading vertex shader");
         SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0);
-        
         if (vertexShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create vertex shader!");
             CE::Shutdown::DurBootstrapShutdown();
@@ -38,7 +40,6 @@ namespace CE::Renderer::Vulkan {
 
         CE::Log(LogLevel::Info, "[Vulkan] Loading fragment shader");
         SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 0, 0, 0, 0);
-
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create fragment shader!");
             CE::Shutdown::DurBootstrapShutdown();
@@ -53,187 +54,219 @@ namespace CE::Renderer::Vulkan {
         vbDesc.slot = 0;
         vbDesc.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
         vbDesc.instance_step_rate = 0;
-        vbDesc.pitch = sizeof(Vertex); 
+        vbDesc.pitch = sizeof(Vertex);
 
         // Vertex attributes
-        SDL_GPUVertexAttribute attrs[2]{};
+        SDL_GPUVertexAttribute attrs[3]{};
 
-        // Position, location: 0
         attrs[0].buffer_slot = 0;
-        attrs[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-        attrs[0].location = 0;
-        attrs[0].offset = 0;
+        attrs[0].format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+        attrs[0].location    = 0;
+        attrs[0].offset      = 0;
 
-        // Colour, location: 1
         attrs[1].buffer_slot = 0;
-        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
-        attrs[1].location = 1;
-        attrs[1].offset = sizeof(float) * 3;
+        attrs[1].format      = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
+        attrs[1].location    = 1;
+        attrs[1].offset      = sizeof(float) * 3;
 
-        // UV, location: 2
         attrs[2].buffer_slot = 0;
-        attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-        attrs[2].location = 2;
-        attrs[2].offset = sizeof(float) * 3 + sizeof(uint8_t) * 4;
+        attrs[2].format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+        attrs[2].location    = 2;
+        attrs[2].offset      = sizeof(float) * 3 + sizeof(uint8_t) * 4;
 
-        // Pipeline creation info
+        // Pipeline
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
-        pipelineCreateInfo.target_info.num_color_targets = 1;
+        pipelineCreateInfo.target_info.num_color_targets        = 1;
         pipelineCreateInfo.target_info.color_target_descriptions = &colorDesc;
 
-        pipelineCreateInfo.vertex_input_state.num_vertex_buffers = 1;
+        pipelineCreateInfo.vertex_input_state.num_vertex_buffers      = 1;
         pipelineCreateInfo.vertex_input_state.vertex_buffer_descriptions = &vbDesc;
+        pipelineCreateInfo.vertex_input_state.num_vertex_attributes   = 3;
+        pipelineCreateInfo.vertex_input_state.vertex_attributes       = attrs;
 
-        pipelineCreateInfo.vertex_input_state.num_vertex_attributes = 2;
-        pipelineCreateInfo.vertex_input_state.vertex_attributes = attrs;
-
-        pipelineCreateInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-        pipelineCreateInfo.vertex_shader = vertexShader;
+        pipelineCreateInfo.primitive_type  = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+        pipelineCreateInfo.vertex_shader   = vertexShader;
         pipelineCreateInfo.fragment_shader = fragmentShader;
 
-        // Create pipeline
         CE::Log(LogLevel::Info, "[Vulkan] Creating graphics pipeline");
         gPipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
-
         if (!gPipeline) {
-            SDL_Log("Failed to create pipeline: %s", SDL_GetError());
+            CE::Log(LogLevel::Fatal, "[Vulkan] Failed to create pipeline: {}", SDL_GetError());
             CE::Shutdown::DurBootstrapShutdown();
         }
-        CE::Log(LogLevel::Info, "[Vulkan] Created graphics pipeline");
 
-        // Cleanup the old shaders
-         CE::Log(LogLevel::Info, "[Vulkan] Cleaning up shaders");
         SDL_ReleaseGPUShader(gDevice, vertexShader);
         SDL_ReleaseGPUShader(gDevice, fragmentShader);
+        CE::Log(LogLevel::Info, "[Vulkan] Created graphics pipeline");
 
-        SDL_GPUBufferCreateInfo vertexBufferInfo{};
-        vertexBufferInfo.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-        vertexBufferInfo.size = sizeof(Vertex) * 3;
-        gVertexBuffer = SDL_CreateGPUBuffer(gDevice, &vertexBufferInfo);
+        // Vertex buffer
+        SDL_GPUBufferCreateInfo vbInfo{};
+        vbInfo.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        vbInfo.size  = sizeof(Vertex) * MAX_VERTS;
+        gVertexBuffer = SDL_CreateGPUBuffer(gDevice, &vbInfo);
 
-        SDL_GPUTransferBufferCreateInfo transferBufferInfo{};
-        transferBufferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-        transferBufferInfo.size = sizeof(Vertex) * 3;
-        SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(gDevice, &transferBufferInfo);
+        // Index buffer
+        SDL_GPUBufferCreateInfo ibInfo{};
+        ibInfo.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+        ibInfo.size  = sizeof(uint16_t) * MAX_INDICES;
+        gIndexBuffer = SDL_CreateGPUBuffer(gDevice, &ibInfo);
 
-        Vertex* transferData = static_cast<Vertex*>(SDL_MapGPUTransferBuffer(
-            gDevice,
-            transferBuffer,
-            false
-        ));
-        transferData[0] = (Vertex) { 100, 100, 0, 255,   0,   0, 255 };
-        transferData[1] = (Vertex) { 300, 100, 0,   0, 255,   0, 255 };
-        transferData[2] = (Vertex) { 200, 300, 0,   0,   0, 255, 255 };
+        // Transfer buffers
+        SDL_GPUTransferBufferCreateInfo tvInfo{};
+        tvInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        tvInfo.size  = sizeof(Vertex) * MAX_VERTS;
+        gTransferVerts = SDL_CreateGPUTransferBuffer(gDevice, &tvInfo);
 
-        SDL_UnmapGPUTransferBuffer(gDevice, transferBuffer);
+        SDL_GPUTransferBufferCreateInfo tiInfo{};
+        tiInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        tiInfo.size  = sizeof(uint16_t) * MAX_INDICES;
+        gTransferIdx = SDL_CreateGPUTransferBuffer(gDevice, &tiInfo);
 
-    	// Upload the transfer data to the vertex buffer
-        SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
-
-        SDL_GPUTransferBufferLocation transferLocation{};
-        transferLocation.transfer_buffer = transferBuffer;
-        transferLocation.offset = 0;
-
-        SDL_GPUBufferRegion bufferRegion{};
-        bufferRegion.buffer = gVertexBuffer;
-        bufferRegion.offset = 0;
-        bufferRegion.size = sizeof(Vertex) * 3;
-
-        SDL_UploadToGPUBuffer(
-            copyPass,
-            &transferLocation,
-            &bufferRegion,
-            false
-        );
-
-        SDL_EndGPUCopyPass(copyPass);
-        SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
-        SDL_ReleaseGPUTransferBuffer(gDevice, transferBuffer);
+        CE::Log(LogLevel::Info, "[Vulkan] Batch buffers created");
     }
 
     void VulkanRenderer::Shutdown() {
-        if (gPipeline) {
-            SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
-        }
-
-        if (gVertexBuffer != nullptr) {
-            SDL_ReleaseGPUBuffer(gDevice, gVertexBuffer);
-        }
-        
-        if (gDevice != nullptr) {
-            SDL_DestroyGPUDevice(gDevice);
-        }
+        if (gVertexBuffer)  SDL_ReleaseGPUBuffer(gDevice, gVertexBuffer);
+        if (gIndexBuffer)   SDL_ReleaseGPUBuffer(gDevice, gIndexBuffer);
+        if (gTransferVerts) SDL_ReleaseGPUTransferBuffer(gDevice, gTransferVerts);
+        if (gTransferIdx)   SDL_ReleaseGPUTransferBuffer(gDevice, gTransferIdx);
+        if (gPipeline)      SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
+        if (gDevice)        SDL_DestroyGPUDevice(gDevice);
     }
 
     void VulkanRenderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
-        int winW, winH;
-        SDL_GetWindowSize(window, &winW, &winH);
-        glm::mat4 mvp = CE::Renderer::Utils::GetCameraMatrix(
-            gCamera,
-            (float)winW,
-            (float)winH
-        );
-
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[Vulkan] Failed to acquire command buffer");
             return;
         }
 
-        SDL_GPUTexture* swapchaintexture;
+        int winW, winH;
+        SDL_GetWindowSize(window, &winW, &winH);
+        gMVP = CE::Renderer::Utils::GetCameraMatrix(gCamera, (float)winW, (float)winH);
 
-        if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchaintexture, NULL, NULL)) {
-            CE::Log(LogLevel::Error ,"Failed to acquire swap chain texture failed: {}", SDL_GetError());
+        SDL_GPUTexture* swapchainTexture;
+        if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchainTexture, NULL, NULL)) {
+            CE::Log(LogLevel::Error, "[Vulkan] Failed to acquire swapchain texture: {}", SDL_GetError());
+            return;
         }
 
-        if (swapchaintexture != nullptr) {
-            SDL_GPUColorTargetInfo colorTargetInfo{};
-            colorTargetInfo.texture = swapchaintexture;
-            colorTargetInfo.clear_color = (SDL_FColor){ 0.0f, 0.0f, 0.0f, 1.0f };
-            colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-            colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
+        if (swapchainTexture == nullptr) return;
 
-            gRenderPass = SDL_BeginGPURenderPass(
-                gCommandBuffer,
-                &colorTargetInfo,
-                1,
-                NULL
-            );
+        SDL_GPUColorTargetInfo colorTargetInfo{};
+        colorTargetInfo.texture     = swapchainTexture;
+        colorTargetInfo.clear_color = gClearColor;
+        colorTargetInfo.load_op     = SDL_GPU_LOADOP_CLEAR;
+        colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
 
-            SDL_GPUBufferBinding vertexBinding{};
-            vertexBinding.buffer = gVertexBuffer;
-            vertexBinding.offset = 0;
+        gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, NULL);
 
-            SDL_FColor colors[3] = {
-                {1, 0, 0, 1},
-                {0, 1, 0, 1},
-                {0, 0, 1, 1}
-            };
+        SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
+        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &gMVP, sizeof(glm::mat4));
 
-            SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
+        // Map batch buffers for this frame
+        gMappedVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
+        gMappedIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
+        gVertCount     = 0;
+        gIndexCount    = 0;
+    }
 
-            SDL_PushGPUVertexUniformData(
-                gCommandBuffer,
-                0,
-                &mvp,
-                sizeof(glm::mat4)
-            );
-
-            SDL_BindGPUVertexBuffers(gRenderPass, 0, &vertexBinding, 1);
-            SDL_DrawGPUPrimitives(gRenderPass, 3, 1, 0, 0);
+    void VulkanRenderer::DrawRect(float x, float y, float w, float h,
+                                   uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
+            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping rect");
+            return;
         }
+
+        uint16_t base = gVertCount;
+
+        gMappedVerts[base + 0] = { x,     y,     0, r, g, b, a, 0, 0 };
+        gMappedVerts[base + 1] = { x + w, y,     0, r, g, b, a, 0, 0 };
+        gMappedVerts[base + 2] = { x + w, y + h, 0, r, g, b, a, 0, 0 };
+        gMappedVerts[base + 3] = { x,     y + h, 0, r, g, b, a, 0, 0 };
+
+        gMappedIndices[gIndexCount++] = base;
+        gMappedIndices[gIndexCount++] = base + 1;
+        gMappedIndices[gIndexCount++] = base + 2;
+        gMappedIndices[gIndexCount++] = base + 2;
+        gMappedIndices[gIndexCount++] = base + 3;
+        gMappedIndices[gIndexCount++] = base;
+
+        gVertCount += 4;
+    }
+
+    void VulkanRenderer::DrawTriangle(
+        float x0, float y0,
+        float x1, float y1,
+        float x2, float y2,
+        uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) {
+            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping triangle");
+            return;
+        }
+
+        uint16_t base = gVertCount;
+
+        gMappedVerts[base + 0] = { x0, y0, 0, r, g, b, a, 0, 0 };
+        gMappedVerts[base + 1] = { x1, y1, 0, r, g, b, a, 0, 0 };
+        gMappedVerts[base + 2] = { x2, y2, 0, r, g, b, a, 0, 0 };
+
+        gMappedIndices[gIndexCount++] = base;
+        gMappedIndices[gIndexCount++] = base + 1;
+        gMappedIndices[gIndexCount++] = base + 2;
+
+        gVertCount += 3;
     }
 
     void VulkanRenderer::EndFrame(SDL_Window* window) {
-        SDL_EndGPURenderPass(gRenderPass);
+        SDL_UnmapGPUTransferBuffer(gDevice, gTransferVerts);
+        SDL_UnmapGPUTransferBuffer(gDevice, gTransferIdx);
 
-        if (gCommandBuffer != nullptr) {
-            SDL_SubmitGPUCommandBuffer(gCommandBuffer);
+        if (gIndexCount > 0) {
+            size_t vSize = sizeof(Vertex) * gVertCount;
+            size_t iSize = sizeof(uint16_t) * gIndexCount;
+
+            assert(vSize <= std::numeric_limits<Uint32>::max());
+            assert(iSize <= std::numeric_limits<Uint32>::max());
+
+            SDL_GPUCommandBuffer* uploadCmd = SDL_AcquireGPUCommandBuffer(gDevice);
+            SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(uploadCmd);
+
+            SDL_GPUTransferBufferLocation vLoc{ gTransferVerts, 0 };
+            SDL_GPUBufferRegion vReg{
+                gVertexBuffer,
+                0,
+                static_cast<Uint32>(vSize)
+            };
+            SDL_UploadToGPUBuffer(copy, &vLoc, &vReg, true);
+
+            SDL_GPUTransferBufferLocation iLoc{ gTransferIdx, 0 };
+            SDL_GPUBufferRegion iReg {
+                gIndexBuffer,
+                0,
+                static_cast<Uint32>(iSize)
+            };
+            SDL_UploadToGPUBuffer(copy, &iLoc, &iReg, true);
+
+            SDL_EndGPUCopyPass(copy);
+            SDL_SubmitGPUCommandBuffer(uploadCmd);
+
+            SDL_GPUBufferBinding vBind{ gVertexBuffer, 0 };
+            SDL_GPUBufferBinding iBind{ gIndexBuffer,  0 };
+            SDL_BindGPUVertexBuffers(gRenderPass, 0, &vBind, 1);
+            SDL_BindGPUIndexBuffer(gRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+            SDL_DrawGPUIndexedPrimitives(gRenderPass, gIndexCount, 1, 0, 0, 0);
         }
+
+        SDL_EndGPURenderPass(gRenderPass);
+        SDL_SubmitGPUCommandBuffer(gCommandBuffer);
     }
 
     void VulkanRenderer::ChangeCameraPos(float X, float Y, float zoom) {
-        gCamera = {X, Y, zoom};
+        gCamera = { X, Y, zoom };
+    }
+
+    void VulkanRenderer::SetClearColor(float r, float g, float b, float a) {
+        gClearColor = { r, g, b, a };
     }
 }
