@@ -22,9 +22,8 @@ namespace CE::Renderer::Vulkan {
             SDL_GPURenderPass* gRenderPass = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
-            SDL_GPUBuffer* gUniformBuffer;
-            glm::mat4 gProjection;
-            CameraUBO gUBO;
-            Camera2D gCamera2D;
+            SDL_GPUBuffer* gUniformBuffer = nullptr;
+            Camera2D gCamera;
+            int gColorIndex = 0;
     };
 }

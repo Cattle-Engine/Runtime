@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstdint>
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
 
 enum class RendererBackend {
     Software,
@@ -41,26 +42,9 @@ namespace CE::Renderer {
         uint8_t a = 255;
     };
 
-    struct Uniforms {
-        float mvp[16];
-    };
-
     struct Vertex {
         float x, y, z;   
         Uint8 r, g, b, a;
-    };
-
-    struct RectF {
-        float x = 0.0f;
-        float y = 0.0f;
-        float w = 0.0f;
-        float h = 0.0f;
-    };
-
-    struct CameraUBO {
-        glm::mat4 projection;
-        glm::vec2 cameraPos;
-        float pad[2];
     };
 
     struct Texture {
@@ -80,6 +64,7 @@ namespace CE::Renderer {
             virtual void BeginFrame(SDL_Window* window) = 0;
             virtual void EndFrame(SDL_Window* window) = 0;
 
+           // virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
            // virtual Texture* Load(const char* path) = 0;
            // virtual void Draw(Texture* texture, float x, float y, float w, float h, Colour colour) = 0;
            // virtual void DrawRect(float x, float y, float w, float h) = 0;
@@ -92,8 +77,6 @@ namespace CE::Renderer {
 }
 
 namespace CE::Renderer::Utils {
-    void MakeIdentity(float* m);
-    void MakeTranslate(float* m, float x, float y);
     SDL_GPUShader* LoadShader( 
         SDL_GPUDevice* device,
         const std::string& shaderfilename,
@@ -103,4 +86,7 @@ namespace CE::Renderer::Utils {
         Uint32 storagetexturecount,
         const std::string& basePath = "/shaders/"
     );
+    glm::mat4 GetView(const Camera2D& cam);
+    glm::mat4 GetProjection(float width, float height);
+    glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h);
 }

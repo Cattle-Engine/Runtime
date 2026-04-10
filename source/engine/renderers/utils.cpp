@@ -1,23 +1,14 @@
 #include <SDL3/SDL.h>
 #include <string>
 #include <memory>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/core.hpp"
 
 namespace CE::Renderer::Utils {
-    void MakeIdentity(float* m) {
-        for (int i = 0; i < 16; i++) m[i] = 0.0f;
-        m[0] = m[5] = m[10] = m[15] = 1.0f;
-    }
-
-    void MakeTranslate(float* m, float x, float y) {
-        MakeIdentity(m);
-        m[3] = x;
-        m[7] = y;
-    }
-
     SDL_GPUShader* LoadShader(
         SDL_GPUDevice* device,
         const std::string& shaderfilename,
@@ -108,5 +99,28 @@ namespace CE::Renderer::Utils {
 
         CE::Log(LogLevel::Info, "[Renderer Utils] [LoadShader] Successfully loaded shader: {}", fullPath);
         return shader;
+    }
+
+    glm::mat4 GetView(const Camera2D& cam) {
+        glm::mat4 view(1.0f);
+
+        view = glm::translate(view, glm::vec3(-cam.x, -cam.y, 0.0f));
+        view = glm::scale(view, glm::vec3(cam.zoom, cam.zoom, 1.0f));
+        return view;
+    }
+
+    glm::mat4 GetProjection(float width, float height) {
+    return glm::ortho(
+            0.0f, width,
+            height, 0.0f,   // flipped top left.
+            -1.0f, 1.0f
+        );
+    }
+
+    glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h) {
+        glm::mat4 proj = GetProjection(w, h);
+        glm::mat4 view = GetView(cam);
+
+        return proj * view;
     }
 }

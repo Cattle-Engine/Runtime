@@ -1,11 +1,8 @@
 #include <SDL3/SDL.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/renderers/vulkan.hpp"
 #include "engine/renderer.hpp"
 #include "engine/core.hpp"
-#include "engine/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
 #include "engine/common/bootstrap.hpp"
@@ -118,9 +115,9 @@ namespace CE::Renderer::Vulkan {
             transferBuffer,
             false
         ));
-        transferData[0] = { 100, 100, 0, 255, 0, 0, 255 };
-        transferData[1] = { 300, 100, 0, 0, 255, 0, 255 };
-        transferData[2] = { 300, 300, 0, 0, 0, 255, 255 };
+        transferData[0] = (Vertex) {    -1,    -1, 0, 255,   0,   0, 255 };
+        transferData[1] = (Vertex) {     1,    -1, 0,   0, 255,   0, 255 };
+        transferData[2] = (Vertex) {     0,     1, 0,   0,   0, 255, 255 };
 
         SDL_UnmapGPUTransferBuffer(gDevice, transferBuffer);
 
@@ -143,15 +140,10 @@ namespace CE::Renderer::Vulkan {
             &bufferRegion,
             false
         );
-        
+
         SDL_EndGPUCopyPass(copyPass);
         SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
         SDL_ReleaseGPUTransferBuffer(gDevice, transferBuffer);
-
-
-
-        gUBO.projection = gProjection;
-        gUBO.cameraPos = { gCamera2D.x, gCamera2D.y};
     }
 
     void VulkanRenderer::Shutdown() {
@@ -170,7 +162,16 @@ namespace CE::Renderer::Vulkan {
 
     void VulkanRenderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
+        int winW, winH;
+        SDL_GetWindowSize(window, &winW, &winH);
+        /* glm::mat4 mvp = CE::Renderer::Utils::GetCameraMatrix(
+            gCamera,
+            (float)winW,
+            (float)winH
+        );*/
 
+        glm::mat4 mvp = glm::mat4(1.0f);
+        
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[Vulkan] Failed to acquire command buffer");
             return;
@@ -200,7 +201,28 @@ namespace CE::Renderer::Vulkan {
             vertexBinding.buffer = gVertexBuffer;
             vertexBinding.offset = 0;
 
+            SDL_FColor colors[3] = {
+                {1, 0, 0, 1},
+                {0, 1, 0, 1},
+                {0, 0, 1, 1}
+            };
+
             SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
+
+            SDL_PushGPUVertexUniformData(
+                gCommandBuffer,
+                0,
+                &mvp,
+                sizeof(glm::mat4)
+            );
+
+            SDL_PushGPUFragmentUniformData(
+                gCommandBuffer,
+                0,
+                &colors[gColorIndex],
+                sizeof(SDL_FColor)
+            );
+
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vertexBinding, 1);
             SDL_DrawGPUPrimitives(gRenderPass, 3, 1, 0, 0);
         }
