@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vector>
 
 namespace CE::Renderer::Vulkan {
     // Internal struct 
@@ -9,6 +10,16 @@ namespace CE::Renderer::Vulkan {
     struct VulkanTexData {
         SDL_GPUTexture* gpuTex  = nullptr;
         SDL_GPUSampler* sampler = nullptr;
+    };
+
+    struct TexVertexBatch {
+        VulkanTexData* texture = nullptr;
+
+        uint32_t vertOffset = 0;
+        uint32_t vertCount  = 0;
+
+        uint32_t idxOffset  = 0;
+        uint32_t idxCount   = 0;
     };
 
     class VulkanRenderer : public CE::Renderer::IRenderer {
@@ -72,12 +83,19 @@ namespace CE::Renderer::Vulkan {
             VulkanTexData*   gBoundTex     = nullptr;
             CE::Renderer::Vertex* gMappedTexVerts   = nullptr;
             uint16_t*             gMappedTexIndices = nullptr;
-            uint32_t              gTexVertCount     = 0;
             uint32_t              gTexIndexCount    = 0;
             SDL_GPUBuffer*         gTexVertexBuffer = nullptr;
             SDL_GPUBuffer*         gTexIndexBuffer  = nullptr;
             SDL_GPUTransferBuffer* gTransferTexVerts = nullptr;
             SDL_GPUTransferBuffer* gTransferTexIdx   = nullptr;
+            std::vector<TexVertexBatch> gTexBatches;
+
+            Vertex*   gTexVerts  = nullptr;
+            uint16_t* gTexIndices = nullptr; 
+
+            uint32_t gTexVertCount  = 0;
+
+            VulkanTexData* gCurrentTex = nullptr;
 
             glm::mat4 gMVP{};
     };

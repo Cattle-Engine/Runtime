@@ -210,7 +210,6 @@ namespace CE::Renderer::Vulkan {
         if (gPipeline)      SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
         if (gWhiteSampler) SDL_ReleaseGPUSampler(gDevice, gWhiteSampler);
         if (gWhiteTex)     SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
-        if (gTexVertexBuffer)  SDL_ReleaseGPUBuffer(gDevice, gTexVertexBuffer);
         if (gTexIndexBuffer)   SDL_ReleaseGPUBuffer(gDevice, gTexIndexBuffer);
         if (gTransferTexVerts) SDL_ReleaseGPUTransferBuffer(gDevice, gTransferTexVerts);
         if (gTransferTexIdx)   SDL_ReleaseGPUTransferBuffer(gDevice, gTransferTexIdx);
@@ -247,59 +246,61 @@ namespace CE::Renderer::Vulkan {
         SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
         SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &gMVP, sizeof(glm::mat4));
 
-        // Always bind white texture as default so the sampler is never missing
         SDL_GPUTextureSamplerBinding defaultBinding{};
         defaultBinding.texture = gWhiteTex;
         defaultBinding.sampler = gWhiteSampler;
         SDL_BindGPUFragmentSamplers(gRenderPass, 0, &defaultBinding, 1);
 
+        gVertCount  = 0;
+        gIndexCount = 0;
+
+        gTexVertCount  = 0;
+        gTexIndexCount = 0;
+
+        gTexBatches.clear();
+        gCurrentTex = nullptr;
+
         gMappedVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
         gMappedIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
-        gVertCount     = 0;
-        gIndexCount    = 0;
-        gBoundTex      = nullptr;
+
         gMappedTexVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexVerts, true);
         gMappedTexIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
-        gTexVertCount     = 0;
-        gTexIndexCount    = 0;
     }
 
     void VulkanRenderer::EndFrame(SDL_Window* window) {
+        (void)window;
+
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferVerts);
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferIdx);
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexVerts);
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexIdx);
 
         SDL_GPUCommandBuffer* uploadCmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass*      copy      = SDL_BeginGPUCopyPass(uploadCmd);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(uploadCmd);
 
         if (gIndexCount > 0) {
-            size_t vSize = sizeof(Vertex)   * gVertCount;
+            size_t vSize = sizeof(Vertex) * gVertCount;
             size_t iSize = sizeof(uint16_t) * gIndexCount;
-            assert(vSize <= std::numeric_limits<Uint32>::max());
-            assert(iSize <= std::numeric_limits<Uint32>::max());
 
             SDL_GPUTransferBufferLocation vLoc{ gTransferVerts, 0 };
-            SDL_GPUBufferRegion           vReg{ gVertexBuffer, 0, static_cast<Uint32>(vSize) };
+            SDL_GPUBufferRegion vReg{ gVertexBuffer, 0, (Uint32)vSize };
             SDL_UploadToGPUBuffer(copy, &vLoc, &vReg, true);
 
             SDL_GPUTransferBufferLocation iLoc{ gTransferIdx, 0 };
-            SDL_GPUBufferRegion           iReg{ gIndexBuffer, 0, static_cast<Uint32>(iSize) };
+            SDL_GPUBufferRegion iReg{ gIndexBuffer, 0, (Uint32)iSize };
             SDL_UploadToGPUBuffer(copy, &iLoc, &iReg, true);
         }
 
         if (gTexIndexCount > 0) {
-            size_t vSize = sizeof(Vertex)   * gTexVertCount;
+            size_t vSize = sizeof(Vertex) * gTexVertCount;
             size_t iSize = sizeof(uint16_t) * gTexIndexCount;
-            assert(vSize <= std::numeric_limits<Uint32>::max());
-            assert(iSize <= std::numeric_limits<Uint32>::max());
 
             SDL_GPUTransferBufferLocation vLoc{ gTransferTexVerts, 0 };
-            SDL_GPUBufferRegion           vReg{ gTexVertexBuffer, 0, static_cast<Uint32>(vSize) };
+            SDL_GPUBufferRegion vReg{ gTexVertexBuffer, 0, (Uint32)vSize };
             SDL_UploadToGPUBuffer(copy, &vLoc, &vReg, true);
 
             SDL_GPUTransferBufferLocation iLoc{ gTransferTexIdx, 0 };
-            SDL_GPUBufferRegion           iReg{ gTexIndexBuffer, 0, static_cast<Uint32>(iSize) };
+            SDL_GPUBufferRegion iReg{ gTexIndexBuffer, 0, (Uint32)iSize };
             SDL_UploadToGPUBuffer(copy, &iLoc, &iReg, true);
         }
 
@@ -312,26 +313,41 @@ namespace CE::Renderer::Vulkan {
 
             SDL_GPUBufferBinding vBind{ gVertexBuffer, 0 };
             SDL_GPUBufferBinding iBind{ gIndexBuffer,  0 };
+
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vBind, 1);
             SDL_BindGPUIndexBuffer(gRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
             SDL_DrawGPUIndexedPrimitives(gRenderPass, gIndexCount, 1, 0, 0, 0);
         }
 
-        if (gTexIndexCount > 0 && gBoundTex) {
-            SDL_GPUTextureSamplerBinding binding{ gBoundTex->gpuTex, gBoundTex->sampler };
+        for (const auto& batch : gTexBatches) {
+            if (batch.idxCount == 0) continue;
+
+            SDL_GPUTextureSamplerBinding binding{
+                batch.texture->gpuTex,
+                batch.texture->sampler
+            };
+
             SDL_BindGPUFragmentSamplers(gRenderPass, 0, &binding, 1);
 
             SDL_GPUBufferBinding vBind{ gTexVertexBuffer, 0 };
             SDL_GPUBufferBinding iBind{ gTexIndexBuffer,  0 };
+
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vBind, 1);
             SDL_BindGPUIndexBuffer(gRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-            SDL_DrawGPUIndexedPrimitives(gRenderPass, gTexIndexCount, 1, 0, 0, 0);
+
+            SDL_DrawGPUIndexedPrimitives(
+                gRenderPass,
+                batch.idxCount,
+                1,
+                batch.idxOffset,
+                0,
+                0
+            );
         }
 
         SDL_EndGPURenderPass(gRenderPass);
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
-
-        gBoundTex = nullptr;
     }
 
     void VulkanRenderer::DrawRect(float x, float y, float w, float h,
@@ -586,33 +602,53 @@ namespace CE::Renderer::Vulkan {
         return tex;
     }
 
-    void VulkanRenderer::DrawTex(Texture* texture, float x, float y,
+        void VulkanRenderer::DrawTex(Texture* texture, float x, float y,
                                 float w, float h, Colour colour) {
         if (!texture || !texture->handle) return;
 
-        if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[Vulkan] Tex batch full, skipping DrawTex");
+        auto* tex = static_cast<VulkanTexData*>(texture->handle);
+
+        if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES)
             return;
+
+        // If texture changes → start new batch
+        if (gCurrentTex != tex) {
+            gTexBatches.push_back({
+                tex,
+                gTexVertCount,
+                0,
+                gTexIndexCount,
+                0
+            });
+
+            gCurrentTex = tex;
         }
 
-        gBoundTex = static_cast<VulkanTexData*>(texture->handle);
-
-        uint8_t  r    = colour.r, g = colour.g, b = colour.b, a = colour.a;
         uint16_t base = (uint16_t)gTexVertCount;
 
-        gMappedTexVerts[base + 0] = { x,     y,     0, r, g, b, a, 0.0f, 0.0f };
-        gMappedTexVerts[base + 1] = { x + w, y,     0, r, g, b, a, 1.0f, 0.0f };
-        gMappedTexVerts[base + 2] = { x + w, y + h, 0, r, g, b, a, 1.0f, 1.0f };
-        gMappedTexVerts[base + 3] = { x,     y + h, 0, r, g, b, a, 0.0f, 1.0f };
+        uint8_t r = colour.r, g = colour.g, b = colour.b, a = colour.a;
 
-        gMappedTexIndices[gTexIndexCount++] = base;
-        gMappedTexIndices[gTexIndexCount++] = base + 1;
-        gMappedTexIndices[gTexIndexCount++] = base + 2;
-        gMappedTexIndices[gTexIndexCount++] = base + 2;
-        gMappedTexIndices[gTexIndexCount++] = base + 3;
-        gMappedTexIndices[gTexIndexCount++] = base;
+        gMappedTexVerts[base + 0] = { x,     y,     0, r, g, b, a, 0, 0 };
+        gMappedTexVerts[base + 1] = { x + w, y,     0, r, g, b, a, 1, 0 };
+        gMappedTexVerts[base + 2] = { x + w, y + h, 0, r, g, b, a, 1, 1 };
+        gMappedTexVerts[base + 3] = { x,     y + h, 0, r, g, b, a, 0, 1 };
 
-        gTexVertCount += 4;
+        gMappedTexIndices[gTexIndexCount + 0] = base;
+        gMappedTexIndices[gTexIndexCount + 1] = base + 1;
+        gMappedTexIndices[gTexIndexCount + 2] = base + 2;
+        gMappedTexIndices[gTexIndexCount + 3] = base + 2;
+        gMappedTexIndices[gTexIndexCount + 4] = base + 3;
+        gMappedTexIndices[gTexIndexCount + 5] = base;
+
+        gTexIndexCount += 6;
+        gTexVertCount  += 4;
+
+        // update batch sizes
+        gTexBatches.back().vertCount =
+            gTexVertCount - gTexBatches.back().vertOffset;
+
+        gTexBatches.back().idxCount =
+            gTexIndexCount - gTexBatches.back().idxOffset;
     }
 
     void VulkanRenderer::UnloadTex(Texture* texture) {
