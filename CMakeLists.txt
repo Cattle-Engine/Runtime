@@ -75,9 +75,6 @@ foreach(SHADER ${SHADER_SOURCES})
         OUTPUT ${HEADER}
         DEPENDS ${SHADER}
 
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-                ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders
-
         COMMAND glslc ${SHADER} -o ${SHADER}.spv
 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV
@@ -150,6 +147,21 @@ if(NOT SDL3_FOUND)
     target_link_libraries(ce_engine PRIVATE ${SDL3_LIBRARIES})
 else()
     target_link_libraries(ce_engine PRIVATE SDL3::SDL3)
+endif()
+
+# -------------------------
+# SDL_image
+# -------------------------
+find_package(SDL3_image CONFIG QUIET)
+
+if(NOT SDL3_image_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3_IMAGE REQUIRED SDL3_image)
+
+    target_include_directories(ce_engine PRIVATE ${SDL3_IMAGE_INCLUDE_DIRS})
+    target_link_libraries(ce_engine PRIVATE ${SDL3_IMAGE_LIBRARIES})
+else()
+    target_link_libraries(ce_engine PRIVATE SDL3_image::SDL3_image)
 endif()
 
 # -------------------------

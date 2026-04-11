@@ -4,6 +4,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace CE::Renderer::Vulkan {
+    // Internal struct 
+    // Stores the GPU-side texture + sampler behind Texture::handle.
+    struct VulkanTexData {
+        SDL_GPUTexture* gpuTex  = nullptr;
+        SDL_GPUSampler* sampler = nullptr;
+    };
+
     class VulkanRenderer : public CE::Renderer::IRenderer {
         public:
             void PreWinInit() override;
@@ -14,9 +21,30 @@ namespace CE::Renderer::Vulkan {
             void ChangeCameraPos(float X, float Y, float zoom) override;
         
             void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
-            void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2,
-                            uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+            
+            void DrawTriangle(
+                float x0, float y0,
+                float x1, float y1,
+                float x2, float y2,
+                uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+
+            void DrawCircle(float cx, float cy, float radius,
+                                     int segments,
+                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+            void DrawLine(float x1, float y1, float x2, float y2,
+                                   float thickness,
+                                   uint8_t r, uint8_t g, uint8_t b, uint8_t a);
             void SetClearColor(float r, float g, float b, float a) override;
+
+            Texture* LoadTex(const char* path) override;
+            void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour) override;
+            void UnloadTex(Texture* texture) override;
+            void DrawRectLines(float x, float y, float w, float h,
+                                        float thickness,
+                                        uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+            void DrawCircleLines(float cx, float cy, float radius,
+                                          int segments, float thickness,
+                                          uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
 
             void BeginFrame(SDL_Window* window) override;
             void EndFrame(SDL_Window* window) override;
@@ -39,6 +67,17 @@ namespace CE::Renderer::Vulkan {
             uint32_t  gVertCount     = 0;
             uint32_t  gIndexCount    = 0;
             SDL_FColor gClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+            SDL_GPUTexture*  gWhiteTex     = nullptr;
+            SDL_GPUSampler*  gWhiteSampler = nullptr;
+            VulkanTexData*   gBoundTex     = nullptr;
+            CE::Renderer::Vertex* gMappedTexVerts   = nullptr;
+            uint16_t*             gMappedTexIndices = nullptr;
+            uint32_t              gTexVertCount     = 0;
+            uint32_t              gTexIndexCount    = 0;
+            SDL_GPUBuffer*         gTexVertexBuffer = nullptr;
+            SDL_GPUBuffer*         gTexIndexBuffer  = nullptr;
+            SDL_GPUTransferBuffer* gTransferTexVerts = nullptr;
+            SDL_GPUTransferBuffer* gTransferTexIdx   = nullptr;
 
             glm::mat4 gMVP{};
     };
