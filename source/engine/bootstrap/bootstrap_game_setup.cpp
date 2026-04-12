@@ -1,27 +1,22 @@
 #include <string>
 
-#include "engine/core.hpp"
-#include "engine/gameinfo.hpp"
-#include "engine/renderer.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/bootstrap.hpp"
 #include "engine/common/vfs_stl.hpp"
-#include "engine/common/error_box.hpp"
+#include "engine/common/tracelog.hpp"
 #include "engine/common/ini.hpp"
+#include "engine/common/error_box.hpp"
 
-namespace CE::Bootstrap::GameSetup {
-    void SetupGameData() {
-        static CE::VFS::VFS g_vfs;
-        CE::Global::SetVFS(&g_vfs);
-        CE::Global::GetVFS().MountArchive(CE::GameInfo::dataFileName, "/", LoadMode::OnDemand);
+namespace CE::Bootstrap {
+    void Init_GameData(VFS::VFS *vfs, GameInfo* gameinfo, bool debugmode) {
+        vfs->MountArchive(gameinfo->dataFileName, "/", LoadMode::OnDemand);
         
-        if (CE::Core::debugMode) {
-            CE::Global::GetVFS().MountFolder("assets/", "/", LoadMode::OnDemand, 10);
+        if (debugmode) {
+            vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
         }
     }
 
-    void SetupGameInfo() {
-        auto stream = CE::VFS::OpenIStream(CE::Global::GetVFS(), "/Gameinfo.txt");
+    void Init_GameinInfo(VFS::VFS* vfs, GameInfo* gameinfo, bool debugmode) {
+        auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
         
         if (!stream) {
             CE::Log(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
@@ -48,24 +43,27 @@ namespace CE::Bootstrap::GameSetup {
 
         if (!ini.has("Gameinfo", "Game_Name") || !ini.has("Gameinfo", "Game_Version") 
             ||  !ini.has("Graphics", "Window_Width") || !ini.has("Graphics", "Window_Height")
-            || !ini.has("Graphics", "Max_FPS")) 
+            || !ini.has("Graphics", "Max_FPS") || ini.has("Grapics", "Fullscreen") 
+            || !ini.has("Graphics", "Resizable_Window"))
             {
                 CE::Log(LogLevel::Fatal, "[Bootstrap] Missing required game info");
                 ShowError("[Bootstrap] Missing required game info");
                 std::exit(2);
             }
 
-        CE::GameInfo::gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
-        CE::GameInfo::gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
+        gameinfo->gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
+        gameinfo->gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
 
-        CE::GameInfo::windowWidth = ini.get_int("Graphics", "Window_Width", 0);
-        CE::GameInfo::windowHeight = ini.get_int("Graphics", "Window_Height", 0);
-        CE::GameInfo::windowTitle = ini.get_string("Graphics", "Window_Title", "");
-        CE::GameInfo::maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
-        CE::Renderer::rendererName = ini.get_string("Graphics", "Renderer", "None");
-        CE::GameInfo::enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
+        gameinfo->windowWidth = ini.get_int("Graphics", "Window_Width", 0);
+        gameinfo->windowHeight = ini.get_int("Graphics", "Window_Height", 0);
+        gameinfo->windowTitle = ini.get_string("Graphics", "Window_Title", "");
+        gameinfo->maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
+        gameinfo->rendererName = ini.get_string("Graphics", "Renderer", "None");
+        gameinfo->enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
+        gameinfo->fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
+        gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
 
-        CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", CE::GameInfo::gameNameString);
-        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", CE::GameInfo::gameVersionString);
+        CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
+        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
     }
 }

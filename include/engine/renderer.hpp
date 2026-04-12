@@ -61,7 +61,7 @@ namespace CE::Renderer {
         public:
                 virtual void PreWinInit() = 0;
             
-                virtual void Init(SDL_Window* window) = 0;
+                virtual void Init(SDL_Window* window, bool debug) = 0;
                 virtual void Shutdown() = 0;
 
                 virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
@@ -93,6 +93,8 @@ namespace CE::Renderer {
                 virtual void BeginFrame(SDL_Window* window) = 0;
                 virtual void EndFrame(SDL_Window* window) = 0;
                
+                virtual Texture* GetErrorTexture() = 0;
+
                 virtual int Debug_GetVertCount() = 0;
                 virtual int Debug_GetIndexCount() = 0;
                 virtual int Debug_GetTexIndexCount() = 0;

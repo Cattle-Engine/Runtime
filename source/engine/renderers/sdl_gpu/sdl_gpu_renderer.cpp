@@ -22,21 +22,21 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return;
     }
 
-    void SDL_GPU_Renderer::Init(SDL_Window* window) {
+    void SDL_GPU_Renderer::Init(SDL_Window* window, bool debugvideo) {
         switch (gBackend) {
             case (RendererBackend::Vulkan):
                 gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
-                    CE::Core::debugMode, "vulkan");
+                    debugvideo, "vulkan");
                 break;
             
             case (RendererBackend::Metal):
                 gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL,
-                    CE::Core::debugMode, "metal");
+                    debugvideo, "metal");
                 break;
 
             case (RendererBackend::DX12):
                 gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL,
-                    CE::Core::debugMode, "direct3d12");
+                    debugvideo, "direct3d12");
                 break;
             
             default:
@@ -620,13 +620,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not stat '{}' (missing or empty)", path);
-            return GetErrorTexture();
+            return nullptr;
         }
 
         VirtualFile* vf = vfs.OpenFile(path);
         if (!vf) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
-            return GetErrorTexture();
+            return nullptr;
         }
 
         std::vector<uint8_t> fileBytes((size_t)sz);
@@ -636,20 +636,20 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
-            return GetErrorTexture();
+            return nullptr;
         }
 
         SDL_Surface* surface = IMG_Load_IO(mem, true); 
         if (!surface) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
-            return GetErrorTexture();
+            return nullptr;
         }
 
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_ConvertSurface failed: {}", SDL_GetError());
-            return GetErrorTexture();
+            return nullptr;
         }
 
         int    w        = converted->w;
@@ -669,7 +669,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (!gpuTex) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(converted);
-            return GetErrorTexture();
+            return nullptr;
         }
 
         SDL_GPUTransferBufferCreateInfo tbInfo{};

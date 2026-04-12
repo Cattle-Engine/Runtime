@@ -6,15 +6,20 @@
     #define CE_DATA_FILE_NAME "data.tcf"
 #endif
 
-namespace CE::GameInfo {
-    inline std::string gameNameString;
-    inline std::string gameVersionString;
+namespace CE {
+    struct GameInfo {
+        std::string gameNameString;
+        std::string gameVersionString;
 
-    inline int windowHeight;
-    inline int windowWidth;
-    inline std::string windowTitle;
-    inline int maxFPS;
-    inline bool enableVSync;
+        int windowHeight;
+        int windowWidth;
+        std::string windowTitle;
+        int maxFPS;
+        bool enableVSync;
+        std::string rendererName;
+        bool fullscreen;
+        bool resizableWindow;
 
-    inline const char* dataFileName = CE_DATA_FILE_NAME;
+        const char* dataFileName;
+    };
 }

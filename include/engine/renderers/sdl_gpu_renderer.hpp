@@ -29,7 +29,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             void PreWinInit() override;
         
-            void Init(SDL_Window* window) override;
+            void Init(SDL_Window* window, bool debugvideo) override;
             void Shutdown() override;
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
@@ -62,6 +62,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             void BeginFrame(SDL_Window* window) override;
             void EndFrame(SDL_Window* window) override;
+
+            Texture* GetErrorTexture() override;
 
             int Debug_GetVertCount() override;
             int Debug_GetIndexCount() override;
@@ -103,7 +105,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUTexture* gErrorTex = nullptr;
             SDL_GPUSampler* gErrorSampler = nullptr;
             RendererBackend gBackend;
-            Texture* GetErrorTexture();
     };
 }
 
