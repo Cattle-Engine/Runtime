@@ -4,16 +4,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-namespace CE::Renderer::Vulkan {
+
+namespace CE::Renderer::SDL_GPU_Renderer {
     // Internal struct 
     // Stores the GPU-side texture + sampler behind Texture::handle.
-    struct VulkanTexData {
+    struct SDLGPUTexData {
         SDL_GPUTexture* gpuTex  = nullptr;
         SDL_GPUSampler* sampler = nullptr;
     };
 
     struct TexVertexBatch {
-        VulkanTexData* texture = nullptr;
+        SDLGPUTexData* texture = nullptr;
 
         uint32_t vertOffset = 0;
         uint32_t vertCount  = 0;
@@ -22,8 +23,10 @@ namespace CE::Renderer::Vulkan {
         uint32_t idxCount   = 0;
     };
 
-    class VulkanRenderer : public CE::Renderer::IRenderer {
+    class SDL_GPU_Renderer : public CE::Renderer::IRenderer {
         public:
+            SDL_GPU_Renderer(RendererBackend backend);
+
             void PreWinInit() override;
         
             void Init(SDL_Window* window) override;
@@ -44,7 +47,7 @@ namespace CE::Renderer::Vulkan {
                                      uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
             void DrawLine(float x1, float y1, float x2, float y2,
                                    float thickness,
-                                   uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+                                   uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
             void SetClearColor(float r, float g, float b, float a) override;
 
             Texture* LoadTex(const char* path) override;
@@ -59,6 +62,12 @@ namespace CE::Renderer::Vulkan {
 
             void BeginFrame(SDL_Window* window) override;
             void EndFrame(SDL_Window* window) override;
+
+            int Debug_GetVertCount() override;
+            int Debug_GetIndexCount() override;
+            int Debug_GetTexIndexCount() override;
+            int Debug_GetTexVertCount() override;
+            Camera2D* GetCamera() override;
 
         private:
             SDL_GPUDevice* gDevice = nullptr;
@@ -80,7 +89,6 @@ namespace CE::Renderer::Vulkan {
             SDL_FColor gClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
             SDL_GPUTexture*  gWhiteTex     = nullptr;
             SDL_GPUSampler*  gWhiteSampler = nullptr;
-            VulkanTexData*   gBoundTex     = nullptr;
             CE::Renderer::Vertex* gMappedTexVerts   = nullptr;
             uint16_t*             gMappedTexIndices = nullptr;
             uint32_t              gTexIndexCount    = 0;
@@ -89,14 +97,30 @@ namespace CE::Renderer::Vulkan {
             SDL_GPUTransferBuffer* gTransferTexVerts = nullptr;
             SDL_GPUTransferBuffer* gTransferTexIdx   = nullptr;
             std::vector<TexVertexBatch> gTexBatches;
-
-            Vertex*   gTexVerts  = nullptr;
-            uint16_t* gTexIndices = nullptr; 
-
             uint32_t gTexVertCount  = 0;
-
-            VulkanTexData* gCurrentTex = nullptr;
-
+            SDLGPUTexData* gCurrentTex = nullptr;
             glm::mat4 gMVP{};
+            RendererBackend gBackend;
     };
+}
+
+namespace CE::Renderer::SDL_GPU_Renderer::Utils {
+    SDL_GPUShader* LoadShader( 
+        SDL_GPUDevice* device,
+        const std::string& shaderfilename,
+        Uint32 samplercount,
+        Uint32 uniformbuffercount,
+        Uint32 storagebuffercount,
+        Uint32 storagetexturecount,
+        const std::string& basePath = "/shaders/"
+    );
+    glm::mat4 GetView(const Camera2D& cam);
+    glm::mat4 GetProjection(float width, float height);
+    glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h);
+}
+
+namespace CE::Renderer::SDL_GPU_Renderer::ImGuiImpl {
+    void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
+    void ImGuiNewFrame();
+    void Shutdown();
 }

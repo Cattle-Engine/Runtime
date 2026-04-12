@@ -4,11 +4,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "engine/renderer.hpp"
+#include "engine/renderers/sdl_gpu_renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/core.hpp"
 
-namespace CE::Renderer::Utils {
+namespace CE::Renderer::SDL_GPU_Renderer::Utils {
     SDL_GPUShader* LoadShader(
         SDL_GPUDevice* device,
         const std::string& shaderfilename,
@@ -78,18 +78,16 @@ namespace CE::Renderer::Utils {
             return nullptr;
         }
 
-
-        SDL_GPUShaderCreateInfo shaderinfo = {
-            .code_size = static_cast<size_t>(fileSize),
-            .code = shaderData.data(),
-            .entrypoint = entrypoint,
-            .format = format,
-            .stage = stage,
-            .num_samplers = samplercount,
-            .num_storage_textures = storagetexturecount,
-            .num_storage_buffers = storagebuffercount,
-            .num_uniform_buffers = uniformbuffercount
-        };
+        SDL_GPUShaderCreateInfo shaderinfo{};
+        shaderinfo.code_size = static_cast<size_t>(fileSize);
+        shaderinfo.code = shaderData.data();
+        shaderinfo.entrypoint = entrypoint;
+        shaderinfo.format = format;
+        shaderinfo.stage = stage;
+        shaderinfo.num_samplers = samplercount;
+        shaderinfo.num_storage_textures = storagetexturecount;
+        shaderinfo.num_storage_buffers = storagebuffercount;
+        shaderinfo.num_uniform_buffers = uniformbuffercount;
 
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderinfo);
         if (shader == nullptr) {

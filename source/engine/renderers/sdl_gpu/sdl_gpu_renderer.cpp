@@ -4,9 +4,10 @@
 #include <cassert>
 #include <cmath>
 
-#include "engine/renderers/vulkan.hpp"
+#include "engine/renderers/sdl_gpu_renderer.hpp"
 #include "engine/renderer.hpp"
 #include "engine/core.hpp"
+#include "engine/common/shutdown.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
 #include "engine/common/bootstrap.hpp"
@@ -16,38 +17,57 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace CE::Renderer::Vulkan {
-    void VulkanRenderer::PreWinInit() {
+namespace CE::Renderer::SDL_GPU_Renderer {
+    void SDL_GPU_Renderer::PreWinInit() {
         return;
     }
 
-    void VulkanRenderer::Init(SDL_Window* window) {
-        gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
-            CE::Core::debugMode, "vulkan");
+    void SDL_GPU_Renderer::Init(SDL_Window* window) {
+        switch (gBackend) {
+            case (RendererBackend::Vulkan):
+                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
+                    CE::Core::debugMode, "vulkan");
+                break;
+            
+            case (RendererBackend::Metal):
+                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL,
+                    CE::Core::debugMode, "metal");
+                break;
+
+            case (RendererBackend::DX12):
+                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL,
+                    CE::Core::debugMode, "direct3d12");
+                break;
+            
+            default:
+                CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Got invalid RendererBackend");
+                CE::Shutdown::DurBootstrapShutdown();
+                break;
+        }
 
         if (gDevice == nullptr) {
-            CE::Log(LogLevel::Fatal, "[Vulkan] Unable to find gpu with vulkan support");
-            ShowError("[Vulkan] Unable to find a gpu with vulkan support");
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to find gpu with vulkan support");
+            ShowError("[SDL_GPU Renderer] Unable to find a gpu with vulkan support");
             CE::Shutdown::DurBootstrapShutdown();
         }
 
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
-            CE::Log(LogLevel::Fatal, "[Vulkan] Unable to bind window to GPU: {}", SDL_GetError());
-            ShowError("[Vulkan] Unable to bind window to gpu device");
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
+            ShowError("[SDL_GPU Renderer] Unable to bind window to gpu device");
             CE::Shutdown::DurBootstrapShutdown();
         }
 
-        CE::Log(LogLevel::Info, "[Vulkan] Loading vertex shader");
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading vertex shader");
         SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0);
         if (vertexShader == nullptr) {
-            CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create vertex shader!");
+            CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create vertex shader!");
             CE::Shutdown::DurBootstrapShutdown();
         }
 
-        CE::Log(LogLevel::Info, "[Vulkan] Loading fragment shader");
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading fragment shader");
         SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0);
         if (fragmentShader == nullptr) {
-            CE::Log(CE::LogLevel::Fatal, "[Vulkan] Failed to create fragment shader!");
+            CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create fragment shader!");
             CE::Shutdown::DurBootstrapShutdown();
         }
 
@@ -94,16 +114,35 @@ namespace CE::Renderer::Vulkan {
         pipelineCreateInfo.vertex_shader   = vertexShader;
         pipelineCreateInfo.fragment_shader = fragmentShader;
 
-        CE::Log(LogLevel::Info, "[Vulkan] Creating graphics pipeline");
+        SDL_GPUColorTargetBlendState blend{};
+        blend.enable_blend = true;
+
+        blend.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+        blend.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+        blend.color_blend_op = SDL_GPU_BLENDOP_ADD;
+
+        blend.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+        blend.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+        blend.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+
+        blend.color_write_mask =
+            SDL_GPU_COLORCOMPONENT_R |
+            SDL_GPU_COLORCOMPONENT_G |
+            SDL_GPU_COLORCOMPONENT_B |
+            SDL_GPU_COLORCOMPONENT_A;
+
+        colorDesc.blend_state = blend;
+
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Creating graphics pipeline");
         gPipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
         if (!gPipeline) {
-            CE::Log(LogLevel::Fatal, "[Vulkan] Failed to create pipeline: {}", SDL_GetError());
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create pipeline: {}", SDL_GetError());
             CE::Shutdown::DurBootstrapShutdown();
         }
 
         SDL_ReleaseGPUShader(gDevice, vertexShader);
         SDL_ReleaseGPUShader(gDevice, fragmentShader);
-        CE::Log(LogLevel::Info, "[Vulkan] Created graphics pipeline");
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Created graphics pipeline");
 
         // Vertex buffer
         SDL_GPUBufferCreateInfo vbInfo{};
@@ -149,7 +188,7 @@ namespace CE::Renderer::Vulkan {
         ttiInfo.size  = sizeof(uint16_t) * MAX_INDICES;
         gTransferTexIdx = SDL_CreateGPUTransferBuffer(gDevice, &ttiInfo);
 
-        CE::Log(LogLevel::Info, "[Vulkan] Batch buffers created");
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Batch buffers created");
 
         uint8_t white[4] = { 255, 255, 255, 255 };
 
@@ -199,10 +238,10 @@ namespace CE::Renderer::Vulkan {
         wSampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         gWhiteSampler = SDL_CreateGPUSampler(gDevice, &wSampInfo);
 
-        CE::Log(LogLevel::Info, "[Vulkan] White fallback texture created");
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
     }
 
-    void VulkanRenderer::Shutdown() {
+    void SDL_GPU_Renderer::Shutdown() {
         if (gVertexBuffer)  SDL_ReleaseGPUBuffer(gDevice, gVertexBuffer);
         if (gIndexBuffer)   SDL_ReleaseGPUBuffer(gDevice, gIndexBuffer);
         if (gTransferVerts) SDL_ReleaseGPUTransferBuffer(gDevice, gTransferVerts);
@@ -216,20 +255,20 @@ namespace CE::Renderer::Vulkan {
         if (gDevice)        SDL_DestroyGPUDevice(gDevice);
     }
 
-    void VulkanRenderer::BeginFrame(SDL_Window* window) {
+    void SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
-            CE::Log(LogLevel::Fatal, "[Vulkan] Failed to acquire command buffer");
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
             return;
         }
 
         int winW, winH;
         SDL_GetWindowSize(window, &winW, &winH);
-        gMVP = CE::Renderer::Utils::GetCameraMatrix(gCamera, (float)winW, (float)winH);
+        gMVP = Utils::GetCameraMatrix(gCamera, (float)winW, (float)winH);
 
         SDL_GPUTexture* swapchainTexture;
         if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchainTexture, NULL, NULL)) {
-            CE::Log(LogLevel::Error, "[Vulkan] Failed to acquire swapchain texture: {}", SDL_GetError());
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
             return;
         }
 
@@ -267,7 +306,7 @@ namespace CE::Renderer::Vulkan {
         gMappedTexIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
     }
 
-    void VulkanRenderer::EndFrame(SDL_Window* window) {
+    void SDL_GPU_Renderer::EndFrame(SDL_Window* window) {
         (void)window;
 
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferVerts);
@@ -350,10 +389,10 @@ namespace CE::Renderer::Vulkan {
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
     }
 
-    void VulkanRenderer::DrawRect(float x, float y, float w, float h,
+    void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
                                 uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping rect");
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping rect");
             return;
         }
 
@@ -374,7 +413,7 @@ namespace CE::Renderer::Vulkan {
         gVertCount += 4;
     }
 
-    void VulkanRenderer::DrawRectLines(float x, float y, float w, float h,
+    void SDL_GPU_Renderer::DrawRectLines(float x, float y, float w, float h,
                                         float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         DrawLine(x,     y,     x + w, y,     thickness, r, g, b, a); // top
@@ -383,13 +422,13 @@ namespace CE::Renderer::Vulkan {
         DrawLine(x,     y + h, x,     y,     thickness, r, g, b, a); // left
     }
 
-    void VulkanRenderer::DrawTriangle(
+    void SDL_GPU_Renderer::DrawTriangle(
         float x0, float y0,
         float x1, float y1,
         float x2, float y2,
         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping triangle");
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping triangle");
             return;
         }
 
@@ -406,11 +445,11 @@ namespace CE::Renderer::Vulkan {
         gVertCount += 3;
     }
 
-    void VulkanRenderer::DrawLine(float x1, float y1, float x2, float y2,
+    void SDL_GPU_Renderer::DrawLine(float x1, float y1, float x2, float y2,
                                 float thickness,
                                 uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping line");
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping line");
             return;
         }
 
@@ -440,7 +479,7 @@ namespace CE::Renderer::Vulkan {
         gVertCount += 4;
     }
 
-    void VulkanRenderer::DrawCircle(float cx, float cy, float radius,
+    void SDL_GPU_Renderer::DrawCircle(float cx, float cy, float radius,
                                     int segments,
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if (segments < 3) segments = 3;
@@ -449,7 +488,7 @@ namespace CE::Renderer::Vulkan {
         uint32_t iNeeded = (uint32_t)(segments * 3);
 
         if (gVertCount + vNeeded > MAX_VERTS || gIndexCount + iNeeded > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[Vulkan] Batch full, skipping circle");
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping circle");
             return;
         }
 
@@ -478,7 +517,7 @@ namespace CE::Renderer::Vulkan {
         gVertCount += (uint32_t)segments;
     }
 
-    void VulkanRenderer::DrawCircleLines(float cx, float cy, float radius,
+    void SDL_GPU_Renderer::DrawCircleLines(float cx, float cy, float radius,
                                         int segments, float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if (segments < 3) segments = 3;
@@ -493,18 +532,18 @@ namespace CE::Renderer::Vulkan {
     }
 
 
-    Texture* VulkanRenderer::LoadTex(const char* path) {
+    Texture* SDL_GPU_Renderer::LoadTex(const char* path) {
         CE::VFS::VFS& vfs = CE::Global::GetVFS();
 
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
-            CE::Log(LogLevel::Error, "[Vulkan] VFS could not stat '{}' (missing or empty)", path);
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not stat '{}' (missing or empty)", path);
             return nullptr;
         }
 
         VirtualFile* vf = vfs.OpenFile(path);
         if (!vf) {
-            CE::Log(LogLevel::Error, "[Vulkan] VFS could not open '{}'", path);
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
             return nullptr;
         }
 
@@ -514,20 +553,20 @@ namespace CE::Renderer::Vulkan {
 
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
-            CE::Log(LogLevel::Error, "[Vulkan] SDL_IOFromConstMem failed: {}", SDL_GetError());
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
             return nullptr;
         }
 
         SDL_Surface* surface = IMG_Load_IO(mem, true); 
         if (!surface) {
-            CE::Log(LogLevel::Error, "[Vulkan] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
             return nullptr;
         }
 
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE::Log(LogLevel::Error, "[Vulkan] SDL_ConvertSurface failed: {}", SDL_GetError());
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_ConvertSurface failed: {}", SDL_GetError());
             return nullptr;
         }
 
@@ -546,7 +585,7 @@ namespace CE::Renderer::Vulkan {
 
         SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
         if (!gpuTex) {
-            CE::Log(LogLevel::Error, "[Vulkan] SDL_CreateGPUTexture failed: {}", SDL_GetError());
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(converted);
             return nullptr;
         }
@@ -589,7 +628,7 @@ namespace CE::Renderer::Vulkan {
         sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
 
-        VulkanTexData* data = new VulkanTexData();
+        SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex        = gpuTex;
         data->sampler       = SDL_CreateGPUSampler(gDevice, &sampInfo);
 
@@ -602,11 +641,11 @@ namespace CE::Renderer::Vulkan {
         return tex;
     }
 
-        void VulkanRenderer::DrawTex(Texture* texture, float x, float y,
+        void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
                                 float w, float h, Colour colour) {
         if (!texture || !texture->handle) return;
 
-        auto* tex = static_cast<VulkanTexData*>(texture->handle);
+        auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
 
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES)
             return;
@@ -651,10 +690,10 @@ namespace CE::Renderer::Vulkan {
             gTexIndexCount - gTexBatches.back().idxOffset;
     }
 
-    void VulkanRenderer::UnloadTex(Texture* texture) {
+    void SDL_GPU_Renderer::UnloadTex(Texture* texture) {
         if (!texture) return;
         if (texture->handle) {
-            auto* data = static_cast<VulkanTexData*>(texture->handle);
+            auto* data = static_cast<SDLGPUTexData*>(texture->handle);
             if (data->sampler) SDL_ReleaseGPUSampler(gDevice, data->sampler);
             if (data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, data->gpuTex);
             delete data;
@@ -662,12 +701,36 @@ namespace CE::Renderer::Vulkan {
         delete texture;
     }
 
-    void VulkanRenderer::ChangeCameraPos(float X, float Y, float zoom) {
+    void SDL_GPU_Renderer::ChangeCameraPos(float X, float Y, float zoom) {
         gCamera = { X, Y, zoom };
     }
 
-    void VulkanRenderer::SetClearColor(float r, float g, float b, float a) {
+    void SDL_GPU_Renderer::SetClearColor(float r, float g, float b, float a) {
         gClearColor = { r, g, b, a };
     }
 
+    int SDL_GPU_Renderer::Debug_GetVertCount() {
+        return static_cast<int>(gVertCount);
+    }
+
+    int SDL_GPU_Renderer::Debug_GetIndexCount() {
+        return static_cast<int>(gIndexCount);
+    }
+
+    int SDL_GPU_Renderer::Debug_GetTexIndexCount() {
+        return static_cast<int>(gTexIndexCount);
+    }
+
+    int SDL_GPU_Renderer::Debug_GetTexVertCount() {
+        return static_cast<int>(gTexIndexCount);
+    }
+
+    Camera2D* SDL_GPU_Renderer::GetCamera() {
+        return &gCamera;
+    }
+
+    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend)
+        : gBackend(backend)
+    {
+    }
 }

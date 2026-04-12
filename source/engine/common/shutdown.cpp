@@ -2,7 +2,6 @@
 
 #include "engine/core.hpp"
 #include "engine/renderer.hpp"
-#include "engine/core.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Shutdown {
@@ -24,15 +23,18 @@ namespace CE::Shutdown {
     }
     
     void NormalShutdown() {
+        CE::Log(LogLevel::Info, "[Shutdown] Normal shutdown called!");
         CE::Log(LogLevel::Info, "[Shutdown] Unmounting game data");
         if (!CE::Global::GetVFS().Unmount("/")) {
             CE::Log(LogLevel::Error, "[Shutdown] Error unmounting game data");
         }
-
+        CE::Log(LogLevel::Info, "[Shutdown] Closing window");
         if (CE::Global::gameWindow != nullptr) {
             SDL_DestroyWindow(CE::Global::gameWindow);
         }
-
+        CE::Log(LogLevel::Info, "[Shutdown] Shutting down renderer");
         CE::Renderer::currentRenderer->Shutdown();
+
+        std::exit(0);
     }
 }
