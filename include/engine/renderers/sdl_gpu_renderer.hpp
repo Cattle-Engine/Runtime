@@ -100,7 +100,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             uint32_t gTexVertCount  = 0;
             SDLGPUTexData* gCurrentTex = nullptr;
             glm::mat4 gMVP{};
+            SDL_GPUTexture* gErrorTex = nullptr;
+            SDL_GPUSampler* gErrorSampler = nullptr;
             RendererBackend gBackend;
+            Texture* GetErrorTexture();
     };
 }
 

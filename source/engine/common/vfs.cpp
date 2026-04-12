@@ -177,8 +177,10 @@ bool VFS::FileExists(const char* virtual_path)
 
     std::string rel_path;
     MountPoint* mount = FindMount(virtual_path, rel_path);
-    (void)rel_path;
-    return mount != nullptr;
+    if (!mount)
+        return false;
+
+    return mount_has_file(mount, rel_path);
 }
 
 bool VFS::GetFileSize(const char* virtual_path, uint64_t& out_size)
