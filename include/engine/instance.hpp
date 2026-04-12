@@ -1,11 +1,13 @@
 #pragma once
 
+#include <memory>
+#include <SDL3/SDL.h>
+
 #include "engine/common/vfs.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap.hpp"
 #include "engine/gameinfo.hpp"
-#include <SDL3/SDL.h>
 
 namespace CE {
     class Instance {
@@ -13,13 +15,13 @@ namespace CE {
             Instance(const char* data_file_name, bool debugmode);
             ~Instance();
         private:
-            CE::VFS::VFS gVFS;
+            CE::VFS::VFS* gVFS;;
             SDL_Window* gWindow = nullptr;
             CE::Renderer::IRenderer* gRenderer = nullptr;
             CE::Assets::Textures::TextureManager* gTextureManager = nullptr;
-            CE::GameInfo gGameInfo;
+            CE::GameInfo* gGameInfo;
             RendererBackend gRendererBackend = RendererBackend::None;
-            bool debugMode;
+            bool gDebug;
             bool shouldExit;
     };
 }
