@@ -7,21 +7,22 @@
 #include "engine/common/error_box.hpp"
 
 namespace CE::Bootstrap {
-    void Init_GameData(VFS::VFS *vfs, GameInfo* gameinfo, bool debugmode) {
+    int Init_GameData(VFS::VFS *vfs, GameInfo* gameinfo, bool debugmode) {
         vfs->MountArchive(gameinfo->dataFileName, "/", LoadMode::OnDemand);
         
         if (debugmode) {
             vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
         }
+        return 0;
     }
 
-    void Init_GameInfo(VFS::VFS* vfs, GameInfo* gameinfo, bool debugmode) {
+    int Init_GameInfo(VFS::VFS* vfs, GameInfo* gameinfo, bool debugmode) {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
         
         if (!stream) {
             CE::Log(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
             ShowError("[Bootstrap] Gameinfo.txt is missing");
-            std::exit(1);
+            return 1;
         }
         
         CE::Ini::IniFile ini;
@@ -38,7 +39,7 @@ namespace CE::Bootstrap {
         if (!CE::Ini::parse(text, ini, &err, opts)) {
             CE::Log(LogLevel::Error, "[Bootstrap] Failed to parse Gameinfo.txt");
             ShowError("[Bootstrap] Failed to parse Gameinfo.txt");
-            return;
+            return 2;;
         }
 
         if (!ini.has("Gameinfo", "Game_Name") || !ini.has("Gameinfo", "Game_Version") 
@@ -48,7 +49,7 @@ namespace CE::Bootstrap {
             {
                 CE::Log(LogLevel::Fatal, "[Bootstrap] Missing required game info");
                 ShowError("[Bootstrap] Missing required game info");
-                std::exit(2);
+                return 3;;
             }
 
         gameinfo->gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
@@ -64,6 +65,7 @@ namespace CE::Bootstrap {
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
 
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
-        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
+        CE::Log(LogLevel::Info, "[Bootstrap Info] Game ve>rsion: {}", gameinfo->gameVersionString);
+        return 0;
     }
 }

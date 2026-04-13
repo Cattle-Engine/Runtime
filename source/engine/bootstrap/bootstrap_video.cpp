@@ -7,11 +7,11 @@
 #include <SDL3/SDL.h>
 
 namespace CE::Bootstrap {
-    void Init_Video(GameInfo* gameinfo, bool debugvideo, CE::Renderer::IRenderer* renderer, RendererBackend backend, SDL_Window* window) {
+    int Init_Video(GameInfo* gameinfo, bool debugvideo, CE::Renderer::IRenderer* renderer, RendererBackend backend, SDL_Window* window) {
         if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
-            std::exit(3);
+            return 1;
         }
         
         if (gameinfo->rendererName == "None") {
@@ -28,8 +28,7 @@ namespace CE::Bootstrap {
             backend = RendererBackend::Vulkan;
         } else {
             CE::Log(CE::LogLevel::Fatal, "[Bootstrap] Unknown renderer");
-            ShowError("[Bootstrap] Unknown renderer");
-            std::exit(4);
+            return 2;
         }
 
         renderer = CE::Renderer::CreateRenderer(backend);
@@ -66,5 +65,6 @@ namespace CE::Bootstrap {
         }
 
         renderer->Init(window, debugvideo);
+        return 0;
     }
 }
