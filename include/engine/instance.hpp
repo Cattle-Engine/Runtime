@@ -9,19 +9,30 @@
 #include "engine/bootstrap.hpp"
 #include "engine/gameinfo.hpp"
 
+// A global to get all instances
+Uint64 GLOBALINSTANCESCOUNTER;
+
 namespace CE {
     class Instance {
         public:
             Instance(const char* data_file_name, bool debugmode);
+            int Update();
+            bool ShouldExit();
             ~Instance();
         private:
             std::unique_ptr<CE::VFS::VFS> gVFS;
             std::unique_ptr<CE::GameInfo> gGameInfo;
+            std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
+            std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
+            
             SDL_Window* gWindow = nullptr;
-            CE::Renderer::IRenderer* gRenderer = nullptr;
-            CE::Assets::Textures::TextureManager* gTextureManager = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;
             bool gDebug;
-            bool shouldExit;
+            bool gShouldExit;
+
+            // The id for the instance
+            int gInstanceID;
+            // The id for the window in the instance, provided by SDL
+            int gInstanceWindowID;
     };
 }

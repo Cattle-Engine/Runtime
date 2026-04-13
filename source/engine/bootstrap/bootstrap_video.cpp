@@ -7,7 +7,8 @@
 #include <SDL3/SDL.h>
 
 namespace CE::Bootstrap {
-    int Init_Video(GameInfo* gameinfo, bool debugvideo, CE::Renderer::IRenderer* renderer, RendererBackend backend, SDL_Window* window) {
+    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
+        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window* window) {
         if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
@@ -31,7 +32,9 @@ namespace CE::Bootstrap {
             return 2;
         }
 
-        renderer = CE::Renderer::CreateRenderer(backend);
+        std::unique_ptr<CE::Renderer::IRenderer> renderer(
+            CE::Renderer::CreateRenderer(backend)
+        );
         renderer->PreWinInit();
 
         std::string window_title;
@@ -50,7 +53,10 @@ namespace CE::Bootstrap {
         if (CE::Renderer::renderer == RendererBackend::OpenGL) {
             windowFlags = static_cast<SDL_WindowFlags>(windowFlags |=SDL_WINDOW_OPENGL);
         }
-
+        if (gameinfo->fullscreen) windowFlags = static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_FULLSCREEN);
+        if (gameinfo->resizableWindow) windowFlags = static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_RESIZABLE);
+        static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_MAXIMIZED);
+        
         window = SDL_CreateWindow(
             window_title.c_str(),
             gameinfo->windowWidth,
@@ -61,7 +67,7 @@ namespace CE::Bootstrap {
         if (window == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
             ShowError("Failed to create game window :{");
-            std::exit(3);
+            return 3;
         }
 
         renderer->Init(window, debugvideo);

@@ -7,8 +7,9 @@
 #include "engine/common/error_box.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(VFS::VFS *vfs, GameInfo* gameinfo, bool debugmode) {
-        vfs->MountArchive(gameinfo->dataFileName, "/", LoadMode::OnDemand);
+    int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
+        vfs = std::make_unique<CE::VFS::VFS>();
+        vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
         
         if (debugmode) {
             vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
@@ -16,7 +17,7 @@ namespace CE::Bootstrap {
         return 0;
     }
 
-    int Init_GameInfo(VFS::VFS* vfs, GameInfo* gameinfo, bool debugmode) {
+    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, bool debugmode) {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
         
         if (!stream) {
