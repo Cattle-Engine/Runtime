@@ -27,7 +27,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     class SDL_GPU_Renderer : public CE::Renderer::IRenderer {
         public:
-            SDL_GPU_Renderer(RendererBackend backend, std::unique_ptr<CE::VFS::VFS>& vfs);
+            SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs);
 
             void PreWinInit() override;
         
@@ -119,7 +119,8 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         Uint32 uniformbuffercount,
         Uint32 storagebuffercount,
         Uint32 storagetexturecount,
-        const std::string& basePath = "/shaders/"
+        const std::string& basePath = "/shaders/",
+        CE::VFS::VFS* vfs
     );
     glm::mat4 GetView(const Camera2D& cam);
     glm::mat4 GetProjection(float width, float height);

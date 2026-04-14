@@ -8,7 +8,8 @@
 
 namespace CE::Bootstrap {
     int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
-        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window) {
+        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
+        std::unique_ptr<VFS::VFS>& vfs) {
         if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
@@ -32,7 +33,7 @@ namespace CE::Bootstrap {
             return 2;
         }
 
-        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(backend));
+        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(backend, vfs.get()));
         renderer->PreWinInit();
 
         std::string window_title;
@@ -66,7 +67,10 @@ namespace CE::Bootstrap {
             return 3;
         }
 
-        renderer->Init(window, debugvideo);
+        int rei = renderer->Init(window, debugvideo);
+        if (rei != 0) {
+            return 4 + rei;
+        }
         return 0;
     }
 }

@@ -3,7 +3,8 @@
 
 #include "engine/common/tracelog.hpp"
 #include "engine/core.hpp"
-#include "engine/bootstrap.hpp"
+#include "engine/instance.hpp"
+
 
 int main(int argc, char *argv[]) {
     // Check for flags
@@ -13,6 +14,12 @@ int main(int argc, char *argv[]) {
     }
     CE::Log(CE::LogLevel::Info, "Cattle Engine");
     CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Core::engineVersionString);
-    CE::Bootstrap::Bootstrap();
+
+    try {
+        CE::Instance instance("data.tcf", true);
+    } catch (std::runtime_error& e) {
+        CE::Log(CE::LogLevel::Fatal, "[Startup] Fatal error: {}", e.what());
+    }
+
     return 0;
 }

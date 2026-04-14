@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <string>
 #include <memory>
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -16,8 +17,14 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         Uint32 uniformbuffercount,
         Uint32 storagebuffercount,
         Uint32 storagetexturecount,
-        const std::string& basePath
+        const std::string& basePath,
+        CE::VFS::VFS* vfs
     ) {
+        if (vfs == nullptr) {
+            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");
+            return nullptr;
+        }
+
         SDL_GPUShaderStage stage;
         if (shaderfilename.find(".vert") != std::string::npos) {
             stage = SDL_GPU_SHADERSTAGE_VERTEX;
@@ -53,8 +60,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         }
 
         // Load shader data from VFS
-        CE::VFS::VFS& vfs = CE::Global::GetVFS();
-        auto* shaderFile = vfs.V_fopen(fullPath.c_str(), "rb");
+        auto* shaderFile = vfs->V_fopen(fullPath.c_str(), "rb");
         if (!shaderFile) {
             CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to open shader file: {}", fullPath);
             return nullptr;
@@ -62,16 +68,16 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
 
         // Get file size
         uint64_t fileSize = 0;
-        if (!vfs.GetFileSize(fullPath.c_str(), fileSize)) {
+        if (!vfs->GetFileSize(fullPath.c_str(), fileSize)) {
             CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to get shader file size: {}", fullPath);
-            vfs.V_fclose(shaderFile);
+            vfs->V_fclose(shaderFile);
             return nullptr;
         }
 
         // Read shader data
         std::vector<uint8_t> shaderData(fileSize);
-        size_t bytesRead = vfs.V_fread(shaderData.data(), 1, fileSize, shaderFile);
-        vfs.V_fclose(shaderFile);
+        size_t bytesRead = vfs->V_fread(shaderData.data(), 1, fileSize, shaderFile);
+        vfs->V_fclose(shaderFile);
 
         if (bytesRead != fileSize) {
             CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to read shader file: {}", fullPath);

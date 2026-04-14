@@ -30,7 +30,7 @@ namespace CE {
         }
 
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
-        int vis = CE::Bootstrap::Init_Video(gGameInfo, gDebug, gRenderer, gRendererBackend, gWindow);
+        int vis = CE::Bootstrap::Init_Video(gGameInfo, gDebug, gRenderer, gRendererBackend, gWindow, gVFS);
         if(vis != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));

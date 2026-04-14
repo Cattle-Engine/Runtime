@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
+
+#include "engine/common/vfs.hpp"
 namespace CE {
     enum class RendererBackend {
         Software,
@@ -23,7 +25,7 @@ namespace CE::Renderer {
     inline IRenderer* currentRenderer = nullptr;
     inline std::string rendererName = "None";
 
-    IRenderer* CreateRenderer(RendererBackend backend);
+    IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
     
     struct Camera2D {
         float x = 0.0f;

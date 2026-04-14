@@ -56,14 +56,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading vertex shader");
-        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0);
+        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, "/shaders/", gVFS);
         if (vertexShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create vertex shader!");
             return 4;
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading fragment shader");
-        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0);
+        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, "/shaders/", gVFS);
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create fragment shader!");
             return 5;
@@ -341,7 +341,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
-            return;
+            return 1;
         }
 
         int winW, winH;
@@ -351,10 +351,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUTexture* swapchainTexture;
         if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchainTexture, NULL, NULL)) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
-            return;
+            return 2;
         }
 
-        if (swapchainTexture == nullptr) return;
+        if (swapchainTexture == nullptr) return 3;
 
         SDL_GPUColorTargetInfo colorTargetInfo{};
         colorTargetInfo.texture     = swapchainTexture;
@@ -829,8 +829,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return &errorTexture;
     }
 
-    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, std::unique_ptr<CE::VFS::VFS>& vfs) {
+    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs) {
         gBackend = backend;
-        gVFS = vfs.get();
+        gVFS = vfs;
     }
 }
