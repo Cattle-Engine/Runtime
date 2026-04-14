@@ -119,8 +119,8 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         Uint32 uniformbuffercount,
         Uint32 storagebuffercount,
         Uint32 storagetexturecount,
-        const std::string& basePath = "/shaders/",
-        CE::VFS::VFS* vfs
+        CE::VFS::VFS* vfs,
+        const std::string& basePath = "/shaders/"
     );
     glm::mat4 GetView(const Camera2D& cam);
     glm::mat4 GetProjection(float width, float height);

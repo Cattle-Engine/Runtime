@@ -48,7 +48,7 @@ namespace CE::Bootstrap {
         CE::Log(CE::LogLevel::Info, "[Window] Window renderer: {}", gameinfo->rendererName);
         CE::Log(CE::LogLevel::Info, "[Window] Max fps: {}", gameinfo->maxFPS);
 
-        SDL_WindowFlags windowFlags;
+        SDL_WindowFlags windowFlags = 0;
         if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
         if (gameinfo->fullscreen)              windowFlags |= SDL_WINDOW_FULLSCREEN;
         if (gameinfo->resizableWindow)         windowFlags |= SDL_WINDOW_RESIZABLE;

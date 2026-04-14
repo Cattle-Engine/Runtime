@@ -10,7 +10,7 @@
 #include "engine/gameinfo.hpp"
 
 // A global to get all instances
-Uint64 GLOBALINSTANCESCOUNTER;
+inline Uint64 GLOBALINSTANCESCOUNTER;
 
 namespace CE {
     class Instance {

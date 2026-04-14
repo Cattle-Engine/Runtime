@@ -17,8 +17,8 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         Uint32 uniformbuffercount,
         Uint32 storagebuffercount,
         Uint32 storagetexturecount,
-        const std::string& basePath,
-        CE::VFS::VFS* vfs
+        CE::VFS::VFS* vfs,
+        const std::string& basePath
     ) {
         if (vfs == nullptr) {
             CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");

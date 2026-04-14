@@ -17,6 +17,13 @@ int main(int argc, char *argv[]) {
 
     try {
         CE::Instance instance("data.tcf", true);
+        CE::Instance instance2("data.tcf", true);
+
+        while (!instance.ShouldExit() && !instance2.ShouldExit()) {
+            instance.Update();
+            instance2.Update();
+        }
+
     } catch (std::runtime_error& e) {
         CE::Log(CE::LogLevel::Fatal, "[Startup] Fatal error: {}", e.what());
     }

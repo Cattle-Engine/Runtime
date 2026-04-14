@@ -56,14 +56,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading vertex shader");
-        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, "/shaders/", gVFS);
+        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, gVFS);
         if (vertexShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create vertex shader!");
             return 4;
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading fragment shader");
-        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, "/shaders/", gVFS);
+        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, gVFS);
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create fragment shader!");
             return 5;
@@ -311,6 +311,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     int SDL_GPU_Renderer::Shutdown() {
+        if(!gDevice) {
+            CE::Log(LogLevel::Error, "[RENDERE IS MISSING SHSIH]");
+            return 0;
+        }
+        
         if (gDevice) {
             SDL_WaitForGPUIdle(gDevice);
         }

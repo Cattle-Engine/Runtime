@@ -521,7 +521,7 @@ void VFS::ListMounts()
             return a->mount_path < b->mount_path;
         return mount_precedes(a, b);
     });
-
+    
     for (const auto* mount : sorted) {
         std::cout << mount->mount_path << " -> " << mount->source_path
                   << (mount->is_archive ? " [archive]" : " [folder]")

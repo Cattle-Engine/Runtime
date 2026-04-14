@@ -8,11 +8,12 @@
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
+        CE::Log(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
         
-        if (debugmode) {
+        /*if (debugmode) {
             vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
-        }
+        }*/
         return 0;
     }
 
@@ -42,10 +43,16 @@ namespace CE::Bootstrap {
             return 2;;
         }
 
-        if (!ini.has("Gameinfo", "Game_Name") || !ini.has("Gameinfo", "Game_Version") 
-            ||  !ini.has("Graphics", "Window_Width") || !ini.has("Graphics", "Window_Height")
-            || !ini.has("Graphics", "Max_FPS") || ini.has("Grapics", "Fullscreen") 
-            || !ini.has("Graphics", "Resizable_Window"))
+        if (!ini.has("Gameinfo", "Game_Name") ||
+            !ini.has("Gameinfo", "Game_Version") ||
+            !ini.has("Graphics", "Window_Width") ||
+            !ini.has("Graphics", "Window_Height") ||
+            !ini.has("Graphics", "Window_Title") ||
+            !ini.has("Graphics", "Max_FPS") ||
+            !ini.has("Graphics", "Renderer") ||
+            !ini.has("Graphics", "Enable_VSync") ||
+            !ini.has("Graphics", "Fullscreen") ||
+            !ini.has("Graphics", "Resizable_Window"))
             {
                 CE::Log(LogLevel::Fatal, "[Bootstrap] Missing required game info");
                 ShowError("[Bootstrap] Missing required game info");
