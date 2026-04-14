@@ -1,8 +1,10 @@
 #include "engine/renderer.hpp"
+#include "engine/common/vfs.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <memory>
 
 
 namespace CE::Renderer::SDL_GPU_Renderer {
@@ -25,12 +27,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     class SDL_GPU_Renderer : public CE::Renderer::IRenderer {
         public:
-            SDL_GPU_Renderer(RendererBackend backend);
+            SDL_GPU_Renderer(RendererBackend backend, std::unique_ptr<CE::VFS::VFS>& vfs);
 
             void PreWinInit() override;
         
-            void Init(SDL_Window* window, bool debugvideo) override;
-            void Shutdown() override;
+            int Init(SDL_Window* window, bool debugvideo) override;
+            int Shutdown() override;
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
         
@@ -60,8 +62,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                           int segments, float thickness,
                                           uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
 
-            void BeginFrame(SDL_Window* window) override;
-            void EndFrame(SDL_Window* window) override;
+            int BeginFrame(SDL_Window* window) override;
+            int EndFrame(SDL_Window* window) override;
 
             Texture* GetErrorTexture() override;
 
@@ -105,6 +107,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUTexture* gErrorTex = nullptr;
             SDL_GPUSampler* gErrorSampler = nullptr;
             RendererBackend gBackend;
+            CE::VFS::VFS* gVFS;
     };
 }
 

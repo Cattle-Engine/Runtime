@@ -7,10 +7,8 @@
 #include "engine/renderers/sdl_gpu_renderer.hpp"
 #include "engine/renderer.hpp"
 #include "engine/core.hpp"
-#include "engine/common/shutdown.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
-#include "engine/common/bootstrap.hpp"
 #include "engine/common/vfs.hpp"
 
 #ifndef M_PI
@@ -22,7 +20,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return;
     }
 
-    void SDL_GPU_Renderer::Init(SDL_Window* window, bool debugvideo) {
+    int SDL_GPU_Renderer::Init(SDL_Window* window, bool debugvideo) {
         switch (gBackend) {
             case (RendererBackend::Vulkan):
                 gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
@@ -41,34 +39,34 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             
             default:
                 CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Got invalid RendererBackend");
-                CE::Shutdown::DurBootstrapShutdown();
+                return 1;
                 break;
         }
 
         if (gDevice == nullptr) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to find gpu with vulkan support");
             ShowError("[SDL_GPU Renderer] Unable to find a gpu with vulkan support");
-            CE::Shutdown::DurBootstrapShutdown();
+            return 2;
         }
 
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
             ShowError("[SDL_GPU Renderer] Unable to bind window to gpu device");
-            CE::Shutdown::DurBootstrapShutdown();
+            return 3;
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading vertex shader");
         SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0);
         if (vertexShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create vertex shader!");
-            CE::Shutdown::DurBootstrapShutdown();
+            return 4;
         }
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading fragment shader");
         SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0);
         if (fragmentShader == nullptr) {
             CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create fragment shader!");
-            CE::Shutdown::DurBootstrapShutdown();
+            return 5;
         }
 
         // Colour target
@@ -137,7 +135,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gPipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
         if (!gPipeline) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create pipeline: {}", SDL_GetError());
-            CE::Shutdown::DurBootstrapShutdown();
+            return 6;
         }
 
         SDL_ReleaseGPUShader(gDevice, vertexShader);
@@ -309,9 +307,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gWhiteSampler = SDL_CreateGPUSampler(gDevice, &wSampInfo);
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
+        return 0;
     }
 
-    void SDL_GPU_Renderer::Shutdown() {
+    int SDL_GPU_Renderer::Shutdown() {
         if (gDevice) {
             SDL_WaitForGPUIdle(gDevice);
         }
@@ -335,9 +334,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_DestroyGPUDevice(gDevice);
             gDevice = nullptr;
         }
+        return 0;
     }
 
-    void SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
+    int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
@@ -386,9 +386,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gMappedTexVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexVerts, true);
         gMappedTexIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
+        return 0;
     }
 
-    void SDL_GPU_Renderer::EndFrame(SDL_Window* window) {
+    int SDL_GPU_Renderer::EndFrame(SDL_Window* window) {
         (void)window;
 
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferVerts);
@@ -469,6 +470,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_EndGPURenderPass(gRenderPass);
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
+        return 0;
     }
 
     void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
@@ -615,7 +617,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
 
     Texture* SDL_GPU_Renderer::LoadTex(const char* path) {
-        CE::VFS::VFS& vfs = CE::Global::GetVFS();
+        CE::VFS::VFS& vfs = *gVFS;
 
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
@@ -827,8 +829,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return &errorTexture;
     }
 
-    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend)
-        : gBackend(backend)
-    {
+    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, std::unique_ptr<CE::VFS::VFS>& vfs) {
+        gBackend = backend;
+        gVFS = vfs.get();
     }
 }

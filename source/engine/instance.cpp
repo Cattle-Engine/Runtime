@@ -83,6 +83,8 @@ namespace CE {
         }
 
         gRenderer->BeginFrame(gWindow);
+        gRenderer->SetClearColor(252, 186, 3, 255);
+
         gRenderer->EndFrame(gWindow);
 
         return 0;
