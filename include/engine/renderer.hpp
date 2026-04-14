@@ -5,17 +5,17 @@
 #include <cstdint>
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
-
-enum class RendererBackend {
-    Software,
-    OpenGL,
-    DX12,
-    DX11,
-    Metal,
-    Vulkan,
-    None
-};
-
+namespace CE {
+    enum class RendererBackend {
+        Software,
+        OpenGL,
+        DX12,
+        DX11,
+        Metal,
+        Vulkan,
+        None
+    };
+}
 namespace CE::Renderer {
     class IRenderer;
 

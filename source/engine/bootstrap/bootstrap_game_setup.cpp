@@ -8,7 +8,6 @@
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
-        vfs = std::make_unique<CE::VFS::VFS>();
         vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
         
         if (debugmode) {

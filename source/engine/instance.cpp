@@ -1,4 +1,5 @@
 #include <format>
+#include <memory>
 #include <SDL3/SDL.h>
 
 #include "engine/instance.hpp"
@@ -10,6 +11,10 @@ namespace CE {
     Instance::Instance(const char* data_file_name, bool debugmode) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
+
+        gVFS = std::make_unique<CE::VFS::VFS>();
+        gGameInfo = std::make_unique<CE::GameInfo>();
+
         CE::Log(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
         int gds_return = Bootstrap::Init_GameData(gVFS, data_file_name, gDebug);
         if(gds_return != 0) {
@@ -83,6 +88,6 @@ namespace CE {
         return 0;
     }
     Instance::~Instance() {
-
+        GLOBALINSTANCESCOUNTER--;
     }
 }

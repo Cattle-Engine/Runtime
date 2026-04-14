@@ -1,0 +1,7 @@
+# Hashes of file build rules.
+f312cbc0cd6a0189955d7abf520c1cbd /home/tbagger/Runtime/include/engine/renderers/shaders/standard_fragment_frag_spv.h
+f95eec1e25a23b0a2a1617dbf7e12b90 /home/tbagger/Runtime/include/engine/renderers/shaders/standard_vertex_vert_spv.h
+235147420973cd11ac2e14f580b972ba CMakeFiles/assets
+3202fedf3fe03eee52e88ec0cc43f59b CMakeFiles/run
+235147420973cd11ac2e14f580b972ba CMakeFiles/shaders
+9aa4c91d3035cf9006888c1133244799 data.tcf

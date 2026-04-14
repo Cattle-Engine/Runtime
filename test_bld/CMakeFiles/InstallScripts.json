@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/tbagger/Runtime/test_bld/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

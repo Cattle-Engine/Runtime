@@ -8,7 +8,7 @@ namespace CE::Bootstrap {
     int Init_AssetManagers(std::unique_ptr<CE::Assets::Textures::TextureManager>& texturemanager_ptr, std::unique_ptr<VFS::VFS>& vfs_ptr, 
         std::unique_ptr<CE::Renderer::IRenderer>& renderer) {
         texturemanager_ptr = std::make_unique<CE::Assets::Textures::TextureManager>(
-            renderer, vfs_ptr
+            renderer.get(), vfs_ptr.get()
         );
         return 0;
     }    

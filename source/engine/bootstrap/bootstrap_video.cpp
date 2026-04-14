@@ -8,7 +8,7 @@
 
 namespace CE::Bootstrap {
     int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
-        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window* window) {
+        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window) {
         if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
@@ -32,9 +32,7 @@ namespace CE::Bootstrap {
             return 2;
         }
 
-        std::unique_ptr<CE::Renderer::IRenderer> renderer(
-            CE::Renderer::CreateRenderer(backend)
-        );
+        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(backend));
         renderer->PreWinInit();
 
         std::string window_title;
@@ -49,14 +47,13 @@ namespace CE::Bootstrap {
         CE::Log(CE::LogLevel::Info, "[Window] Window renderer: {}", gameinfo->rendererName);
         CE::Log(CE::LogLevel::Info, "[Window] Max fps: {}", gameinfo->maxFPS);
 
-        SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
-        if (CE::Renderer::renderer == RendererBackend::OpenGL) {
-            windowFlags = static_cast<SDL_WindowFlags>(windowFlags |=SDL_WINDOW_OPENGL);
-        }
-        if (gameinfo->fullscreen) windowFlags = static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_FULLSCREEN);
-        if (gameinfo->resizableWindow) windowFlags = static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_RESIZABLE);
-        static_cast<SDL_WindowFlags>(windowFlags |= SDL_WINDOW_MAXIMIZED);
-        
+        SDL_WindowFlags windowFlags;
+        if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
+        if (gameinfo->fullscreen)              windowFlags |= SDL_WINDOW_FULLSCREEN;
+        if (gameinfo->resizableWindow)         windowFlags |= SDL_WINDOW_RESIZABLE;
+        windowFlags |= SDL_WINDOW_MAXIMIZED;
+
+
         window = SDL_CreateWindow(
             window_title.c_str(),
             gameinfo->windowWidth,

@@ -4,6 +4,7 @@
 
 #include "engine/common/vfs.hpp"
 #include "engine/gameinfo.hpp"
+#include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 
 namespace CE::Bootstrap {

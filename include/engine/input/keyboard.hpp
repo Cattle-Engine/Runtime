@@ -4,6 +4,7 @@
 
 namespace CE::Input {
     // "Borrowed" from raylib, and then modified
+    // Probably should put the licence for raylib at the bottom, so... look at the bottom
     enum class KeyboardKeys {
         // Alphanumeric keys
         KEY_APOSTROPHE      = SDL_SCANCODE_APOSTROPHE,       // Key: '
@@ -114,18 +115,52 @@ namespace CE::Input {
         KEY_KP_ENTER        = SDL_SCANCODE_KP_ENTER,      // Key: Keypad Enter
         KEY_KP_EQUAL        = SDL_SCANCODE_KP_EQUALS,      // Key: Keypad =
     };
+
+    enum class MouseButtons {
+        LEFT   = SDL_BUTTON_LEFT,
+        MIDDLE = SDL_BUTTON_MIDDLE,
+        RIGHT  = SDL_BUTTON_RIGHT,
+        X1     = SDL_BUTTON_X1,
+        X2     = SDL_BUTTON_X2
+    };
     
     class Keyboard {
         public:
             Keyboard(int windowID);
             void Update();
-
-            bool IsKeyUp(KeyboardKeys key) const;
+            bool IsKeyReleased(KeyboardKeys key) const;
             bool IsKeyPressed(KeyboardKeys key) const;
             bool IsKeyDown(KeyboardKeys key) const;
+
         private:
             bool gCurrent[SDL_SCANCODE_COUNT] = {};
             bool gPrevious[SDL_SCANCODE_COUNT] = {};
             int gWindowID;
     };
+
+    class Mouse {
+        public:
+            Mouse(int windowID);
+        
+            private:
+                int gWindowID;
+    };
 }
+
+/*
+Copyright (c) 2013-2026 Ramon Santamaria (@raysan5)
+
+This software is provided "as-is", without any express or implied warranty. In no event 
+will the authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose, including commercial 
+applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not claim that you 
+  wrote the original software. If you use this software in a product, an acknowledgment 
+  in the product documentation would be appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must not be misrepresented
+  as being the original software.
+
+  3. This notice may not be removed or altered from any source distribution.*/
