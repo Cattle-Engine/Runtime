@@ -70,9 +70,6 @@ namespace CE::Assets::Textures {
     }
 
     TextureManager::~TextureManager() {
-        UnloadAll();
-        gRenderer = nullptr;
-        gVFS = nullptr;
-        gErrorTex = nullptr;       
+        UnloadAll();  
     }
 }

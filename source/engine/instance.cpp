@@ -91,5 +91,7 @@ namespace CE {
     }
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
+        gRenderer->Shutdown();
+        SDL_DestroyWindow(gWindow);
     }
 }

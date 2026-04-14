@@ -53,7 +53,6 @@ namespace CE::Bootstrap {
         if (gameinfo->resizableWindow)         windowFlags |= SDL_WINDOW_RESIZABLE;
         windowFlags |= SDL_WINDOW_MAXIMIZED;
 
-
         window = SDL_CreateWindow(
             window_title.c_str(),
             gameinfo->windowWidth,
