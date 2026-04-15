@@ -20,34 +20,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return;
     }
 
-    int SDL_GPU_Renderer::Init(SDL_Window* window, bool debugvideo) {
-        switch (gBackend) {
-            case (RendererBackend::Vulkan):
-                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV,
-                    debugvideo, "vulkan");
-                break;
-            
-            case (RendererBackend::Metal):
-                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_MSL,
-                    debugvideo, "metal");
-                break;
-
-            case (RendererBackend::DX12):
-                gDevice = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL,
-                    debugvideo, "direct3d12");
-                break;
-            
-            default:
-                CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Got invalid RendererBackend");
-                return 1;
-                break;
-        }
-
-        if (gDevice == nullptr) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to find gpu with vulkan support");
-            ShowError("[SDL_GPU Renderer] Unable to find a gpu with vulkan support");
-            return 2;
-        }
+    int SDL_GPU_Renderer::Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) {
+        
+        
+        gDevice = static_cast<SDL_GPUDevice*>(gdevice->device);
 
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());

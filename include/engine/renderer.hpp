@@ -21,6 +21,12 @@ namespace CE {
 namespace CE::Renderer {
     class IRenderer;
 
+    struct GPUDevice {
+        void* device;
+        RendererBackend backend;
+    };
+    using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
+    
     inline RendererBackend renderer = RendererBackend::None;
     inline IRenderer* currentRenderer = nullptr;
     inline std::string rendererName = "None";
@@ -63,7 +69,7 @@ namespace CE::Renderer {
         public:
                 virtual void PreWinInit() = 0;
             
-                virtual int Init(SDL_Window* window, bool debug) = 0;
+                virtual int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) = 0;
                 virtual int Shutdown() = 0;
 
                 virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;

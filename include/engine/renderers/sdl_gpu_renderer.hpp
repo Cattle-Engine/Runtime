@@ -8,6 +8,7 @@
 
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     // Internal struct 
     // Stores the GPU-side texture + sampler behind Texture::handle.
     struct SDLGPUTexData {
@@ -31,7 +32,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             void PreWinInit() override;
         
-            int Init(SDL_Window* window, bool debugvideo) override;
+            int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
             int Shutdown() override;
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
@@ -74,7 +75,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             Camera2D* GetCamera() override;
 
         private:
-            SDL_GPUDevice* gDevice = nullptr;
+            SDL_GPUDevice* gDevice;
             SDL_GPUCommandBuffer* gCommandBuffer = nullptr;
             SDL_GPURenderPass* gRenderPass = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;

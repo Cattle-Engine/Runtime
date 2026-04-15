@@ -8,7 +8,7 @@
 
 
 namespace CE {
-    Instance::Instance(const char* data_file_name, bool debugmode) {
+    Instance::Instance(const char* data_file_name, bool debugmode, std::shared_ptr<Renderer::GPUDevice>& gpudevice) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
 
