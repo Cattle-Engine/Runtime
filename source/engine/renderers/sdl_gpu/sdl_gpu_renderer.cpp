@@ -21,9 +21,27 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     int SDL_GPU_Renderer::Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) {
-        
-        
+        switch (gdevice->backend)
+        {
+            case RendererBackend::DX12:
+            case RendererBackend::Metal:
+            case RendererBackend::Vulkan:
+                break;
+
+            default:
+                CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unsupported GPU device was given!");
+                CE::Log(LogLevel::Info,
+                    "[SDL_GPU Renderer] Backend given was: {}",
+                    static_cast<int>(gdevice->backend));
+                return 1;
+        }
+
         gDevice = static_cast<SDL_GPUDevice*>(gdevice->device);
+
+        if (gDevice == nullptr) {
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] gDevice is NULL!");
+            return 2;
+        }
 
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
@@ -289,7 +307,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     int SDL_GPU_Renderer::Shutdown() {
         CE::Log(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
 
-        if(!gDevice) {
+        if(gDevice == nullptr) {
             CE::Log(LogLevel::Error, "[Renderer {}] No device!", static_cast<void*>(this));
             return 0;
         }
@@ -320,13 +338,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gWhiteTex) {
             SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
             gWhiteTex = nullptr;
-        }
-
-        CE::Log(LogLevel::Info, "[Renderer {}] Destroying device at {}", 
-                static_cast<void*>(this), static_cast<void*>(gDevice));
-        if (gDevice) {
-            SDL_DestroyGPUDevice(gDevice);
-            gDevice = nullptr;
         }
         return 0;
     }

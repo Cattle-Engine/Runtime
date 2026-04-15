@@ -9,6 +9,7 @@
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
+    void DestroyGPUDevice(GPUDeviceHandle device);
     // Internal struct 
     // Stores the GPU-side texture + sampler behind Texture::handle.
     struct SDLGPUTexData {
@@ -75,7 +76,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             Camera2D* GetCamera() override;
 
         private:
-            SDL_GPUDevice* gDevice;
+            SDL_GPUDevice* gDevice = nullptr;
             SDL_GPUCommandBuffer* gCommandBuffer = nullptr;
             SDL_GPURenderPass* gRenderPass = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;

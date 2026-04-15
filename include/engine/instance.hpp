@@ -16,7 +16,7 @@ namespace CE {
     class Instance {
         public:
             Instance(const char* data_file_name, bool debugmode, 
-                std::shared_ptr<Renderer::GPUDevice>& gpudevice);
+                Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();
             ~Instance();

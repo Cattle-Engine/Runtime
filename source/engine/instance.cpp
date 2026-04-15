@@ -5,10 +5,10 @@
 #include "engine/instance.hpp"
 #include "engine/bootstrap.hpp"
 #include "engine/common/tracelog.hpp"
-
+#include "engine/common/events.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_name, bool debugmode, std::shared_ptr<Renderer::GPUDevice>& gpudevice) {
+    Instance::Instance(const char* data_file_name, bool debugmode, Renderer::GPUDeviceHandle& gpudevice) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
 
@@ -32,7 +32,7 @@ namespace CE {
         }
 
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
-        int vis = CE::Bootstrap::Init_Video(gGameInfo, gDebug, gRenderer, gRendererBackend, gWindow, gVFS);
+        int vis = CE::Bootstrap::Init_Video(gGameInfo, gDebug, gRenderer, gRendererBackend, gWindow, gVFS, gpudevice);
         if(vis != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
@@ -52,35 +52,16 @@ namespace CE {
     }
 
     int Instance::Update() {
-    if(!gShouldExit) {
-        SDL_Event event;
+    if(gShouldExit) return 1;
 
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) {
-                gShouldExit = true;
-            }
+        auto indices = CE::Events::GetWindowEventIndices(gInstanceWindowID);
 
-            if (event.type >= SDL_EVENT_WINDOW_FIRST &&
-                event.type <= SDL_EVENT_WINDOW_LAST) {
+        for (size_t i : indices) {
+            const SDL_Event& e = CE::Events::gEvents[i];
 
-                if (event.window.windowID != gInstanceWindowID) {
-                    continue;
-                }
-            }
-
-            switch (event.type) {
-
-                case SDL_EVENT_KEY_DOWN:
-                case SDL_EVENT_KEY_UP:
-                    
-                    break;
-
-                case SDL_EVENT_MOUSE_MOTION:
-
-                    break;
-
-                default:
-
+            switch (e.type) {
+                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                    gShouldExit = true;
                     break;
             }
         }
@@ -92,11 +73,13 @@ namespace CE {
 
         return 0;
     }
-    }
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
         gTextureManager.reset();
         gRenderer->Shutdown();
         SDL_DestroyWindow(gWindow);
     }
+
+
+
 }

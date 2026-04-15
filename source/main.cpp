@@ -5,7 +5,10 @@
 
 #include "engine/common/tracelog.hpp"
 #include "engine/core.hpp"
+#include "engine/renderer.hpp"
 #include "engine/instance.hpp"
+#include "engine/common/events.hpp"
+#include <SDL3/SDL.h>
 
 
 int main(int argc, char *argv[]) {
@@ -17,23 +20,29 @@ int main(int argc, char *argv[]) {
     CE::Log(CE::LogLevel::Info, "Cattle Engine");
     CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Core::engineVersionString);
 
-    try {
-        CE::Instance instance("data.tcf", true);
-        // DO NOT REMOVE THIS, SDL_GPU HAS A BUG IN ITS INTERNAL TEXTURE CACHE THAT
-        // HAS A RACE CONDITION THAT CAUSES THE SECOND INSTANCE TO SEGFAULT.
-        // I DON'T KNOW WHY THIS TINY DELAY FIXES IT BUT IT JUST DOES. 
-        // DO NOT REMOVE
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        CE::Instance instance2("data.tcf", true);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
-        while (!instance.ShouldExit() || !instance2.ShouldExit()) {
-            instance.Update();
-            instance2.Update();
+    CE::Renderer::GPUDeviceHandle gpu_device = CE::Renderer::CreateGPUDevice(CE::RendererBackend::Vulkan, true);
+
+    try {
+        CE::Instance instance("data.tcf", true, gpu_device);
+        CE::Instance instance2("data.tcf", true, gpu_device);
+
+        bool shouldexit = false;
+
+        while (!shouldexit) {
+            CE::Events::Update();
+            if(instance.Update() != 0) {
+                shouldexit = true;
+            }
+            if(instance2.Update() != 0) {
+                shouldexit = true;
+            }
         }
 
     } catch (std::runtime_error& e) {
         CE::Log(CE::LogLevel::Fatal, "[Startup] Fatal error: {}", e.what());
     }
-
+    CE::Renderer::DestroyGPUDevice(gpu_device);
     return 0;
 }

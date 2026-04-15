@@ -25,6 +25,7 @@ namespace CE::Renderer {
         void* device;
         RendererBackend backend;
     };
+    
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
     
     inline RendererBackend renderer = RendererBackend::None;
@@ -32,6 +33,8 @@ namespace CE::Renderer {
     inline std::string rendererName = "None";
 
     IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
+    GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
+    void DestroyGPUDevice(GPUDeviceHandle device);
     
     struct Camera2D {
         float x = 0.0f;

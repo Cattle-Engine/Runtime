@@ -31,12 +31,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 break;
             
             default:
-                CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Got invalid RendererBackend");
+                CE::Log(LogLevel::Fatal, "[SDL_GPU Device Creator] Got invalid RendererBackend");
                 return nullptr;
                 break;
         }
         deviceinfo.device = gdevice;
 
+        CE::Log(LogLevel::Info,
+            "[SDL_GPU Renderer] Backend given was: {}",
+            static_cast<int>(deviceinfo.backend));
+        
+        if (deviceinfo.device == nullptr) {
+            CE::Log(LogLevel::Fatal, "[SDL_GPU Device Creator] gDevice is, reason: {}", SDL_GetError());
+        }
+
         return std::make_shared<Renderer::GPUDevice>(deviceinfo);
+    }
+
+    void DestroyGPUDevice(GPUDeviceHandle device) {
+        SDL_DestroyGPUDevice(static_cast<SDL_GPUDevice*>(device->device));
     }
 }

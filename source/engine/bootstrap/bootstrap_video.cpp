@@ -9,7 +9,7 @@
 namespace CE::Bootstrap {
     int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
         std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
-        std::unique_ptr<VFS::VFS>& vfs) {
+        std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
         if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
             CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
             ShowError("[Bootstrap] Unable to init game window :'(");
@@ -67,7 +67,7 @@ namespace CE::Bootstrap {
             return 3;
         }
 
-        int rei = renderer->Init(window, debugvideo);
+        int rei = renderer->Init(window, debugvideo, gpudevice);
         if (rei != 0) {
             return 4 + rei;
         }

@@ -22,4 +22,30 @@ namespace CE::Renderer {
                 return nullptr;
         }
     }
+
+    GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo) {
+        switch (backend) {
+            case RendererBackend::Vulkan:
+                return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
+                break;
+            case RendererBackend::DX12:
+                return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
+                break;
+            case RendererBackend::Metal:
+                return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
+            default:
+                return nullptr;
+        }
+    }
+
+    void DestroyGPUDevice(GPUDeviceHandle device) {
+        switch (device->backend) {
+            case RendererBackend::Vulkan:
+            case RendererBackend::Metal:
+            case RendererBackend::DX12:
+                CE::Renderer::SDL_GPU_Renderer::DestroyGPUDevice(device);
+            default:
+                break;
+        }
+    }
 }
