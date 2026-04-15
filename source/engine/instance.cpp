@@ -95,6 +95,7 @@ namespace CE {
     }
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
+        gTextureManager.reset();
         gRenderer->Shutdown();
         SDL_DestroyWindow(gWindow);
     }

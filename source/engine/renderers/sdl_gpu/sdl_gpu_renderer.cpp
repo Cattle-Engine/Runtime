@@ -311,8 +311,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     int SDL_GPU_Renderer::Shutdown() {
+        CE::Log(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
+
         if(!gDevice) {
-            CE::Log(LogLevel::Error, "[RENDERE IS MISSING SHSIH]");
+            CE::Log(LogLevel::Error, "[Renderer {}] No device!", static_cast<void*>(this));
             return 0;
         }
         
@@ -332,16 +334,26 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         if (gPipeline)          SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
 
-        if (gWhiteSampler)      SDL_ReleaseGPUSampler(gDevice, gWhiteSampler);
-        if (gWhiteTex)          SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
+        if (gWhiteSampler) {
+            SDL_ReleaseGPUSampler(gDevice, gWhiteSampler);
+            gWhiteSampler = nullptr;
+        }  
+        
+        CE::Log(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", 
+                static_cast<void*>(this), static_cast<void*>(gWhiteTex));
+        if (gWhiteTex) {
+            SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
+            gWhiteTex = nullptr;
+        }
 
+        CE::Log(LogLevel::Info, "[Renderer {}] Destroying device at {}", 
+                static_cast<void*>(this), static_cast<void*>(gDevice));
         if (gDevice) {
             SDL_DestroyGPUDevice(gDevice);
             gDevice = nullptr;
         }
         return 0;
     }
-
     int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
