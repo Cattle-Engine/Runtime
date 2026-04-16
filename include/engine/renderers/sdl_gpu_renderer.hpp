@@ -34,7 +34,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void PreWinInit() override;
         
             int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
-            int Shutdown() override;
+            int Shutdown(SDL_Window* window) override;
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
         

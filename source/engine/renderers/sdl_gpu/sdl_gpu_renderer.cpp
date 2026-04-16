@@ -304,7 +304,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return 0;
     }
 
-    int SDL_GPU_Renderer::Shutdown() {
+    int SDL_GPU_Renderer::Shutdown(SDL_Window* window) {
         CE::Log(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
 
         if(gDevice == nullptr) {
@@ -316,6 +316,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_WaitForGPUIdle(gDevice);
         }
 
+        SDL_ReleaseWindowFromGPUDevice(gDevice, window);
         if (gVertexBuffer)      SDL_ReleaseGPUBuffer(gDevice, gVertexBuffer);
         if (gIndexBuffer)       SDL_ReleaseGPUBuffer(gDevice, gIndexBuffer);
         if (gTexVertexBuffer)   SDL_ReleaseGPUBuffer(gDevice, gTexVertexBuffer);
@@ -339,6 +340,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
             gWhiteTex = nullptr;
         }
+
+        if (gErrorSampler) {
+            SDL_ReleaseGPUSampler(gDevice, gErrorSampler);
+            gErrorSampler = nullptr;
+        }
+
+        if (gErrorTex) {
+            SDL_ReleaseGPUTexture(gDevice, gErrorTex);
+            gErrorTex = nullptr;
+        }
+
         return 0;
     }
     int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {

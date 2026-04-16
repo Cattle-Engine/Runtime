@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     CE::Renderer::GPUDeviceHandle gpu_device = CE::Renderer::CreateGPUDevice(CE::RendererBackend::Vulkan, true);
 
     try {
+        {
         CE::Instance instance("data.tcf", true, gpu_device);
         CE::Instance instance2("data.tcf", true, gpu_device);
 
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
                 shouldexit = true;
             }
         }
-
+        }
     } catch (std::runtime_error& e) {
         CE::Log(CE::LogLevel::Fatal, "[Startup] Fatal error: {}", e.what());
     }

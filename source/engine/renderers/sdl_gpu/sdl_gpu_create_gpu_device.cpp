@@ -49,6 +49,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void DestroyGPUDevice(GPUDeviceHandle device) {
+        SDL_WaitForGPUIdle(static_cast<SDL_GPUDevice*>(device->device));
         SDL_DestroyGPUDevice(static_cast<SDL_GPUDevice*>(device->device));
     }
 }

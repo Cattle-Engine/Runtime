@@ -70,6 +70,7 @@ namespace CE::Assets::Textures {
     }
 
     TextureManager::~TextureManager() {
-        UnloadAll();  
+        UnloadAll();
+        gErrorTex = nullptr;
     }
 }

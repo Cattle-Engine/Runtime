@@ -73,7 +73,7 @@ namespace CE::Renderer {
                 virtual void PreWinInit() = 0;
             
                 virtual int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) = 0;
-                virtual int Shutdown() = 0;
+                virtual int Shutdown(SDL_Window* window) = 0;
 
                 virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
             
