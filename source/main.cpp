@@ -4,7 +4,6 @@
 #include <thread>
 
 #include "engine/common/tracelog.hpp"
-#include "engine/core.hpp"
 #include "engine/renderer.hpp"
 #include "engine/instance.hpp"
 #include "engine/common/events.hpp"
@@ -17,8 +16,6 @@ int main(int argc, char *argv[]) {
         std::string arg = argv[I];
 
     }
-    CE::Log(CE::LogLevel::Info, "Cattle Engine");
-    CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Core::engineVersionString);
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 

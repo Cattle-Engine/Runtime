@@ -3,7 +3,6 @@
 #include "engine/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
-#include "engine/core.hpp"
 #include <SDL3/SDL.h>
 
 namespace CE::Bootstrap {

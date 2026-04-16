@@ -36,4 +36,6 @@ namespace CE {
             // The id for the window in the instance, provided by SDL
             int gInstanceWindowID;
     };
+
+    using InstanceHandle = std::unique_ptr<Instance>;
 }

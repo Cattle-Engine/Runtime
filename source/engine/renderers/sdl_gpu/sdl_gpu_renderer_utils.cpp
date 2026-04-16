@@ -7,7 +7,6 @@
 
 #include "engine/renderers/sdl_gpu_renderer.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/core.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {
     SDL_GPUShader* LoadShader(
