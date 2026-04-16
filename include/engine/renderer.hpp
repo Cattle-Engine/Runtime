@@ -77,7 +77,9 @@ namespace CE::Renderer {
 
                 virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
             
-                virtual void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a) = 0;
+                virtual void DrawRect(float x, float y, float w, float h,
+                                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                                    float rotation) = 0;
                 virtual void DrawCircle(float cx, float cy, float radius,
                                         int segments,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) = 0;
@@ -87,13 +89,16 @@ namespace CE::Renderer {
                 virtual void SetClearColor(float r, float g, float b, float a) = 0;
 
                 virtual Texture* LoadTex(const char* path) = 0;
-                virtual void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour) = 0;
+                virtual void DrawTex(Texture* texture, float x, float y,
+                                    float w, float h, Colour colour,
+                                    float rotation) = 0;
                 virtual void UnloadTex(Texture* texture) = 0;
                 virtual void DrawTriangle(
-                                float x0, float y0,
-                                float x1, float y1,
-                                float x2, float y2,
-                                uint8_t r, uint8_t g, uint8_t b, uint8_t a) = 0;
+                            float x0, float y0,
+                            float x1, float y1,
+                            float x2, float y2,
+                            uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                            float rotation) = 0;
                 virtual void DrawRectLines(float x, float y, float w, float h,
                                             float thickness,
                                             uint8_t r, uint8_t g, uint8_t b, uint8_t a) = 0;

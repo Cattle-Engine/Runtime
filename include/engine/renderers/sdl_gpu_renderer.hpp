@@ -38,13 +38,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
         
-            void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+                void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
+                                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                                    float rotation) override;
             
-            void DrawTriangle(
+            void SDL_GPU_Renderer::DrawTriangle(
                 float x0, float y0,
                 float x1, float y1,
                 float x2, float y2,
-                uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+                uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                float rotation) override;
 
             void DrawCircle(float cx, float cy, float radius,
                                      int segments,
@@ -55,7 +58,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void SetClearColor(float r, float g, float b, float a) override;
 
             Texture* LoadTex(const char* path) override;
-            void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour) override;
+            void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
+                                    float w, float h, Colour colour,
+                                    float rotation) override;
             void UnloadTex(Texture* texture) override;
             void DrawRectLines(float x, float y, float w, float h,
                                         float thickness,

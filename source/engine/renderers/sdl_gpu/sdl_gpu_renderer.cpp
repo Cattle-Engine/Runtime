@@ -16,6 +16,13 @@
 #endif
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    void RotatePoint(float& x, float& y, float cx, float cy, float sinA, float cosA) {
+        float dx = x - cx;
+        float dy = y - cy;
+        x = cx + dx * cosA - dy * sinA;
+        y = cy + dx * sinA + dy * cosA;
+    }
+    
     void SDL_GPU_Renderer::PreWinInit() {
         return;
     }
@@ -490,18 +497,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
-                                uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-        if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping rect");
-            return;
-        }
+                                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                                    float rotation) {
+        if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) return;
+
+        float cx = x + w * 0.5f;
+        float cy = y + h * 0.5f;
+        float sinA = std::sin(rotation);
+        float cosA = std::cos(rotation);
+
+        float px[4] = { x,     x + w, x + w, x     };
+        float py[4] = { y,     y,     y + h, y + h  };
 
         uint16_t base = (uint16_t)gVertCount;
-
-        gMappedVerts[base + 0] = { x,     y,     0, r, g, b, a, 0, 0 };
-        gMappedVerts[base + 1] = { x + w, y,     0, r, g, b, a, 0, 0 };
-        gMappedVerts[base + 2] = { x + w, y + h, 0, r, g, b, a, 0, 0 };
-        gMappedVerts[base + 3] = { x,     y + h, 0, r, g, b, a, 0, 0 };
+        for (int i = 0; i < 4; i++) {
+            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
+            gMappedVerts[base + i] = { px[i], py[i], 0, r, g, b, a, 0, 0 };
+        }
 
         gMappedIndices[gIndexCount++] = base;
         gMappedIndices[gIndexCount++] = base + 1;
@@ -509,10 +521,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMappedIndices[gIndexCount++] = base + 2;
         gMappedIndices[gIndexCount++] = base + 3;
         gMappedIndices[gIndexCount++] = base;
-
         gVertCount += 4;
     }
-
+    
     void SDL_GPU_Renderer::DrawRectLines(float x, float y, float w, float h,
                                         float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
@@ -526,17 +537,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float x0, float y0,
         float x1, float y1,
         float x2, float y2,
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-        if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping triangle");
-            return;
-        }
+        uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        float rotation) {
+        if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) return;
+
+        // Centroid is the average of the three vertices
+        float cx = (x0 + x1 + x2) / 3.0f;
+        float cy = (y0 + y1 + y2) / 3.0f;
+        float sinA = std::sin(rotation);
+        float cosA = std::cos(rotation);
+
+        float px[3] = { x0, x1, x2 };
+        float py[3] = { y0, y1, y2 };
 
         uint16_t base = (uint16_t)gVertCount;
-
-        gMappedVerts[base + 0] = { x0, y0, 0, r, g, b, a, 0, 0 };
-        gMappedVerts[base + 1] = { x1, y1, 0, r, g, b, a, 0, 0 };
-        gMappedVerts[base + 2] = { x2, y2, 0, r, g, b, a, 0, 0 };
+        for (int i = 0; i < 3; i++) {
+            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
+            gMappedVerts[base + i] = { px[i], py[i], 0, r, g, b, a, 0, 0 };
+        }
 
         gMappedIndices[gIndexCount++] = base;
         gMappedIndices[gIndexCount++] = base + 1;
@@ -741,36 +759,35 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return tex;
     }
 
-        void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
-                                float w, float h, Colour colour) {
+    void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
+                                    float w, float h, Colour colour,
+                                    float rotation) {
         if (!texture || !texture->handle) return;
-
         auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
+        if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
 
-        if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES)
-            return;
-
-        // If texture changes → start new batch
         if (gCurrentTex != tex) {
-            gTexBatches.push_back({
-                tex,
-                gTexVertCount,
-                0,
-                gTexIndexCount,
-                0
-            });
-
+            gTexBatches.push_back({ tex, gTexVertCount, 0, gTexIndexCount, 0 });
             gCurrentTex = tex;
         }
 
-        uint16_t base = (uint16_t)gTexVertCount;
+        float cx = x + w * 0.5f;
+        float cy = y + h * 0.5f;
+        float sinA = std::sin(rotation);
+        float cosA = std::cos(rotation);
 
+        float px[4] = { x,     x + w, x + w, x     };
+        float py[4] = { y,     y,     y + h, y + h  };
+        float pu[4] = { 0, 1, 1, 0 };
+        float pv[4] = { 0, 0, 1, 1 };
+
+        uint16_t base = (uint16_t)gTexVertCount;
         uint8_t r = colour.r, g = colour.g, b = colour.b, a = colour.a;
 
-        gMappedTexVerts[base + 0] = { x,     y,     0, r, g, b, a, 0, 0 };
-        gMappedTexVerts[base + 1] = { x + w, y,     0, r, g, b, a, 1, 0 };
-        gMappedTexVerts[base + 2] = { x + w, y + h, 0, r, g, b, a, 1, 1 };
-        gMappedTexVerts[base + 3] = { x,     y + h, 0, r, g, b, a, 0, 1 };
+        for (int i = 0; i < 4; i++) {
+            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
+            gMappedTexVerts[base + i] = { px[i], py[i], 0, r, g, b, a, pu[i], pv[i] };
+        }
 
         gMappedTexIndices[gTexIndexCount + 0] = base;
         gMappedTexIndices[gTexIndexCount + 1] = base + 1;
@@ -782,12 +799,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gTexIndexCount += 6;
         gTexVertCount  += 4;
 
-        // update batch sizes
-        gTexBatches.back().vertCount =
-            gTexVertCount - gTexBatches.back().vertOffset;
-
-        gTexBatches.back().idxCount =
-            gTexIndexCount - gTexBatches.back().idxOffset;
+        gTexBatches.back().vertCount = gTexVertCount - gTexBatches.back().vertOffset;
+        gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
     }
 
     void SDL_GPU_Renderer::UnloadTex(Texture* texture) {

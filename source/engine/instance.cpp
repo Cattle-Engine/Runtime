@@ -45,6 +45,8 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
         }
+
+        gTextureManager->Load("welcome.gif", "test");
     }
 
     bool Instance::ShouldExit() {
@@ -68,6 +70,7 @@ namespace CE {
 
         gRenderer->BeginFrame(gWindow);
         gRenderer->SetClearColor(252, 186, 3, 255);
+        gTextureManager->Draw("test", 0, 0, 500, 500, {255, 255, 255, 255});
 
         gRenderer->EndFrame(gWindow);
 
