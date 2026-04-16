@@ -26,23 +26,28 @@ namespace CE::Assets::Textures {
         gTextures[name] = texinfo;
     }
 
-    void TextureManager::Draw(const char* name, float x, float y, float w, float h, CE::Renderer::Colour colour) {
+    void TextureManager::DrawPro(const char* name, int x, int y, int w, 
+        int h, float rotation, CE::Renderer::Colour colour) {
         auto tex = gTextures.find(name);
         if (tex != gTextures.end()) {
             if (!tex->second.IsErrorTex) {
-                gRenderer->DrawTex(tex->second.Texture, x, y, w, h, colour);
+                gRenderer->DrawTex(tex->second.Texture,
+                    x - w / 2, y - h / 2,   // offset so x,y is the centre
+                    w, h, colour, rotation);
                 return;
             } else {
                 if (!tex->second.ShownMissingError) {
                     CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw a missing asset: {}", tex->second.Path);
                     tex->second.ShownMissingError = true;
                 }
-                gRenderer->DrawTex(tex->second.Texture, x, y, w, h, {255, 255, 255, 255});
+                gRenderer->DrawTex(tex->second.Texture,
+                    x - w / 2, y - h / 2,
+                    w, h, {255, 255, 255, 255}, 0.0f);
                 return;
             }
         }
         CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw an unloaded or missing asset: {}", name);
-        gRenderer->DrawTex(gErrorTex, x, y, w, h, {255, 255, 255, 255});
+        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, 16, 16, {255, 255, 255, 255}, 0.0f);
     }
 
     void TextureManager::Unload(const char* name) {
@@ -57,6 +62,38 @@ namespace CE::Assets::Textures {
             gTextures.erase(name);
         }
         CE::Log(LogLevel::Error, "[Texture Manager] Can not unload a non-existant texture");
+    }
+
+    void TextureManager::DrawRot(const char* name, int x, int y, 
+            float rotation, CE::Renderer::Colour colour) {
+        auto tex = gTextures.find(name);
+        if (tex != gTextures.end()) {
+            if (!tex->second.IsErrorTex) {
+                int w = tex->second.Texture->width;
+                int h = tex->second.Texture->height;
+                gRenderer->DrawTex(tex->second.Texture,
+                    x - w / 2, y - h / 2,   // offset so x,y is the centre
+                    w, h, colour, rotation);
+                return;
+            } else {
+                if (!tex->second.ShownMissingError) {
+                    CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw a missing asset: {}", tex->second.Path);
+                    tex->second.ShownMissingError = true;
+                }
+                gRenderer->DrawTex(tex->second.Texture,
+                    x - tex->second.Texture->width / 2,
+                    y - tex->second.Texture->height / 2,
+                    tex->second.Texture->width, tex->second.Texture->height,
+                    {255, 255, 255, 255}, rotation);
+                return;  // ← you were also missing this return
+            }
+        }
+        CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw an unloaded or missing asset: {}", name);
+        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, 16, 16, {255, 255, 255, 255}, rotation);
+    }
+
+    void TextureManager::Draw(const char* name, int x, int y, CE::Renderer::Colour colour) {
+        TextureManager::DrawRot(name, x, y, 0.0f, colour);
     }
 
     void TextureManager::UnloadAll() {

@@ -12,7 +12,13 @@ namespace CE::Assets::Textures {
             TextureManager(CE::Renderer::IRenderer* renderer, CE::VFS::VFS* vfs);
             void Load(const char* filepath, const char* name);
             void Unload(const char* name);
-            void Draw(const char* name, float x, float y, float w, float h, CE::Renderer::Colour colour);
+            
+            void DrawPro(const char* name, int x, int y, int w, 
+                int h, float rotation, CE::Renderer::Colour colour);
+            void Draw(const char* name, int x, int y, CE::Renderer::Colour colour);
+            void DrawRot(const char* name, int x, int y, 
+                float rotation, CE::Renderer::Colour colour);
+
             void UnloadAll();
             ~TextureManager();
 

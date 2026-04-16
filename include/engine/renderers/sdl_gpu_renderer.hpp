@@ -38,11 +38,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
         
-                void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
-                                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-                                    float rotation) override;
+            void DrawRect(float x, float y, float w, float h,
+                   uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                       float rotation) override;
             
-            void SDL_GPU_Renderer::DrawTriangle(
+            void DrawTriangle(
                 float x0, float y0,
                 float x1, float y1,
                 float x2, float y2,
@@ -58,7 +58,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void SetClearColor(float r, float g, float b, float a) override;
 
             Texture* LoadTex(const char* path) override;
-            void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
+            void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) override;
             void UnloadTex(Texture* texture) override;

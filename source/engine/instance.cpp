@@ -70,7 +70,7 @@ namespace CE {
 
         gRenderer->BeginFrame(gWindow);
         gRenderer->SetClearColor(252, 186, 3, 255);
-        gTextureManager->Draw("test", 0, 0, 500, 500, {255, 255, 255, 255});
+        gTextureManager->DrawRot("test", 640, 360, 2.0f,{255, 255, 255, 255});
 
         gRenderer->EndFrame(gWindow);
 
