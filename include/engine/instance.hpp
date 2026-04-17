@@ -19,6 +19,7 @@ namespace CE {
                 Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();
+            int GetInstanceID();
             ~Instance();
         private:
             std::unique_ptr<CE::VFS::VFS> gVFS;

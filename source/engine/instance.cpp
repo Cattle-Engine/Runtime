@@ -76,6 +76,11 @@ namespace CE {
 
         return 0;
     }
+
+    int Instance::GetInstanceID() {
+        return gInstanceID;
+    }
+
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
         gTextureManager.reset();
