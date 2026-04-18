@@ -1,4 +1,4 @@
-#include "engine/bootstrap.hpp"
+#include "engine/bootstrap/instance.hpp"
 #include "engine/renderer.hpp"
 #include "engine/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"

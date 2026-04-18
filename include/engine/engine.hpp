@@ -14,10 +14,10 @@ namespace CE {
                 std::optional<std::string> datafilename = std::nullopt, bool debug);
             bool DestroyInstance(std::string& name);
             int UpdateInstance(std::string& name);
-            int Run(std::string& name);            
+            int Run();            
         private:
-            Renderer::GPUDeviceHandle gGPUHandle;
-            std::string gDataFileName;
-            std::unordered_map<std::string ,InstanceHandle> gInstances;
+            Renderer::GPUDeviceHandle mGPUHandle;
+            std::string mDataFileName;
+            std::unordered_map<std::string ,InstanceHandle> mInstances;
     };
 }

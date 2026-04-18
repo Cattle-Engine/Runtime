@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/instance.hpp"
-#include "engine/bootstrap.hpp"
+#include "engine/bootstrap/instance.hpp"ance.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/events.hpp"
 

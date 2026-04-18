@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "engine/bootstrap.hpp"
+#include "engine/bootstrap/instance.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/common/vfs.hpp"
 

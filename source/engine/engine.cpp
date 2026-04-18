@@ -8,7 +8,7 @@ namespace CE {
         CE::Log(CE::LogLevel::Info, "Cattle Engine");
         CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
     
-    gDataFileName = datafilename;
+    mDataFileName = datafilename;
 
     // Parse arguments and activate certain settings and shish
     // Read Gamedata.txt to what renderer to use here.
@@ -23,12 +23,12 @@ namespace CE {
         if (datafilename.has_value()) {
             file2use = *datafilename;
         } else {
-            file2use = gDataFileName;
+            file2use = mDataFileName;
         }
 
         try {
-            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, gGPUHandle);
-            gInstances[name] = std::move(handle);
+            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle);
+            mInstances[name] = std::move(handle);
         } catch (std::runtime_error& e) {
             CE::Log(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());
             return false;
@@ -39,13 +39,13 @@ namespace CE {
     }
 
     bool Engine::DestroyInstance(std::string& name) {
-        auto handle = gInstances.find(name);
+        auto handle = mInstances.find(name);
 
-        if (handle != gInstances.end()) {
+        if (handle != mInstances.end()) {
             CE::Log(LogLevel::Info, "[Engine] Deleting engine with ID of: {} ", 
             handle->second->GetInstanceID());
             handle->second.reset();
-            gInstances.erase(name);
+            mInstances.erase(name);
             return true;
         } else {
             CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
@@ -54,9 +54,9 @@ namespace CE {
     }
 
     int Engine::UpdateInstance(std::string& name) {
-        auto handle = gInstances.find(name);
+        auto handle = mInstances.find(name);
 
-        if (handle != gInstances.end()) {
+        if (handle != mInstances.end()) {
             handle->second->Update();
         } else {
             CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
@@ -64,7 +64,31 @@ namespace CE {
         }
     }
 
-    int Engine::Run(std::string& name) {
-        
+    int Engine::Run() {
+        CE::Log(LogLevel::Info, "[Engine] Starting main loop");
+
+        while (!mInstances.empty()) {
+            for (auto it = mInstances.begin(); it != mInstances.end(); ) {
+                if (it->second) {
+                    it->second->Update();
+
+                    if (it->second->ShouldExit()) {
+                        CE::Log(LogLevel::Info,
+                            "[Engine] Instance {} requested shutdown",
+                            it->second->GetInstanceID());
+
+                        it = mInstances.erase(it);
+                    } else {
+                        ++it;
+                    }
+                } else {
+                    // Defensive cleanup
+                    it = mInstances.erase(it);
+                }
+            }
+        }
+
+        CE::Log(LogLevel::Info, "[Engine] All instances closed. Shutting down.");
+        return 0;
     }
 }

@@ -1,6 +1,6 @@
 #include <string>
 
-#include "engine/bootstrap.hpp"
+#include "engine/bootstrap/instance.hpp"
 #include "engine/common/vfs_stl.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/ini.hpp"

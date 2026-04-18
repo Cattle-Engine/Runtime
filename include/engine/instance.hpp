@@ -6,7 +6,7 @@
 #include "engine/common/vfs.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
-#include "engine/bootstrap.hpp"
+#include "engine/bootstrap/instance.hpp"
 #include "engine/gameinfo.hpp"
 
 // A global to get all instances
