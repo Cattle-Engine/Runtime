@@ -47,6 +47,24 @@ namespace CE {
             handle->second.reset();
             gInstances.erase(name);
             return true;
+        } else {
+            CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
+            return false;
         }
+    }
+
+    int Engine::UpdateInstance(std::string& name) {
+        auto handle = gInstances.find(name);
+
+        if (handle != gInstances.end()) {
+            handle->second->Update();
+        } else {
+            CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
+            return 0;
+        }
+    }
+
+    int Engine::Run(std::string& name) {
+        
     }
 }
