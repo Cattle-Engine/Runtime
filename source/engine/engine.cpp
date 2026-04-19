@@ -1,19 +1,23 @@
 #include "engine/engine.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/version.hpp"
+#include "engine/renderer.hpp"
+#include "engine/common/renderer_name_2_string.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/bootstrap/engine.hpp"
 
 namespace CE {
-    Engine::Engine(int argv, char* argc[], std::string& datafilename) {
+    Engine::Engine(int argv, char* argc[], std::string& datafilename, bool debug) {
         CE::Log(CE::LogLevel::Info, "Cattle Engine");
         CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
     
-    mDataFileName = datafilename;
+        mDataFileName = datafilename;
 
-    // Parse arguments and activate certain settings and shish
-    // Read Gamedata.txt to what renderer to use here.
-    // Create Renderer::GPUHandle here
-    // idk what else to put here
+        // Parse arguments and activate certain settings and shish
+        Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
+        Common::RendererName2String(mGameInfo, mBackend);
+        mGPUHandle = Renderer::CreateGPUDevice(mBackend, true /*TODO: Make settings and have debug video*/);
+        // idk what else to put here
     }
 
     bool Engine::CreateIntsance(std::string& name, 

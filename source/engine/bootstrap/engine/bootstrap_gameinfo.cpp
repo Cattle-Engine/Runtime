@@ -5,7 +5,7 @@
 #include "engine/common/vfs.hpp"
 #include "engine/common/vfs_stl.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/error_box.hpp"
+#include "engine/common/gdat_has.hpp"
 #include "engine/common/ini.hpp"
 
 namespace CE::Bootstrap::Engine {
@@ -18,7 +18,6 @@ namespace CE::Bootstrap::Engine {
 
         if (!stream) {
             CE::Log(LogLevel::Error, "[Engine] Unable to open Gameinfo.txt :'(");
-            ShowError("[Engine] Unable to open Gameinfo.txt");
             return 1;
         }
 
@@ -33,6 +32,23 @@ namespace CE::Bootstrap::Engine {
         ss << stream->rdbuf();
         std::string text = ss.str();
 
-            
+        bool gresult = Common::GData_Has(text);
+
+        if (!gresult) {
+            CE::Log(LogLevel::Error, "[Engine] Gameinfo.txt is missing required game-info");
+            return 2;
+        }
+
+        gameinfo.gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
+        gameinfo.gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
+
+        gameinfo.windowWidth = ini.get_int("Graphics", "Window_Width", 0);
+        gameinfo.windowHeight = ini.get_int("Graphics", "Window_Height", 0);
+        gameinfo.windowTitle = ini.get_string("Graphics", "Window_Title", "");
+        gameinfo.maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
+        gameinfo.rendererName = ini.get_string("Graphics", "Renderer", "None");
+        gameinfo.enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
+        gameinfo.fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
+        gameinfo.resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
     }
 }

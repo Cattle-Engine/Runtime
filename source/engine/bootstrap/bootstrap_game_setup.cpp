@@ -42,7 +42,7 @@ namespace CE::Bootstrap {
             ShowError("[Bootstrap] Failed to parse Gameinfo.txt");
             return 2;;
         }
-
+        
         if (!ini.has("Gameinfo", "Game_Name") ||
             !ini.has("Gameinfo", "Game_Version") ||
             !ini.has("Graphics", "Window_Width") ||
