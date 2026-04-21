@@ -1,6 +1,7 @@
 #include "engine/renderer.hpp"
 #include "engine/common/vfs.hpp"
 
+#include "imgui/imgui.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
@@ -80,16 +81,25 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             int Debug_GetTexVertCount() override;
             Camera2D* GetCamera() override;
 
+            void ImGuiStartFrame() override;
+            void ImGuiEndFrame(SDL_Window* window) override;
+
         private:
+            ImGuiContext* mImguicontext;
+            ImDrawData* mPendingImGuiDrawData = nullptr;
+            void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
+            void ImGuiShutdown();
+
             SDL_GPUDevice* gDevice = nullptr;
+            SDL_WindowID mWindowID;
             SDL_GPUCommandBuffer* gCommandBuffer = nullptr;
             SDL_GPURenderPass* gRenderPass = nullptr;
+            SDL_GPUTexture* gSwapchainTexture = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
             Camera2D gCamera;
             static constexpr size_t MAX_VERTS   = 10000;
             static constexpr size_t MAX_INDICES = 15000;
-
             SDL_GPUBuffer*         gIndexBuffer   = nullptr;
             SDL_GPUTransferBuffer* gTransferVerts = nullptr;
             SDL_GPUTransferBuffer* gTransferIdx   = nullptr;

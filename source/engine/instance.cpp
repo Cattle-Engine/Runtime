@@ -2,6 +2,7 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
+#include "imgui/imgui.h"
 #include "engine/instance.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/tracelog.hpp"
@@ -72,6 +73,13 @@ namespace CE {
         gRenderer->BeginFrame(gWindow);
         gRenderer->SetClearColor(252, 186, 3, 255);
         gTextureManager->DrawRot("test", 640, 360, 2.0f,{255, 255, 255, 255});
+
+        // Start ImGui draw frame
+        gRenderer->ImGuiStartFrame();
+
+        ImGui::ShowDemoWindow();
+
+        gRenderer->ImGuiEndFrame(gWindow);
 
         gRenderer->EndFrame(gWindow);
 

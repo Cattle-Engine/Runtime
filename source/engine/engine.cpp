@@ -16,6 +16,8 @@ namespace CE {
         CE::Log(CE::LogLevel::Info, "Cattle Engine");
         CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
 
+        // Parse arguments and activate certain settings and shish
+
         const char* base = SDL_GetBasePath();
         if (!base) {
             CE::Log(LogLevel::Fatal, "[Engine] SDL_GetBasePath() returned NULL");
@@ -24,7 +26,7 @@ namespace CE {
 
         mDataFileName =  std::format("{}{}", base, datafilename);
         CE::Log(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
-        // Parse arguments and activate certain settings and shish
+
         Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
         Common::RendererName2String(mGameInfo, mBackend);
 

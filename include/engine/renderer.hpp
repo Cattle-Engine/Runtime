@@ -117,6 +117,9 @@ namespace CE::Renderer {
                 virtual int Debug_GetTexVertCount() = 0;
                 virtual Camera2D* GetCamera() = 0;
 
+                virtual void ImGuiStartFrame() = 0;
+                virtual void ImGuiEndFrame(SDL_Window* window) = 0;
+
             virtual ~IRenderer() = default;
     };
 }

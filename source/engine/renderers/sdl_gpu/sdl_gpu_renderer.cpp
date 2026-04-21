@@ -9,6 +9,7 @@
 #include "engine/common/tracelog.hpp"
 #include "engine/common/error_box.hpp"
 #include "engine/common/vfs.hpp"
+#include "imgui_impl_sdlgpu3.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -307,6 +308,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gWhiteSampler = SDL_CreateGPUSampler(gDevice, &wSampInfo);
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
+        ImGuiInit(window, gDevice);
         return 0;
     }
 
@@ -357,6 +359,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             gErrorTex = nullptr;
         }
 
+        ImGuiShutdown();
+
         return 0;
     }
     int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
@@ -370,16 +374,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GetWindowSize(window, &winW, &winH);
         gMVP = Utils::GetCameraMatrix(gCamera, (float)winW, (float)winH);
 
-        SDL_GPUTexture* swapchainTexture;
-        if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &swapchainTexture, NULL, NULL)) {
+        gSwapchainTexture = nullptr;
+        if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &gSwapchainTexture, NULL, NULL)) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
             return 2;
         }
 
-        if (swapchainTexture == nullptr) return 3;
+        if (gSwapchainTexture == nullptr) return 3;
 
         SDL_GPUColorTargetInfo colorTargetInfo{};
-        colorTargetInfo.texture     = swapchainTexture;
+        colorTargetInfo.texture     = gSwapchainTexture;
         colorTargetInfo.clear_color = gClearColor;
         colorTargetInfo.load_op     = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
@@ -491,7 +495,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_EndGPURenderPass(gRenderPass);
+
+        if (mPendingImGuiDrawData && gSwapchainTexture) {
+            ImGui::SetCurrentContext(mImguicontext);
+            ImGui_ImplSDLGPU3_PrepareDrawData(mPendingImGuiDrawData, gCommandBuffer);
+
+            SDL_GPUColorTargetInfo uiTarget{};
+            uiTarget.texture  = gSwapchainTexture;
+            uiTarget.load_op  = SDL_GPU_LOADOP_LOAD;
+            uiTarget.store_op = SDL_GPU_STOREOP_STORE;
+
+            SDL_GPURenderPass* uiPass = SDL_BeginGPURenderPass(gCommandBuffer, &uiTarget, 1, nullptr);
+            ImGui_ImplSDLGPU3_RenderDrawData(mPendingImGuiDrawData, gCommandBuffer, uiPass);
+            SDL_EndGPURenderPass(uiPass);
+        }
+
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
+        mPendingImGuiDrawData = nullptr;
+        gSwapchainTexture = nullptr;
         return 0;
     }
 

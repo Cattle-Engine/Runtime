@@ -2,6 +2,7 @@
 *.d
 build/*
 assets/*
+imgui.ini
 # Compiled Object files
 *.slo
 *.lo
