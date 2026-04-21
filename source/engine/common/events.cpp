@@ -40,6 +40,10 @@ namespace CE::Events {
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     windowID = e.window.windowID;
                     break;
+                    
+                case SDL_EVENT_QUIT:
+                    windowID = 0;
+                    break;
 
                 default:
                     windowID = 0;

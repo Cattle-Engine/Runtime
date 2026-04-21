@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/instance.hpp"
-#include "engine/bootstrap/instance.hpp"ance.hpp"
+#include "engine/bootstrap/instance.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/events.hpp"
 
@@ -47,6 +47,7 @@ namespace CE {
         }
 
         gTextureManager->Load("welcome.gif", "test");
+        gShouldExit = false;
     }
 
     bool Instance::ShouldExit() {

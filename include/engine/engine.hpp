@@ -10,17 +10,20 @@
 
 namespace CE {
     class Engine {
-            Engine(int argv, char* argc[], std::string& datafilename, bool debug);
-            bool CreateIntsance(std::string& name, 
-                std::optional<std::string> datafilename = std::nullopt, bool debug);
-            bool DestroyInstance(std::string& name);
-            int UpdateInstance(std::string& name);
-            int Run();            
+        public:
+            Engine(int argc, char *argv[], std::string datafilename, bool debug);
+            ~Engine();
+            bool CreateInstance(std::string name, 
+                bool debug, std::optional<std::string> datafilename = std::nullopt);
+            bool DestroyInstance(std::string name);
+            int UpdateInstance(std::string name);
+            int Run();    
         private:
             Renderer::GPUDeviceHandle mGPUHandle;
             RendererBackend mBackend;
+            bool mRunning = true;
             std::string mDataFileName;
-            std::unordered_map<std::string ,InstanceHandle> mInstances;
+            std::unordered_map<std::string, InstanceHandle> mInstances;
             GameInfo mGameInfo;
     };
 }

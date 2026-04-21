@@ -39,6 +39,10 @@ namespace CE::Bootstrap::Engine {
             return 2;
         }
 
+        if (!CE::Ini::parse(text, ini, &err, opts)) {
+            CE::Log(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
+            return 3;
+        }
         gameinfo.gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
         gameinfo.gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
 
@@ -50,5 +54,6 @@ namespace CE::Bootstrap::Engine {
         gameinfo.enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
         gameinfo.fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
         gameinfo.resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
+        return 0;
     }
 }
