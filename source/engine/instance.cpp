@@ -2,7 +2,7 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
-#include "imgui/imgui.h"
+#include "engine/ui/debug_window.hpp"
 #include "engine/instance.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/tracelog.hpp"
@@ -77,7 +77,7 @@ namespace CE {
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
 
-        ImGui::ShowDemoWindow();
+        CE::UI::DrawDebugUI(*gRenderer, *gTextureManager, *gGameInfo);
 
         gRenderer->ImGuiEndFrame(gWindow);
 

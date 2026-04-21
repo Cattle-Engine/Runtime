@@ -20,6 +20,11 @@ namespace CE::Assets::Textures {
                 float rotation, CE::Renderer::Colour colour);
 
             void UnloadAll();
+
+            int Debug_LoadedTexturesCount();
+            int Debug_LoadedTexturesNoError();
+            int Debug_LoadedTexturesError();
+
             ~TextureManager();
 
         private:

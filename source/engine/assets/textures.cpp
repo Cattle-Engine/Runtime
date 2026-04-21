@@ -106,6 +106,26 @@ namespace CE::Assets::Textures {
         CE::Log(LogLevel::Info, "[Texture Manager] Unloaded all textures");
     }
 
+    int TextureManager::Debug_LoadedTexturesCount()  {
+        return gTextures.size();
+    }
+
+    int TextureManager::Debug_LoadedTexturesNoError() {
+        int count = 0;
+            for (auto& [name, tex] : gTextures) {
+                if (!tex.IsErrorTex) count++;
+            }
+        return count;
+    }
+
+    int TextureManager::Debug_LoadedTexturesError() {
+        int count = 0;
+            for (auto& [name, tex] : gTextures) {
+                if (tex.IsErrorTex) count++;
+            }
+        return count; 
+    }
+
     TextureManager::~TextureManager() {
         UnloadAll();
         gErrorTex = nullptr;
