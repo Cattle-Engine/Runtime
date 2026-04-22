@@ -9,5 +9,5 @@ Window_Title = CE Engine
 Max_FPS = 144
 Renderer = Vulkan
 Enable_VSync = false
-Fullscreen = false
+Fullscreen = true
 Resizable_Window = false

@@ -8,6 +8,8 @@
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/gameinfo.hpp"
+#include "engine/input/mouse.hpp"
+#include "engine/input/keyboard.hpp"
 
 // A global to get all instances
 inline Uint64 GLOBALINSTANCESCOUNTER;
@@ -26,11 +28,13 @@ namespace CE {
             std::unique_ptr<CE::GameInfo> gGameInfo;
             std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
             std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
+            std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
+            std::unique_ptr<CE::Input::Mouse> gMouseManger;
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;
-            bool gDebug;
-            bool gShouldExit;
+            bool gDebug = false;
+            bool gShouldExit = false;
 
             // The id for the instance
             int gInstanceID;

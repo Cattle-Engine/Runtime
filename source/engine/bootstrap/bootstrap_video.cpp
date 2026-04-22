@@ -27,9 +27,7 @@ namespace CE::Bootstrap {
 
         SDL_WindowFlags windowFlags = 0;
         if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
-        if (gameinfo->fullscreen)              windowFlags |= SDL_WINDOW_FULLSCREEN;
-        if (gameinfo->resizableWindow)         windowFlags |= SDL_WINDOW_RESIZABLE;
-        windowFlags |= SDL_WINDOW_MAXIMIZED;
+        if (gameinfo->resizableWindow)          windowFlags |= SDL_WINDOW_RESIZABLE;
 
         window = SDL_CreateWindow(
             window_title.c_str(),
@@ -42,6 +40,17 @@ namespace CE::Bootstrap {
             CE::Log(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
             ShowError("Failed to create game window :{");
             return 3;
+        }
+
+        if (gameinfo->fullscreen) {
+            SDL_DisplayMode mode = {};
+            mode.w = gameinfo->windowWidth;
+            mode.h = gameinfo->windowHeight;
+            mode.refresh_rate = 0;
+            mode.format = SDL_PIXELFORMAT_UNKNOWN;
+
+            SDL_SetWindowFullscreenMode(window, &mode);
+            SDL_SetWindowFullscreen(window, true);
         }
 
         int rei = renderer->Init(window, debugvideo, gpudevice);

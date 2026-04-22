@@ -45,18 +45,29 @@ namespace CE {
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
         }
 
+        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
+        gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
+        gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
+
         gTextureManager->Load("welcome.gif", "test");
-        gShouldExit = false;
+
+        int x, y;
+        SDL_GetWindowSize(gWindow, &x, &y);
+
+        Log(LogLevel::Info, "SDL_WINDOW SIZE: {}, {}", x, y);
     }
 
     bool Instance::ShouldExit() {
         return gShouldExit;
     }
 
-    int Instance::Update() {
-    if(gShouldExit) return 1;
+	    int Instance::Update() {
+	    if(gShouldExit) return 1;
 
-        auto indices = CE::Events::GetWindowEventIndices(gInstanceWindowID);
+	        gKeyboardManger->Update();
+	        gMouseManger->Update();
+
+	        auto indices = CE::Events::GetWindowEventIndices(gInstanceWindowID);
 
         for (size_t i : indices) {
             const SDL_Event& e = CE::Events::gEvents[i];
@@ -75,7 +86,7 @@ namespace CE {
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
 
-        CE::UI::DrawDebugUI(*gRenderer, *gTextureManager, *gGameInfo);
+        CE::UI::DrawDebugUI(*gRenderer, *gTextureManager, *gGameInfo, *gKeyboardManger, *gMouseManger);
 
         gRenderer->ImGuiEndFrame(gWindow);
 

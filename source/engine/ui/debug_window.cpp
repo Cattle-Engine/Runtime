@@ -5,6 +5,8 @@
 #include "engine/renderer.hpp"
 #include "engine/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
+#include "engine/input/mouse.hpp"
+#include "engine/input/keyboard.hpp"
 
 namespace CE::UI {
     void DrawGameinfoTab(GameInfo& gameinfo) {
@@ -18,6 +20,24 @@ namespace CE::UI {
         ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
         ImGui::Text("Fullscreen: %s", gameinfo.fullscreen ? "Yes" : "No");
         ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
+    }
+
+    void DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
+        ImGui::Text("Keyboard");
+        ImGui::Spacing();
+        ImGui::Text("Currently held keys: %s", kbmanger.GetPressedKeysString().c_str());
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Mouse");
+        ImGui::Spacing();
+        ImGui::Text("Mouse posX: %i", msmanager.GetX());
+        ImGui::Text("Mouse posY: %i", msmanager.GetY());
+        ImGui::Text("Mouse delta posX: %i", msmanager.GetDeltaX());
+        ImGui::Text("Mouse delta posY: %i", msmanager.GetDeltaY());
+        ImGui::Spacing();
+        ImGui::Text("Mouse wheelX: %i", msmanager.GetWheelX());
+        ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
     }
 
     void DrawRenderTab(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman, CE::GameInfo& gameinfo) {
@@ -37,13 +57,18 @@ namespace CE::UI {
         ImGui::Text("Loaded textures error count: %d", texman.Debug_LoadedTexturesError());
     }
 
-    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman
-                    , CE::GameInfo& gameinfo) {
+    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,  CE::GameInfo& gameinfo,
+                    Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
         ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
         ImGui::Begin("Cattle Debug");
         if (ImGui::BeginTabBar("DebugTabs")) {
             if (ImGui::BeginTabItem("Gameinfo")) {
                 DrawGameinfoTab(gameinfo);
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Input")) {
+                DrawInputTab(kbmanger, msmanager);
                 ImGui::EndTabItem();
             }
 

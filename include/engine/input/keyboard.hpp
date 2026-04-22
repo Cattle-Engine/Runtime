@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <string>
 
 namespace CE::Input {
     // "Borrowed" from raylib, and then modified
@@ -115,14 +116,6 @@ namespace CE::Input {
         KEY_KP_ENTER        = SDL_SCANCODE_KP_ENTER,      // Key: Keypad Enter
         KEY_KP_EQUAL        = SDL_SCANCODE_KP_EQUALS,      // Key: Keypad =
     };
-
-    enum class MouseButtons {
-        LEFT   = SDL_BUTTON_LEFT,
-        MIDDLE = SDL_BUTTON_MIDDLE,
-        RIGHT  = SDL_BUTTON_RIGHT,
-        X1     = SDL_BUTTON_X1,
-        X2     = SDL_BUTTON_X2
-    };
     
     class Keyboard {
         public:
@@ -131,19 +124,12 @@ namespace CE::Input {
             bool IsKeyReleased(KeyboardKeys key) const;
             bool IsKeyPressed(KeyboardKeys key) const;
             bool IsKeyDown(KeyboardKeys key) const;
+            std::string GetPressedKeysString() const;
 
         private:
             bool gCurrent[SDL_SCANCODE_COUNT] = {};
             bool gPrevious[SDL_SCANCODE_COUNT] = {};
             int gWindowID;
-    };
-
-    class Mouse {
-        public:
-            Mouse(int windowID);
-        
-            private:
-                int gWindowID;
     };
 }
 
