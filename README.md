@@ -60,11 +60,6 @@ end)
 
 - [ ] Core stuff
 - [ ] Lua API
-- [ ] Make game state more modular
-- [ ] Make lua api more consistent
 - [ ] Make the plugin api
-- [ ] Make a VFS (Virtual file system, in memory)
 - [ ] Data & texture/audio compression
 - [ ] Stabilise everything 
-- [ ] Move from raylib to SDL3
-- [ ] Make stuff MODULAR, eg enable audio support
