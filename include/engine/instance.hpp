@@ -15,7 +15,7 @@ inline Uint64 GLOBALINSTANCESCOUNTER;
 namespace CE {
     class Instance {
         public:
-            Instance(const char* data_file_name, bool debugmode, 
+            Instance(const char* data_file_path, bool debugmode, 
                 Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();

@@ -9,30 +9,8 @@ namespace CE::Bootstrap {
     int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
         std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
         std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
-        if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-            CE::Log(CE::Fatal, "[Bootstrap] Failed to setup SDL for video: {}", SDL_GetError());
-            ShowError("[Bootstrap] Unable to init game window :'(");
-            return 1;
-        }
-        
-        if (gameinfo->rendererName == "None") {
-            backend = RendererBackend::None;
-        } else if (gameinfo->rendererName == "Software") {
-            backend = RendererBackend::Software;
-        } else if (gameinfo->rendererName == "OpenGL") {
-            backend = RendererBackend::OpenGL;
-        } else if (gameinfo->rendererName == "DX12") {
-            backend = RendererBackend::DX12;
-        } else if (gameinfo->rendererName == "Metal") {
-            backend = RendererBackend::Metal;
-        } else if (gameinfo->rendererName == "Vulkan") {
-            backend = RendererBackend::Vulkan;
-        } else {
-            CE::Log(CE::LogLevel::Fatal, "[Bootstrap] Unknown renderer");
-            return 2;
-        }
 
-        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(backend, vfs.get()));
+        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpudevice->backend, vfs.get()));
         renderer->PreWinInit();
 
         std::string window_title;

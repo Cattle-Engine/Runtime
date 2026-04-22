@@ -2,6 +2,7 @@
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/vfs_stl.hpp"
+#include "engine/common/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/ini.hpp"
 #include "engine/common/error_box.hpp"
@@ -43,21 +44,12 @@ namespace CE::Bootstrap {
             return 2;;
         }
         
-        if (!ini.has("Gameinfo", "Game_Name") ||
-            !ini.has("Gameinfo", "Game_Version") ||
-            !ini.has("Graphics", "Window_Width") ||
-            !ini.has("Graphics", "Window_Height") ||
-            !ini.has("Graphics", "Window_Title") ||
-            !ini.has("Graphics", "Max_FPS") ||
-            !ini.has("Graphics", "Renderer") ||
-            !ini.has("Graphics", "Enable_VSync") ||
-            !ini.has("Graphics", "Fullscreen") ||
-            !ini.has("Graphics", "Resizable_Window"))
-            {
-                CE::Log(LogLevel::Fatal, "[Bootstrap] Missing required game info");
-                ShowError("[Bootstrap] Missing required game info");
-                return 3;;
-            }
+        bool gresult = Common::GData_Has(text);
+
+        if (!gresult) {
+            CE::Log(LogLevel::Error, "[Boostrap] Gameinfo.txt is missing required game-info");
+            return 2;
+        }
 
         gameinfo->gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
         gameinfo->gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
@@ -72,7 +64,7 @@ namespace CE::Bootstrap {
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
 
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
-        CE::Log(LogLevel::Info, "[Bootstrap Info] Game ve>rsion: {}", gameinfo->gameVersionString);
+        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
         return 0;
     }
 }

@@ -9,17 +9,15 @@
 #include "engine/common/events.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_name, bool debugmode, Renderer::GPUDeviceHandle& gpudevice) {
+    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
 
         gVFS = std::make_unique<CE::VFS::VFS>();
         gGameInfo = std::make_unique<CE::GameInfo>();
 
-        std::string fulldatapath = std::format("{}{}",SDL_GetBasePath(), data_file_name);
-
         CE::Log(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
-        int gds_return = Bootstrap::Init_GameData(gVFS, fulldatapath.c_str(), gDebug);
+        int gds_return = Bootstrap::Init_GameData(gVFS, data_file_path, gDebug);
         if(gds_return != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Gamedata mount returned with code {}", gInstanceID, gds_return));
