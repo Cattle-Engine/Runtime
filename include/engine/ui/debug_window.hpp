@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/renderer.hpp"
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/assets/textures.hpp"

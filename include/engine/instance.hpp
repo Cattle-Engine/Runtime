@@ -7,7 +7,7 @@
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"fo.hpp"fo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
 

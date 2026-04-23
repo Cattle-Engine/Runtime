@@ -1,4 +1,4 @@
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/renderer.hpp"
 
 namespace CE::Common {

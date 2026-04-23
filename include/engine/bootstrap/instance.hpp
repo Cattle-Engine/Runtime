@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "engine/common/vfs.hpp"
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 

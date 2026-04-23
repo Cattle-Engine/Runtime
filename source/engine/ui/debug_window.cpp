@@ -3,7 +3,7 @@
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/renderer.hpp"
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"

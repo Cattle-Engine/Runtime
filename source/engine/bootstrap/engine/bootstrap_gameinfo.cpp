@@ -1,7 +1,7 @@
 #include <string>
 
 #include "engine/bootstrap/engine.hpp"
-#include "engine/gameinfo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/common/vfs.hpp"
 #include "engine/common/vfs_stl.hpp"
 #include "engine/common/tracelog.hpp"
