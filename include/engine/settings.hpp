@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 #include "engine/common/ini.hpp"
 #include "engine/common/gameinfo.hpp"
@@ -13,12 +14,11 @@ namespace CE::Settings {
         bool enableVSync;
         std::string rendererName;
         bool fullscreen;
-        bool resizableWindow;
     };
 
     class SettingsManager {
         public:
-            SettingsManager(std::string game_name, GameInfo gameinfo);
+            SettingsManager(GameInfo gameinfo, uint64_t instance_id);
             SettingsInfo Settings;
             
             bool ReloadSettings();
@@ -27,12 +27,21 @@ namespace CE::Settings {
             bool CustomS_GetBool(std::string key, std::string section, bool fallback);
             std::string Custom_GetString(std::string key, std::string section, std::string fallback);
 
+            void Custom_SetInteger(std::string key, std::string section, int value);
+            void Custom_SetFloat(std::string key, std::string section, float value);
+            void Custom_SetBool(std::string key, std::string section, bool value);
+            void Custom_SetString(std::string key, std::string section, std::string value);
+            
+            void FlushSettings();
+
         private:
+            bool Internal_ReloadSettings();
             CE::Ini::IniFile mIniFile;
             CE::Ini::ParseError mParseError;
             CE::Ini::Options mOptions;
             std::string mPrevRendererName;
             std::string mGameName;
             GameInfo mGameInfo;
+            uint64_t mInstanceID = 0;
     };
 } 

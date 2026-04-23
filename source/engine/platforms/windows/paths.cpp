@@ -21,19 +21,20 @@ namespace CE::Platforms::Windows {
     }
 
     std::string GetConfigPath(const char* game_name) {
-        const char* user_profile_str = std::getenv("USERPROFILE");
+        const char* app_data_str = std::getenv("APPDATA");
 
-        if(!user_profile_str) {
+        if(!app_data_str) {
             CE::Log(LogLevel::Fatal, "[Windows] Failed to get user home directory");
             ShowError("[Winows] Failed to find user home directory");
             std::exit(5);
         }
-
-        return std::format("{}/{}/config", user_profile_str, game_name);
+        std::string base_config = std::format("{}/{}/config", app_data_str, game_name);
+        return base_config;
     }
 
     std::string GetSavePath(const char* game_name) {
-        std::string config_path = GetConfigPath(game_name);
-        return std::format("{}/saves", config_path);
+        const char* local_app_data_str = std::getenv("LOCALAPPDATA");
+        std::string save_path = std::format("{}/{}/saves", local_app_data_str, game_name);
+        return save_path;
     }
 }

@@ -6,6 +6,11 @@
 #include <charconv>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <sstream>
+#include <vector>
 
 namespace CE::Ini {
 namespace {
@@ -66,6 +71,68 @@ static std::string normalize_value(std::string_view v, Options opt)
         return unescape(v);
     }
     return std::string(v);
+}
+
+static void append_comment_lines(std::string& out, std::string_view comment, char prefix)
+{
+    size_t pos = 0;
+    while (pos <= comment.size()) {
+        size_t end = comment.find('\n', pos);
+        if (end == std::string_view::npos)
+            end = comment.size();
+
+        std::string_view line = comment.substr(pos, end - pos);
+        if (!line.empty() && line.back() == '\r')
+            line.remove_suffix(1);
+
+        out.push_back(prefix);
+        if (!line.empty()) {
+            out.push_back(' ');
+            out.append(line.data(), line.size());
+        }
+        out.push_back('\n');
+
+        if (end >= comment.size())
+            break;
+        pos = end + 1;
+    }
+}
+
+static std::string escape_and_quote_if_needed(std::string_view s)
+{
+    bool needs_quotes = false;
+    if (s.empty())
+        return std::string();
+
+    if (std::isspace(static_cast<unsigned char>(s.front())) ||
+        std::isspace(static_cast<unsigned char>(s.back())))
+        needs_quotes = true;
+
+    for (char ch : s) {
+        if (ch == '\n' || ch == '\r' || ch == '\t' || ch == ';' || ch == '#') {
+            needs_quotes = true;
+            break;
+        }
+    }
+
+    if (!needs_quotes)
+        return std::string(s);
+
+    std::string out;
+    out.reserve(s.size() + 2);
+    out.push_back('"');
+    for (char ch : s) {
+        switch (ch) {
+        case '\\': out.append("\\\\"); break;
+        case '"': out.append("\\\""); break;
+        case '\n': out.append("\\n"); break;
+        case '\r': out.append("\\r"); break;
+        case '\t': out.append("\\t"); break;
+        default: out.push_back(ch); break;
+        }
+    }
+    out.push_back('"');
+    return out;
 }
 
 static std::string_view strip_inline_comment(std::string_view v)
@@ -276,6 +343,9 @@ void IniFile::clear()
 {
     global.clear();
     sections.clear();
+    header_comments.clear();
+    section_comments.clear();
+    key_comments.clear();
 }
 
 bool IniFile::has(std::string_view section, std::string_view key) const
@@ -347,6 +417,81 @@ bool IniFile::get_bool(std::string_view section, std::string_view key, bool def)
     return v;
 }
 
+void IniFile::set_string(std::string_view section, std::string_view key, std::string_view value)
+{
+    if (key.empty())
+        return;
+
+    std::string k(key);
+    std::string v(value);
+
+    if (section.empty()) {
+        global[std::move(k)] = std::move(v);
+    } else {
+        sections[std::string(section)][std::move(k)] = std::move(v);
+    }
+}
+
+void IniFile::set_int(std::string_view section, std::string_view key, int64_t value)
+{
+    set_string(section, key, std::to_string(value));
+}
+
+void IniFile::set_float(std::string_view section, std::string_view key, double value)
+{
+    std::ostringstream ss;
+    ss.imbue(std::locale::classic());
+    ss << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
+    set_string(section, key, ss.str());
+}
+
+void IniFile::set_bool(std::string_view section, std::string_view key, bool value)
+{
+    set_string(section, key, value ? "true" : "false");
+}
+
+void IniFile::erase(std::string_view section, std::string_view key)
+{
+    if (key.empty())
+        return;
+
+    if (section.empty()) {
+        global.erase(std::string(key));
+        auto git = key_comments.find(std::string());
+        if (git != key_comments.end())
+            git->second.erase(std::string(key));
+        return;
+    }
+
+    auto sit = sections.find(std::string(section));
+    if (sit != sections.end())
+        sit->second.erase(std::string(key));
+
+    auto cit = key_comments.find(std::string(section));
+    if (cit != key_comments.end())
+        cit->second.erase(std::string(key));
+}
+
+void IniFile::add_header_comment(std::string_view comment)
+{
+    header_comments.emplace_back(comment);
+}
+
+void IniFile::set_section_comment(std::string_view section, std::string_view comment)
+{
+    if (section.empty())
+        return;
+    sections.emplace(std::string(section), Section{});
+    section_comments[std::string(section)] = std::string(comment);
+}
+
+void IniFile::set_key_comment(std::string_view section, std::string_view key, std::string_view comment)
+{
+    if (key.empty())
+        return;
+    key_comments[std::string(section)][std::string(key)] = std::string(comment);
+}
+
 bool parse_memory(const void* data,
                   size_t size,
                   IniFile& out,
@@ -410,6 +555,127 @@ bool load_file(const std::filesystem::path& path, IniFile& out, ParseError* err,
     }
 
     return parse_impl(std::string_view(buf), out, err, opt);
+}
+
+std::string serialize(const IniFile& ini, WriteOptions opt)
+{
+    std::string out;
+
+    for (const auto& c : ini.header_comments)
+        append_comment_lines(out, c, opt.comment_prefix);
+
+    const auto append_kv = [&](std::string_view key, std::string_view value) {
+        out.append(key.data(), key.size());
+        if (opt.space_around_delim) {
+            out.push_back(' ');
+            out.push_back(opt.delim);
+            out.push_back(' ');
+        } else {
+            out.push_back(opt.delim);
+        }
+        std::string escaped = escape_and_quote_if_needed(value);
+        out.append(escaped);
+        out.push_back('\n');
+    };
+
+    const auto append_section = [&](const std::string& name, const Section& sec) {
+        auto scit = ini.section_comments.find(name);
+        if (scit != ini.section_comments.end())
+            append_comment_lines(out, scit->second, opt.comment_prefix);
+
+        out.push_back('[');
+        out.append(name);
+        out.append("]\n");
+
+        const Section* comments = nullptr;
+        auto cit = ini.key_comments.find(name);
+        if (cit != ini.key_comments.end())
+            comments = &cit->second;
+
+        std::vector<std::string_view> keys;
+        keys.reserve(sec.size());
+        for (const auto& kv : sec)
+            keys.push_back(kv.first);
+        if (opt.sort)
+            std::sort(keys.begin(), keys.end());
+
+        for (std::string_view k : keys) {
+            std::string ks(k);
+            if (comments) {
+                auto kit = comments->find(ks);
+                if (kit != comments->end())
+                    append_comment_lines(out, kit->second, opt.comment_prefix);
+            }
+            auto vit = sec.find(ks);
+            if (vit != sec.end())
+                append_kv(k, vit->second);
+        }
+    };
+
+    if (!ini.global.empty()) {
+        const Section* comments = nullptr;
+        auto cit = ini.key_comments.find(std::string());
+        if (cit != ini.key_comments.end())
+            comments = &cit->second;
+
+        std::vector<std::string_view> keys;
+        keys.reserve(ini.global.size());
+        for (const auto& kv : ini.global)
+            keys.push_back(kv.first);
+        if (opt.sort)
+            std::sort(keys.begin(), keys.end());
+
+        for (std::string_view k : keys) {
+            std::string ks(k);
+            if (comments) {
+                auto kit = comments->find(ks);
+                if (kit != comments->end())
+                    append_comment_lines(out, kit->second, opt.comment_prefix);
+            }
+            auto vit = ini.global.find(ks);
+            if (vit != ini.global.end())
+                append_kv(k, vit->second);
+        }
+    }
+
+    if (!ini.sections.empty()) {
+        if (!out.empty() && out.back() != '\n')
+            out.push_back('\n');
+        if (!ini.global.empty() && !out.empty())
+            out.push_back('\n');
+
+        std::vector<std::string_view> section_names;
+        section_names.reserve(ini.sections.size());
+        for (const auto& kv : ini.sections)
+            section_names.push_back(kv.first);
+        if (opt.sort)
+            std::sort(section_names.begin(), section_names.end());
+
+        bool first = true;
+        for (std::string_view sname : section_names) {
+            if (!first)
+                out.push_back('\n');
+            first = false;
+            const Section& sec = ini.sections.at(std::string(sname));
+            append_section(std::string(sname), sec);
+        }
+    }
+
+    if (opt.newline_at_eof && (out.empty() || out.back() != '\n'))
+        out.push_back('\n');
+
+    return out;
+}
+
+bool save_file(const std::filesystem::path& path, const IniFile& ini, WriteOptions opt)
+{
+    std::ofstream f(path, std::ios::binary | std::ios::trunc);
+    if (!f)
+        return false;
+
+    std::string text = serialize(ini, opt);
+    f.write(text.data(), static_cast<std::streamsize>(text.size()));
+    return static_cast<bool>(f);
 }
 
 }

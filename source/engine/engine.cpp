@@ -7,6 +7,7 @@
 #include "engine/common/renderer_name_2_string.hpp"
 #include "engine/common/events.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/settings.hpp"
 #include "engine/bootstrap/engine.hpp"
 
 namespace CE {
@@ -28,14 +29,16 @@ namespace CE {
         CE::Log(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
 
         Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
-        Common::RendererName2String(mGameInfo, mBackend);
+        
+        CE::Settings::SettingsManager msettings(mGameInfo, 1714284757 /*Why this large number? Its ENGINEC encoded to smth like base26*/);
 
+        Common::RendererName2String(msettings.Settings.rendererName, mBackend);
         CE::Log(LogLevel::Info, "[Engine] Rendererbackend name: {}", mGameInfo.rendererName);
         if (mGameInfo.rendererName != "None") {
             SDL_Init(SDL_INIT_VIDEO);
         }
         CE::Log(LogLevel::Info, "[Engine] Creating GPU handle");
-        mGPUHandle = Renderer::CreateGPUDevice(mBackend, true /*TODO: Make settings and have debug video*/);
+        mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
         
         if (mGPUHandle == nullptr) {
             CE::Log(LogLevel::Fatal, "[Engine] Got a nullptr GPU handle");

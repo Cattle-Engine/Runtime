@@ -1,19 +1,20 @@
 #include "engine/common/gameinfo.hpp"
 #include "engine/renderer.hpp"
+#include "engine/common/renderer_name_2_string.hpp"
 
 namespace CE::Common {
-    void RendererName2String(const GameInfo& gameinfo, RendererBackend& backend) {
-        if (gameinfo.rendererName == "None") {
+    void RendererName2String(const std::string renderername, RendererBackend& backend) {
+        if (renderername == "None") {
             backend = RendererBackend::None;
-        } else if (gameinfo.rendererName == "Software") {
+        } else if (renderername == "Software") {
             backend = RendererBackend::Software;
-        } else if (gameinfo.rendererName == "OpenGL") {
+        } else if (renderername == "OpenGL") {
             backend = RendererBackend::OpenGL;
-        } else if (gameinfo.rendererName == "DX12") {
+        } else if (renderername == "DX12") {
             backend = RendererBackend::DX12;
-        } else if (gameinfo.rendererName == "Metal") {
+        } else if (renderername == "Metal") {
             backend = RendererBackend::Metal;
-        } else if (gameinfo.rendererName == "Vulkan") {
+        } else if (renderername == "Vulkan") {
             backend = RendererBackend::Vulkan;
         } else {
             backend = RendererBackend::None;

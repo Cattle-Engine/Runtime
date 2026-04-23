@@ -7,12 +7,13 @@
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
-#include "engine/common/gameinfo.hpp"fo.hpp"fo.hpp"
+#include "engine/common/gameinfo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
+#include "engine/settings.hpp"
 
 // A global to get all instances
-inline Uint64 GLOBALINSTANCESCOUNTER;
+inline uint64_t GLOBALINSTANCESCOUNTER;
 
 namespace CE {
     class Instance {
@@ -30,6 +31,7 @@ namespace CE {
             std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
             std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
+            std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;
