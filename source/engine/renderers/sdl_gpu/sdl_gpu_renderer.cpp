@@ -882,4 +882,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gBackend = backend;
         gVFS = vfs;
     }
+
+    void SDL_GPU_Renderer::SetVSync(bool setting) {
+        SDL_Window* window = SDL_GetWindowFromID(mWindowID);
+        if (setting) {
+            SDL_SetGPUSwapchainParameters(
+                gDevice,
+                window,
+                SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+                SDL_GPU_PRESENTMODE_VSYNC   // VSync on
+            );
+        } else {
+            SDL_SetGPUSwapchainParameters(
+                gDevice,
+                window,
+                SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+                SDL_GPU_PRESENTMODE_IMMEDIATE   // VSync off
+            );
+        }
+    }
 }

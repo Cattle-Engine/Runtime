@@ -81,6 +81,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             int Debug_GetTexVertCount() override;
             Camera2D* GetCamera() override;
 
+            void SetVSync(bool setting) override;
+
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
 

@@ -1,21 +1,30 @@
 #include <format>
 
 #include "engine/common/ini.hpp"
+#include "engine/instance.hpp"
 #include "engine/settings.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/platforms.hpp"
 
 namespace CE::Settings {
-    SettingsManager::SettingsManager(GameInfo gameinfo, uint64_t instance_id) {
+    SettingsManager::SettingsManager(const GameInfo& gameinfo, uint64_t instance_id) {
         mGameName = gameinfo.gameNameString;
         mGameInfo = gameinfo;
         mInstanceID = instance_id;
         Internal_ReloadSettings();
     }
 
+    void SettingsManager::SetInstance(CE::Instance& instance) {
+        mInstance = &instance;
+    }
+
     bool SettingsManager::ReloadSettings() {
-        CE::Log(LogLevel::Debug, "[Settings Manager {}] To change renderer you need to reload engine!");
-        return Internal_ReloadSettings();
+        CE::Log(LogLevel::Debug, "[Settings Manager {}] To change renderer you need to reload engine!", mInstanceID);
+        bool reloaded = Internal_ReloadSettings();
+        if (mInstance != nullptr) {
+            mInstance->ReloadSettings();
+        }
+        return reloaded;
     }
 
     bool SettingsManager::Internal_ReloadSettings() {
@@ -38,6 +47,7 @@ namespace CE::Settings {
         Settings.enableVSync = mIniFile.get_bool("graphics", "vsync", mGameInfo.enableVSync);
         Settings.rendererName = mIniFile.get_string("graphics", "renderer", mGameInfo.rendererName);
         Settings.fullscreen = mIniFile.get_bool("graphics", "fullscreen", mGameInfo.fullscreen);
+        return true;
     }
 
     void SettingsManager::FlushSettings() {
@@ -51,18 +61,26 @@ namespace CE::Settings {
         std::string config_path =
             std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
 
-        CE::Ini::save_file(config_path, mIniFile);
+        if (!CE::Ini::save_file(config_path, mIniFile)) {
+            CE::Log(LogLevel::Error, "[Settings Manager {}] Failed to save file!", mInstanceID);
+        }
     }
 
-    int SettingsManager::CustomS_GetInteger(std::string key, std::string section, int fallback) {
+    std::string SettingsManager::GetSettingPath() {
+        std::string config_path =
+            std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
+        return config_path;
+    }
+
+    int SettingsManager::Custom_GetInteger(std::string key, std::string section, int fallback) {
         return mIniFile.get_int(section, key, fallback);
     }
 
-    float SettingsManager::CustomS_GetFloat(std::string key, std::string section, float fallback) {
+    float SettingsManager::Custom_GetFloat(std::string key, std::string section, float fallback) {
         return mIniFile.get_float(section, key, fallback);
     }
 
-    bool SettingsManager::CustomS_GetBool(std::string key, std::string section, bool fallback) {
+    bool SettingsManager::Custom_GetBool(std::string key, std::string section, bool fallback) {
         return mIniFile.get_bool(section, key, fallback);
     }
 

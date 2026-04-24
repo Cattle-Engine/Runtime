@@ -10,21 +10,27 @@
 #include "engine/common/gameinfo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
-#include "engine/settings.hpp"
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;
 
 namespace CE {
+    namespace Settings {
+        class SettingsManager;
+    }
+
     class Instance {
         public:
             Instance(const char* data_file_path, bool debugmode, 
                 Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();
+            void ReloadSettings(); // Reload settings, thats all it does :shrug:
             int GetInstanceID();
             ~Instance();
         private:
+            void ApplySettingsReload();
+
             std::unique_ptr<CE::VFS::VFS> gVFS;
             std::unique_ptr<CE::GameInfo> gGameInfo;
             std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
@@ -32,11 +38,13 @@ namespace CE {
             std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
             std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
+
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;
             bool gDebug = false;
             bool gShouldExit = false;
+            bool gPendingSettingsReload = false;
 
             // The id for the instance
             int gInstanceID;

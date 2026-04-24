@@ -33,8 +33,8 @@ namespace CE {
         CE::Settings::SettingsManager msettings(mGameInfo, 1714284757 /*Why this large number? Its ENGINEC encoded to smth like base26*/);
 
         Common::RendererName2String(msettings.Settings.rendererName, mBackend);
-        CE::Log(LogLevel::Info, "[Engine] Rendererbackend name: {}", mGameInfo.rendererName);
-        if (mGameInfo.rendererName != "None") {
+        CE::Log(LogLevel::Info, "[Engine] Rendererbackend name: {}", msettings.Settings.rendererName);
+        if (msettings.Settings.rendererName != "None") {
             SDL_Init(SDL_INIT_VIDEO);
         }
         CE::Log(LogLevel::Info, "[Engine] Creating GPU handle");

@@ -23,6 +23,11 @@ namespace CE::Events {
                     windowID = e.key.windowID;
                     break;
 
+                case SDL_EVENT_TEXT_INPUT:
+                case SDL_EVENT_TEXT_EDITING:
+                    windowID = e.text.windowID;
+                    break;
+
                 case SDL_EVENT_MOUSE_MOTION:
                     windowID = e.motion.windowID;
                     break;

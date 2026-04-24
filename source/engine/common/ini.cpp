@@ -666,9 +666,10 @@ std::string serialize(const IniFile& ini, WriteOptions opt)
 
     return out;
 }
-
 bool save_file(const std::filesystem::path& path, const IniFile& ini, WriteOptions opt)
 {
+    std::filesystem::create_directories(path.parent_path());
+
     std::ofstream f(path, std::ios::binary | std::ios::trunc);
     if (!f)
         return false;

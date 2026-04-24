@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 
 namespace CE::Bootstrap {
-    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, bool debugvideo, 
+    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, const Settings::SettingsInfo& settings, bool debugvideo,
         std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
         std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
 
@@ -21,9 +21,9 @@ namespace CE::Bootstrap {
         }
 
         CE::Log(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
-        CE::Log(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", gameinfo->windowWidth, gameinfo->windowHeight);
-        CE::Log(CE::LogLevel::Info, "[Window] Window renderer: {}", gameinfo->rendererName);
-        CE::Log(CE::LogLevel::Info, "[Window] Max fps: {}", gameinfo->maxFPS);
+        CE::Log(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth, settings.windowHeight);
+        CE::Log(CE::LogLevel::Info, "[Window] Window renderer: {}", settings.rendererName);
+        CE::Log(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
 
         SDL_WindowFlags windowFlags = 0;
         if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
@@ -31,8 +31,8 @@ namespace CE::Bootstrap {
 
         window = SDL_CreateWindow(
             window_title.c_str(),
-            gameinfo->windowWidth,
-            gameinfo->windowHeight,
+            settings.windowWidth,
+            settings.windowHeight,
             windowFlags
         );
 
@@ -42,10 +42,10 @@ namespace CE::Bootstrap {
             return 3;
         }
 
-        if (gameinfo->fullscreen) {
+        if (settings.fullscreen) {
             SDL_DisplayMode mode = {};
-            mode.w = gameinfo->windowWidth;
-            mode.h = gameinfo->windowHeight;
+            mode.w = settings.windowWidth;
+            mode.h = settings.windowHeight;
             mode.refresh_rate = 0;
             mode.format = SDL_PIXELFORMAT_UNKNOWN;
 

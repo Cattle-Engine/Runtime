@@ -1,3 +1,7 @@
+#include <array>
+#include <cstring>
+#include <unordered_map>
+
 #include "imgui/imgui.h"
 
 #include "engine/ui/debug_window.hpp"
@@ -9,6 +13,18 @@
 #include "engine/input/keyboard.hpp"
 
 namespace CE::UI {
+    namespace {
+        struct SettingsTabState {
+            std::array<char, 501> rendererBuffer{};
+            bool synced = false;
+        };
+
+        SettingsTabState& GetSettingsTabState(CE::Settings::SettingsManager& settings) {
+            static std::unordered_map<CE::Settings::SettingsManager*, SettingsTabState> states;
+            return states[&settings];
+        }
+    }
+
     void DrawGameinfoTab(GameInfo& gameinfo) {
         ImGui::Text("Game name: %s", gameinfo.gameNameString.c_str());
         ImGui::Text("Game version: %s", gameinfo.gameVersionString.c_str());
@@ -40,8 +56,9 @@ namespace CE::UI {
         ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
     }
 
-    void DrawRenderTab(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman, CE::GameInfo& gameinfo) {
-        ImGui::Text("Renderer Name: %s", gameinfo.rendererName.c_str());
+    void DrawRenderTab(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,
+                       const CE::Settings::SettingsInfo& settings) {
+        ImGui::Text("Renderer Name: %s", settings.rendererName.c_str());
         
         Utils::SpaceSep();
 
@@ -57,9 +74,81 @@ namespace CE::UI {
         ImGui::Text("Loaded textures error count: %d", texman.Debug_LoadedTexturesError());
     }
 
-    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,  CE::GameInfo& gameinfo,
+    void DrawSettingsTab(CE::Settings::SettingsManager& settings) {
+        auto& s = settings.Settings;
+        auto& state = GetSettingsTabState(settings);
+
+        ImGui::Text("Window");
+        ImGui::Spacing();
+
+        ImGui::InputInt("Width", &s.windowWidth);
+        ImGui::InputInt("Height", &s.windowHeight);
+
+        ImGui::Checkbox("Fullscreen", &s.fullscreen);
+        ImGui::Checkbox("VSync", &s.enableVSync);
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Performance");
+        ImGui::Spacing();
+
+        ImGui::SliderInt("Max FPS", &s.maxFPS, 30, 240);
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Renderer");
+        ImGui::Spacing();
+
+        if (!state.synced) {
+            std::strncpy(state.rendererBuffer.data(), s.rendererName.c_str(), state.rendererBuffer.size() - 1);
+            state.rendererBuffer[state.rendererBuffer.size() - 1] = '\0';
+            state.synced = true;
+        }
+
+        ImGui::PushID(&settings);
+        ImGui::InputText("Renderer", state.rendererBuffer.data(), state.rendererBuffer.size());
+        ImGui::PopID();
+
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            s.rendererName = state.rendererBuffer.data();
+        }
+
+        ImGui::Text("Supported renderers: Metal, DX12, Vulkan");
+        ImGui::Text("Note: To change renderer you");
+        ImGui::Text("need to close engine and reopen");
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Settings path: %s", settings.GetSettingPath().c_str());
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Click to copy to clipboard");
+
+            if (ImGui::IsMouseClicked(0)) {
+                SDL_SetClipboardText(settings.GetSettingPath().c_str());
+            }
+        }
+
+        if (ImGui::Button("Save & apply")) {
+            settings.FlushSettings();
+            settings.ReloadSettings();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Reload from disk")) {
+            settings.ReloadSettings();
+
+            std::strncpy(state.rendererBuffer.data(), s.rendererName.c_str(), state.rendererBuffer.size() - 1);
+            state.rendererBuffer[state.rendererBuffer.size() - 1] = '\0';
+            state.synced = true;
+        }
+    }
+
+    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,
+                    CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
                     Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
-        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(487,386), ImGuiCond_FirstUseEver);
         ImGui::Begin("Cattle Debug");
         if (ImGui::BeginTabBar("DebugTabs")) {
             if (ImGui::BeginTabItem("Gameinfo")) {
@@ -72,8 +161,13 @@ namespace CE::UI {
                 ImGui::EndTabItem();
             }
 
+            if (ImGui::BeginTabItem("Settings")) {
+                DrawSettingsTab(settings);
+                ImGui::EndTabItem();
+            }
+
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRenderTab(renderer, texman, gameinfo);
+                DrawRenderTab(renderer, texman, settings.Settings);
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
