@@ -1,6 +1,7 @@
 #include <format>
 #include <memory>
 #include <SDL3/SDL.h>
+#include "SDL3_image/SDL_image.h"
 
 #include "engine/ui/debug_window.hpp"
 #include "engine/instance.hpp"
@@ -13,6 +14,9 @@ namespace CE {
     Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
+        gDebug = debugmode;
+        gPerformanceFrequency = SDL_GetPerformanceFrequency();
+        gLastFrameCounter = SDL_GetPerformanceCounter();
 
         gVFS = std::make_unique<CE::VFS::VFS>();
         gGameInfo = std::make_unique<CE::GameInfo>();
@@ -50,7 +54,9 @@ namespace CE {
                 std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
         }
         gInstanceWindowID = SDL_GetWindowID(gWindow);
-
+        if (!gGameInfo->windowIcon.empty()) {
+            SetWindowIcon(gGameInfo->windowIcon);
+        }
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating asset managers", gInstanceID);
         int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gVFS, gRenderer);
         if (ams != 0) {
@@ -76,6 +82,8 @@ namespace CE {
 
     int Instance::Update() {
         if(gShouldExit) return 1;
+
+        const Uint64 frame_start_counter = SDL_GetPerformanceCounter();
 
         gKeyboardManger->Update();
         gMouseManger->Update();
@@ -117,11 +125,43 @@ namespace CE {
 
         gRenderer->EndFrame(gWindow);
 
+        Uint64 frame_end_counter = SDL_GetPerformanceCounter();
+        gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
+                     static_cast<float>(gPerformanceFrequency) * 1000.0f;
+
+        if (gSettingsManager->Settings.maxFPS > 0) {
+            const float target_frame_time_ms = 1000.0f /
+                                               static_cast<float>(gSettingsManager->Settings.maxFPS);
+            if (gFrameTime < target_frame_time_ms) {
+                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - gFrameTime) * 1000000.0f));
+                frame_end_counter = SDL_GetPerformanceCounter();
+                gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
+                             static_cast<float>(gPerformanceFrequency) * 1000.0f;
+            }
+        }
+
+        gDeltaTime = static_cast<float>(frame_end_counter - gLastFrameCounter) /
+                     static_cast<float>(gPerformanceFrequency);
+        gLastFrameCounter = frame_end_counter;
+
         return 0;
     }
 
     int Instance::GetInstanceID() {
         return gInstanceID;
+    }
+
+    float Instance::GetDeltaTime() const {
+        return gDeltaTime;
+    }
+
+    float Instance::GetFrameTime() const {
+        return gFrameTime;
+    }
+
+    int Instance::GetFPS() const {
+        if (gDeltaTime <= 0.0f) return 0.0f;
+        return 1.0f / gDeltaTime;
     }
 
     void Instance::ReloadSettings() {
@@ -138,6 +178,41 @@ namespace CE {
         }
 
         gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);
+    }
+
+    void Instance::SetWindowIcon(std::string path) {
+        uint64_t sz = 0;
+        if (!gVFS->GetFileSize(path.c_str(), sz) || sz == 0) {
+            CE::Log(LogLevel::Error, "[Instance {}] VFS could not stat '{}' (missing or empty)", gInstanceID, path);
+        }
+
+        VirtualFile* vf = gVFS->OpenFile(path.c_str());
+        if (!vf) {
+            CE::Log(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID ,path);
+        }
+
+        std::vector<uint8_t> fileBytes((size_t)sz);
+        gVFS->ReadFile(vf, fileBytes.data(), fileBytes.size());
+        gVFS->CloseFile(vf);
+
+        SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
+        if (!mem) {
+            CE::Log(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID,SDL_GetError());
+        }
+
+        SDL_Surface* surface = IMG_Load_IO(mem, true); 
+        if (!surface) {
+            CE::Log(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID,path, SDL_GetError());
+        }
+
+        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_DestroySurface(surface);
+        if (!converted) {
+            CE::Log(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID,SDL_GetError());
+        }
+
+        SDL_SetWindowIcon(gWindow, converted);
+        SDL_DestroySurface(converted);
     }
 
     Instance::~Instance() {

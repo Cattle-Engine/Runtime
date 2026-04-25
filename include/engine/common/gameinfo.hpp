@@ -19,6 +19,7 @@ namespace CE {
         std::string rendererName;
         bool fullscreen;
         bool resizableWindow;
+        std::string windowIcon;
 
         const char* dataFileName;
     };

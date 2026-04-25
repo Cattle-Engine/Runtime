@@ -1,6 +1,7 @@
 [Gameinfo]
 Game_Name = CE Engine Demo
 Game_Version = 1.0.0
+Window_Icon = "/no-signal.png"
 
 [Graphics]
 Window_Width = 1280

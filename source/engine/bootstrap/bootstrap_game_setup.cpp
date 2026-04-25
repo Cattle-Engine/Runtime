@@ -62,6 +62,9 @@ namespace CE::Bootstrap {
         gameinfo->enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
         gameinfo->fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
+        if(ini.has("Gameinfo", "Window_Icon")) {
+            gameinfo->windowIcon = ini.get_string("Gameinfo", "Window_Icon", "");
+        }
 
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
         CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);

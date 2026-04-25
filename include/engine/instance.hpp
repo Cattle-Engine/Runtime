@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <SDL3/SDL.h>
 
@@ -25,7 +26,11 @@ namespace CE {
                 Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();
+            float GetDeltaTime() const;
+            float GetFrameTime() const;
+            int GetFPS() const;
             void ReloadSettings(); // Reload settings, thats all it does :shrug:
+            void SetWindowIcon(std::string path);
             int GetInstanceID();
             ~Instance();
         private:
@@ -45,6 +50,10 @@ namespace CE {
             bool gDebug = false;
             bool gShouldExit = false;
             bool gPendingSettingsReload = false;
+            float gDeltaTime = 0.0f;
+            float gFrameTime = 0.0f;
+            Uint64 gLastFrameCounter = 0;
+            Uint64 gPerformanceFrequency = 0;
 
             // The id for the instance
             int gInstanceID;
