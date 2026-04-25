@@ -42,7 +42,7 @@ set(DATA_FILE_NAME data.tcf)
 # -------------------------
 # Sources
 # -------------------------
-file(GLOB_RECURSE SOURCES
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     source/*.cpp
     source/*.c
 )

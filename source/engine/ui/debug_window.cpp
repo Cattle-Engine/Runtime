@@ -56,11 +56,37 @@ namespace CE::UI {
         ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
     }
 
-    void DrawRenderTab(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,
-                       const CE::Settings::SettingsInfo& settings) {
-        ImGui::Text("Renderer Name: %s", settings.rendererName.c_str());
-        
+    void DrawPerformanceTab(
+        CE::Renderer::IRenderer& renderer,
+        CE::Assets::Textures::TextureManager& texman,
+        const CE::Settings::SettingsInfo& settings,
+        int fps,
+        float deltaTime,
+        float frameTime
+    ) {
+        ImGui::Text("Performance");
+        ImGui::Spacing();
+
+        ImGui::Text("FPS: %d", fps);
+        ImGui::Text("Frame Time (ms): %.3f", frameTime);
+        ImGui::Text("Delta Time (s): %.6f", deltaTime);
+
+        static float fpsHistory[100] = {};
+        static int offset = 0;
+
+        fpsHistory[offset] = static_cast<float>(fps);
+        offset = (offset + 1) % 100;
+
+        ImGui::PlotLines("FPS History", fpsHistory, 100, 0, nullptr, 0.0f, 300.0f, ImVec2(0, 80));
+
         Utils::SpaceSep();
+
+        ImGui::Text("Renderer: %s", settings.rendererName.c_str());
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Geometry");
+        ImGui::Spacing();
 
         ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
         ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
@@ -69,9 +95,12 @@ namespace CE::UI {
 
         Utils::SpaceSep();
 
-        ImGui::Text("Total textures loaded: %d", texman.Debug_LoadedTexturesCount());
-        ImGui::Text("Loaded textures no error count: %d", texman.Debug_LoadedTexturesNoError());
-        ImGui::Text("Loaded textures error count: %d", texman.Debug_LoadedTexturesError());
+        ImGui::Text("Textures");
+        ImGui::Spacing();
+
+        ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
+        ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
+        ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
     }
 
     void DrawSettingsTab(CE::Settings::SettingsManager& settings) {
@@ -93,6 +122,7 @@ namespace CE::UI {
         ImGui::Spacing();
 
         ImGui::SliderInt("Max FPS", &s.maxFPS, 30, 240);
+        ImGui::Text("Note: This is ignored if VSync is on and\nFPS is locked to display refresh rate");
 
         Utils::SpaceSep();
 
@@ -114,8 +144,7 @@ namespace CE::UI {
         }
 
         ImGui::Text("Supported renderers: Metal, DX12, Vulkan");
-        ImGui::Text("Note: To change renderer you");
-        ImGui::Text("need to close engine and reopen");
+        ImGui::Text("Note: To change renderer you need to close engine and reopen.");
 
         Utils::SpaceSep();
 
@@ -145,11 +174,20 @@ namespace CE::UI {
         }
     }
 
-    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,
-                    CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                    Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
-        ImGui::SetNextWindowSize(ImVec2(487,386), ImGuiCond_FirstUseEver);
+    void DrawDebugUI(
+        CE::Renderer::IRenderer& renderer,
+        CE::Assets::Textures::TextureManager& texman,
+        CE::GameInfo& gameinfo,
+        CE::Settings::SettingsManager& settings,
+        Input::Keyboard& kbmanger,
+        Input::Mouse& msmanager,
+        int fps,
+        float deltaTime,
+        float frameTime
+    ) {
+        ImGui::SetNextWindowSize(ImVec2(487, 386), ImGuiCond_FirstUseEver);
         ImGui::Begin("Cattle Debug");
+
         if (ImGui::BeginTabBar("DebugTabs")) {
             if (ImGui::BeginTabItem("Gameinfo")) {
                 DrawGameinfoTab(gameinfo);
@@ -166,12 +204,14 @@ namespace CE::UI {
                 ImGui::EndTabItem();
             }
 
-            if (ImGui::BeginTabItem("Renderer")) {
-                DrawRenderTab(renderer, texman, settings.Settings);
+            if (ImGui::BeginTabItem("Performance")) {
+                DrawPerformanceTab(renderer, texman, settings.Settings, fps, deltaTime, frameTime);
                 ImGui::EndTabItem();
             }
+
             ImGui::EndTabBar();
         }
+
         ImGui::End();
     }
 }

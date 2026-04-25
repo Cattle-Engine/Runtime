@@ -8,7 +8,15 @@
 #include "engine/settings.hpp"
 
 namespace CE::UI {
-    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Assets::Textures::TextureManager& texman,
-                    CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                    Input::Keyboard& kbmanger, Input::Mouse& msmanager);
+    void DrawDebugUI(
+        CE::Renderer::IRenderer& renderer,
+        CE::Assets::Textures::TextureManager& texman,
+        CE::GameInfo& gameinfo,
+        CE::Settings::SettingsManager& settings,
+        Input::Keyboard& kbmanger,
+        Input::Mouse& msmanager,
+        int fps,
+        float deltaTime,
+        float frameTime
+    );
 }

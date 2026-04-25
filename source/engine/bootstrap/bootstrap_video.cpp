@@ -1,4 +1,5 @@
 #include "engine/bootstrap/instance.hpp"
+#include "engine/common/fullscreen.hpp"
 #include "engine/renderer.hpp"
 #include "engine/common/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
@@ -43,14 +44,10 @@ namespace CE::Bootstrap {
         }
 
         if (settings.fullscreen) {
-            SDL_DisplayMode mode = {};
-            mode.w = settings.windowWidth;
-            mode.h = settings.windowHeight;
-            mode.refresh_rate = 0;
-            mode.format = SDL_PIXELFORMAT_UNKNOWN;
-
-            SDL_SetWindowFullscreenMode(window, &mode);
-            SDL_SetWindowFullscreen(window, true);
+            if (!CE::ApplyFullscreenMode(window, settings.windowWidth, settings.windowHeight)) {
+                CE::Log(CE::LogLevel::Fatal, "[Window] Failed to apply fullscreen mode: {}", SDL_GetError());
+                return 4;
+            }
         }
 
         int rei = renderer->Init(window, debugvideo, gpudevice);

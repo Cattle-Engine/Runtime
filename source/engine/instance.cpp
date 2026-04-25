@@ -6,6 +6,7 @@
 #include "engine/ui/debug_window.hpp"
 #include "engine/instance.hpp"
 #include "engine/bootstrap/instance.hpp"
+#include "engine/common/fullscreen.hpp"
 #include "engine/settings.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/events.hpp"
@@ -118,7 +119,10 @@ namespace CE {
             *gGameInfo,
             *gSettingsManager,
             *gKeyboardManger,
-            *gMouseManger
+            *gMouseManger,
+            GetFPS(),
+            gDeltaTime,
+            gFrameTime
         );
 
         gRenderer->ImGuiEndFrame(gWindow);
@@ -169,10 +173,13 @@ namespace CE {
     }
 
     void Instance::ApplySettingsReload() {
-        SDL_SetWindowSize(gWindow, gSettingsManager->Settings.windowWidth,
-                            gSettingsManager->Settings.windowHeight);
         if (gSettingsManager->Settings.fullscreen) {
-            SDL_SetWindowFullscreen(gWindow, true);
+            if (!CE::ApplyFullscreenMode(
+                    gWindow,
+                    gSettingsManager->Settings.windowWidth,
+                    gSettingsManager->Settings.windowHeight)) {
+                CE::Log(LogLevel::Error, "[Instance {}] Failed to apply fullscreen mode", gInstanceID);
+            }
         } else  {
             SDL_SetWindowFullscreen(gWindow, false);
         }
