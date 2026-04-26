@@ -78,29 +78,6 @@ namespace CE::UI {
         offset = (offset + 1) % 100;
 
         ImGui::PlotLines("FPS History", fpsHistory, 100, 0, nullptr, 0.0f, 300.0f, ImVec2(0, 80));
-
-        Utils::SpaceSep();
-
-        ImGui::Text("Renderer: %s", settings.rendererName.c_str());
-
-        Utils::SpaceSep();
-
-        ImGui::Text("Geometry");
-        ImGui::Spacing();
-
-        ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
-        ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
-        ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
-        ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
-
-        Utils::SpaceSep();
-
-        ImGui::Text("Textures");
-        ImGui::Spacing();
-
-        ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
-        ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
-        ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
     }
 
     void DrawSettingsTab(CE::Settings::SettingsManager& settings) {
@@ -174,6 +151,40 @@ namespace CE::UI {
         }
     }
 
+    void DrawRendererTab(CE::Renderer::IRenderer& renderer, Settings::SettingsInfo settings,
+                        Assets::Textures::TextureManager& texman) 
+    {
+
+        Renderer::Camera2D* camera = renderer.GetCamera();
+
+        ImGui::Text("Current renderer: %s", settings.rendererName.c_str());
+    
+        Utils::SpaceSep();
+
+        ImGui::Text("Camera");
+        ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
+        ImGui::Text("Zoom: %f", camera->zoom);
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Geometry");
+        ImGui::Spacing();
+
+        ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
+        ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
+        ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
+        ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Textures");
+        ImGui::Spacing();
+
+        ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
+        ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
+        ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+    }
+
     void DrawDebugUI(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
@@ -206,6 +217,11 @@ namespace CE::UI {
 
             if (ImGui::BeginTabItem("Performance")) {
                 DrawPerformanceTab(renderer, texman, settings.Settings, fps, deltaTime, frameTime);
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Renderer")) {
+                DrawRendererTab(renderer, settings.Settings, texman);
                 ImGui::EndTabItem();
             }
 
