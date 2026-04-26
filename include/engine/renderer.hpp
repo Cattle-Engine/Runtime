@@ -45,6 +45,7 @@ namespace CE::Renderer {
     enum class TextureFormat {
         RGBA8,
         RGB8,
+        R8,
     };
 
     struct Colour { // BRITISH SPELLING HEEEEEEEEEHHEHEHE
@@ -68,6 +69,17 @@ namespace CE::Renderer {
         RendererBackend backend;
     };
 
+    enum class TextureFilter {
+        Nearest, 
+        Linear  
+    };
+
+    enum class TextureWrap {
+        Clamp,          // stretch edge pixels
+        Repeat,         // tile the texture
+        MirroredRepeat  // tile but mirrored each time
+    };
+
     class IRenderer {
         public:
                 virtual void PreWinInit() = 0;
@@ -89,6 +101,15 @@ namespace CE::Renderer {
                 virtual void SetClearColor(float r, float g, float b, float a) = 0;
 
                 virtual Texture* LoadTex(const char* path) = 0;
+                virtual Texture* CreateTextureFromData(
+                    int width,
+                    int height,
+                    const void* pixels,
+                    TextureFormat format,
+                    int pitch = 0,
+                    TextureFilter filter = TextureFilter::Linear,
+                    TextureWrap wrap = TextureWrap::Clamp
+                ) = 0;
                 virtual void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) = 0;

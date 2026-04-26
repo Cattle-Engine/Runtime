@@ -8,6 +8,8 @@
 #include <cstdio>
 #include <climits>
 
+#include <SDL3/SDL_iostream.h>
+
 #include "engine/common/tcf.h"
 
 enum LoadMode {
@@ -48,6 +50,8 @@ struct VirtualFile {
     FILE* dir_handle;         
 
     const LoadedFile* loaded_data;
+
+    SDL_IOStream* sdl_stream;
 
     bool eof;
     bool error;

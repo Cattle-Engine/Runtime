@@ -8,6 +8,186 @@
 #include <limits>
 #include <utility>
 
+static Sint64 SDLCALL sdl_vfile_size(void* userdata);
+static Sint64 SDLCALL sdl_vfile_seek(void* userdata, Sint64 offset, SDL_IOWhence whence);
+static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL_IOStatus* status);
+static size_t SDLCALL sdl_vfile_write(void* userdata, const void* ptr, size_t size, SDL_IOStatus* status);
+static bool SDLCALL sdl_vfile_flush(void* userdata, SDL_IOStatus* status);
+static bool SDLCALL sdl_vfile_close(void* userdata);
+
+static const SDL_IOStreamInterface* get_vfile_io_interface()
+{
+    static SDL_IOStreamInterface iface;
+    static bool inited = false;
+    if (!inited) {
+        SDL_INIT_INTERFACE(&iface);
+        iface.size = sdl_vfile_size;
+        iface.seek = sdl_vfile_seek;
+        iface.read = sdl_vfile_read;
+        iface.write = sdl_vfile_write;
+        iface.flush = sdl_vfile_flush;
+        iface.close = sdl_vfile_close;
+        inited = true;
+    }
+    return &iface;
+}
+
+static Sint64 SDLCALL sdl_vfile_size(void* userdata)
+{
+    auto* vfile = static_cast<VirtualFile*>(userdata);
+    if (!vfile)
+        return -1;
+    return static_cast<Sint64>(vfile->size);
+}
+
+static Sint64 SDLCALL sdl_vfile_seek(void* userdata, Sint64 offset, SDL_IOWhence whence)
+{
+    auto* file = static_cast<VirtualFile*>(userdata);
+    if (!file)
+        return -1;
+
+    if (file->size > static_cast<uint64_t>(std::numeric_limits<Sint64>::max()))
+        return -1;
+
+    Sint64 base = 0;
+    switch (whence) {
+        case SDL_IO_SEEK_SET: base = 0; break;
+        case SDL_IO_SEEK_CUR: base = static_cast<Sint64>(file->position); break;
+        case SDL_IO_SEEK_END: base = static_cast<Sint64>(file->size); break;
+        default: return -1;
+    }
+
+    const Sint64 new_pos64 = base + offset;
+    if (new_pos64 < 0)
+        return -1;
+    if (new_pos64 > static_cast<Sint64>(file->size))
+        return -1;
+
+    const uint64_t new_pos = static_cast<uint64_t>(new_pos64);
+
+    if (file->loaded_data) {
+        file->position = new_pos;
+        file->eof = (file->position >= file->size);
+        file->error = false;
+        return static_cast<Sint64>(file->position);
+    }
+
+    if (file->tcf_handle) {
+        int c_whence = SEEK_SET;
+        if (whence == SDL_IO_SEEK_CUR) c_whence = SEEK_CUR;
+        else if (whence == SDL_IO_SEEK_END) c_whence = SEEK_END;
+
+        const int result = tcf_vfs_seek(file->tcf_handle, offset, c_whence);
+        if (result != TCF_OK) {
+            file->error = true;
+            return -1;
+        }
+        const int64_t pos = tcf_vfs_tell(file->tcf_handle);
+        if (pos < 0) {
+            file->error = true;
+            return -1;
+        }
+        file->position = static_cast<uint64_t>(pos);
+        file->eof = (file->position >= file->size);
+        file->error = false;
+        return static_cast<Sint64>(file->position);
+    }
+
+    if (file->dir_handle) {
+        int c_whence = SEEK_SET;
+        if (whence == SDL_IO_SEEK_CUR) c_whence = SEEK_CUR;
+        else if (whence == SDL_IO_SEEK_END) c_whence = SEEK_END;
+
+        if (std::fseek(file->dir_handle, (long)offset, c_whence) != 0) {
+            file->error = true;
+            return -1;
+        }
+        const long pos = std::ftell(file->dir_handle);
+        if (pos < 0) {
+            file->error = true;
+            return -1;
+        }
+        file->position = static_cast<uint64_t>(pos);
+        file->eof = (file->position >= file->size);
+        file->error = false;
+        return static_cast<Sint64>(file->position);
+    }
+
+    return -1;
+}
+
+static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL_IOStatus* status)
+{
+    auto* file = static_cast<VirtualFile*>(userdata);
+    if (!file || !ptr) {
+        if (status) *status = SDL_IO_STATUS_ERROR;
+        return 0;
+    }
+
+    if (file->position >= file->size) {
+        file->eof = true;
+        if (status) *status = SDL_IO_STATUS_EOF;
+        return 0;
+    }
+
+    const uint64_t remaining64 = file->size - file->position;
+    const uint64_t to_read64 = std::min<uint64_t>(remaining64, static_cast<uint64_t>(size));
+    const size_t to_read = static_cast<size_t>(to_read64);
+
+    if (file->loaded_data) {
+        std::memcpy(ptr, file->loaded_data->data_ptr() + static_cast<size_t>(file->position), to_read);
+        file->position += to_read64;
+        file->eof = (file->position >= file->size);
+        if (status) *status = file->eof ? SDL_IO_STATUS_EOF : SDL_IO_STATUS_READY;
+        return to_read;
+    }
+
+    if (file->tcf_handle) {
+        size_t bytes_read = 0;
+        const int result = tcf_vfs_read(file->tcf_handle, ptr, to_read, &bytes_read);
+        if (result == TCF_OK) {
+            file->position += static_cast<uint64_t>(bytes_read);
+            file->eof = (file->position >= file->size);
+            if (status) *status = file->eof ? SDL_IO_STATUS_EOF : SDL_IO_STATUS_READY;
+            return bytes_read;
+        }
+        file->error = true;
+        if (status) *status = SDL_IO_STATUS_ERROR;
+        return 0;
+    }
+
+    if (file->dir_handle) {
+        const size_t bytes_read = std::fread(ptr, 1, to_read, file->dir_handle);
+        file->position += static_cast<uint64_t>(bytes_read);
+        if (bytes_read != to_read && std::ferror(file->dir_handle))
+            file->error = true;
+        file->eof = (file->position >= file->size) || (bytes_read == 0 && std::feof(file->dir_handle));
+        if (status) *status = file->error ? SDL_IO_STATUS_ERROR : (file->eof ? SDL_IO_STATUS_EOF : SDL_IO_STATUS_READY);
+        return bytes_read;
+    }
+
+    if (status) *status = SDL_IO_STATUS_ERROR;
+    return 0;
+}
+
+static size_t SDLCALL sdl_vfile_write(void* /*userdata*/, const void* /*ptr*/, size_t /*size*/, SDL_IOStatus* status)
+{
+    if (status) *status = SDL_IO_STATUS_READONLY;
+    return 0;
+}
+
+static bool SDLCALL sdl_vfile_flush(void* /*userdata*/, SDL_IOStatus* /*status*/)
+{
+    return true;
+}
+
+static bool SDLCALL sdl_vfile_close(void* userdata)
+{
+    auto* file = static_cast<VirtualFile*>(userdata);
+    if (file)
+        file->sdl_stream = nullptr;
+    return true;
+}
 namespace CE::Global {
     static CE::VFS::VFS* g_vfs = nullptr;
     CE::VFS::VFS& GetVFS() {
@@ -51,6 +231,7 @@ VirtualFile::VirtualFile()
       tcf_handle(nullptr),
       dir_handle(nullptr),
       loaded_data(nullptr),
+      sdl_stream(nullptr),
       eof(false),
       error(false)
 {
@@ -58,6 +239,10 @@ VirtualFile::VirtualFile()
 
 VirtualFile::~VirtualFile()
 {
+    if (sdl_stream) {
+        SDL_CloseIO(sdl_stream);
+        sdl_stream = nullptr;
+    }
     if (tcf_handle)
         tcf_vfs_close_file(tcf_handle);
     if (dir_handle)
@@ -245,6 +430,7 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
         vfile->loaded_data = it->second.get();
         vfile->size = vfile->loaded_data->size();
         vfile->position = 0;
+        vfile->sdl_stream = SDL_OpenIO(get_vfile_io_interface(), vfile);
         return vfile;
     }
 
@@ -259,6 +445,7 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
         vfile->tcf_handle = file;
         vfile->size = tcf_vfs_file_size(file);
         vfile->position = 0;
+        vfile->sdl_stream = SDL_OpenIO(get_vfile_io_interface(), vfile);
         return vfile;
     }
 
@@ -273,6 +460,7 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
     vfile->position = 0;
     std::fseek(file, 0, SEEK_SET);
     vfile->dir_handle = file;
+    vfile->sdl_stream = SDL_OpenIO(get_vfile_io_interface(), vfile);
     return vfile;
 }
 

@@ -59,6 +59,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void SetClearColor(float r, float g, float b, float a) override;
 
             Texture* LoadTex(const char* path) override;
+            Texture* CreateTextureFromData(
+                                int width,
+                                int height,
+                                const void* pixels,
+                                TextureFormat format,
+                                int pitch = 0,
+                                TextureFilter filter = TextureFilter::Linear,
+                                TextureWrap wrap = TextureWrap::Clamp
+                            ) override;
             void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) override;

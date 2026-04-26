@@ -1,5 +1,8 @@
 #include <format>
 
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
 #include "engine/engine.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/version.hpp"

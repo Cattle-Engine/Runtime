@@ -14,7 +14,7 @@ namespace CE::Assets::Textures {
         CE::Renderer::Texture* tex;
         TMTexture texinfo = {};
         if (!gVFS->FileExists(filepath)) {
-            CE::Log(LogLevel::Error, "[Texture Manager] Missing asset: {}", filepath);
+            CE::Log(LogLevel::Error, "[Texture Manager] Missing image: {}", filepath);
             tex = gRenderer->GetErrorTexture();
             texinfo.IsErrorTex = true;
             texinfo.Path = filepath;

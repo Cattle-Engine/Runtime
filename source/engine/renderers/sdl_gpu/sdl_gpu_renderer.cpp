@@ -775,7 +775,208 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         tex->width   = w;
         tex->height  = h;
         tex->format  = TextureFormat::RGBA8;
-        tex->backend = RendererBackend::Vulkan;
+        tex->backend = gBackend;
+        return tex;
+    }
+
+    Texture* SDL_GPU_Renderer::CreateTextureFromData(
+        int width,
+        int height,
+        const void* pixels,
+        TextureFormat format,
+        int pitch,
+        TextureFilter filter,
+        TextureWrap wrap
+    ) {
+        if (!gDevice) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData called before Init()");
+            return nullptr;
+        }
+
+        if (width <= 0 || height <= 0) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData invalid size {}x{}", width, height);
+            return nullptr;
+        }
+
+        if (!pixels) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pixels was null");
+            return nullptr;
+        }
+
+        auto bytesPerPixelFor = [](TextureFormat fmt) -> int {
+            switch (fmt) {
+                case TextureFormat::RGBA8: return 4;
+                case TextureFormat::RGB8:  return 3;
+                case TextureFormat::R8:    return 1;
+                default:                  return 0;
+            }
+        };
+
+        const int srcBpp = bytesPerPixelFor(format);
+        if (srcBpp == 0) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData unsupported format {}", (int)format);
+            return nullptr;
+        }
+
+        const int srcPitchBytes = (pitch > 0) ? pitch : (width * srcBpp);
+        if (srcPitchBytes < width * srcBpp) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} too small for {}x{}x{}",
+                    srcPitchBytes, width, height, srcBpp);
+            return nullptr;
+        }
+        if ((srcPitchBytes % srcBpp) != 0) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} not divisible by bpp {}",
+                    srcPitchBytes, srcBpp);
+            return nullptr;
+        }
+
+        const Uint32 srcPixelsPerRow = (Uint32)(srcPitchBytes / srcBpp);
+
+        // This renderer/shader path assumes an RGBA sampler2D.
+        // Convert RGB8/R8 uploads to RGBA8 on the CPU for predictable sampling.
+        std::vector<uint8_t> converted;
+        const uint8_t* uploadPtr = static_cast<const uint8_t*>(pixels);
+        Uint32 uploadPixelsPerRow = srcPixelsPerRow;
+        Uint32 uploadWidth = (Uint32)width;
+        Uint32 uploadHeight = (Uint32)height;
+
+        SDL_GPUTextureFormat gpuFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+
+        if (format != TextureFormat::RGBA8) {
+            converted.resize((size_t)width * (size_t)height * 4);
+            const uint8_t* src = static_cast<const uint8_t*>(pixels);
+
+            for (int row = 0; row < height; ++row) {
+                const uint8_t* srcRow = src + (size_t)row * (size_t)srcPitchBytes;
+                uint8_t* dstRow = converted.data() + (size_t)row * (size_t)width * 4;
+
+                if (format == TextureFormat::RGB8) {
+                    for (int col = 0; col < width; ++col) {
+                        const uint8_t* s = srcRow + (size_t)col * 3;
+                        uint8_t* d = dstRow + (size_t)col * 4;
+                        d[0] = s[0];
+                        d[1] = s[1];
+                        d[2] = s[2];
+                        d[3] = 255;
+                    }
+                } else { // R8
+                    for (int col = 0; col < width; ++col) {
+                        const uint8_t v = srcRow[col];
+                        uint8_t* d = dstRow + (size_t)col * 4;
+                        d[0] = v;
+                        d[1] = v;
+                        d[2] = v;
+                        d[3] = 255;
+                    }
+                }
+            }
+
+            uploadPtr = converted.data();
+            uploadPixelsPerRow = (Uint32)width;
+        }
+
+        SDL_GPUTextureCreateInfo texInfo{};
+        texInfo.type                 = SDL_GPU_TEXTURETYPE_2D;
+        texInfo.format               = gpuFormat;
+        texInfo.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        texInfo.width                = uploadWidth;
+        texInfo.height               = uploadHeight;
+        texInfo.layer_count_or_depth = 1;
+        texInfo.num_levels           = 1;
+
+        SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
+        if (!gpuTex) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
+            return nullptr;
+        }
+
+        const size_t uploadBytesPerRow = (size_t)uploadPixelsPerRow * 4;
+        const size_t uploadSize = uploadBytesPerRow * (size_t)height;
+
+        SDL_GPUTransferBufferCreateInfo tbInfo{};
+        tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        tbInfo.size  = (Uint32)uploadSize;
+
+        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
+        if (!tb) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
+            SDL_ReleaseGPUTexture(gDevice, gpuTex);
+            return nullptr;
+        }
+
+        void* mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
+        if (!mapped) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
+            SDL_ReleaseGPUTransferBuffer(gDevice, tb);
+            SDL_ReleaseGPUTexture(gDevice, gpuTex);
+            return nullptr;
+        }
+
+        SDL_memcpy(mapped, uploadPtr, uploadSize);
+        SDL_UnmapGPUTransferBuffer(gDevice, tb);
+
+        SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
+
+        SDL_GPUTextureTransferInfo src{};
+        src.transfer_buffer = tb;
+        src.offset          = 0;
+        src.pixels_per_row  = uploadPixelsPerRow;
+        src.rows_per_layer  = (Uint32)height;
+
+        SDL_GPUTextureRegion dst{};
+        dst.texture = gpuTex;
+        dst.w       = uploadWidth;
+        dst.h       = uploadHeight;
+        dst.d       = 1;
+
+        SDL_UploadToGPUTexture(copy, &src, &dst, false);
+        SDL_EndGPUCopyPass(copy);
+        SDL_SubmitGPUCommandBuffer(cmd);
+        SDL_ReleaseGPUTransferBuffer(gDevice, tb);
+
+        SDL_GPUSamplerCreateInfo sampInfo{};
+        sampInfo.min_filter = (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
+        sampInfo.mag_filter = (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
+
+        switch (wrap) {
+            case TextureWrap::Clamp:
+                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                break;
+            case TextureWrap::Repeat:
+                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                break;
+            case TextureWrap::MirroredRepeat:
+                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                break;
+        }
+
+        sampInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+        sampInfo.min_lod = 0.0f;
+        sampInfo.max_lod = 0.0f;
+
+        SDLGPUTexData* data = new SDLGPUTexData();
+        data->gpuTex = gpuTex;
+        data->sampler = SDL_CreateGPUSampler(gDevice, &sampInfo);
+        if (!data->sampler) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
+            SDL_ReleaseGPUTexture(gDevice, gpuTex);
+            delete data;
+            return nullptr;
+        }
+
+        Texture* tex = new Texture();
+        tex->handle  = data;
+        tex->width   = width;
+        tex->height  = height;
+        tex->format  = TextureFormat::RGBA8;
+        tex->backend = gBackend;
         return tex;
     }
 
