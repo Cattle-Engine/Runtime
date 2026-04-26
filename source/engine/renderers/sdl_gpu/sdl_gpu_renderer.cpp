@@ -839,7 +839,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::SetClearColor(float r, float g, float b, float a) {
-        gClearColor = { r, g, b, a };
+        const bool looksLikeByteColor =
+            (r > 1.0f) || (g > 1.0f) || (b > 1.0f) || (a > 1.0f);
+
+        if (looksLikeByteColor) {
+            r /= 255.0f;
+            g /= 255.0f;
+            b /= 255.0f;
+            a /= 255.0f;
+        }
+
+        auto clamp01 = [](float v) {
+            if (v < 0.0f) return 0.0f;
+            if (v > 1.0f) return 1.0f;
+            return v;
+        };
+
+        gClearColor = { clamp01(r), clamp01(g), clamp01(b), clamp01(a) };
     }
 
     int SDL_GPU_Renderer::Debug_GetVertCount() {

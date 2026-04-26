@@ -73,8 +73,6 @@ namespace CE {
 
         int x, y;
         SDL_GetWindowSize(gWindow, &x, &y);
-
-        Log(LogLevel::Info, "SDL_WINDOW SIZE: {}, {}", x, y);
     }
 
     bool Instance::ShouldExit() {
@@ -106,9 +104,9 @@ namespace CE {
             gPendingSettingsReload = false;
         }
 
+        gRenderer->SetClearColor(255, 255, 255, 255);
         gRenderer->BeginFrame(gWindow);
-        gRenderer->SetClearColor(252, 186, 3, 255);
-        gTextureManager->DrawRot("test", 640, 360, 2.0f,{255, 255, 255, 255});
+        gTextureManager->DrawRot("test", 640, 360, 0.0f,{255, 255, 255, 255});
 
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
