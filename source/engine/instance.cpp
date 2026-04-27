@@ -111,7 +111,7 @@ namespace CE {
 
         gTextureManager->DrawRot("test", 640, 360, 0.0f,{255, 255, 255, 255});
 
-        gFontManager->DrawEx("Goober", "test",10, 50, 100, {0, 0, 0, 255});
+        gFontManager->Draw("Hello, World!",10, 50, 100, {0, 0, 0, 255});
 
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();

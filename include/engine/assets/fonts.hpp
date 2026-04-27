@@ -36,27 +36,12 @@ namespace CE::Assets::Fonts {
                 TTF_Font* font;
             };
 
-            struct KerningKey {
-                uint32_t prev;
-                uint32_t curr;
-                bool operator==(const KerningKey& other) const {
-                    return prev == other.prev && curr == other.curr;
-                }
-            };
-
-            struct KerningKeyHash {
-                std::size_t operator()(const KerningKey& key) const {
-                    return std::hash<uint32_t>()(key.prev) ^ std::hash<uint32_t>()(key.curr);
-                }
-            };
-
         struct FontAtlas {
             Renderer::Texture* texture = nullptr;
             SDL_Surface* atlasSurface = nullptr;
             TTF_Font* font = nullptr;
             int fontSize = 0;   
             std::unordered_map<uint32_t, Glyph> glyphs;
-            std::unordered_map<KerningKey, int, KerningKeyHash> kerningCache;
             int penX = 0;
             int penY = 0;
             int rowH = 0;
@@ -67,29 +52,12 @@ namespace CE::Assets::Fonts {
             std::string path;
             bool isFallback;
         };
-
-        struct ScaledFontKey {
-            TTF_Font* base;
-            int size;
-
-            bool operator==(const ScaledFontKey& other) const {
-                return base == other.base && size == other.size;
-            }
-        };
-
-        struct ScaledFontKeyHash {
-            size_t operator()(const ScaledFontKey& k) const {
-                return std::hash<TTF_Font*>()(k.base) ^ std::hash<int>()(k.size);
-            }
-        };
-
             void BuildAtlas(const std::string& name, TTF_Font* font, int fontSize);
             bool EnsureGlyph(FontAtlas& atlas, uint32_t codepoint);
             void UpdateAtlasTexture(FontAtlas& atlas);
             bool DecodeUTF8(const std::string& text, uint32_t& outCodepoint, size_t& cursor) const;
             TTF_Font* LoadFontFromVFS(const std::string& path, int pointSize);
             TTF_Font* GetFallbackFont(int pointSize);
-            TTF_Font* GetScaledFont(TTF_Font* baseFont, int baseSize);
             FontAtlas* GetOrCreateAtlas(const std::string& familyName, int pointSize);
             static std::string MakeAtlasKey(const std::string& familyName, int pointSize);
 
@@ -102,12 +70,6 @@ namespace CE::Assets::Fonts {
             std::unordered_map<std::string, FontFamily> mFamilies;
             std::unordered_map<TTF_Font*, FontSource> mFontSources;
             std::unordered_map<TTF_Font*, VirtualFile*> mOpenFontFiles;
-
-            std::unordered_map<
-                ScaledFontKey,
-                TTF_Font*,
-                ScaledFontKeyHash
-            > mScaledFonts;
 
             int mInstanceID;
             std::unordered_map<std::string, FontAtlas> mAtlases;
