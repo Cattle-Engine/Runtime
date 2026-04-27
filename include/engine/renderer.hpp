@@ -113,6 +113,13 @@ namespace CE::Renderer {
                 virtual void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) = 0;
+                virtual void DrawTexUV(Texture* tex,
+                    float x, float y,
+                    float w, float h,
+                    float u0, float v0,
+                    float u1, float v1,
+                    Colour colour,
+                    float rotation) = 0;
                 virtual void UnloadTex(Texture* texture) = 0;
                 virtual void DrawTriangle(
                             float x0, float y0,

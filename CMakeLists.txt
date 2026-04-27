@@ -165,6 +165,21 @@ else()
 endif()
 
 # -------------------------
+# SDL_ttf
+# -------------------------
+find_package(SDL3_ttf CONFIG QUIET)
+
+if(NOT SDL3_ttf_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3_TTF REQUIRED SDL3_ttf)
+
+    target_include_directories(ce_engine PRIVATE ${SDL3_TTF_INCLUDE_DIRS})
+    target_link_libraries(ce_engine PRIVATE ${SDL3_TTF_LIBRARIES})
+else()
+    target_link_libraries(ce_engine PRIVATE SDL3_ttf::SDL3_ttf)
+endif()
+
+# -------------------------
 # Vulkan
 # -------------------------
 find_package(Vulkan REQUIRED)

@@ -1024,6 +1024,54 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
     }
 
+    void SDL_GPU_Renderer::DrawTexUV(Texture* texture,
+                    float x, float y,
+                    float w, float h,
+                    float u0, float v0,
+                    float u1, float v1,
+                    Colour colour,
+                    float rotation) {
+        if (!texture || !texture->handle) return;
+        auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
+        if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
+
+        if (gCurrentTex != tex) {
+            gTexBatches.push_back({ tex, gTexVertCount, 0, gTexIndexCount, 0 });
+            gCurrentTex = tex;
+        }
+
+        float cx = x + w * 0.5f;
+        float cy = y + h * 0.5f;
+        float sinA = std::sin(rotation);
+        float cosA = std::cos(rotation);
+
+        float px[4] = { x,     x + w, x + w, x      };
+        float py[4] = { y,     y,     y + h, y + h  };
+        float pu[4] = { u0, u1, u1, u0 };
+        float pv[4] = { v0, v0, v1, v1 };
+
+        uint16_t base = (uint16_t)gTexVertCount;
+        uint8_t r = colour.r, g = colour.g, b = colour.b, a = colour.a;
+
+        for (int i = 0; i < 4; i++) {
+            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
+            gMappedTexVerts[base + i] = { px[i], py[i], 0, r, g, b, a, pu[i], pv[i] };
+        }
+
+        gMappedTexIndices[gTexIndexCount + 0] = base;
+        gMappedTexIndices[gTexIndexCount + 1] = base + 1;
+        gMappedTexIndices[gTexIndexCount + 2] = base + 2;
+        gMappedTexIndices[gTexIndexCount + 3] = base + 2;
+        gMappedTexIndices[gTexIndexCount + 4] = base + 3;
+        gMappedTexIndices[gTexIndexCount + 5] = base;
+
+        gTexIndexCount += 6;
+        gTexVertCount  += 4;
+
+        gTexBatches.back().vertCount = gTexVertCount - gTexBatches.back().vertOffset;
+        gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
+    }
+
     void SDL_GPU_Renderer::UnloadTex(Texture* texture) {
         if (!texture) return;
         if (texture->handle) {

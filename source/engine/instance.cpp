@@ -59,7 +59,7 @@ namespace CE {
             SetWindowIcon(gGameInfo->windowIcon);
         }
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating asset managers", gInstanceID);
-        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gVFS, gRenderer);
+        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gVFS, gRenderer, gFontManager, gInstanceID);
         if (ams != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
@@ -70,6 +70,7 @@ namespace CE {
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
 
         gTextureManager->Load("welcome.gif", "test");
+        gFontManager->Load("/roboto.ttf", "test");
 
         int x, y;
         SDL_GetWindowSize(gWindow, &x, &y);
@@ -105,8 +106,12 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
+
         gRenderer->BeginFrame(gWindow);
+
         gTextureManager->DrawRot("test", 640, 360, 0.0f,{255, 255, 255, 255});
+
+        gFontManager->DrawEx("Goober", "test", 24, 50, 100, {0, 0, 0, 255});
 
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
@@ -125,6 +130,8 @@ namespace CE {
 
         gRenderer->ImGuiEndFrame(gWindow);
 
+
+        gFontManager->Update();
         gRenderer->EndFrame(gWindow);
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();

@@ -4,6 +4,7 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
+#include "engine/assets/fonts.hpp"
 #include "engine/common/vfs.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
@@ -42,8 +43,8 @@ namespace CE {
             std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
             std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
+            std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
-
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;

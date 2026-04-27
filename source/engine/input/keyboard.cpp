@@ -38,7 +38,7 @@ namespace CE::Input {
     }
 
 	    // Used for debuging, gives a string of all keys pressed for a frame eg awk
-	    std::string Keyboard::GetPressedKeysString() const {
+	std::string Keyboard::GetPressedKeysString() const {
 	        std::string out;
 
 	        for (int sc = 0; sc < SDL_SCANCODE_COUNT; sc++) {

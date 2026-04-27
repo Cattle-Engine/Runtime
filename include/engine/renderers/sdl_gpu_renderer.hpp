@@ -71,6 +71,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) override;
+            void DrawTexUV(Texture* tex,
+                    float x, float y,
+                    float w, float h,
+                    float u0, float v0,
+                    float u1, float v1,
+                    Colour colour,
+                    float rotation) override;
             void UnloadTex(Texture* texture) override;
             void DrawRectLines(float x, float y, float w, float h,
                                         float thickness,
