@@ -111,7 +111,7 @@ namespace CE {
 
         gTextureManager->DrawRot("test", 640, 360, 0.0f,{255, 255, 255, 255});
 
-        gFontManager->DrawEx("Goober", "test", 24, 50, 100, {0, 0, 0, 255});
+        gFontManager->DrawEx("Goober", "test",10, 50, 100, {0, 0, 0, 255});
 
         // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
@@ -174,19 +174,33 @@ namespace CE {
     }
 
     void Instance::ReloadSettings() {
+        CE::Log(LogLevel::Debug,"[Instance {}] ReloadSettings called", gInstanceID);
         gPendingSettingsReload = true;
     }
 
     void Instance::ApplySettingsReload() {
+        const int targetW = std::max(1, gSettingsManager->Settings.windowWidth);
+        const int targetH = std::max(1, gSettingsManager->Settings.windowHeight);
+
         if (gSettingsManager->Settings.fullscreen) {
             if (!CE::ApplyFullscreenMode(
                     gWindow,
-                    gSettingsManager->Settings.windowWidth,
-                    gSettingsManager->Settings.windowHeight)) {
+                    targetW,
+                    targetH)) {
                 CE::Log(LogLevel::Error, "[Instance {}] Failed to apply fullscreen mode", gInstanceID);
             }
         } else  {
-            SDL_SetWindowFullscreen(gWindow, false);
+            // Ensure we exit fullscreen before resizing.
+            if (!SDL_SetWindowFullscreenMode(gWindow, nullptr)) {
+                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreenMode(nullptr) failed: {}", gInstanceID, SDL_GetError());
+            }
+            if (!SDL_SetWindowFullscreen(gWindow, false)) {
+                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreen(false) failed: {}", gInstanceID, SDL_GetError());
+            }
+
+            if (!SDL_SetWindowSize(gWindow, targetW, targetH)) {
+                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowSize({}x{}) failed: {}", gInstanceID, targetW, targetH, SDL_GetError());
+            }
         }
 
         gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);

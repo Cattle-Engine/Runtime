@@ -23,6 +23,11 @@ namespace CE::Assets::Fonts {
             void Unload(const std::string& name);
             void UnloadAll();
         private:
+            struct FontFamily {
+                std::string path;
+                bool isFallback = false;
+            };
+
             struct Glyph {
                 float u0, v0, u1, v1;
                 int w, h;
@@ -58,18 +63,51 @@ namespace CE::Assets::Fonts {
             bool dirty = false;
         };
 
+        struct FontSource {
+            std::string path;
+            bool isFallback;
+        };
+
+        struct ScaledFontKey {
+            TTF_Font* base;
+            int size;
+
+            bool operator==(const ScaledFontKey& other) const {
+                return base == other.base && size == other.size;
+            }
+        };
+
+        struct ScaledFontKeyHash {
+            size_t operator()(const ScaledFontKey& k) const {
+                return std::hash<TTF_Font*>()(k.base) ^ std::hash<int>()(k.size);
+            }
+        };
+
             void BuildAtlas(const std::string& name, TTF_Font* font, int fontSize);
             bool EnsureGlyph(FontAtlas& atlas, uint32_t codepoint);
             void UpdateAtlasTexture(FontAtlas& atlas);
             bool DecodeUTF8(const std::string& text, uint32_t& outCodepoint, size_t& cursor) const;
             TTF_Font* LoadFontFromVFS(const std::string& path, int pointSize);
             TTF_Font* GetFallbackFont(int pointSize);
+            TTF_Font* GetScaledFont(TTF_Font* baseFont, int baseSize);
+            FontAtlas* GetOrCreateAtlas(const std::string& familyName, int pointSize);
+            static std::string MakeAtlasKey(const std::string& familyName, int pointSize);
 
-            std::string mDefaultFontName;
+            std::string mDefaultFontName; // Font family name (not size-specific atlas key)
             std::unordered_map<int, TTF_Font*> mFallbackFonts;
 
             VFS::VFS& mVFS;
             Renderer::IRenderer& mRenderer;
+
+            std::unordered_map<std::string, FontFamily> mFamilies;
+            std::unordered_map<TTF_Font*, FontSource> mFontSources;
+            std::unordered_map<TTF_Font*, VirtualFile*> mOpenFontFiles;
+
+            std::unordered_map<
+                ScaledFontKey,
+                TTF_Font*,
+                ScaledFontKeyHash
+            > mScaledFonts;
 
             int mInstanceID;
             std::unordered_map<std::string, FontAtlas> mAtlases;

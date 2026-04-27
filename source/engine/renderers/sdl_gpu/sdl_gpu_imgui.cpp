@@ -24,6 +24,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         style.ScaleAllSizes(scale);
         style.FontScaleDpi = scale;
 
+        // Ensure the font atlas is rasterized at DPI-appropriate resolution.
+        // (Relying on scaling a small baked font looks pixelated on high-DPI displays.)
+        io.Fonts->Clear();
+        ImFontConfig font_cfg{};
+        font_cfg.SizePixels = 16.0f * scale;
+        io.FontDefault = io.Fonts->AddFontDefaultVector(&font_cfg);
+
         ImGui_ImplSDL3_InitForSDLGPU(window);
 
         ImGui_ImplSDLGPU3_InitInfo info{};

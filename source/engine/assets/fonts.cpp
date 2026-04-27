@@ -1,8 +1,10 @@
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL.h>
 
@@ -16,423 +18,467 @@ namespace CE::Assets::Fonts {
     namespace {
         constexpr int ATLAS_W = 2048;
         constexpr int ATLAS_H = 2048;
-        const std::string kFallbackAtlasName = "__ce_internal_fallback";
+        constexpr int SUPERSAMPLE = 4;
 
-        bool IsFallbackFont(TTF_Font* font, const std::unordered_map<int, TTF_Font*>& fallbackFonts) {
-            for (auto& [_, candidate] : fallbackFonts)
-                if (candidate == font)
-                    return true;
-            return false;
-        }
+        const std::string kFallbackFamilyName = "__ce_internal_fallback";
     }
 
     FontManager::FontManager(Renderer::IRenderer& renderer, VFS::VFS& vfs, uint64_t instance_id)
-        : mVFS(vfs),
-          mRenderer(renderer)
+        : mVFS(vfs), mRenderer(renderer)
     {
         mInstanceID = instance_id;
         TTF_Init();
-        mDefaultFontName.clear();
-        GetFallbackFont(24);
-        BuildAtlas(kFallbackAtlasName, mFallbackFonts[24], 24);
-        mDefaultFontName = kFallbackAtlasName;
-    }
 
-    void FontManager::Update() {
-        for (auto& [_, atlas] : mAtlases) {
-            UpdateAtlasTexture(atlas);
-        }
+        mFamilies[kFallbackFamilyName] = {"", true};
+        GetOrCreateAtlas(kFallbackFamilyName, 24);
+        mDefaultFontName = kFallbackFamilyName;
     }
 
     FontManager::~FontManager() {
-        std::unordered_set<TTF_Font*> closedFonts;
+        std::unordered_set<TTF_Font*> closed;
 
-        for (auto& [name, atlas] : mAtlases) {
-            if (atlas.texture)
-                mRenderer.UnloadTex(atlas.texture);
-            if (atlas.atlasSurface)
-                SDL_DestroySurface(atlas.atlasSurface);
-            if (atlas.font && !closedFonts.count(atlas.font)) {
-                TTF_CloseFont(atlas.font);
-                closedFonts.insert(atlas.font);
+        auto closeFont = [&](TTF_Font* font) {
+            if (!font || closed.count(font))
+                return;
+
+            // For fonts opened from the VFS, the underlying VirtualFile must stay alive until after
+            // SDL_ttf is done with it (it may read lazily).
+            TTF_CloseFont(font);
+
+            if (auto it = mOpenFontFiles.find(font); it != mOpenFontFiles.end()) {
+                mVFS.CloseFile(it->second);
+                mOpenFontFiles.erase(it);
             }
+
+            mFontSources.erase(font);
+            closed.insert(font);
+        };
+
+        for (auto& [_, atlas] : mAtlases) {
+            if (atlas.texture) mRenderer.UnloadTex(atlas.texture);
+            if (atlas.atlasSurface) SDL_DestroySurface(atlas.atlasSurface);
+
+            closeFont(atlas.font);
         }
-        mAtlases.clear();
 
         for (auto& [_, font] : mFallbackFonts) {
-            if (font && !closedFonts.count(font)) {
-                TTF_CloseFont(font);
-                closedFonts.insert(font);
-            }
+            closeFont(font);
         }
+
+        for (auto& [_, font] : mScaledFonts) {
+            closeFont(font);
+        }
+
+        mAtlases.clear();
         mFallbackFonts.clear();
+        mScaledFonts.clear();
+        mFontSources.clear();
+        mOpenFontFiles.clear();
+
         TTF_Quit();
+    }
+
+    std::string FontManager::MakeAtlasKey(const std::string& familyName, int pointSize) {
+        return familyName + "@" + std::to_string(pointSize);
     }
 
     bool FontManager::Load(const std::string& path, const std::string& name, int size) {
         if (name.empty() || path.empty())
             return false;
-
-        if (mAtlases.find(name) != mAtlases.end())
+        auto famIt = mFamilies.find(name);
+        if (famIt != mFamilies.end() && !famIt->second.isFallback && famIt->second.path != path) {
             Unload(name);
-
-        TTF_Font* font = LoadFontFromVFS(path, size);
-        if (!font) {
-            CE::Log(LogLevel::Error,
-                    "[Font Manager {}] Failed to load font: {}",
-                    mInstanceID, path);
-            return false;
         }
 
-        BuildAtlas(name, font, size);
-        if (mDefaultFontName.empty() || mDefaultFontName == kFallbackAtlasName)
+        mFamilies[name] = {path, false};
+
+        if (!GetOrCreateAtlas(name, size))
+            return false;
+
+        if (mDefaultFontName.empty() || mDefaultFontName == kFallbackFamilyName)
             mDefaultFontName = name;
+
         return true;
     }
 
-    void FontManager::SetDefault(const std::string& name) {
-        if (mAtlases.find(name) != mAtlases.end()) {
-            mDefaultFontName = name;
-        } else {
-            CE::Log(LogLevel::Warn,
-                    "[Font Manager {}] Cannot set default font '{}': not loaded",
-                    mInstanceID, name);
+    void FontManager::Update() {
+        for (auto& [_, atlas] : mAtlases)
+            UpdateAtlasTexture(atlas);
+    }
+
+    TTF_Font* FontManager::LoadFontFromVFS(const std::string& path, int size) {
+        VirtualFile* file = mVFS.OpenFile(path.c_str());
+        if (!file || !file->sdl_stream)
+            return nullptr;
+
+        // Keep the VirtualFile alive for the lifetime of the font (SDL_ttf may read lazily).
+        TTF_Font* font = TTF_OpenFontIO(file->sdl_stream, 0, size);
+        if (font) {
+            mFontSources[font] = {path, false};
+            mOpenFontFiles[font] = file;
+            return font;
         }
+
+        mVFS.CloseFile(file);
+        return nullptr;
+    }
+
+    TTF_Font* FontManager::GetFallbackFont(int size) {
+        auto it = mFallbackFonts.find(size);
+        if (it != mFallbackFonts.end())
+            return it->second;
+
+        SDL_IOStream* stream =
+            SDL_IOFromMem(Default::default_ce_font, Default::default_ce_font_len);
+
+        TTF_Font* font = TTF_OpenFontIO(stream, 1, size);
+        if (!font) {
+            SDL_CloseIO(stream);
+            return nullptr;
+        }
+
+        mFallbackFonts[size] = font;
+        mFontSources[font] = {"", true};
+
+        return font;
+    }
+
+    FontManager::FontAtlas* FontManager::GetOrCreateAtlas(const std::string& familyName, int pointSize) {
+        if (familyName.empty() || pointSize <= 0)
+            return nullptr;
+
+        const auto familyIt = mFamilies.find(familyName);
+        if (familyIt == mFamilies.end())
+            return nullptr;
+
+        const std::string key = MakeAtlasKey(familyName, pointSize);
+        auto atlasIt = mAtlases.find(key);
+        if (atlasIt != mAtlases.end())
+            return &atlasIt->second;
+
+        const FontFamily& family = familyIt->second;
+        TTF_Font* font = nullptr;
+        if (family.isFallback) {
+            font = GetFallbackFont(pointSize);
+        } else {
+            font = LoadFontFromVFS(family.path, pointSize);
+        }
+
+        if (!font && !family.isFallback) {
+            font = GetFallbackFont(pointSize);
+        }
+        if (!font)
+            return nullptr;
+
+        BuildAtlas(key, font, pointSize);
+        return &mAtlases.find(key)->second;
+    }
+
+    TTF_Font* FontManager::GetScaledFont(TTF_Font* baseFont, int baseSize) {
+        int scaledSize = baseSize * SUPERSAMPLE;
+
+        ScaledFontKey key{baseFont, scaledSize};
+        auto it = mScaledFonts.find(key);
+        if (it != mScaledFonts.end())
+            return it->second;
+
+        auto& src = mFontSources[baseFont];
+
+        VirtualFile* file = nullptr;
+        SDL_IOStream* stream = nullptr;
+
+        if (src.isFallback) {
+            stream = SDL_IOFromMem(Default::default_ce_font, Default::default_ce_font_len);
+            if (!stream) return nullptr;
+        } else {
+            file = mVFS.OpenFile(src.path.c_str());
+            if (!file || !file->sdl_stream) {
+                if (file) mVFS.CloseFile(file);
+                return nullptr;
+            }
+            stream = file->sdl_stream;
+        }
+
+        TTF_Font* font = TTF_OpenFontIO(stream, src.isFallback ? 1 : 0, scaledSize);
+        if (!font) {
+            if (src.isFallback) {
+                SDL_CloseIO(stream);
+            } else {
+                mVFS.CloseFile(file);
+            }
+            return nullptr;
+        }
+
+        if (!src.isFallback) {
+            mOpenFontFiles[font] = file;
+        }
+
+        mScaledFonts.insert({key, font});
+        return font;
+    }
+
+    void FontManager::BuildAtlas(const std::string& name, TTF_Font* font, int size) {
+        FontAtlas atlas;
+        atlas.font = font;
+        atlas.fontSize = size;
+
+        atlas.atlasSurface =
+            SDL_CreateSurface(ATLAS_W, ATLAS_H, SDL_PIXELFORMAT_RGBA32);
+
+        SDL_FillSurfaceRect(atlas.atlasSurface, nullptr, 0x00000000);
+
+        mAtlases[name] = std::move(atlas);
+    }
+
+    void FontManager::UpdateAtlasTexture(FontAtlas& atlas) {
+        if (!atlas.atlasSurface || !atlas.dirty)
+            return;
+
+        auto* tex = mRenderer.CreateTextureFromData(
+            atlas.atlasSurface->w,
+            atlas.atlasSurface->h,
+            atlas.atlasSurface->pixels,
+            Renderer::TextureFormat::RGBA8,
+            atlas.atlasSurface->pitch
+        );
+
+        if (atlas.texture)
+            mRenderer.UnloadTex(atlas.texture);
+
+        atlas.texture = tex;
+        atlas.dirty = false;
+    }
+
+    bool FontManager::EnsureGlyph(FontAtlas& atlas, uint32_t cp) {
+        if (atlas.glyphs.contains(cp))
+            return true;
+
+        SDL_Color white{255,255,255,255};
+
+        TTF_Font* renderFont = GetScaledFont(atlas.font, atlas.fontSize);
+        if (!renderFont) return false;
+
+        SDL_Surface* glyph =
+            TTF_RenderGlyph_Blended(renderFont, (int)cp, white);
+        if (!glyph) return false;
+
+        int w = std::max(1, glyph->w / SUPERSAMPLE);
+        int h = std::max(1, glyph->h / SUPERSAMPLE);
+
+        SDL_Surface* out = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
+
+        SDL_BlitSurfaceScaled(glyph, nullptr, out, nullptr, SDL_SCALEMODE_LINEAR);
+        SDL_DestroySurface(glyph);
+
+        int minx,maxx,miny,maxy,adv;
+        TTF_GetGlyphMetrics(renderFont, cp, &minx,&maxx,&miny,&maxy,&adv);
+
+        minx/=SUPERSAMPLE; maxx/=SUPERSAMPLE;
+        miny/=SUPERSAMPLE; maxy/=SUPERSAMPLE;
+        adv/=SUPERSAMPLE;
+
+        if (atlas.penX + w >= ATLAS_W) {
+            atlas.penX = 0;
+            atlas.penY += atlas.rowH;
+            atlas.rowH = 0;
+        }
+
+        SDL_Rect dst{atlas.penX, atlas.penY, w, h};
+        SDL_BlitSurface(out, nullptr, atlas.atlasSurface, &dst);
+
+        Glyph g{};
+        g.u0 = atlas.penX / (float)ATLAS_W;
+        g.v0 = atlas.penY / (float)ATLAS_H;
+        g.u1 = (atlas.penX+w)/(float)ATLAS_W;
+        g.v1 = (atlas.penY+h)/(float)ATLAS_H;
+
+        g.w=w; g.h=h;
+        g.advance=adv;
+        g.bearingX=minx;
+        g.bearingY=maxy;
+        g.font = atlas.font;
+
+        atlas.glyphs[cp]=g;
+
+        atlas.penX += w;
+        atlas.rowH = std::max(atlas.rowH,h);
+
+        SDL_DestroySurface(out);
+        atlas.dirty = true;
+
+        return true;
+    }
+
+    void FontManager::DrawEx(const std::string& text,
+                            const std::string& name,
+                            int x,int y,float size,
+                            Renderer::Colour col)
+    {
+        const int desiredSize = std::max(1, (int)std::lround(size));
+        FontAtlas* atlasPtr = GetOrCreateAtlas(name, desiredSize);
+        if (!atlasPtr) {
+            atlasPtr = GetOrCreateAtlas(kFallbackFamilyName, desiredSize);
+        }
+        if (!atlasPtr)
+            return;
+
+        FontAtlas& atlas = *atlasPtr;
+
+        float scale = size / atlas.fontSize;
+        float cx = (float)x;
+
+        uint32_t prev=0, cp=0;
+        size_t i=0;
+
+        while(i<text.size()) {
+            DecodeUTF8(text,cp,i);
+            if(!EnsureGlyph(atlas,cp)) continue;
+
+            auto& g = atlas.glyphs[cp];
+
+            if(prev) {
+                int kern=0;
+                if(TTF_GetGlyphKerning(g.font,prev,cp,&kern))
+                    cx += kern * scale;
+            }
+
+            mRenderer.DrawTexUV(
+                atlas.texture,
+                cx + g.bearingX*scale,
+                y,
+                g.w*scale,
+                g.h*scale,
+                g.u0,g.v0,g.u1,g.v1,
+                col,0.0f
+            );
+
+            cx += g.advance*scale;
+            prev=cp;
+        }
+    }
+
+    bool FontManager::DecodeUTF8(const std::string& text, uint32_t& out, size_t& cur) const {
+        if (cur >= text.size()) return false;
+
+        unsigned char c = text[cur];
+        if (c < 0x80) { out=c; cur++; return true; }
+
+        int extra = (c & 0xE0)==0xC0 ? 1 : (c & 0xF0)==0xE0 ? 2 : 3;
+        uint32_t cp = c & (0x7F >> extra);
+
+        for(int i=1;i<=extra;i++) {
+            cp = (cp<<6) | (text[cur+i]&0x3F);
+        }
+
+        cur += extra+1;
+        out = cp;
+        return true;
     }
 
     void FontManager::Unload(const std::string& name) {
-        auto it = mAtlases.find(name);
-        if (it == mAtlases.end())
+        if (name.empty())
             return;
 
-        FontAtlas& atlas = it->second;
-        if (atlas.texture)
-            mRenderer.UnloadTex(atlas.texture);
-        if (atlas.atlasSurface)
-            SDL_DestroySurface(atlas.atlasSurface);
-        if (atlas.font && !IsFallbackFont(atlas.font, mFallbackFonts))
-            TTF_CloseFont(atlas.font);
+        // Remove all atlases for this family.
+        std::vector<std::string> toErase;
+        toErase.reserve(mAtlases.size());
+        const std::string prefix = name + "@";
 
-        mAtlases.erase(it);
-        if (mDefaultFontName == name)
-            mDefaultFontName = kFallbackAtlasName;
+        for (const auto& [key, _] : mAtlases) {
+            if (key.rfind(prefix, 0) == 0)
+                toErase.push_back(key);
+        }
+
+        std::unordered_set<TTF_Font*> closed;
+        for (const auto& key : toErase) {
+            auto it = mAtlases.find(key);
+            if (it == mAtlases.end())
+                continue;
+
+            FontAtlas& atlas = it->second;
+            if (atlas.texture) mRenderer.UnloadTex(atlas.texture);
+            if (atlas.atlasSurface) SDL_DestroySurface(atlas.atlasSurface);
+
+            if (atlas.font && !closed.count(atlas.font)) {
+                TTF_CloseFont(atlas.font);
+                mFontSources.erase(atlas.font);
+                if (auto openIt = mOpenFontFiles.find(atlas.font); openIt != mOpenFontFiles.end()) {
+                    mVFS.CloseFile(openIt->second);
+                    mOpenFontFiles.erase(openIt);
+                }
+                closed.insert(atlas.font);
+            }
+
+            mAtlases.erase(it);
+        }
+
+        // Also drop any supersampled fonts tied to closed base fonts.
+        for (auto it = mScaledFonts.begin(); it != mScaledFonts.end(); ) {
+            if (closed.count(it->first.base)) {
+                if (it->second) {
+                    TTF_CloseFont(it->second);
+                    if (auto openIt = mOpenFontFiles.find(it->second); openIt != mOpenFontFiles.end()) {
+                        mVFS.CloseFile(openIt->second);
+                        mOpenFontFiles.erase(openIt);
+                    }
+                }
+                it = mScaledFonts.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        mFamilies.erase(name);
+
+        if (mDefaultFontName == name) {
+            mDefaultFontName = kFallbackFamilyName;
+        }
     }
 
     void FontManager::UnloadAll() {
-        for (auto& [name, atlas] : mAtlases) {
-            if (atlas.texture)
-                mRenderer.UnloadTex(atlas.texture);
-            if (atlas.atlasSurface)
-                SDL_DestroySurface(atlas.atlasSurface);
-            if (atlas.font && !IsFallbackFont(atlas.font, mFallbackFonts))
-                TTF_CloseFont(atlas.font);
+        std::unordered_set<TTF_Font*> closed;
+
+        auto closeFont = [&](TTF_Font* font) {
+            if (!font || closed.count(font))
+                return;
+            TTF_CloseFont(font);
+            if (auto it = mOpenFontFiles.find(font); it != mOpenFontFiles.end()) {
+                mVFS.CloseFile(it->second);
+                mOpenFontFiles.erase(it);
+            }
+            mFontSources.erase(font);
+            closed.insert(font);
+        };
+
+        for (auto& [_, atlas] : mAtlases) {
+            if (atlas.texture) mRenderer.UnloadTex(atlas.texture);
+            if (atlas.atlasSurface) SDL_DestroySurface(atlas.atlasSurface);
+            closeFont(atlas.font);
         }
+
+        for (auto& [_, font] : mFallbackFonts)
+            closeFont(font);
+
+        for (auto& [_, font] : mScaledFonts)
+            closeFont(font);
+
         mAtlases.clear();
-        mDefaultFontName.clear();
+        mFallbackFonts.clear();
+        mScaledFonts.clear();
+        mFontSources.clear();
+        mOpenFontFiles.clear();
+        mFamilies.clear();
+        mFamilies[kFallbackFamilyName] = {"", true};
+        mDefaultFontName = kFallbackFamilyName;
+    }
+
+    void FontManager::SetDefault(const std::string& name) {
+        if (mFamilies.contains(name))
+            mDefaultFontName = name;
     }
 
     void FontManager::Draw(const std::string& text, int x, int y, float size, Renderer::Colour colour) {
         DrawEx(text, mDefaultFontName, x, y, size, colour);
     }
 
-    void FontManager::DrawEx(const std::string& text,
-                            const std::string& name,
-                            int x, int y,
-                            float size,
-                            Renderer::Colour colour)
-    {
-        auto it = mAtlases.find(name);
-        if (it == mAtlases.end())
-            return;
-
-        FontAtlas& atlas = it->second;
-
-        float scale = (size > 0.0f ? (size / static_cast<float>(atlas.fontSize)) : 1.0f);
-        float cursorX = (float)x;
-        const int lineHeight = static_cast<int>(TTF_GetFontHeight(atlas.font) * scale);
-        size_t i = 0;
-        uint32_t cp = 0;
-        uint32_t prevCp = 0;
-        bool hasKerning = TTF_GetFontKerning(atlas.font) != 0;
-
-        while (i < text.size())
-        {
-            if (!DecodeUTF8(text, cp, i))
-                cp = '?';
-
-            if (cp == u'\n') {
-                cursorX = (float)x;
-                y += lineHeight;
-                prevCp = 0;
-                continue;
-            }
-
-            if (!EnsureGlyph(atlas, cp))
-                continue;
-
-            const Glyph& g = atlas.glyphs[cp];
-
-            if (hasKerning && prevCp != 0) {
-                const Glyph& prevG = atlas.glyphs[prevCp];
-                if (g.font == prevG.font) {
-                    KerningKey key{prevCp, cp};
-                    auto cacheIt = atlas.kerningCache.find(key);
-                    int kerning = 0;
-                    if (cacheIt != atlas.kerningCache.end()) {
-                        kerning = cacheIt->second;
-                    } else {
-                        if (TTF_GetGlyphKerning(g.font, prevCp, cp, &kerning)) {
-                            atlas.kerningCache[key] = kerning;
-                        } else {
-                            kerning = 0;
-                        }
-                    }
-                    cursorX += kerning * 2 * scale;
-                }
-            }
-
-            float drawX = cursorX + g.bearingX * scale;
-            float drawY = (float)y + (TTF_GetFontAscent(atlas.font) - g.bearingY) * scale;
-
-            mRenderer.DrawTexUV(
-                atlas.texture,
-                drawX, drawY,
-                (float)g.w * scale,
-                (float)g.h * scale,
-                g.u0, g.v0,
-                g.u1, g.v1,
-                colour,
-                0.0f
-            );
-
-            cursorX += (float)g.advance * scale;
-            prevCp = cp;
-        }
-    }
-
-    void FontManager::BuildAtlas(const std::string& name, TTF_Font* font, int fontSize) {
-        FontAtlas atlas;
-        atlas.font = font;
-        atlas.fontSize = fontSize;
-        atlas.penX = 0;
-        atlas.penY = 0;
-        atlas.rowH = 0;
-        atlas.atlasSurface = SDL_CreateSurface(ATLAS_W, ATLAS_H, SDL_PIXELFORMAT_RGBA32);
-        if (!atlas.atlasSurface) {
-            CE::Log(LogLevel::Error,
-                    "[Font Manager {}] Failed to create font atlas surface",
-                    mInstanceID);
-            return;
-        }
-
-        SDL_FillSurfaceRect(atlas.atlasSurface, nullptr, 0x00000000);
-        UpdateAtlasTexture(atlas);
-        mAtlases[name] = std::move(atlas);
-    }
-
-    void FontManager::UpdateAtlasTexture(FontAtlas& atlas) {
-        if (!atlas.atlasSurface)
-            return;
-
-        if (!atlas.dirty)
-            return;
-
-        Renderer::Texture* newTex =
-            mRenderer.CreateTextureFromData(
-                atlas.atlasSurface->w,
-                atlas.atlasSurface->h,
-                atlas.atlasSurface->pixels,
-                Renderer::TextureFormat::RGBA8,
-                atlas.atlasSurface->pitch
-            );
-
-        if (atlas.texture)
-            mRenderer.UnloadTex(atlas.texture);
-
-        atlas.texture = newTex;
-        atlas.dirty = false;
-    }
-
-    TTF_Font* FontManager::LoadFontFromVFS(const std::string& path, int pointSize) {
-        VirtualFile* file = mVFS.OpenFile(path.c_str());
-        if (!file || !file->sdl_stream)
-            return nullptr;
-
-        SDL_IOStream* stream = file->sdl_stream;
-        TTF_Font* font = TTF_OpenFontIO(stream, 1, pointSize);
-        if (!font) {
-            SDL_CloseIO(stream);
-        }
-        mVFS.CloseFile(file);
-        return font;
-    }
-
-    TTF_Font* FontManager::GetFallbackFont(int pointSize) {
-        auto it = mFallbackFonts.find(pointSize);
-        if (it != mFallbackFonts.end())
-            return it->second;
-
-        SDL_IOStream* stream = SDL_IOFromMem(Default::default_ce_font, Default::default_ce_font_len);
-        if (!stream)
-            return nullptr;
-
-        TTF_Font* font = TTF_OpenFontIO(stream, 1, pointSize);
-        if (!font) {
-            SDL_CloseIO(stream);
-        }
-        if (!font)
-            return nullptr;
-
-        mFallbackFonts[pointSize] = font;
-        return font;
-    }
-
-    bool FontManager::EnsureGlyph(FontAtlas& atlas, uint32_t codepoint) {
-        if (atlas.glyphs.contains(codepoint))
-            return true;
-
-        SDL_Color white = {255, 255, 255, 255};
-
-        TTF_Font* font = atlas.font;
-
-        SDL_Surface* glyphSurface =
-            TTF_RenderGlyph_Blended(font, static_cast<int>(codepoint), white);
-
-        if (!glyphSurface)
-        {
-            font = GetFallbackFont(atlas.fontSize);
-            if (!font) return false;
-
-            glyphSurface =
-                TTF_RenderGlyph_Blended(font, static_cast<int>(codepoint), white);
-
-            if (!glyphSurface) return false;
-        }
-
-        // Scale glyph to 2x for better quality when scaled up
-        SDL_Surface* scaledSurface = SDL_CreateSurface(glyphSurface->w * 2, glyphSurface->h * 2, SDL_PIXELFORMAT_RGBA32);
-        if (scaledSurface) {
-            SDL_BlitSurfaceScaled(glyphSurface, nullptr, scaledSurface, nullptr, SDL_SCALEMODE_LINEAR);
-            SDL_DestroySurface(glyphSurface);
-            glyphSurface = scaledSurface;
-        } else {
-            // If scaling fails, use original
-            CE::Log(LogLevel::Warn, "[Font Manager {}] Failed to scale glyph surface, using original", mInstanceID);
-        }
-
-        int minx, maxx, miny, maxy, advance;
-        if (!TTF_GetGlyphMetrics(font, codepoint,
-                                &minx, &maxx, &miny, &maxy, &advance))
-        {
-            advance = glyphSurface->w;
-            minx = 0;
-            maxy = glyphSurface->h;
-        }
-
-        // Scale metrics by 2
-        advance *= 2;
-        minx *= 2;
-        maxx *= 2;
-        miny *= 2;
-        maxy *= 2;
-
-        const int padding = 1;
-
-        if (atlas.penX + glyphSurface->w + padding >= ATLAS_W)
-        {
-            atlas.penX = 0;
-            atlas.penY += atlas.rowH + padding;
-            atlas.rowH = 0;
-        }
-
-        if (atlas.penY + glyphSurface->h >= ATLAS_H)
-        {
-            SDL_DestroySurface(glyphSurface);
-            return false;
-        }
-
-        SDL_Rect dst = {
-            atlas.penX,
-            atlas.penY,
-            glyphSurface->w,
-            glyphSurface->h
-        };
-
-        SDL_BlitSurface(glyphSurface, nullptr, atlas.atlasSurface, &dst);
-
-        Glyph g;
-        g.u0 = atlas.penX / (float)ATLAS_W;
-        g.v0 = atlas.penY / (float)ATLAS_H;
-        g.u1 = (atlas.penX + glyphSurface->w) / (float)ATLAS_W;
-        g.v1 = (atlas.penY + glyphSurface->h) / (float)ATLAS_H;
-
-        g.w = glyphSurface->w;
-        g.h = glyphSurface->h;
-
-        g.advance = advance;
-        g.bearingX = minx;
-        g.bearingY = maxy;
-        g.font = font;
-
-        atlas.glyphs[codepoint] = g;
-
-        atlas.penX += glyphSurface->w + padding;
-        atlas.rowH = std::max(atlas.rowH, glyphSurface->h);
-
-        SDL_DestroySurface(glyphSurface);
-
-        atlas.dirty = true;
-
-        return true;
-    }
-
-    bool FontManager::DecodeUTF8(const std::string& text, uint32_t& outCodepoint, size_t& cursor) const {
-        if (cursor >= text.size())
-            return false;
-
-        unsigned char first = static_cast<unsigned char>(text[cursor]);
-        if (first < 0x80) {
-            outCodepoint = first;
-            cursor += 1;
-            return true;
-        }
-
-        int expected = 0;
-        uint32_t codepoint = 0;
-
-        if ((first & 0xE0) == 0xC0) {
-            expected = 2;
-            codepoint = first & 0x1F;
-        } else if ((first & 0xF0) == 0xE0) {
-            expected = 3;
-            codepoint = first & 0x0F;
-        } else if ((first & 0xF8) == 0xF0) {
-            expected = 4;
-            codepoint = first & 0x07;
-        } else {
-            cursor += 1;
-            outCodepoint = 0xFFFD;
-            return false;
-        }
-
-        if (cursor + expected > text.size()) {
-            cursor += 1;
-            outCodepoint = 0xFFFD;
-            return false;
-        }
-
-        for (int i = 1; i < expected; ++i) {
-            unsigned char ch = static_cast<unsigned char>(text[cursor + i]);
-            if ((ch & 0xC0) != 0x80) {
-                cursor += 1;
-                outCodepoint = 0xFFFD;
-                return false;
-            }
-            codepoint = (codepoint << 6) | (ch & 0x3F);
-        }
-
-        cursor += expected;
-        outCodepoint = codepoint;
-        return true;
-    }
 }
