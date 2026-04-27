@@ -5,6 +5,8 @@ THIS IS NOT IN A USABLE STATE AT ALL
 Cattle engine (abbreviated to CE), is a general 2D game engine currently using Raylib (shall be moving to SDL3).
 Its techincally possible to make a game in its current state, you use lua ([Docs for it](lua_docs.md)).
 
+Licences for third party stuff can be found in [/thirdparty/README.md](third_party/README.md)
+
 ## Example of a lua game
 ```lua
 Textures.Load("player", "textures/player.jpg") -- Load a texture
