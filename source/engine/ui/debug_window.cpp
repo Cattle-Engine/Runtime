@@ -25,17 +25,24 @@ namespace CE::UI {
         }
     }
 
-    void DrawGameinfoTab(GameInfo& gameinfo) {
-        ImGui::Text("Game name: %s", gameinfo.gameNameString.c_str());
-        ImGui::Text("Game version: %s", gameinfo.gameVersionString.c_str());
+    void DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
+        ImGui::Text("InstanceID: %i", instance.GetInstanceID());
+
+        if (ImGui::Button("Quit instance")) {
+            instance.Exit();   
+        }
 
         Utils::SpaceSep();
-
-        ImGui::Text("Window title: %s", gameinfo.windowTitle.c_str());
-        ImGui::Text("Window size: %i x %i", gameinfo.windowWidth, gameinfo.windowHeight);
-        ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
-        ImGui::Text("Fullscreen: %s", gameinfo.fullscreen ? "Yes" : "No");
-        ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
+        
+        if (ImGui::CollapsingHeader("Gameinfo")) {
+            ImGui::Text("Game name: %s", gameinfo.gameNameString.c_str());
+            ImGui::Text("Game version: %s", gameinfo.gameVersionString.c_str());
+            ImGui::Text("Window title: %s", gameinfo.windowTitle.c_str());
+            ImGui::Text("Window size: %i x %i", gameinfo.windowWidth, gameinfo.windowHeight);
+            ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
+            ImGui::Text("Fullscreen: %s", gameinfo.fullscreen ? "Yes" : "No");
+            ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
+        }
     }
 
     void DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
@@ -151,21 +158,24 @@ namespace CE::UI {
         }
     }
 
-    void DrawRendererTab(CE::Renderer::IRenderer& renderer, Settings::SettingsInfo settings,
-                        Assets::Textures::TextureManager& texman) 
+    void DrawRendererTab(
+        CE::Renderer::IRenderer& renderer,
+        Settings::SettingsInfo settings,
+        Assets::Textures::TextureManager& texman,
+        Assets::Fonts::FontManager& fontman
+    ) 
     {
-
         Renderer::Camera2D* camera = renderer.GetCamera();
 
         ImGui::Text("Current renderer: %s", settings.rendererName.c_str());
-    
-        Utils::SpaceSep();
+
+        CE::UI::Utils::SpaceSep();
 
         ImGui::Text("Camera");
         ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
         ImGui::Text("Zoom: %f", camera->zoom);
 
-        Utils::SpaceSep();
+        CE::UI::Utils::SpaceSep();
 
         ImGui::Text("Geometry");
         ImGui::Spacing();
@@ -175,7 +185,7 @@ namespace CE::UI {
         ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
         ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
 
-        Utils::SpaceSep();
+        CE::UI::Utils::SpaceSep();
 
         ImGui::Text("Textures");
         ImGui::Spacing();
@@ -183,14 +193,86 @@ namespace CE::UI {
         ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
         ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
         ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+
+        CE::UI::Utils::SpaceSep();
+
+        if (ImGui::CollapsingHeader("Fonts", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+            auto defaultFont = fontman.Debug_GetDefaultFontName();
+            ImGui::Text("Default Font: %s", defaultFont.c_str());
+
+            auto atlases = fontman.Debug_GetAtlases();
+            ImGui::Text("Atlases: %zu", atlases.size());
+
+            CE::UI::Utils::SpaceSep();
+
+            static char familyBuf[64] = {};
+            static int sizeBuf = 16;
+
+            ImGui::Text("Atlas Viewer");
+
+            ImGui::InputText("Family", familyBuf, sizeof(familyBuf));
+            ImGui::InputInt("Size", &sizeBuf);
+
+            if (sizeBuf < 1) sizeBuf = 1;
+
+            auto* tex = fontman.Debug_GetAtlasTex(familyBuf, sizeBuf);
+
+            if (tex) {
+                ImGui::Text("Atlas Preview:");
+                void* nativeTexture = renderer.GetNativeTextureHandle(tex);
+                if (nativeTexture) {
+                    ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(256, 256));
+                } else {
+                    ImGui::TextDisabled("Atlas texture is not available for ImGui preview");
+                }
+            } else {
+                ImGui::TextDisabled("No atlas found");
+            }
+
+            CE::UI::Utils::SpaceSep();
+
+            if (ImGui::TreeNode("Atlas List")) {
+
+                for (const auto& a : atlases) {
+
+                    ImGui::PushID(a.key.c_str());
+
+                    if (ImGui::TreeNode(a.key.c_str())) {
+
+                        ImGui::Text("Family: %s", a.familyName.c_str());
+                        ImGui::Text("Size: %d", a.fontSize);
+                        ImGui::Text("Glyphs: %zu", a.glyphCount);
+
+                        ImGui::Text("Atlas: %dx%d", a.atlasWidth, a.atlasHeight);
+                        ImGui::Text("Pen: %d, %d", a.penX, a.penY);
+                        ImGui::Text("RowH: %d", a.rowH);
+
+                        ImGui::Text("Texture: %s", a.hasTexture ? "Yes" : "No");
+                        ImGui::Text("Dirty: %s", a.dirty ? "Yes" : "No");
+
+                        ImGui::Text("Memory: %.2f KB",
+                            a.estimatedMemoryBytes / 1024.0f);
+
+                        ImGui::TreePop();
+                    }
+
+                    ImGui::PopID();
+                }
+
+                ImGui::TreePop();
+            }
+        }
     }
 
     void DrawDebugUI(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
+        CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
         Input::Keyboard& kbmanger,
+        CE::Instance& instance,
         Input::Mouse& msmanager,
         int fps,
         float deltaTime,
@@ -200,8 +282,8 @@ namespace CE::UI {
         ImGui::Begin("Cattle Debug");
 
         if (ImGui::BeginTabBar("DebugTabs")) {
-            if (ImGui::BeginTabItem("Gameinfo")) {
-                DrawGameinfoTab(gameinfo);
+            if (ImGui::BeginTabItem("Instance")) {
+                DrawInstanceTab(gameinfo, instance);
                 ImGui::EndTabItem();
             }
 
@@ -221,7 +303,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings.Settings, texman);
+                DrawRendererTab(renderer, settings.Settings, texman, fontman);
                 ImGui::EndTabItem();
             }
 

@@ -138,6 +138,7 @@ namespace CE::Renderer {
                 virtual int EndFrame(SDL_Window* window) = 0;
                
                 virtual Texture* GetErrorTexture() = 0;
+                virtual void* GetNativeTextureHandle(Texture* texture) = 0;
 
                 virtual int Debug_GetVertCount() = 0;
                 virtual int Debug_GetIndexCount() = 0;

@@ -90,6 +90,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             int EndFrame(SDL_Window* window) override;
 
             Texture* GetErrorTexture() override;
+            void* GetNativeTextureHandle(Texture* texture) override;
 
             int Debug_GetVertCount() override;
             int Debug_GetIndexCount() override;

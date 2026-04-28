@@ -54,6 +54,8 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
         }
+
+        gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);
         gInstanceWindowID = SDL_GetWindowID(gWindow);
         if (!gGameInfo->windowIcon.empty()) {
             SetWindowIcon(gGameInfo->windowIcon);
@@ -119,13 +121,15 @@ namespace CE {
         CE::UI::DrawDebugUI(
             *gRenderer,
             *gTextureManager,
+            *gFontManager,
             *gGameInfo,
             *gSettingsManager,
             *gKeyboardManger,
+            *this,
             *gMouseManger,
-            GetFPS(),
-            gDeltaTime,
-            gFrameTime
+            this->GetFPS(),
+            this->GetDeltaTime(),
+            this->GetFrameTime()
         );
 
         gRenderer->ImGuiEndFrame(gWindow);
@@ -239,6 +243,10 @@ namespace CE {
 
         SDL_SetWindowIcon(gWindow, converted);
         SDL_DestroySurface(converted);
+    }
+
+    void Instance::Exit() {
+        gShouldExit = true;
     }
 
     Instance::~Instance() {

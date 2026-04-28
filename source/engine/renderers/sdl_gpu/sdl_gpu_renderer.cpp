@@ -1143,6 +1143,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return &errorTexture;
     }
 
+    void* SDL_GPU_Renderer::GetNativeTextureHandle(Texture* texture) {
+        if (!texture || !texture->handle) {
+            return nullptr;
+        }
+
+        auto* data = static_cast<SDLGPUTexData*>(texture->handle);
+        return data ? data->gpuTex : nullptr;
+    }
+
     SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs) {
         gBackend = backend;
         gVFS = vfs;
@@ -1150,19 +1159,31 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     void SDL_GPU_Renderer::SetVSync(bool setting) {
         SDL_Window* window = SDL_GetWindowFromID(mWindowID);
-        if (setting) {
-            SDL_SetGPUSwapchainParameters(
+        if (window == nullptr) {
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetVSync called before window was available");
+            return;
+        }
+
+        const bool result = setting
+            ? SDL_SetGPUSwapchainParameters(
                 gDevice,
                 window,
                 SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
                 SDL_GPU_PRESENTMODE_VSYNC   // VSync on
-            );
-        } else {
-            SDL_SetGPUSwapchainParameters(
+            )
+            : SDL_SetGPUSwapchainParameters(
                 gDevice,
                 window,
                 SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
                 SDL_GPU_PRESENTMODE_IMMEDIATE   // VSync off
+            );
+
+        if (!result) {
+            CE::Log(
+                LogLevel::Warn,
+                "[SDL_GPU Renderer] Failed to set VSync to {}: {}",
+                setting ? "enabled" : "disabled",
+                SDL_GetError()
             );
         }
     }

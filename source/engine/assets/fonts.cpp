@@ -405,4 +405,63 @@ namespace CE::Assets::Fonts {
         DrawEx(text, mDefaultFontName, x, y, size, colour);
     }
 
+    std::vector<AtlasDebugInfo> FontManager::Debug_GetAtlases() const {
+        std::vector<AtlasDebugInfo> out;
+        out.reserve(mAtlases.size());
+
+        for (const auto& [key, atlas] : mAtlases) {
+            AtlasDebugInfo info{};
+
+            info.key = key;
+
+            auto at = key.find('@');
+            info.familyName = (at != std::string::npos) ? key.substr(0, at) : key;
+
+            info.fontSize = atlas.fontSize;
+
+            info.atlasWidth  = atlas.atlasSurface ? atlas.atlasSurface->w : 0;
+            info.atlasHeight = atlas.atlasSurface ? atlas.atlasSurface->h : 0;
+
+            info.penX = atlas.penX;
+            info.penY = atlas.penY;
+            info.rowH = atlas.rowH;
+
+            info.glyphCount = atlas.glyphs.size();
+
+            info.hasTexture = (atlas.texture != nullptr);
+            info.dirty      = atlas.dirty;
+
+            size_t surfaceBytes = 0;
+            if (atlas.atlasSurface)
+                surfaceBytes = atlas.atlasSurface->pitch * atlas.atlasSurface->h;
+
+            size_t textureBytes = info.hasTexture
+                ? (info.atlasWidth * info.atlasHeight * 4)
+                : 0;
+
+            info.estimatedMemoryBytes = surfaceBytes + textureBytes;
+
+            out.push_back(info);
+        }
+
+        return out;
+    }
+
+    Renderer::Texture* FontManager::Debug_GetAtlasTex(const std::string& family, int size) const {
+        if (family.empty() || size <= 0)
+            return nullptr;
+
+        const std::string key = MakeAtlasKey(family, size);
+
+        auto it = mAtlases.find(key);
+        if (it == mAtlases.end())
+            return nullptr;
+
+        return it->second.texture;
+    }
+
+    std::string FontManager::Debug_GetDefaultFontName() const {
+        return mDefaultFontName;
+    }
+
 }

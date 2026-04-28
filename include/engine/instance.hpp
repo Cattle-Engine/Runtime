@@ -27,6 +27,7 @@ namespace CE {
                 Renderer::GPUDeviceHandle& gpudevice);
             int Update();
             bool ShouldExit();
+            void Exit();
             float GetDeltaTime() const;
             float GetFrameTime() const;
             int GetFPS() const;

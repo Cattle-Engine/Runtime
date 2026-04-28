@@ -4,11 +4,32 @@
 #include <unordered_map>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <cstdint>
+#include <vector>
 
 #include "engine/renderer.hpp"
 #include "engine/common/vfs.hpp"
 
 namespace CE::Assets::Fonts {
+    struct AtlasDebugInfo {
+        std::string key;          // "Roboto@16"
+        std::string familyName;
+        int fontSize;
+
+        int atlasWidth;
+        int atlasHeight;
+
+        int penX;
+        int penY;
+        int rowH;
+
+        size_t glyphCount;
+
+        bool hasTexture;
+        bool dirty;
+
+        size_t estimatedMemoryBytes;
+    };
+    
     class FontManager {
         public:
             FontManager(Renderer::IRenderer& renderer, VFS::VFS& vfs, uint64_t instance_id);
@@ -22,6 +43,10 @@ namespace CE::Assets::Fonts {
             void SetDefault(const std::string& name);
             void Unload(const std::string& name);
             void UnloadAll();
+
+            Renderer::Texture* Debug_GetAtlasTex(const std::string& family, int size) const;
+            std::vector<AtlasDebugInfo> Debug_GetAtlases() const;
+            std::string Debug_GetDefaultFontName() const;
         private:
             struct FontFamily {
                 std::string path;
@@ -61,7 +86,7 @@ namespace CE::Assets::Fonts {
             FontAtlas* GetOrCreateAtlas(const std::string& familyName, int pointSize);
             static std::string MakeAtlasKey(const std::string& familyName, int pointSize);
 
-            std::string mDefaultFontName; // Font family name (not size-specific atlas key)
+            std::string mDefaultFontName;
             std::unordered_map<int, TTF_Font*> mFallbackFonts;
 
             VFS::VFS& mVFS;
