@@ -1,31 +1,30 @@
-#include <array>
 #include <cstring>
-#include <unordered_map>
 
 #include "imgui/imgui.h"
+
+#include <SDL3/SDL.h>
 
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/renderer.hpp"
 #include "engine/common/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
+#include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
+#include "engine/instance.hpp"
+#include "engine/settings.hpp"
 
 namespace CE::UI {
-    namespace {
-        struct SettingsTabState {
-            std::array<char, 501> rendererBuffer{};
-            bool synced = false;
-        };
-
-        SettingsTabState& GetSettingsTabState(CE::Settings::SettingsManager& settings) {
-            static std::unordered_map<CE::Settings::SettingsManager*, SettingsTabState> states;
-            return states[&settings];
-        }
+    void DebugWindow::SetOpen(bool open) {
+        gOpen = open;
     }
 
-    void DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
+    bool DebugWindow::IsOpen() const {
+        return gOpen;
+    }
+
+    void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
         ImGui::Text("InstanceID: %i", instance.GetInstanceID());
 
         if (ImGui::Button("Quit instance")) {
@@ -45,7 +44,7 @@ namespace CE::UI {
         }
     }
 
-    void DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
+    void DebugWindow::DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
         ImGui::Text("Keyboard");
         ImGui::Spacing();
         ImGui::Text("Currently held keys: %s", kbmanger.GetPressedKeysString().c_str());
@@ -63,14 +62,18 @@ namespace CE::UI {
         ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
     }
 
-    void DrawPerformanceTab(
+    void DebugWindow::DrawPerformanceTab(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
-        const CE::Settings::SettingsInfo& settings,
+        const CE::Settings::SettingsManager& settings,
         int fps,
         float deltaTime,
         float frameTime
     ) {
+        (void)renderer;
+        (void)texman;
+        (void)settings;
+
         ImGui::Text("Performance");
         ImGui::Spacing();
 
@@ -78,18 +81,24 @@ namespace CE::UI {
         ImGui::Text("Frame Time (ms): %.3f", frameTime);
         ImGui::Text("Delta Time (s): %.6f", deltaTime);
 
-        static float fpsHistory[100] = {};
-        static int offset = 0;
+        gFpsHistory[static_cast<size_t>(gFpsHistoryOffset)] = static_cast<float>(fps);
+        gFpsHistoryOffset = (gFpsHistoryOffset + 1) % static_cast<int>(gFpsHistory.size());
 
-        fpsHistory[offset] = static_cast<float>(fps);
-        offset = (offset + 1) % 100;
-
-        ImGui::PlotLines("FPS History", fpsHistory, 100, 0, nullptr, 0.0f, 300.0f, ImVec2(0, 80));
+        ImGui::PlotLines(
+            "FPS History",
+            gFpsHistory.data(),
+            static_cast<int>(gFpsHistory.size()),
+            0,
+            nullptr,
+            0.0f,
+            300.0f,
+            ImVec2(0, 80)
+        );
     }
 
-    void DrawSettingsTab(CE::Settings::SettingsManager& settings) {
+    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings) {
         auto& s = settings.Settings;
-        auto& state = GetSettingsTabState(settings);
+        auto& state = gSettingsState;
 
         ImGui::Text("Window");
         ImGui::Spacing();
@@ -158,45 +167,93 @@ namespace CE::UI {
         }
     }
 
-    void DrawRendererTab(
+    void DebugWindow::DrawRendererTab(
         CE::Renderer::IRenderer& renderer,
-        Settings::SettingsInfo settings,
+        const Settings::SettingsManager& settings,
         Assets::Textures::TextureManager& texman,
         Assets::Fonts::FontManager& fontman
     ) 
     {
         Renderer::Camera2D* camera = renderer.GetCamera();
 
-        ImGui::Text("Current renderer: %s", settings.rendererName.c_str());
+        ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
 
         CE::UI::Utils::SpaceSep();
 
         ImGui::Text("Camera");
-        ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
-        ImGui::Text("Zoom: %f", camera->zoom);
+        if (camera) {
+            static float editX = 0.0f;
+            static float editY = 0.0f;
+            static float editZoom = 1.0f;
+            static bool initialized = false;
+            if (!initialized) {
+                editX = camera->x;
+                editY = camera->y;
+                editZoom = camera->zoom;
+                initialized = true;
+            }
+
+            ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
+            ImGui::Text("Zoom: %f", camera->zoom);
+
+            CE::UI::Utils::SpaceSep();
+
+            ImGui::Text("Edit Camera");
+            ImGui::InputFloat("X", &editX);
+            ImGui::InputFloat("Y", &editY);
+            ImGui::SliderFloat("Zoom", &editZoom, 0.1f, 10.0f, "%.2f");
+
+            // Clamp zoom so I don't break stuff
+            if (editZoom < 0.01f) editZoom = 0.01f;
+
+            if (ImGui::Button("Apply")) {
+                camera->x = editX;
+                camera->y = editY;
+                camera->zoom = editZoom;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Reset from Camera")) {
+                editX = camera->x;
+                editY = camera->y;
+                editZoom = camera->zoom;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset Camera")) {
+                editX = 0.0f;
+                editY = 0.0f;
+                editZoom = 1.0f;
+
+                if (camera) {
+                    camera->x = 0.0f;
+                    camera->y = 0.0f;
+                    camera->zoom = 1.0f;
+                }
+            }
+        } else {
+            ImGui::TextDisabled("No camera available");
+        }
 
         CE::UI::Utils::SpaceSep();
 
-        ImGui::Text("Geometry");
-        ImGui::Spacing();
-
-        ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
-        ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
-        ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
-        ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
-
-        CE::UI::Utils::SpaceSep();
-
-        ImGui::Text("Textures");
-        ImGui::Spacing();
-
-        ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
-        ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
-        ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+        if (ImGui::CollapsingHeader("Geometry")) {
+            ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
+            ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
+            ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
+            ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
+        }
 
         CE::UI::Utils::SpaceSep();
 
-        if (ImGui::CollapsingHeader("Fonts", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Textures")) {
+            ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
+            ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
+            ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+        }
+
+        CE::UI::Utils::SpaceSep();
+
+        if (ImGui::CollapsingHeader("Fonts")) {
 
             auto defaultFont = fontman.Debug_GetDefaultFontName();
             ImGui::Text("Default Font: %s", defaultFont.c_str());
@@ -206,17 +263,14 @@ namespace CE::UI {
 
             CE::UI::Utils::SpaceSep();
 
-            static char familyBuf[64] = {};
-            static int sizeBuf = 16;
-
             ImGui::Text("Atlas Viewer");
 
-            ImGui::InputText("Family", familyBuf, sizeof(familyBuf));
-            ImGui::InputInt("Size", &sizeBuf);
+            ImGui::InputText("Family", gAtlasFamilyBuf.data(), gAtlasFamilyBuf.size());
+            ImGui::InputInt("Size", &gAtlasSizeBuf);
 
-            if (sizeBuf < 1) sizeBuf = 1;
+            if (gAtlasSizeBuf < 1) gAtlasSizeBuf = 1;
 
-            auto* tex = fontman.Debug_GetAtlasTex(familyBuf, sizeBuf);
+            auto* tex = fontman.Debug_GetAtlasTex(gAtlasFamilyBuf.data(), gAtlasSizeBuf);
 
             if (tex) {
                 ImGui::Text("Atlas Preview:");
@@ -265,7 +319,7 @@ namespace CE::UI {
         }
     }
 
-    void DrawDebugUI(
+    void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
         CE::Assets::Fonts::FontManager& fontman,
@@ -278,6 +332,10 @@ namespace CE::UI {
         float deltaTime,
         float frameTime
     ) {
+        if (!gOpen) {
+            return;
+        }
+
         ImGui::SetNextWindowSize(ImVec2(487, 386), ImGuiCond_FirstUseEver);
         ImGui::Begin("Cattle Debug");
 
@@ -298,12 +356,12 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Performance")) {
-                DrawPerformanceTab(renderer, texman, settings.Settings, fps, deltaTime, frameTime);
+                DrawPerformanceTab(renderer, texman, settings, fps, deltaTime, frameTime);
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings.Settings, texman, fontman);
+                DrawRendererTab(renderer, settings, texman, fontman);
                 ImGui::EndTabItem();
             }
 
@@ -311,5 +369,34 @@ namespace CE::UI {
         }
 
         ImGui::End();
+    }
+
+    void DrawDebugUI(
+        CE::Renderer::IRenderer& renderer,
+        CE::Assets::Textures::TextureManager& texman,
+        CE::Assets::Fonts::FontManager& fontman,
+        CE::GameInfo& gameinfo,
+        CE::Settings::SettingsManager& settings,
+        Input::Keyboard& kbmanger,
+        CE::Instance& instance,
+        Input::Mouse& msmanager,
+        int fps,
+        float deltaTime,
+        float frameTime
+    ) {
+        static DebugWindow window;
+        window.Draw(
+            renderer,
+            texman,
+            fontman,
+            gameinfo,
+            settings,
+            kbmanger,
+            instance,
+            msmanager,
+            fps,
+            deltaTime,
+            frameTime
+        );
     }
 }

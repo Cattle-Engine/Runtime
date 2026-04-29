@@ -73,9 +73,6 @@ namespace CE {
 
         gTextureManager->Load("welcome.gif", "test");
         gFontManager->Load("/roboto.ttf", "test");
-
-        int x, y;
-        SDL_GetWindowSize(gWindow, &x, &y);
     }
 
     bool Instance::ShouldExit() {
@@ -83,7 +80,7 @@ namespace CE {
     }
 
     int Instance::Update() {
-        if(gShouldExit) return 1;
+        if (gShouldExit) return 1;
 
         const Uint64 frame_start_counter = SDL_GetPerformanceCounter();
 
@@ -108,17 +105,14 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
-
         gRenderer->BeginFrame(gWindow);
 
-        gTextureManager->DrawRot("test", 640, 360, 0.0f,{255, 255, 255, 255});
-
+        gTextureManager->DrawRot("test", 640, 360, 0.0f, {255, 255, 255, 255});
         gFontManager->Draw("Hello, World!",10, 50, 100, {0, 0, 0, 255});
 
-        // Start ImGui draw frame
         gRenderer->ImGuiStartFrame();
 
-        CE::UI::DrawDebugUI(
+        gDebugWindow.Draw(
             *gRenderer,
             *gTextureManager,
             *gFontManager,
@@ -134,27 +128,30 @@ namespace CE {
 
         gRenderer->ImGuiEndFrame(gWindow);
 
-
         gFontManager->Update();
         gRenderer->EndFrame(gWindow);
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();
         gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                     static_cast<float>(gPerformanceFrequency) * 1000.0f;
+                    static_cast<float>(gPerformanceFrequency) * 1000.0f;
 
         if (gSettingsManager->Settings.maxFPS > 0) {
             const float target_frame_time_ms = 1000.0f /
-                                               static_cast<float>(gSettingsManager->Settings.maxFPS);
+                static_cast<float>(gSettingsManager->Settings.maxFPS);
+
             if (gFrameTime < target_frame_time_ms) {
-                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - gFrameTime) * 1000000.0f));
+                SDL_DelayPrecise(static_cast<Uint64>(
+                    (target_frame_time_ms - gFrameTime) * 1000000.0f));
+
                 frame_end_counter = SDL_GetPerformanceCounter();
                 gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                             static_cast<float>(gPerformanceFrequency) * 1000.0f;
+                            static_cast<float>(gPerformanceFrequency) * 1000.0f;
             }
         }
 
         gDeltaTime = static_cast<float>(frame_end_counter - gLastFrameCounter) /
-                     static_cast<float>(gPerformanceFrequency);
+                    static_cast<float>(gPerformanceFrequency);
+
         gLastFrameCounter = frame_end_counter;
 
         return 0;

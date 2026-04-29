@@ -12,6 +12,7 @@
 #include "engine/common/gameinfo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
+#include "engine/ui/debug_window.hpp"
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;
@@ -61,6 +62,8 @@ namespace CE {
             int gInstanceID;
             // The id for the window in the instance, provided by SDL
             int gInstanceWindowID;
+
+            CE::UI::DebugWindow gDebugWindow;
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;
