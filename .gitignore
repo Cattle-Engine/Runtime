@@ -3,6 +3,7 @@
 build/*
 assets/*
 imgui.ini
+.codex
 # Compiled Object files
 *.slo
 *.lo
