@@ -3,7 +3,7 @@
 #include "engine/bootstrap/instance.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/textures.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 
 namespace CE::Bootstrap {
     int Init_AssetManagers(std::unique_ptr<CE::Assets::Textures::TextureManager>& texturemanager_ptr, std::unique_ptr<VFS::VFS>& vfs_ptr, 

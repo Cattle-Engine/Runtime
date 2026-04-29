@@ -10,7 +10,7 @@
 
 #include <SDL3/SDL_iostream.h>
 
-#include "engine/common/tcf.h"
+#include "engine/common/fs/tcf.h"
 
 enum LoadMode {
     OnDemand,

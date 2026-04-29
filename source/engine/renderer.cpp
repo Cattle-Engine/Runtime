@@ -1,6 +1,6 @@
 #include "engine/renderer.hpp"
 #include "engine/renderers/sdl_gpu_renderer.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 #include "memory"
 
 namespace CE::Renderer {

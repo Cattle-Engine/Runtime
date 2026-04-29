@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/renderer.hpp"
 
 namespace CE::Common {

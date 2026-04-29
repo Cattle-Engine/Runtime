@@ -2,7 +2,7 @@
 #include <string>
 #include <format>
 
-#include "engine/common/error_box.hpp"
+#include "engine/common/misc/error_box.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/platforms/windows.hpp"
 

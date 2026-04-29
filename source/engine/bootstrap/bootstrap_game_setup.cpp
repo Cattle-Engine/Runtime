@@ -1,11 +1,11 @@
 #include <string>
 
 #include "engine/bootstrap/instance.hpp"
-#include "engine/common/vfs_stl.hpp"
-#include "engine/common/gdat_has.hpp"
+#include "engine/common/fs/vfs_stl.hpp"
+#include "engine/common/misc/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/ini.hpp"
-#include "engine/common/error_box.hpp"
+#include "engine/common/fs/ini.hpp"
+#include "engine/common/misc/error_box.hpp"
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {

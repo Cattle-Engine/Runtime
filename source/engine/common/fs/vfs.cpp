@@ -1,4 +1,4 @@
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 
 #include <algorithm>
 #include <cstring>

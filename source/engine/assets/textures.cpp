@@ -1,6 +1,6 @@
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets::Textures {

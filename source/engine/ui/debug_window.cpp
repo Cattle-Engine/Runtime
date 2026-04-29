@@ -7,7 +7,7 @@
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/renderer.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"

@@ -1,5 +1,5 @@
 #include "engine/renderer.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 
 #include "imgui/imgui.h"
 #include <glm/glm.hpp>

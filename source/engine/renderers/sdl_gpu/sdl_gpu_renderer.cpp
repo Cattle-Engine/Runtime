@@ -7,8 +7,8 @@
 #include "engine/renderers/sdl_gpu_renderer.hpp"
 #include "engine/renderer.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/error_box.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/misc/error_box.hpp"
+#include "engine/common/fs/vfs.hpp"
 #include "imgui_impl_sdlgpu3.h"
 
 #ifndef M_PI

@@ -1,9 +1,9 @@
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fullscreen.hpp"
 #include "engine/renderer.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/error_box.hpp"
+#include "engine/common/misc/error_box.hpp"
 #include <SDL3/SDL.h>
 
 namespace CE::Bootstrap {

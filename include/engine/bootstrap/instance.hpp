@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "engine/common/vfs.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/fs/vfs.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 #include "engine/settings.hpp"

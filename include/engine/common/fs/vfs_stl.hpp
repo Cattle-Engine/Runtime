@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 
 #include <istream>
 #include <memory>

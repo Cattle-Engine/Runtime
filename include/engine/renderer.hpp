@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 namespace CE {
     enum class RendererBackend {
         Software,

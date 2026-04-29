@@ -3,8 +3,8 @@
 #include <string>
 #include <cstdint>
 
-#include "engine/common/ini.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/fs/ini.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 
 namespace CE {
     class Instance;

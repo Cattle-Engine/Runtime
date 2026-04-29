@@ -11,7 +11,7 @@
 #include "engine/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/assets/default_font.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 #include "engine/assets/fonts.hpp"
 
 namespace CE::Assets::Fonts {

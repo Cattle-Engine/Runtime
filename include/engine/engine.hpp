@@ -6,7 +6,7 @@
 
 #include "engine/renderer.hpp"
 #include "engine/instance.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 
 namespace CE {
     class Engine {

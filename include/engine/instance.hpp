@@ -5,11 +5,11 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/fonts.hpp"
-#include "engine/common/vfs.hpp"
+#include "engine/common/fs/vfs.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
-#include "engine/common/gameinfo.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/ui/debug_window.hpp"

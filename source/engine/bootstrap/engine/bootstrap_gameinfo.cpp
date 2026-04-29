@@ -1,12 +1,12 @@
 #include <string>
 
 #include "engine/bootstrap/engine.hpp"
-#include "engine/common/gameinfo.hpp"
-#include "engine/common/vfs.hpp"
-#include "engine/common/vfs_stl.hpp"
+#include "engine/common/misc/gameinfo.hpp"
+#include "engine/common/fs/vfs.hpp"
+#include "engine/common/fs/vfs_stl.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/gdat_has.hpp"
-#include "engine/common/ini.hpp"
+#include "engine/common/misc/gdat_has.hpp"
+#include "engine/common/fs/ini.hpp"
 
 namespace CE::Bootstrap::Engine {
     int GetGameInfo(GameInfo& gameinfo, std::string& gdata_name, bool debug) {
