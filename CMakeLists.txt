@@ -37,7 +37,9 @@ source/*.cpp
 source/*.c
 )
 
-
+set(LUAU_BUILD_CLI OFF CACHE BOOL "" FORCE)
+set(LUAU_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LUAU_BUILD_ANALYSIS OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/luau)
 
 file(GLOB SHADER_SOURCES
