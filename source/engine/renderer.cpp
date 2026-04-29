@@ -1,11 +1,14 @@
 #include "engine/renderer.hpp"
 #include "engine/renderers/sdl_gpu_renderer.hpp"
+#include "engine/renderers/software_renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "memory"
 
 namespace CE::Renderer {
     CE::Renderer::IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs) {
         switch (backend) {
+            case RendererBackend::Software:
+                return new CE::Renderer::Software::Software_Renderer(vfs);
             case RendererBackend::Vulkan:
                 return new CE::Renderer::SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend::Vulkan, 
                     vfs);
@@ -25,6 +28,8 @@ namespace CE::Renderer {
 
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo) {
         switch (backend) {
+            case RendererBackend::Software:
+                return CE::Renderer::Software::CreateGPUDevice();
             case RendererBackend::Vulkan:
                 return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
                 break;
@@ -39,7 +44,13 @@ namespace CE::Renderer {
     }
 
     void DestroyGPUDevice(GPUDeviceHandle device) {
+        if (device == nullptr) {
+            return;
+        }
+
         switch (device->backend) {
+            case RendererBackend::Software:
+                break;
             case RendererBackend::Vulkan:
             case RendererBackend::Metal:
             case RendererBackend::DX12:

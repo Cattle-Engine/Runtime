@@ -136,7 +136,7 @@ namespace CE::UI {
             s.rendererName = state.rendererBuffer.data();
         }
 
-        ImGui::Text("Supported renderers: Metal, DX12, Vulkan");
+        ImGui::Text("Supported renderers: Metal, DX12, Vulkan, Software");
         ImGui::Text("Note: To change renderer you need to close engine and reopen.");
 
         Utils::SpaceSep();
@@ -241,6 +241,7 @@ namespace CE::UI {
             ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
             ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
             ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
+            ImGui::Text("Note: When using the software renderer,\nthese are meant to be empty.");
         }
 
         CE::UI::Utils::SpaceSep();

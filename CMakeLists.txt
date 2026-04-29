@@ -169,6 +169,8 @@ target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
 target_link_libraries(ce_engine PRIVATE
     Luau.VM
     Luau.Compiler
+    Luau.Common
+    Luau.Ast
 )
 
 if(WIN32)

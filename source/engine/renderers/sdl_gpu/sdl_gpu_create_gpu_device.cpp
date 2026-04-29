@@ -1,4 +1,4 @@
-#include <memory>
+
 #include <SDL3/SDL.h>
 
 #include "engine/renderers/sdl_gpu_renderer.hpp"
