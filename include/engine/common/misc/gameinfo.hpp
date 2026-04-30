@@ -21,6 +21,7 @@ namespace CE {
         bool resizableWindow;
         std::string windowIcon;
 
+        std::string startupFileName;
         const char* dataFileName;
     };
 }

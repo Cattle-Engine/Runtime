@@ -114,7 +114,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureEx(const string &in name, int x, int y, CE::Graphics::Colour colour)",
+            "void DrawTextureEx(const string &in name, int x, int y, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawTextureEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -134,7 +134,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureRotEx(const string &in name, int x, int y, float rotation, CE::Graphics::Colour colour)",
+            "void DrawTextureRotEx(const string &in name, int x, int y, float rotation, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawTextureRotEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -144,7 +144,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTexturePro(const string &in name, int x, int y, int w, int h, float rotation, CE::Graphics::Colour colour)",
+            "void DrawTexturePro(const string &in name, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawTexturePro),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -156,7 +156,7 @@ namespace CE::Scripting {
         mScriptEngine->SetDefaultNamespace("CE::Graphics::Primitives");
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawRectangle(float x, float y, float w, float h, CE::Graphics::Colour colour, float rotation = 0.0f)",
+            "void DrawRectangle(float x, float y, float w, float h, const CE::Graphics::Colour &in colour, float rotation = 0.0f)",
             asMETHOD(Runtime, DrawRectangle),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -166,7 +166,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawCircle(float x, float y, float radius, int segments, CE::Graphics::Colour colour)",
+            "void DrawCircle(float x, float y, float radius, int segments, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawCircle),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -176,7 +176,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawLine(float x1, float y1, float x2, float y2, float thickness, CE::Graphics::Colour colour)",
+            "void DrawLine(float x1, float y1, float x2, float y2, float thickness, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawLine),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -186,7 +186,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, CE::Graphics::Colour colour, float rotation = 0.0f)",
+            "void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const CE::Graphics::Colour &in colour, float rotation = 0.0f)",
             asMETHOD(Runtime, DrawTriangle),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -196,7 +196,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawRectangleLines(float x, float y, float w, float h, float thickness, CE::Graphics::Colour colour)",
+            "void DrawRectangleLines(float x, float y, float w, float h, float thickness, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawRectangleLines),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -206,7 +206,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawCircleLines(float x, float y, float radius, int segments, float thickness, CE::Graphics::Colour colour)",
+            "void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawCircleLines),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -248,7 +248,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextCol(const string &in text, int x, int y, float size, CE::Graphics::Colour colour)",
+            "void DrawTextCol(const string &in text, int x, int y, float size, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawTextCol),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -258,7 +258,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextEx(const string &in text, const string &in name, int x, int y, float size, CE::Graphics::Colour colour)",
+            "void DrawTextEx(const string &in text, const string &in name, int x, int y, float size, const CE::Graphics::Colour &in colour)",
             asMETHOD(Runtime, DrawTextEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -283,7 +283,7 @@ namespace CE::Scripting {
         mTextureManager.Draw(name.c_str(), x, y, kWhite);
     }
 
-    void Runtime::DrawTextureEx(const std::string& name, int x, int y, Renderer::Colour colour) {
+    void Runtime::DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour) {
         mTextureManager.Draw(name.c_str(), x, y, colour);
     }
 
@@ -291,35 +291,35 @@ namespace CE::Scripting {
         mTextureManager.DrawRot(name.c_str(), x, y, rotation, kWhite);
     }
 
-    void Runtime::DrawTextureRotEx(const std::string& name, int x, int y, float rotation, Renderer::Colour colour) {
+    void Runtime::DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour) {
         mTextureManager.DrawRot(name.c_str(), x, y, rotation, colour);
     }
 
-    void Runtime::DrawTexturePro(const std::string& name, int x, int y, int w, int h, float rotation, Renderer::Colour colour) {
+    void Runtime::DrawTexturePro(const std::string& name, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour) {
         mTextureManager.DrawPro(name.c_str(), x, y, w, h, rotation, colour);
     }
 
-    void Runtime::DrawRectangle(float x, float y, float w, float h, Renderer::Colour colour, float rotation) {
+    void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation) {
         mRenderer.DrawRect(x, y, w, h, colour.r, colour.g, colour.b, colour.a, rotation);
     }
 
-    void Runtime::DrawCircle(float x, float y, float radius, int segments, Renderer::Colour colour) {
+    void Runtime::DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour& colour) {
         mRenderer.DrawCircle(x, y, radius, segments, colour.r, colour.g, colour.b, colour.a);
     }
 
-    void Runtime::DrawLine(float x1, float y1, float x2, float y2, float thickness, Renderer::Colour colour) {
+    void Runtime::DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour& colour) {
         mRenderer.DrawLine(x1, y1, x2, y2, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
-    void Runtime::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, Renderer::Colour colour, float rotation) {
+    void Runtime::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Renderer::Colour& colour, float rotation) {
         mRenderer.DrawTriangle(x0, y0, x1, y1, x2, y2, colour.r, colour.g, colour.b, colour.a, rotation);
     }
 
-    void Runtime::DrawRectangleLines(float x, float y, float w, float h, float thickness, Renderer::Colour colour) {
+    void Runtime::DrawRectangleLines(float x, float y, float w, float h, float thickness, const Renderer::Colour& colour) {
         mRenderer.DrawRectLines(x, y, w, h, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
-    void Runtime::DrawCircleLines(float x, float y, float radius, int segments, float thickness, Renderer::Colour colour) {
+    void Runtime::DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Renderer::Colour& colour) {
         mRenderer.DrawCircleLines(x, y, radius, segments, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
@@ -335,11 +335,11 @@ namespace CE::Scripting {
         mFontManager.Draw(text, x, y, size, kWhite);
     }
 
-    void Runtime::DrawTextCol(const std::string& text, int x, int y, float size, Renderer::Colour colour) {
+    void Runtime::DrawTextCol(const std::string& text, int x, int y, float size, const Renderer::Colour& colour) {
         mFontManager.Draw(text, x, y, size, colour);
     }
 
-    void Runtime::DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, Renderer::Colour colour) {
+    void Runtime::DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, const Renderer::Colour& colour) {
         mFontManager.DrawEx(text, name, x, y, size, colour);
     }
 }

@@ -7,7 +7,9 @@
 #include "engine/instance.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fullscreen.hpp"
+#include "engine/common/misc/error_box.hpp"
 #include "engine/settings.hpp"
+#include "engine/scripting/angelscript.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/events.hpp"
 
@@ -70,6 +72,29 @@ namespace CE {
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
+        
+        gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
+            *gVFS,
+            *gGameInfo,
+            *gSettingsManager,
+            *this,
+            *gRenderer,
+            *gTextureManager,
+            *gFontManager,
+            *gKeyboardManger,
+            *gMouseManger
+        );
+        if (!gScriptingManager->Initialize()) {
+            ShowError(gScriptingManager->GetLastError());
+            throw std::runtime_error(
+                std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID, gScriptingManager->GetLastError()));
+        }
+
+        if (!gScriptingManager->RunStartup()) {
+            ShowError(gScriptingManager->GetLastError());
+            throw std::runtime_error(
+                std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
+        }
 
         gTextureManager->Load("welcome.gif", "test");
         gFontManager->Load("/roboto.ttf", "test");
@@ -109,6 +134,13 @@ namespace CE {
 
         gTextureManager->DrawRot("test", 640, 360, 0.0f, {255, 255, 255, 255});
         gFontManager->Draw("Hello, World!",10, 50, 100, {0, 0, 0, 255});
+
+        if (!gScriptingManager->RunUpdate()) {
+            ShowError(gScriptingManager->GetLastError());
+            CE::Log(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
+            gShouldExit = true;
+            return 1;
+        }
 
         gRenderer->ImGuiStartFrame();
 

@@ -1,4 +1,5 @@
 #include "engine/scripting/angelscript.hpp"
+#include "engine/instance.hpp"
 
 namespace CE::Scripting {
     bool Runtime::RegisterInstanceBindings() {

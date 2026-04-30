@@ -62,6 +62,7 @@ namespace CE::Bootstrap {
         gameinfo->enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
         gameinfo->fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
+        gameinfo->startupFileName = ini.get_string("Gameinfo", "Scripting_Startup_File", "startup.as");
         if(ini.has("Gameinfo", "Window_Icon")) {
             gameinfo->windowIcon = ini.get_string("Gameinfo", "Window_Icon", "");
         }

@@ -26,7 +26,8 @@ namespace CE::Common {
             !ini.has("Graphics", "Renderer") ||
             !ini.has("Graphics", "Enable_VSync") ||
             !ini.has("Graphics", "Fullscreen") ||
-            !ini.has("Graphics", "Resizable_Window"))
+            !ini.has("Graphics", "Resizable_Window") ||
+            !ini.has("Gameinfo", "Scripting_Startup_File"))
             {
                 return false;
             }

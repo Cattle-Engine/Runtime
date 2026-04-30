@@ -21,6 +21,9 @@ namespace CE {
     namespace Settings {
         class SettingsManager;
     }
+    namespace Scripting {
+        class Runtime;
+    }
 
     class Instance {
         public:
@@ -47,6 +50,7 @@ namespace CE {
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
+            std::unique_ptr<CE::Scripting::Runtime> gScriptingManager;
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;

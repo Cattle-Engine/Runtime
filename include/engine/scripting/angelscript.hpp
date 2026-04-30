@@ -8,10 +8,13 @@
 #include "engine/settings.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/textures.hpp"
-#include "engine/instance.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/renderer.hpp"
+
+namespace CE {
+    class Instance;
+}
 
 namespace CE::Scripting {
     class Runtime {
@@ -29,13 +32,18 @@ namespace CE::Scripting {
             );
             ~Runtime();
 
-            void RunStartup();
+            bool RunStartup();
+            bool RunUpdate(); // TODO ADD AN ACTUAL CALLBACK SYSTEM
             bool Initialize();
+            const std::string& GetLastError() const;
 
         private:
+            static void MessageCallback(const asSMessageInfo* msg, void* param);
+
             bool RegisterAssetsBindings();
             bool RegisterInputBindings();
             bool RegisterInstanceBindings();
+            bool Fail(const std::string& message);
 
             static void ConstructColour(Renderer::Colour* self);
             static void ConstructColourRGBA(
@@ -49,23 +57,23 @@ namespace CE::Scripting {
             void LoadTexture(const std::string& path, const std::string& name);
             void UnloadTexture(const std::string& name);
             void DrawTexture(const std::string& name, int x, int y);
-            void DrawTextureEx(const std::string& name, int x, int y, Renderer::Colour colour);
+            void DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour);
             void DrawTextureRot(const std::string& name, int x, int y, float rotation);
-            void DrawTextureRotEx(const std::string& name, int x, int y, float rotation, Renderer::Colour colour);
+            void DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour);
             void DrawTexturePro(const std::string& name, int x, int y, int w,
-                int h, float rotation, Renderer::Colour colour);
-            void DrawRectangle(float x, float y, float w, float h, Renderer::Colour colour, float rotation);
-            void DrawCircle(float x, float y, float radius, int segments, Renderer::Colour colour);
-            void DrawLine(float x1, float y1, float x2, float y2, float thickness, Renderer::Colour colour);
-            void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, Renderer::Colour colour, float rotation);
-            void DrawRectangleLines(float x, float y, float w, float h, float thickness, Renderer::Colour colour);
-            void DrawCircleLines(float x, float y, float radius, int segments, float thickness, Renderer::Colour colour);
+                int h, float rotation, const Renderer::Colour& colour);
+            void DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation);
+            void DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour& colour);
+            void DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour& colour);
+            void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Renderer::Colour& colour, float rotation);
+            void DrawRectangleLines(float x, float y, float w, float h, float thickness, const Renderer::Colour& colour);
+            void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Renderer::Colour& colour);
 
             bool LoadFont(const std::string& path, const std::string& name, int size);
             void UnloadFont(const std::string& name);
             void DrawText(const std::string& text, int x, int y, float size);
-            void DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, Renderer::Colour colour);
-            void DrawTextCol(const std::string& text, int x, int y, float size, Renderer::Colour colour);
+            void DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, const Renderer::Colour& colour);
+            void DrawTextCol(const std::string& text, int x, int y, float size, const Renderer::Colour& colour);
 
             bool IsKeyDown(Input::KeyboardKeys key);
             bool IsKeyPressed(Input::KeyboardKeys key);
@@ -99,6 +107,11 @@ namespace CE::Scripting {
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
             asIScriptModule* mScriptModule = nullptr;
+
+            asIScriptFunction* mUpdateFunc = nullptr;
+            asIScriptContext*  mUpdateCtx  = nullptr;   
+            std::string mLastError;
+
             VFS::VFS& mVFS;
             CE::GameInfo& mGameInfo;
             Settings::SettingsManager& mSettingsManager;
@@ -109,4 +122,8 @@ namespace CE::Scripting {
             Input::Keyboard& mKeyboard;
             Input::Mouse& mMouse;
     };
+}
+
+namespace CE::Scripting::Utils {
+    std::string LoadScript(VFS::VFS& vfs, const char* path);
 }
