@@ -56,6 +56,7 @@ namespace CE {
             RendererBackend gRendererBackend = RendererBackend::None;
             bool gDebug = false;
             bool gShouldExit = false;
+            bool gWindowFocus = true;
             bool gPendingSettingsReload = false;
             float gDeltaTime = 0.0f;
             float gFrameTime = 0.0f;

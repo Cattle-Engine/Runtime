@@ -9,6 +9,7 @@ namespace CE::Scripting {
 
         int result = 0;
 
+        mScriptEngine->SetDefaultNamespace("CE");
         result = mScriptEngine->RegisterGlobalFunction(
             "void Exit()",
             asMETHOD(Runtime, ExitInstance),
@@ -58,6 +59,8 @@ namespace CE::Scripting {
         if (result < 0) {
             return false;
         }
+
+        mScriptEngine->SetDefaultNamespace("CE::Settings");
 
         result = mScriptEngine->RegisterGlobalFunction(
             "void ReloadSettings()",
@@ -145,6 +148,7 @@ namespace CE::Scripting {
             asCALL_THISCALL_ASGLOBAL,
             this
         );
+        mScriptEngine->SetDefaultNamespace("");
         return result >= 0;
     }
 

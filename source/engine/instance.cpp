@@ -98,6 +98,7 @@ namespace CE {
 
         gTextureManager->Load("welcome.gif", "test");
         gFontManager->Load("/roboto.ttf", "test");
+        gWindowFocus = true;
     }
 
     bool Instance::ShouldExit() {
@@ -121,7 +122,17 @@ namespace CE {
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     gShouldExit = true;
                     break;
+                case SDL_EVENT_WINDOW_FOCUS_LOST:
+                    gWindowFocus = false;
+                    break;
+                case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                    gWindowFocus = true;
+                    break;
             }
+        }
+
+        if (!gWindowFocus) {
+            return 0;
         }
 
         if (gPendingSettingsReload) {

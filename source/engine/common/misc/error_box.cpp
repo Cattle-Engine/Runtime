@@ -9,7 +9,7 @@
 void ShowError(const std::string& msg) {
     SDL_ShowSimpleMessageBox(
         SDL_MESSAGEBOX_ERROR,
-        "Fatal Error!",
+        "Cattle Engine: Fatal Error!",
         msg.c_str(),
         nullptr
     );
