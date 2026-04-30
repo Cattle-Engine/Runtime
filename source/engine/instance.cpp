@@ -123,16 +123,14 @@ namespace CE {
                     gShouldExit = true;
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
+                    CE::Log(LogLevel::Debug, "[Instance {}] Window focus last", gInstanceID);
                     gWindowFocus = false;
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                    CE::Log(LogLevel::Debug, "[Instance {}] Window focus got", gInstanceID);
                     gWindowFocus = true;
                     break;
             }
-        }
-
-        if (!gWindowFocus) {
-            return 0;
         }
 
         if (gPendingSettingsReload) {
@@ -140,8 +138,17 @@ namespace CE {
             gPendingSettingsReload = false;
         }
 
+        if (!gWindowFocus) {
+            gLastFrameCounter = SDL_GetPerformanceCounter();
+            gDeltaTime = 0.0f;
+            return 0;
+        }
+
         gRenderer->SetClearColor(255, 255, 255, 255);
-        gRenderer->BeginFrame(gWindow);
+        int bfr = gRenderer->BeginFrame(gWindow);
+        if (bfr != 0) {
+            return 1;
+        } 
 
         gTextureManager->DrawRot("test", 640, 360, 0.0f, {255, 255, 255, 255});
         gFontManager->Draw("Hello, World!",10, 50, 100, {0, 0, 0, 255});

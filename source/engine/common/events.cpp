@@ -46,6 +46,11 @@ namespace CE::Events {
                     windowID = e.window.windowID;
                     break;
                     
+                case SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                    windowID = e.window.windowID;
+                    break;
+                    
                 case SDL_EVENT_QUIT:
                     windowID = 0;
                     break;

@@ -380,8 +380,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 2;
         }
 
-        if (gSwapchainTexture == nullptr) return 3;
-
+        if (gSwapchainTexture == nullptr) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
+            return 3;
+        }
         SDL_GPUColorTargetInfo colorTargetInfo{};
         colorTargetInfo.texture     = gSwapchainTexture;
         colorTargetInfo.clear_color = gClearColor;

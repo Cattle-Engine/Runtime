@@ -23,6 +23,14 @@ namespace CE::Platforms {
         std::string GetSavePath(const char* game_name) {
             return CE::Platforms::Linux::GetSavePath(game_name);
         }
+
+        bool SupportsANSI() {
+            return Linux::SupportsANSI();
+        }
+
+        bool EnableANSI() {
+            return Linux::EnableANSI();
+        }
     #endif
 
     #if defined(_WIN32)
@@ -36,6 +44,14 @@ namespace CE::Platforms {
 
         std::string GetSavePath(const char* game_name) {
             return CE::Platforms::Windows::GetSavePath(game_name);
+        }
+
+        bool SupportsANSI() {
+            return Windows::SupportsANSI();
+        }
+
+        bool EnableANSI() {
+            return Windows::EnableANSI();
         }
     #endif
 }

@@ -1,53 +1,97 @@
 #include <iostream>
-#include "engine/common/tracelog.hpp"
-
-#define ANSI_RESET   "\033[0m"
-#define ANSI_RED     "\033[31m"
-#define ANSI_YELLOW  "\033[33m"
-#define ANSI_BLUE    "\033[34m"
-#define ANSI_BOLD_RED "\033[1;31m"
-
+#include <string>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <ostream>
 
-std::string GetTimestamp() {
-    using namespace std::chrono;
-
-    auto now = system_clock::now();
-    std::time_t now_time = system_clock::to_time_t(now);
-
-    std::tm tm{};
-#ifdef _WIN32
-    localtime_s(&tm, &now_time);
-#else
-    localtime_r(&now_time, &tm);
-#endif
-
-    std::ostringstream ss;
-    ss << std::put_time(&tm, "%H:%M:%S");
-    return ss.str();
-}
+#include "engine/platforms.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE {
+
+    inline bool g_UseANSI = Platforms::EnableANSI();
+
+    inline std::ostream& reset(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[0m";
+        return os;
+    }
+
+    inline std::ostream& red(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[31m";
+        return os;
+    }
+
+    inline std::ostream& yellow(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[33m";
+        return os;
+    }
+
+    inline std::ostream& blue(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[34m";
+        return os;
+    }
+
+    inline std::ostream& bold_red(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[1;31m";
+        return os;
+    }
+
+    inline std::ostream& endl(std::ostream& os) {
+        if (g_UseANSI) os << "\x1b[0m";
+        os << '\n';
+        return os;
+    }
+
+    std::string GetTimestamp() {
+        using namespace std::chrono;
+
+        auto now = system_clock::now();
+        std::time_t now_time = system_clock::to_time_t(now);
+
+        std::tm tm{};
+        #ifdef _WIN32
+        localtime_s(&tm, &now_time);
+        #else
+        localtime_r(&now_time, &tm);
+        #endif
+
+        std::ostringstream ss;
+        ss << std::put_time(&tm, "%H:%M:%S");
+        return ss.str();
+    }
+
     void Log(LogLevel level, const std::string& message) {
+        std::ostream& os = std::cout;
+
         switch (level) {
             case Info:
-                std::cout << ANSI_BLUE << "[" << GetTimestamp() << "] [INFO] " << message << ANSI_RESET << std::endl;
+                os << blue
+                   << "[" << GetTimestamp() << "] [INFO] " << message;
                 break;
+
             case Warn:
-                std::cout << ANSI_YELLOW << "[" << GetTimestamp() << "] [WARN] " << message << ANSI_RESET << std::endl;
+                os << yellow
+                   << "[" << GetTimestamp() << "] [WARN] " << message;
                 break;
+
             case Debug:
-                std::cout << ANSI_BLUE << "[" << GetTimestamp() << "] [DEBUG] " << message << ANSI_RESET << std::endl;
+                os << blue
+                   << "[" << GetTimestamp() << "] [DEBUG] " << message;
                 break;
+
             case Error:
-                std::cout << ANSI_RED << "[" << GetTimestamp() << "] [ERROR] " << message << ANSI_RESET << std::endl;
+                os << red
+                   << "[" << GetTimestamp() << "] [ERROR] " << message;
                 break;
+
             case Fatal:
-                std::cout << ANSI_BOLD_RED << "[" << GetTimestamp() << "] [FATAL] " << message << ANSI_RESET << std::endl;
+                os << bold_red
+                   << "[" << GetTimestamp() << "] [FATAL] " << message;
                 break;
         }
+
+        os << std::endl;
     }
 }
