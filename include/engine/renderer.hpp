@@ -29,7 +29,6 @@ namespace CE::Renderer {
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
     
     inline RendererBackend renderer = RendererBackend::None;
-    inline IRenderer* currentRenderer = nullptr;
     inline std::string rendererName = "None";
 
     IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
@@ -53,6 +52,10 @@ namespace CE::Renderer {
         uint8_t g = 255;
         uint8_t b = 255;
         uint8_t a = 255;
+    };
+
+    struct Vector2 {
+        int x, y;
     };
 
     struct Vertex {

@@ -1,4 +1,0 @@
-
-namespace CE::Scripting::Lua {
-
-}
