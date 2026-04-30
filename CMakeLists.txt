@@ -37,10 +37,20 @@ source/*.cpp
 source/*.c
 )
 
-set(LUAU_BUILD_CLI OFF CACHE BOOL "" FORCE)
-set(LUAU_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(LUAU_BUILD_ANALYSIS OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/luau)
+set(AS_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+add_subdirectory(external/angelscript/sdk/angelscript/projects/cmake)
+
+set(ANGELSCRIPT_ADDON_SOURCES
+external/angelscript/sdk/add_on/datetime/datetime.cpp
+external/angelscript/sdk/add_on/scriptmath/scriptmath.cpp
+external/angelscript/sdk/add_on/scripthandle/scripthandle.cpp
+external/angelscript/sdk/add_on/scriptstdstring/scriptstdstring.cpp
+external/angelscript/sdk/add_on/scriptbuilder/scriptbuilder.cpp
+external/angelscript/sdk/add_on/scriptarray/scriptarray.cpp
+external/angelscript/sdk/add_on/scriptdictionary/scriptdictionary.cpp
+external/angelscript/sdk/add_on/scriptany/scriptany.cpp
+external/angelscript/sdk/add_on/scriptgrid/scriptgrid.cpp
+)
 
 file(GLOB SHADER_SOURCES
 ${SHADER_DIR}/*.frag
@@ -94,6 +104,7 @@ WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 add_custom_target(assets DEPENDS ${CMAKE_BINARY_DIR}/${DATA_FILE_NAME})
 
 add_executable(ce_engine ${SOURCES})
+target_sources(ce_engine PRIVATE ${ANGELSCRIPT_ADDON_SOURCES})
 
 add_dependencies(ce_engine shaders assets)
 
@@ -101,6 +112,8 @@ target_include_directories(ce_engine PRIVATE
 include
 include/third_party
 include/third_party/imgui
+external/angelscript/sdk/include
+external/angelscript/sdk/add_on
 )
 
 target_compile_definitions(ce_engine PRIVATE
@@ -167,10 +180,7 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
 
 target_link_libraries(ce_engine PRIVATE
-    Luau.VM
-    Luau.Compiler
-    Luau.Common
-    Luau.Ast
+    angelscript
 )
 
 if(WIN32)

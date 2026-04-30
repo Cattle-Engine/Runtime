@@ -2,7 +2,7 @@
 Game_Name = CE Engine Demo
 Game_Version = 1.0.0
 Window_Icon = "/no-signal.png"
-Scripting_Startup_File = "/startup.lubc" ; lubc is LuaU Byte Code
+Scripting_Startup_File = "/startup.as"
 
 [Graphics]
 Window_Width = 1280
