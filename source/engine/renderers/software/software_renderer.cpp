@@ -9,7 +9,7 @@
 #include "imgui/imgui.h"
 #include "imgui_impl_sdl3.h"
 
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 
 namespace {
     constexpr float kPi = 3.14159265358979323846f;
@@ -735,9 +735,9 @@ namespace CE::Renderer::Software {
     void Software_Renderer::ImGuiStartFrame() {
         EnsureImGuiContext();
 
-        auto indices = CE::Events::GetWindowEventIndices(SDL_GetWindowID(SDL_GetRenderWindow(mRenderer)));
+        auto indices = CE::SDL_Events::GetWindowEventIndices(SDL_GetWindowID(SDL_GetRenderWindow(mRenderer)));
         for (size_t i : indices) {
-            const SDL_Event& e = CE::Events::gEvents[i];
+            const SDL_Event& e = CE::SDL_Events::gEvents[i];
             ImGui_ImplSDL3_ProcessEvent(&e);
         }
 

@@ -11,10 +11,11 @@
 #include "engine/settings.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice) {
+    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice)
+        : gGameStateManager(gEventBus) {
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
         gDebug = debugmode;
@@ -95,9 +96,6 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
-
-        gTextureManager->Load("welcome.gif", "test");
-        gFontManager->Load("/roboto.ttf", "test");
         gWindowFocus = true;
     }
 
@@ -113,21 +111,19 @@ namespace CE {
         gKeyboardManger->Update();
         gMouseManger->Update();
 
-        auto indices = CE::Events::GetWindowEventIndices(gInstanceWindowID);
+        auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
 
         for (size_t i : indices) {
-            const SDL_Event& e = CE::Events::gEvents[i];
+            const SDL_Event& e = CE::SDL_Events::gEvents[i];
 
             switch (e.type) {
                 case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     gShouldExit = true;
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
-                    CE::Log(LogLevel::Debug, "[Instance {}] Window focus last", gInstanceID);
                     gWindowFocus = false;
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
-                    CE::Log(LogLevel::Debug, "[Instance {}] Window focus got", gInstanceID);
                     gWindowFocus = true;
                     break;
             }
@@ -145,14 +141,15 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
+        
         int bfr = gRenderer->BeginFrame(gWindow);
         if (bfr != 0) {
             return 1;
         } 
 
-        gTextureManager->DrawRot("test", 640, 360, 0.0f, {255, 255, 255, 255});
-        gFontManager->Draw("Hello, World!",10, 50, 100, {0, 0, 0, 255});
+        gGameStateManager.Emit("Draw");
 
+        gGameStateManager.Emit("Update");
         if (!gScriptingManager->RunUpdate()) {
             ShowError(gScriptingManager->GetLastError());
             CE::Log(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
@@ -209,6 +206,22 @@ namespace CE {
 
     int Instance::GetInstanceID() {
         return gInstanceID;
+    }
+
+    void Instance::SetGameState(const std::string& state) {
+        gGameStateManager.ChangeState(state);
+    }
+
+    const std::string& Instance::GetGameState() const {
+        return gGameStateManager.GetState();
+    }
+
+    CE::Core::EventBus& Instance::GetEventBus() {
+        return gEventBus;
+    }
+
+    CE::Core::GameState::GameStateManager& Instance::GetGameStateManager() {
+        return gGameStateManager;
     }
 
     float Instance::GetDeltaTime() const {

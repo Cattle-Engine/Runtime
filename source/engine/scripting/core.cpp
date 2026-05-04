@@ -44,6 +44,8 @@ namespace CE::Scripting {
     }
 
     Runtime::~Runtime() {
+        ReleaseStateCallbacks();
+
         if (mUpdateCtx != nullptr) {
             mUpdateCtx->Release();
             mUpdateCtx = nullptr;
@@ -81,6 +83,10 @@ namespace CE::Scripting {
 
         if (!RegisterInstanceBindings()) {
             return Fail("Failed to register AngelScript instance bindings");
+        }
+
+        if (!RegisterCallbackBindings()) {
+            return Fail("Failed to register AngelScript callback bindings");
         }
 
         mContext = mScriptEngine->CreateContext();

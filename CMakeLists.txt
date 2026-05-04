@@ -31,11 +31,22 @@ set(SCRIPT_FOLDER scripts)
 set(SHADER_DIR shaders)
 set(DATA_FILE_NAME data.tcf)
 
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 source/*.cpp
 source/*.c
 )
+
+if(WIN32)
+    list(FILTER SOURCES EXCLUDE REGEX "/platforms/linux/")
+elseif(APPLE)
+    list(FILTER SOURCES EXCLUDE REGEX "/platforms/windows/")
+    list(FILTER SOURCES EXCLUDE REGEX "/platforms/linux/")
+elseif(UNIX)
+    list(FILTER SOURCES EXCLUDE REGEX "/platforms/windows/")
+endif()
 
 set(AS_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 add_subdirectory(external/angelscript/sdk/angelscript/projects/cmake)
@@ -57,6 +68,15 @@ ${SHADER_DIR}/*.frag
 ${SHADER_DIR}/*.vert
 )
 
+find_program(GLSLC_EXECUTABLE glslc)
+find_program(XXD_EXECUTABLE xxd)
+if(NOT GLSLC_EXECUTABLE)
+    message(FATAL_ERROR "Required tool 'glslc' not found on PATH (needed for shader compilation).")
+endif()
+if(NOT XXD_EXECUTABLE)
+    message(FATAL_ERROR "Required tool 'xxd' not found on PATH (needed for shader header generation).")
+endif()
+
 set(SHADER_HEADERS)
 
 foreach(SHADER ${SHADER_SOURCES})
@@ -74,7 +94,7 @@ add_custom_command(
     OUTPUT ${HEADER}
     DEPENDS ${SHADER}
 
-    COMMAND glslc ${SHADER} -o ${SHADER}.spv
+    COMMAND ${GLSLC_EXECUTABLE} ${SHADER} -o ${SHADER}.spv
 
     COMMAND ${CMAKE_COMMAND} -E make_directory
         ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV
@@ -83,9 +103,9 @@ add_custom_command(
         ${SHADER}.spv
         ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV/${SHADER_NAME}.${SHADER_EXT_CLEAN}.spv
 
-    COMMAND xxd -i -n ${SYMBOL_NAME} ${SHADER}.spv ${HEADER}
+    COMMAND ${XXD_EXECUTABLE} -i -n ${SYMBOL_NAME} ${SHADER}.spv ${HEADER}
 
-    COMMAND ${CMAKE_COMMAND} -E rm ${SHADER}.spv
+    COMMAND ${CMAKE_COMMAND} -E remove -f ${SHADER}.spv
 )
 
 endforeach()
@@ -95,7 +115,7 @@ add_custom_target(shaders DEPENDS ${SHADER_HEADERS})
 
 add_custom_command(
 OUTPUT ${CMAKE_BINARY_DIR}/${DATA_FILE_NAME}
-COMMAND python ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/tcf.py pack
+COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/tcf.py pack
 ${CMAKE_SOURCE_DIR}/${ASSET_FOLDER}
 ${DATA_FILE_NAME}
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

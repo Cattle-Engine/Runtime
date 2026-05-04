@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/renderers/sdl_gpu_renderer.hpp"
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::ImGuiInit(SDL_Window* window, SDL_GPUDevice* device) {
@@ -50,11 +50,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::ImGuiStartFrame() {
         ImGui::SetCurrentContext(mImguicontext);
 
-        auto indices = CE::Events::GetWindowEventIndices(static_cast<int>(mWindowID));
+        auto indices = CE::SDL_Events::GetWindowEventIndices(static_cast<int>(mWindowID));
 
         for (size_t i : indices)
         {
-            const SDL_Event& e = CE::Events::gEvents[i];
+            const SDL_Event& e = CE::SDL_Events::gEvents[i];
             ImGui_ImplSDL3_ProcessEvent(&e);
         }
         ImGui_ImplSDL3_NewFrame();   

@@ -8,7 +8,7 @@
 #include "engine/version.hpp"
 #include "engine/renderer.hpp"
 #include "engine/common/misc/renderer_name_2_string.hpp"
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/settings.hpp"
 #include "engine/bootstrap/engine.hpp"
@@ -105,9 +105,9 @@ namespace CE {
         CE::Log(LogLevel::Info, "[Engine] Starting main loop");
 
         while (mRunning && !mInstances.empty()) {
-            Events::Update();
+            CE::SDL_Events::Update();
 
-            for (const auto& e : CE::Events::gEvents) {
+            for (const auto& e : CE::SDL_Events::gEvents) {
                 if (e.type == SDL_EVENT_QUIT) {
                     CE::Log(LogLevel::Info, "[Engine] Quit event received");
                     mRunning = false;

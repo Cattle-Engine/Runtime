@@ -1,10 +1,10 @@
 #include <SDL3/SDL.h>
 
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 
-namespace CE::Events {
-    std::vector<SDL_Event> CE::Events::gEvents;
-    std::unordered_map<SDL_WindowID, std::vector<size_t>> CE::Events::gWindowEventIndices;
+namespace CE::SDL_Events {
+    std::vector<SDL_Event> CE::SDL_Events::gEvents;
+    std::unordered_map<SDL_WindowID, std::vector<size_t>> CE::SDL_Events::gWindowEventIndices;
 
     void Update() {
         gEvents.clear();

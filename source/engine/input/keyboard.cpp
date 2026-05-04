@@ -1,5 +1,5 @@
 #include "engine/input/keyboard.hpp"
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 
 namespace CE::Input {
     Keyboard::Keyboard(int windowID) {
@@ -9,10 +9,10 @@ namespace CE::Input {
     void Keyboard::Update() {
         memcpy(gPrevious, gCurrent, sizeof(gCurrent));
 
-        auto indices = CE::Events::GetWindowEventIndices(gWindowID);
+        auto indices = CE::SDL_Events::GetWindowEventIndices(gWindowID);
 
         for (size_t idx : indices) {
-            const SDL_Event& event = CE::Events::gEvents[idx];
+            const SDL_Event& event = CE::SDL_Events::gEvents[idx];
 
             if (event.type == SDL_EVENT_KEY_DOWN ||
                 event.type == SDL_EVENT_KEY_UP) {

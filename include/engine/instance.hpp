@@ -10,6 +10,8 @@
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
+#include "engine/common/core/event_bus.hpp"
+#include "engine/common/core/game_state.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/ui/debug_window.hpp"
@@ -38,6 +40,10 @@ namespace CE {
             void ReloadSettings(); // Reload settings, thats all it does :shrug:
             void SetWindowIcon(std::string path);
             int GetInstanceID();
+            void SetGameState(const std::string& state);
+            const std::string& GetGameState() const;
+            CE::Core::EventBus& GetEventBus();
+            CE::Core::GameState::GameStateManager& GetGameStateManager();
             ~Instance();
         private:
             void ApplySettingsReload();
@@ -68,6 +74,8 @@ namespace CE {
             // The id for the window in the instance, provided by SDL
             int gInstanceWindowID;
 
+            CE::Core::EventBus gEventBus;
+            CE::Core::GameState::GameStateManager gGameStateManager;
             CE::UI::DebugWindow gDebugWindow;
     };
 

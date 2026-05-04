@@ -2,6 +2,7 @@
 
 #include <angelscript.h>
 #include <string>
+#include <vector>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/misc/gameinfo.hpp"
@@ -43,7 +44,15 @@ namespace CE::Scripting {
             bool RegisterAssetsBindings();
             bool RegisterInputBindings();
             bool RegisterInstanceBindings();
+            bool RegisterCallbackBindings();
             bool Fail(const std::string& message);
+
+            struct ScriptCallbackRegistration {
+                std::string state;
+                std::string eventName;
+                int id = -1;
+                asIScriptFunction* function = nullptr;
+            };
 
             static void ConstructColour(Renderer::Colour* self);
             static void ConstructColourRGBA(
@@ -95,6 +104,9 @@ namespace CE::Scripting {
             int GetFPS();
             int GetInstanceID();
             void ReloadSettings();
+            int RegisterStateCallback(const std::string& state, const std::string& eventName, asIScriptFunction* callback);
+            void SetGameState(const std::string& state);
+            std::string GetGameState() const;
             int GetSettingInt(const std::string& key, const std::string& section, int fallback);
             float GetSettingFloat(const std::string& key, const std::string& section, float fallback);
             bool GetSettingBool(const std::string& key, const std::string& section, bool fallback);
@@ -103,6 +115,8 @@ namespace CE::Scripting {
             void SetSettingFloat(const std::string& key, const std::string& section, float value);
             void SetSettingBool(const std::string& key, const std::string& section, bool value);
             void SetSettingString(const std::string& key, const std::string& section, const std::string& value);
+            bool InvokeStateCallback(asIScriptFunction* callback, const std::string& state, const std::string& eventName);
+            void ReleaseStateCallbacks();
 
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
@@ -110,6 +124,7 @@ namespace CE::Scripting {
 
             asIScriptFunction* mUpdateFunc = nullptr;
             asIScriptContext*  mUpdateCtx  = nullptr;   
+            std::vector<ScriptCallbackRegistration> mStateCallbacks;
             std::string mLastError;
 
             VFS::VFS& mVFS;

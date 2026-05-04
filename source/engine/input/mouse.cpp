@@ -1,5 +1,5 @@
 #include "engine/input/mouse.hpp"
-#include "engine/common/events.hpp"
+#include "engine/common/sdl_events.hpp"
 #include <algorithm>
 
 namespace CE::Input {
@@ -29,10 +29,10 @@ namespace CE::Input {
 	        gX = static_cast<int>(x);
 	        gY = static_cast<int>(y);
 
-	        auto indices = CE::Events::GetWindowEventIndices(gWindowID);
+	        auto indices = CE::SDL_Events::GetWindowEventIndices(gWindowID);
 
         for (size_t idx : indices) {
-            const SDL_Event& event = CE::Events::gEvents[idx];
+            const SDL_Event& event = CE::SDL_Events::gEvents[idx];
 
             switch (event.type) {
 

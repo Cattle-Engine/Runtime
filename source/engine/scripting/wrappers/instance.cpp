@@ -148,6 +148,51 @@ namespace CE::Scripting {
             asCALL_THISCALL_ASGLOBAL,
             this
         );
+        if (result < 0) {
+            return false;
+        }
+
+        mScriptEngine->SetDefaultNamespace("CE::State");
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void Set(const string &in state)",
+            asMETHOD(Runtime, SetGameState),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "string Get()",
+            asMETHOD(Runtime, GetGameState),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        mScriptEngine->SetDefaultNamespace("");
+        return result >= 0;
+    }
+
+    bool Runtime::RegisterCallbackBindings() {
+        if (mScriptEngine == nullptr) {
+            return false;
+        }
+
+        int result = mScriptEngine->RegisterFuncdef(
+            "void StateCallback(const string &in state, const string &in eventName)"
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        mScriptEngine->SetDefaultNamespace("CE::Events");
+        result = mScriptEngine->RegisterGlobalFunction(
+            "int On(const string &in state, const string &in eventName, StateCallback @callback)",
+            asMETHOD(Runtime, RegisterStateCallback),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
         mScriptEngine->SetDefaultNamespace("");
         return result >= 0;
     }
@@ -174,6 +219,49 @@ namespace CE::Scripting {
 
     void Runtime::ReloadSettings() {
         mSettingsManager.ReloadSettings();
+    }
+
+    int Runtime::RegisterStateCallback(
+        const std::string& state,
+        const std::string& eventName,
+        asIScriptFunction* callback
+    ) {
+        if (callback == nullptr) {
+            Fail("CE::Events::On received a null callback");
+            return -1;
+        }
+
+        callback->AddRef();
+
+        const int id = mInstance.GetEventBus().Subscribe(
+            state,
+            eventName,
+            [this, callback](std::string_view emittedState, std::string_view emittedEventName) {
+                if (!InvokeStateCallback(
+                        callback,
+                        std::string(emittedState),
+                        std::string(emittedEventName))) {
+                    mInstance.Exit();
+                }
+            }
+        );
+
+        mStateCallbacks.push_back({
+            state,
+            eventName,
+            id,
+            callback
+        });
+
+        return id;
+    }
+
+    void Runtime::SetGameState(const std::string& state) {
+        mInstance.SetGameState(state);
+    }
+
+    std::string Runtime::GetGameState() const {
+        return mInstance.GetGameState();
     }
 
     int Runtime::GetSettingInt(const std::string& key, const std::string& section, int fallback) {
