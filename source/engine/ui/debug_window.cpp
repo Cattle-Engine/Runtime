@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include "imgui/imgui.h"
+#include "third_party/imgui_stdlib.h"
 
 #include <SDL3/SDL.h>
 
@@ -25,11 +26,22 @@ namespace CE::UI {
     }
 
     void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
+        static std::string game_state = "";
         ImGui::Text("InstanceID: %i", instance.GetInstanceID());
 
         if (ImGui::Button("Quit instance")) {
             instance.Exit();   
         }
+
+        Utils::SpaceSep();
+
+        ImGui::Text("State");
+
+        if (ImGui::InputText("Change the state", &game_state, ImGuiInputTextFlags_EnterReturnsTrue)) {
+            instance.SetGameState(game_state);
+        }
+        ImGui::Text("Press enter to apply");
+        ImGui::Text("Current state: %s", instance.GetGameState().c_str());
 
         Utils::SpaceSep();
         

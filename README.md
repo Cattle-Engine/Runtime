@@ -7,7 +7,7 @@ Licences for third party stuff can be found in [/thirdparty/README.md](thirdpart
 ## ROADMAP!
 
 - [X] Core stuff
-- [ ] Angelscript API
+- [X] Angelscript API
 - [ ] Audio support
 - [ ] Plugins
 - [ ] Data & texture/audio compression

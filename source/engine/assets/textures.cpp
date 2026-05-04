@@ -4,6 +4,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets::Textures {
+    constexpr int ERROR_SIZE = 50;
     TextureManager::TextureManager(CE::Renderer::IRenderer* renderer, CE::VFS::VFS* vfs) {
         gRenderer = renderer;
         gVFS = vfs;
@@ -47,7 +48,7 @@ namespace CE::Assets::Textures {
             }
         }
         CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw an unloaded or missing asset: {}", name);
-        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, 16, 16, {255, 255, 255, 255}, 0.0f);
+        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, w, h, {255, 255, 255, 255}, 0.0f);
     }
 
     void TextureManager::Unload(const char* name) {
@@ -81,15 +82,15 @@ namespace CE::Assets::Textures {
                     tex->second.ShownMissingError = true;
                 }
                 gRenderer->DrawTex(tex->second.Texture,
-                    x - tex->second.Texture->width / 2,
-                    y - tex->second.Texture->height / 2,
-                    tex->second.Texture->width, tex->second.Texture->height,
+                    x - 45 / 2,
+                    y - 45 / 2,
+                    ERROR_SIZE, ERROR_SIZE,
                     {255, 255, 255, 255}, rotation);
-                return;  // ← you were also missing this return
+                return; 
             }
         }
         CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw an unloaded or missing asset: {}", name);
-        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, 16, 16, {255, 255, 255, 255}, rotation);
+        gRenderer->DrawTex(gErrorTex, x - 8, y - 8, ERROR_SIZE, ERROR_SIZE, {255, 255, 255, 255}, rotation);
     }
 
     void TextureManager::Draw(const char* name, int x, int y, CE::Renderer::Colour colour) {
