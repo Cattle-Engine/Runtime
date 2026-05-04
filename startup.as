@@ -13,37 +13,53 @@ CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
 }
 
 void InGameDraw(const string &in state, const string &in eventName) {
-    CE::Graphics::Textures::DrawTexture("garry_spud", 500, 500);
-    CE::Graphics::Textures::DrawTextureEx("garry_spud", 650, 500, MakeColour(255, 255, 255, 200));
-    CE::Graphics::Textures::DrawTextureRot("garry_spud", 800, 500, gAngle);
-    CE::Graphics::Textures::DrawTextureRotEx("garry_spud", 950, 500, -gAngle, MakeColour(255, 120, 120, 255));
-    CE::Graphics::Textures::DrawTexturePro("garry_spud", 1100, 500, 128, 128, gAngle, MakeColour(120, 255, 120, 255));
+    float baseX = 40;
+    float baseY = 40;
+    float spacingX = 180;
+    float spacingY = 140;
 
-    CE::Graphics::Primitives::DrawRectangle(40, 40, 140, 80, MakeColour(40, 180, 255, 255));
-    CE::Graphics::Primitives::DrawRectangle(200, 40, 140, 80, MakeColour(255, 180, 40, 255), gAngle);
-    CE::Graphics::Primitives::DrawCircle(120, 180, 40, 32, MakeColour(200, 40, 255, 255));
-    CE::Graphics::Primitives::DrawCircleLines(260, 180, 40, 32, 3.0f, MakeColour(40, 255, 120, 255));
-    CE::Graphics::Primitives::DrawLine(40, 260, 340, 260, 4.0f, MakeColour(255, 255, 255, 255));
-    CE::Graphics::Primitives::DrawTriangle(80, 320, 160, 320, 120, 380, MakeColour(255, 80, 80, 255));
-    CE::Graphics::Primitives::DrawTriangle(220, 320, 300, 320, 260, 380, MakeColour(80, 255, 80, 255), -gAngle);
-    CE::Graphics::Primitives::DrawRectangleLines(40, 410, 300, 90, 3.0f, MakeColour(0, 0, 0, 255));
+    float txY = baseY;
 
-    // Text
-    CE::Graphics::Text::DrawText("AngelScript binding test", 20, 20, 28.0f);
+    CE::Graphics::Textures::DrawTexture("garry_spud", baseX + spacingX * 0, txY);
+    CE::Graphics::Textures::DrawTextureEx("garry_spud", baseX + spacingX * 1, txY, MakeColour(255,255,255,200));
+    CE::Graphics::Textures::DrawTextureRot("garry_spud", baseX + spacingX * 2, txY, gAngle);
+    CE::Graphics::Textures::DrawTextureRotEx("garry_spud", baseX + spacingX * 3, txY, -gAngle, MakeColour(255,120,120,255));
+    CE::Graphics::Textures::DrawTexturePro("garry_spud", baseX + spacingX * 4, txY, 128, 128, gAngle, MakeColour(120,255,120,255));
+
+    float pxY = baseY + spacingY;
+
+    CE::Graphics::Primitives::DrawRectangle(baseX, pxY, 140, 80, MakeColour(40,180,255,255));
+    CE::Graphics::Primitives::DrawRectangle(baseX + spacingX, pxY, 140, 80, MakeColour(255,180,40,255), gAngle);
+
+    CE::Graphics::Primitives::DrawCircle(baseX + 70, pxY + 120, 40, 32, MakeColour(200,40,255,255));
+    CE::Graphics::Primitives::DrawCircleLines(baseX + spacingX + 70, pxY + 120, 40, 32, 3.0f, MakeColour(40,255,120,255));
+
+    CE::Graphics::Primitives::DrawLine(baseX, pxY + 200, baseX + spacingX * 2, pxY + 200, 4.0f, MakeColour(255,255,255,255));
+
+    CE::Graphics::Primitives::DrawTriangle(baseX + 40, pxY + 240, baseX + 120, pxY + 240, baseX + 80, pxY + 300, MakeColour(255,80,80,255));
+    CE::Graphics::Primitives::DrawTriangle(baseX + spacingX + 40, pxY + 240, baseX + spacingX + 120, pxY + 240, baseX + spacingX + 80, pxY + 300, MakeColour(80,255,80,255), -gAngle);
+
+    CE::Graphics::Primitives::DrawRectangleLines(baseX, pxY + 320, spacingX * 2, 90, 3.0f, MakeColour(0,0,0,255));
+
+    CE::Graphics::Text::DrawText("AngelScript binding test", baseX, 10, 28.0f);
+
+    float infoY = pxY + 430;
+
     CE::Graphics::Text::DrawTextCol(
         "State: " + state + " Event: " + eventName + " OnId: " + gOnDrawId,
-        20,
-        165,
-        24.0f,
-        MakeColour(0, 0, 0, 255)
+        baseX,
+        infoY,
+        22.0f,
+        MakeColour(0,0,0,255)
     );
+
     CE::Graphics::Text::DrawTextEx(
         "Roboto font (DrawTextEx)",
         "roboto",
-        20,
-        200,
-        24.0f,
-        MakeColour(20, 20, 20, 255)
+        baseX,
+        infoY + 30,
+        22.0f,
+        MakeColour(20,20,20,255)
     );
 }
 
@@ -61,7 +77,7 @@ void main() {
 
     CE::State::Set("InGame");
 }
-/*
+
 void update() {
     gFrames++;
 
@@ -110,4 +126,3 @@ void update() {
         CE::Exit();
     }
 }
-*/

@@ -175,8 +175,8 @@ namespace CE {
 
         gRenderer->ImGuiEndFrame(gWindow);
 
-        gFontManager->Update();
         gRenderer->EndFrame(gWindow);
+        gFontManager->Update();
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();
         gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
