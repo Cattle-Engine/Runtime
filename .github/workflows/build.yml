@@ -1,0 +1,68 @@
+name: Build ce_engine
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake clang libsdl3-dev libsdl3-image-dev libsdl3-ttf-dev libvulkan-dev python3 vim-common
+        # Install Vulkan SDK for glslc
+        wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list https://packages.lunarg.com/vulkan/latest/lunarg-vulkan-latest-jammy.list
+        sudo apt-get update
+        sudo apt-get install -y vulkan-sdk
+
+    - name: Configure
+      run: cmake -B build -S . -DUSE_CLANG=OFF
+
+    - name: Build
+      run: cmake --build build --target ce_engine -j4
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ce_engine-linux
+        path: build/ce_engine
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-SDL3 mingw-w64-x86_64-SDL3_image mingw-w64-x86_64-SDL3_ttf mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
+
+    - name: Install Vulkan SDK
+      run: |
+        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/latest/windows/VulkanSDK-Installer.exe" -OutFile "VulkanSDK.exe"
+        Start-Process -FilePath "VulkanSDK.exe" -ArgumentList "/S" -Wait
+        $env:Path += ";C:\VulkanSDK\latest\Bin"
+
+    - name: Configure
+      shell: msys2 {0}
+      run: cmake -B build -S . -G "MinGW Makefiles"
+
+    - name: Build
+      shell: msys2 {0}
+      run: cmake --build build --target ce_engine -j4
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ce_engine-windows
+        path: build/ce_engine.exe
