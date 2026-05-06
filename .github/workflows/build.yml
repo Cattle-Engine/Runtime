@@ -18,6 +18,7 @@ jobs:
         run: |
           pacman -Sy --noconfirm \
             base-devel cmake clang \
+            glm \
             sdl3 sdl3_image sdl3_ttf sdl3_mixer \
             vulkan-devel shaderc \
             python vim
@@ -44,7 +45,7 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl3-image mingw-w64-x86_64-sdl3-ttf mingw-w64-x86_64-sdl3-mixer mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-glm mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl3-image mingw-w64-x86_64-sdl3-ttf mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
 
     - name: Install Vulkan SDK
       run: |
@@ -54,7 +55,7 @@ jobs:
 
     - name: Configure
       shell: msys2 {0}
-      run: cmake -B build -S . -G "MinGW Makefiles"
+      run: cmake -B build -S . -G "MinGW Makefiles" -DCE_ENABLE_AUDIO=OFF
 
     - name: Build
       shell: msys2 {0}

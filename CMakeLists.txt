@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 option(USE_CLANG "Use Clang compiler" ON)
+option(CE_ENABLE_AUDIO "Build audio support with SDL3_mixer" ON)
 
 if(USE_CLANG)
 set(CMAKE_C_COMPILER clang)
@@ -46,6 +47,10 @@ elseif(APPLE)
     list(FILTER SOURCES EXCLUDE REGEX "/platforms/linux/")
 elseif(UNIX)
     list(FILTER SOURCES EXCLUDE REGEX "/platforms/windows/")
+endif()
+
+if(NOT CE_ENABLE_AUDIO)
+    list(FILTER SOURCES EXCLUDE REGEX "/engine/audio/")
 endif()
 
 set(AS_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
@@ -195,21 +200,26 @@ else()
 target_link_libraries(ce_engine PRIVATE SDL3_ttf::SDL3_ttf)
 endif()
 
-find_package(SDL3_mixer CONFIG QUIET)
+if(CE_ENABLE_AUDIO)
+    find_package(SDL3_mixer CONFIG QUIET)
 
-if(NOT SDL3_mixer_FOUND)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(SDL3_MIXER REQUIRED SDL3_mixer)
+    if(NOT SDL3_mixer_FOUND)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(SDL3_MIXER REQUIRED SDL3_mixer)
 
-    target_include_directories(ce_engine PRIVATE ${SDL3_MIXER_INCLUDE_DIRS})
-    target_link_libraries(ce_engine PRIVATE ${SDL3_MIXER_LIBRARIES})
+        target_include_directories(ce_engine PRIVATE ${SDL3_MIXER_INCLUDE_DIRS})
+        target_link_libraries(ce_engine PRIVATE ${SDL3_MIXER_LIBRARIES})
 
-else()
-    target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
+    else()
+        target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
+    endif()
 endif()
 
 find_package(Vulkan REQUIRED)
 target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
+
+find_package(glm CONFIG REQUIRED)
+target_link_libraries(ce_engine PRIVATE glm::glm)
 
 target_link_libraries(ce_engine PRIVATE
     angelscript
