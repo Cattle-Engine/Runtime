@@ -10,7 +10,8 @@
 namespace CE::Core::Audio {
     enum class AudioType {
         SFX,
-        Music
+        Music,
+        Error
     };
     
     struct AudioClip {
@@ -23,8 +24,9 @@ namespace CE::Core::Audio {
 
     struct PlayingSound {
         MIX_Track* Track = nullptr;
-        AudioClip* Clip = nullptr;
+        AudioClip& Clip;
         float Position;
+        int Volume;
         bool IsPlaying = false;
     };
 
@@ -38,14 +40,15 @@ namespace CE::Core::Audio {
             AudioSystem::AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
 
             std::vector<AudioDeviceInfo> ListAudioDevices();
-
             void SetAudioDevice(uint32_t device_id, bool stero);
-            AudioClip* LoadSound(const std::string& path);
-            void DestroySound(AudioClip& clip);
 
-            PlayingSound PlaySound(const AudioClip& clip);
-            void SeekSound(const PlayingSound& clip, float position);
-            void StopSound(const PlayingSound& clip);
+            AudioClip* LoadSound(const std::string& path, const AudioType type);
+            void DestroySound(AudioClip* clip);
+
+            PlayingSound CreateSoundInstance(const AudioClip& clip);
+            void PlaySound(const PlayingSound& sound);
+            void SeekSound(const PlayingSound& sound, float position);
+            void StopSound(const PlayingSound& sound);
             void StopAll();
 
         private:

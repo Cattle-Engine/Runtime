@@ -6,6 +6,7 @@ namespace CE::Core::Audio {
         mInstanceID = instanceid;
         if(!MIX_Init()) {
             CE::Log(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
+            CE::Log(LogLevel::Fatal, "[Audio {}] Error from SDL: ", mInstanceID, SDL_GetError());
             throw std::runtime_error("Failed to create audio subsystem");
         }
         SetAudioDevice(device_id, stero);
@@ -34,20 +35,5 @@ namespace CE::Core::Audio {
             devices.push_back(info);
         }
         return devices;
-    }
-
-    AudioClip* AudioSystem::LoadSound(const std::string& path) {
-        AudioClip clip;
-
-        clip.Path = path;
-
-        if (mVFS.FileExists(path.c_str())) {
-            clip.IsError = true;
-            clip.IsLoaded = false;
-        }
-
-        VirtualFile* file = mVFS.OpenFile(path.c_str());
-        if (!file || file->sdl_stream)
-                    return nullptr;
     }
 }
