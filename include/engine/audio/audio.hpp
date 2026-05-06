@@ -37,7 +37,7 @@ namespace CE::Core::Audio {
     
     class AudioSystem {
         public:
-            AudioSystem::AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
+            AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
 
             std::vector<AudioDeviceInfo> ListAudioDevices();
             void SetAudioDevice(uint32_t device_id, bool stero);
