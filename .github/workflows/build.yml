@@ -20,7 +20,7 @@ jobs:
             base-devel cmake clang \
             sdl3 sdl3_image sdl3_ttf \
             vulkan-devel shaderc \
-            python vim
+            python vim glm sdl3_mixer
 
       - name: Configure
         run: cmake -B build -S . -DUSE_CLANG=OFF
@@ -44,7 +44,7 @@ jobs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl3-image mingw-w64-x86_64-sdl3-ttf mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-sdl3-mixer mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl3-image mingw-w64-x86_64-sdl3-ttf mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
 
     - name: Install Vulkan SDK
       run: |

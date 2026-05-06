@@ -195,6 +195,18 @@ else()
 target_link_libraries(ce_engine PRIVATE SDL3_ttf::SDL3_ttf)
 endif()
 
+find_package(SDL3_mixer CONFIG QUIET)
+
+if(NOT SDL3_mixer_FOUND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SDL3_MIXER REQUIRED SDL3_mixer)
+
+    target_include_directories(ce_engine PRIVATE ${SDL3_MIXER_INCLUDE_DIRS})
+    target_link_libraries(ce_engine PRIVATE ${SDL3_MIXER_LIBRARIES})
+
+else()
+    target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
+endif()
 
 find_package(Vulkan REQUIRED)
 target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
