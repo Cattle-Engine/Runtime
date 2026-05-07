@@ -18,13 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install base build tools (Linux)
+      - name: Install build tools (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential ninja-build clang \
-            g++ gcc python3
+            build-essential ninja-build g++ gcc
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
@@ -41,16 +40,13 @@ jobs:
           vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Configure CMake
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: 'default'
-          buildPreset: 'default'
-        # Or if you prefer manual cmake:
-        # run: |
-        #   cmake -S . -B build -G Ninja \
-        #     -DCMAKE_BUILD_TYPE=Release \
-        #     -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
-        #   cmake --build build -j 2
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        run: cmake --build build -j 2
 
       - name: Upload artifact (Linux)
         if: runner.os == 'Linux'
