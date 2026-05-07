@@ -7,62 +7,109 @@ on:
     branches: [ main ]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    container: archlinux:latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install build tools (Linux)
+        if: runner.os == 'Linux'
         run: |
-          pacman -Sy --noconfirm \
-            base-devel cmake clang \
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build clang \
+            python3 \
+            xxd \
+            shaderc
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install build tools (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install -y ninja cmake python
+
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            vcpkg/installed
+            vcpkg/buildtrees
+            vcpkg/packages
+            vcpkg/downloads
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+
+      - name: Clone vcpkg
+        shell: bash
+        run: |
+          if [ ! -d "${VCPKG_ROOT}" ]; then
+            git clone --depth 1 https://github.com/microsoft/vcpkg "${VCPKG_ROOT}"
+          fi
+
+      - name: Bootstrap vcpkg
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cmd.exe /c "${VCPKG_ROOT}\\bootstrap-vcpkg.bat" -disableMetrics
+          else
+            "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+          fi
+
+      - name: Install dependencies (vcpkg)
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            TRIPLET=x64-windows
+            VCPKG_BIN="${VCPKG_ROOT}/vcpkg.exe"
+          else
+            TRIPLET=x64-linux
+            VCPKG_BIN="${VCPKG_ROOT}/vcpkg"
+          fi
+
+          "${VCPKG_BIN}" install \
             glm \
-            sdl3 sdl3_image sdl3_ttf sdl3_mixer \
-            vulkan-devel shaderc \
-            python vim
+            sdl3 \
+            sdl3-image \
+            sdl3-ttf \
+            sdl3-mixer \
+            vulkan-headers \
+            vulkan-loader \
+            --triplet "${TRIPLET}"
 
       - name: Configure
-        run: cmake -B build -S . -DUSE_CLANG=OFF
+        shell: bash
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_CLANG=OFF \
+            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
-        run: cmake --build build --target ce_engine -j$(nproc)
+        shell: bash
+        run: cmake --build build -j 2
 
-      - name: Upload artifact
+      - name: Upload artifact (Linux)
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: ce_engine-linux
           path: build/ce_engine
 
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup MSYS2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-glm mingw-w64-x86_64-sdl3 mingw-w64-x86_64-sdl3-image mingw-w64-x86_64-sdl3-ttf mingw-w64-x86_64-vulkan-headers mingw-w64-x86_64-vulkan-loader mingw-w64-x86_64-python vim
-
-    - name: Install Vulkan SDK
-      run: |
-        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.3.275.0/windows/VulkanSDK-1.3.275.0-Installer.exe" -OutFile "VulkanSDK.exe"
-        Start-Process -FilePath "VulkanSDK.exe" -ArgumentList "/S" -Wait
-        $env:Path += ";C:\VulkanSDK\1.3.275.0\Bin"
-
-    - name: Configure
-      shell: msys2 {0}
-      run: cmake -B build -S . -G "MinGW Makefiles" -DCE_ENABLE_AUDIO=OFF
-
-    - name: Build
-      shell: msys2 {0}
-      run: cmake --build build --target ce_engine -j4
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ce_engine-windows
-        path: build/ce_engine.exe
+      - name: Upload artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ce_engine-windows
+          path: build/ce_engine.exe

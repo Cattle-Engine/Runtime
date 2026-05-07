@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.16)
 option(USE_CLANG "Use Clang compiler" ON)
 option(CE_ENABLE_AUDIO "Build audio support with SDL3_mixer" ON)
 
+# Prefer vcpkg (if available) over system libraries.
+# Note: CMAKE_TOOLCHAIN_FILE must be set before the first project()/enable_language().
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+endif()
+
 if(USE_CLANG)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
@@ -160,59 +167,37 @@ endif()
 
 find_package(SDL3 CONFIG QUIET)
 
-if(NOT SDL3_FOUND)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL3 REQUIRED sdl3)
-
-target_include_directories(ce_engine PRIVATE ${SDL3_INCLUDE_DIRS})
-target_link_libraries(ce_engine PRIVATE ${SDL3_LIBRARIES})
-
-else()
+if(SDL3_FOUND)
 target_link_libraries(ce_engine PRIVATE SDL3::SDL3)
+else()
+    message(FATAL_ERROR "SDL3 not found. Configure with vcpkg (set VCPKG_ROOT or CMAKE_TOOLCHAIN_FILE).")
 endif()
 
 find_package(SDL3_image CONFIG QUIET)
 
-if(NOT SDL3_image_FOUND)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL3_IMAGE REQUIRED SDL3_image)
-
-target_include_directories(ce_engine PRIVATE ${SDL3_IMAGE_INCLUDE_DIRS})
-target_link_libraries(ce_engine PRIVATE ${SDL3_IMAGE_LIBRARIES})
-
-
-else()
+if(SDL3_image_FOUND)
 target_link_libraries(ce_engine PRIVATE SDL3_image::SDL3_image)
+else()
+    message(FATAL_ERROR "SDL3_image not found. Configure with vcpkg (set VCPKG_ROOT or CMAKE_TOOLCHAIN_FILE).")
 endif()
 
 
 find_package(SDL3_ttf CONFIG QUIET)
 
-if(NOT SDL3_ttf_FOUND)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL3_TTF REQUIRED SDL3_ttf)
-
-target_include_directories(ce_engine PRIVATE ${SDL3_TTF_INCLUDE_DIRS})
-target_link_libraries(ce_engine PRIVATE ${SDL3_TTF_LIBRARIES})
-
-
-else()
+if(SDL3_ttf_FOUND)
 target_link_libraries(ce_engine PRIVATE SDL3_ttf::SDL3_ttf)
+else()
+    message(FATAL_ERROR "SDL3_ttf not found. Configure with vcpkg (set VCPKG_ROOT or CMAKE_TOOLCHAIN_FILE).")
 endif()
 
 if(CE_ENABLE_AUDIO)
     target_compile_definitions(ce_engine PRIVATE CE_ENABLE_AUDIO=1)
     find_package(SDL3_mixer CONFIG QUIET)
 
-    if(NOT SDL3_mixer_FOUND)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(SDL3_MIXER REQUIRED SDL3_mixer)
-
-        target_include_directories(ce_engine PRIVATE ${SDL3_MIXER_INCLUDE_DIRS})
-        target_link_libraries(ce_engine PRIVATE ${SDL3_MIXER_LIBRARIES})
-
-    else()
+    if(SDL3_mixer_FOUND)
         target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
+    else()
+        message(FATAL_ERROR "SDL3_mixer not found (CE_ENABLE_AUDIO=ON). Configure with vcpkg or set -DCE_ENABLE_AUDIO=OFF.")
     endif()
 endif()
 
