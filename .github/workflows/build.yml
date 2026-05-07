@@ -17,6 +17,7 @@ jobs:
 
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_MANIFEST_MODE: OFF  # Disable manifest mode since you're using CLI installs
 
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +29,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build clang \
             python3 \
-            xxd \
-            shaderc
+            xxd
+          # Remove shaderc - it's not available as system package
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
@@ -49,7 +50,7 @@ jobs:
             vcpkg/buildtrees
             vcpkg/packages
             vcpkg/downloads
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('CMakeLists.txt') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
 
       - name: Clone vcpkg
         shell: bash
