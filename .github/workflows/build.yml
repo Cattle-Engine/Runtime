@@ -17,20 +17,18 @@ jobs:
 
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-      VCPKG_MANIFEST_MODE: OFF  # Disable manifest mode since you're using CLI installs
+      # Remove VCPKG_MANIFEST_MODE - let vcpkg auto-detect vcpkg.json
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build tools (Linux)
+      - name: Install base build tools (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build clang \
-            python3 \
-            xxd
-          # Remove shaderc - it's not available as system package
+            python3 xxd
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
@@ -50,7 +48,9 @@ jobs:
             vcpkg/buildtrees
             vcpkg/packages
             vcpkg/downloads
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Clone vcpkg
         shell: bash
@@ -68,26 +68,7 @@ jobs:
             "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
           fi
 
-      - name: Install dependencies (vcpkg)
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            TRIPLET=x64-windows
-            VCPKG_BIN="${VCPKG_ROOT}/vcpkg.exe"
-          else
-            TRIPLET=x64-linux
-            VCPKG_BIN="${VCPKG_ROOT}/vcpkg"
-          fi
-
-          "${VCPKG_BIN}" install \
-            glm \
-            sdl3 \
-            sdl3-image \
-            sdl3-ttf \
-            sdl3-mixer \
-            vulkan-headers \
-            vulkan-loader \
-            --triplet "${TRIPLET}"
+      # No manual vcpkg install step needed! vcpkg will auto-install from vcpkg.json during configure
 
       - name: Configure
         shell: bash
@@ -113,4 +94,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ce_engine-windows
-          path: build/ce_engine.exe
+          path: build/Release/ce_engine.exe
