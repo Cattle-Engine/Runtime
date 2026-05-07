@@ -16,7 +16,7 @@ namespace CE::Core::Audio {
     
     struct AudioClip {
         MIX_Audio* Audio = nullptr;
-        AudioType Type;
+        AudioType Type = AudioType::Error;
         std::string Path;
         bool IsError = false;
         bool IsLoaded = false;
@@ -24,9 +24,9 @@ namespace CE::Core::Audio {
 
     struct PlayingSound {
         MIX_Track* Track = nullptr;
-        AudioClip& Clip;
-        float Position;
-        int Volume;
+        const AudioClip* Clip = nullptr;
+        float PositionSeconds = 0.0f;
+        int Volume = 128; // 0..128 maps to gain 0..1
         bool IsPlaying = false;
     };
 
@@ -38,6 +38,7 @@ namespace CE::Core::Audio {
     class AudioSystem {
         public:
             AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
+            ~AudioSystem();
 
             std::vector<AudioDeviceInfo> ListAudioDevices();
             void SetAudioDevice(uint32_t device_id, bool stero);
@@ -46,14 +47,16 @@ namespace CE::Core::Audio {
             void DestroySound(AudioClip* clip);
 
             PlayingSound CreateSoundInstance(const AudioClip& clip);
-            void PlaySound(const PlayingSound& sound);
-            void SeekSound(const PlayingSound& sound, float position);
-            void StopSound(const PlayingSound& sound);
+            void PlaySound(PlayingSound& sound);
+            void SeekSound(PlayingSound& sound, float position_seconds);
+            void StopSound(PlayingSound& sound);
             void StopAll();
 
         private:
             VFS::VFS& mVFS;
             int mInstanceID;
-            MIX_Mixer* mMixer;
+            MIX_Mixer* mMixer = nullptr;
+            SDL_AudioSpec mMixerSpec = {};
+            std::vector<MIX_Track*> mTracks;
     };
 }

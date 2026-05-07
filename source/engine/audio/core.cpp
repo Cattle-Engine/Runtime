@@ -1,18 +1,58 @@
 #include "engine/audio/audio.hpp"
 #include "engine/common/tracelog.hpp"
 
+#include <atomic>
+#include <stdexcept>
+
 namespace CE::Core::Audio {
+    namespace {
+        std::atomic_int gMixInitRefCount{0};
+    }
+
     AudioSystem::AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero) : mVFS(vfs) {
         mInstanceID = instanceid;
-        if(!MIX_Init()) {
-            CE::Log(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
-            CE::Log(LogLevel::Fatal, "[Audio {}] Error from SDL: ", mInstanceID, SDL_GetError());
-            throw std::runtime_error("Failed to create audio subsystem");
+        if (gMixInitRefCount.fetch_add(1) == 0) {
+            if(!MIX_Init()) {
+                CE::Log(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
+                CE::Log(LogLevel::Fatal, "[Audio {}] Error from SDL: {}", mInstanceID, SDL_GetError());
+                gMixInitRefCount.fetch_sub(1);
+                throw std::runtime_error("Failed to create audio subsystem");
+            }
         }
         SetAudioDevice(device_id, stero);
     }
 
+    AudioSystem::~AudioSystem() {
+        StopAll();
+
+        for (MIX_Track* track : mTracks) {
+            MIX_DestroyTrack(track);
+        }
+        mTracks.clear();
+
+        if (mMixer) {
+            MIX_DestroyMixer(mMixer);
+            mMixer = nullptr;
+        }
+
+        if (gMixInitRefCount.fetch_sub(1) == 1) {
+            MIX_Quit();
+        }
+    }
+
     void AudioSystem::SetAudioDevice(uint32_t device_id, bool stero) {
+        StopAll();
+
+        for (MIX_Track* track : mTracks) {
+            MIX_DestroyTrack(track);
+        }
+        mTracks.clear();
+
+        if (mMixer) {
+            MIX_DestroyMixer(mMixer);
+            mMixer = nullptr;
+        }
+
         SDL_AudioSpec spec = {};
         if (stero) {
             spec.channels = 2;
@@ -22,6 +62,15 @@ namespace CE::Core::Audio {
         spec.freq = 48000;
         spec.format = SDL_AUDIO_F32;
         mMixer = MIX_CreateMixerDevice(static_cast<SDL_AudioDeviceID>(device_id), &spec);
+        if (!mMixer) {
+            CE::Log(LogLevel::Error, "[Audio {}] Failed to create mixer device: {}", mInstanceID, SDL_GetError());
+            return;
+        }
+
+        if (!MIX_GetMixerFormat(mMixer, &mMixerSpec)) {
+            CE::Log(LogLevel::Warn, "[Audio {}] Failed to query mixer format: {}", mInstanceID, SDL_GetError());
+            mMixerSpec = spec;
+        }
     }
 
     std::vector<AudioDeviceInfo> AudioSystem::ListAudioDevices() {
@@ -34,6 +83,7 @@ namespace CE::Core::Audio {
             info.Name = SDL_GetAudioDeviceName(ids[i]);
             devices.push_back(info);
         }
+        SDL_free(ids);
         return devices;
     }
 }

@@ -73,6 +73,21 @@ namespace CE {
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
+
+#if defined(CE_ENABLE_AUDIO)
+        try {
+            CE::Log(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
+            gAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
+                *gVFS,
+                gInstanceID,
+                static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK),
+                true
+            );
+        } catch (const std::exception& e) {
+            CE::Log(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
+            gAudioSystem.reset();
+        }
+#endif
         
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *gVFS,
@@ -311,6 +326,9 @@ namespace CE {
 
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
+#if defined(CE_ENABLE_AUDIO)
+        gAudioSystem.reset();
+#endif
         gTextureManager.reset();
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);

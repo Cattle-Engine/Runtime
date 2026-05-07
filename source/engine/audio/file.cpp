@@ -36,10 +36,13 @@ namespace CE::Core::Audio {
 
     void AudioSystem::DestroySound(AudioClip* clip) {
         if (clip == nullptr) {
-            CE::Log(LogLevel::Error, "[Audio {}] Audio clip was null!");
+            CE::Log(LogLevel::Error, "[Audio {}] Audio clip was null!", mInstanceID);
             return;
         }
-        MIX_DestroyAudio(clip->Audio);
-        clip = nullptr;
+        if (clip->Audio) {
+            MIX_DestroyAudio(clip->Audio);
+            clip->Audio = nullptr;
+        }
+        delete clip;
     }
 }

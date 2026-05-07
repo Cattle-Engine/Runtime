@@ -201,6 +201,7 @@ target_link_libraries(ce_engine PRIVATE SDL3_ttf::SDL3_ttf)
 endif()
 
 if(CE_ENABLE_AUDIO)
+    target_compile_definitions(ce_engine PRIVATE CE_ENABLE_AUDIO=1)
     find_package(SDL3_mixer CONFIG QUIET)
 
     if(NOT SDL3_mixer_FOUND)
