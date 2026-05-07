@@ -15,10 +15,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-      # Remove VCPKG_MANIFEST_MODE - let vcpkg auto-detect vcpkg.json
-
     steps:
       - uses: actions/checkout@v4
 
@@ -27,60 +23,34 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build clang \
-            python3 xxd
+            build-essential ninja-build clang \
+            g++ gcc python3
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install build tools (Windows)
+      - name: Install Ninja (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install -y ninja cmake python
+        run: choco install -y ninja
 
-      - name: Cache vcpkg artifacts
-        uses: actions/cache@v4
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
         with:
-          path: |
-            vcpkg/installed
-            vcpkg/buildtrees
-            vcpkg/packages
-            vcpkg/downloads
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-${{ runner.os }}-
+          vcpkgGitCommitId: 4bc07e3eb00c5a9539a5a7a83415150a9260f8db
+          vcpkgJsonGlob: '**/vcpkg.json'
 
-      - name: Clone vcpkg
-        shell: bash
-        run: |
-          if [ ! -d "${VCPKG_ROOT}" ]; then
-            git clone --depth 1 https://github.com/microsoft/vcpkg "${VCPKG_ROOT}"
-          fi
-
-      - name: Bootstrap vcpkg
-        shell: bash
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            cmd.exe /c "${VCPKG_ROOT}\\bootstrap-vcpkg.bat" -disableMetrics
-          else
-            "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
-          fi
-
-      # No manual vcpkg install step needed! vcpkg will auto-install from vcpkg.json during configure
-
-      - name: Configure
-        shell: bash
-        run: |
-          cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_CLANG=OFF \
-            -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-
-      - name: Build
-        shell: bash
-        run: cmake --build build -j 2
+      - name: Configure CMake
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'default'
+          buildPreset: 'default'
+        # Or if you prefer manual cmake:
+        # run: |
+        #   cmake -S . -B build -G Ninja \
+        #     -DCMAKE_BUILD_TYPE=Release \
+        #     -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake"
+        #   cmake --build build -j 2
 
       - name: Upload artifact (Linux)
         if: runner.os == 'Linux'
