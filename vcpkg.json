@@ -1,0 +1,20 @@
+{
+  "name": "ce-engine",
+  "version-string": "1.0.0",
+  "builtin-baseline": "4bc07e3eb00c5a9539a5a7a83415150a9260f8db",
+  "dependencies": [
+    "glm",
+    "sdl3",
+    "sdl3-image",
+    "sdl3-ttf",
+    "sdl3-mixer",
+    "vulkan",
+    "shaderc"
+  ],
+  "overrides": [
+    {
+      "name": "sdl3",
+      "version": "3.2.4"
+    }
+  ]
+}
