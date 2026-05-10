@@ -62,6 +62,8 @@ namespace CE::Core::Audio {
             CE::Log(LogLevel::Warn, "[Audio {}] Failed to set track gain: {}", mInstanceID, SDL_GetError());
         }
 
+        ApplyDSP(sound);
+
         const Sint64 start_ms = (sound.PositionSeconds > 0.0f)
             ? static_cast<Sint64>(sound.PositionSeconds * 1000.0f)
             : 0;

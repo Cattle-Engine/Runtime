@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <unordered_map>
+#include <mutex>
 
 #include "engine/common/fs/vfs.hpp"
 
@@ -13,7 +15,25 @@ namespace CE::Core::Audio {
         Music,
         Error
     };
-    
+
+    struct AudioFilter {
+        bool Enabled = false;
+
+        enum class Type {
+            LowPass,
+            HighPass
+        } Type = Type::LowPass;
+
+        float CutoffHz = 1000.0f;
+
+        // internal state
+        int SampleRate = 0;
+        int Channels = 0;
+        float Alpha = 0.0f;
+        std::vector<float> PrevIn;
+        std::vector<float> PrevOut;
+    };
+
     struct AudioClip {
         MIX_Audio* Audio = nullptr;
         AudioType Type = AudioType::Error;
@@ -28,6 +48,8 @@ namespace CE::Core::Audio {
         float PositionSeconds = 0.0f;
         int Volume = 128; // 0..128 maps to gain 0..1
         bool IsPlaying = false;
+
+        AudioFilter Filter;
     };
 
     struct AudioDeviceInfo {
@@ -51,12 +73,17 @@ namespace CE::Core::Audio {
             void SeekSound(PlayingSound& sound, float position_seconds);
             void StopSound(PlayingSound& sound);
             void StopAll();
+            void ApplyDSP(PlayingSound& sound);
 
         private:
+            static void SDLCALL TrackCookedDSP(void* userdata, MIX_Track* track, const SDL_AudioSpec* spec, float* pcm, int samples);
             VFS::VFS& mVFS;
             int mInstanceID;
             MIX_Mixer* mMixer = nullptr;
             SDL_AudioSpec mMixerSpec = {};
             std::vector<MIX_Track*> mTracks;
+
+            std::mutex mDSPMutex;
+            std::unordered_map<MIX_Track*, AudioFilter> mTrackFilters;
     };
 }
