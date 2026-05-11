@@ -28,7 +28,7 @@ namespace CE::Core::Audio {
         for (MIX_Track* track : mTracks) {
             {
                 std::lock_guard<std::mutex> lock(mDSPMutex);
-                mTrackFilters.erase(track);
+                mTrackStates.erase(track);
             }
             MIX_DestroyTrack(track);
         }
@@ -50,7 +50,7 @@ namespace CE::Core::Audio {
         for (MIX_Track* track : mTracks) {
             {
                 std::lock_guard<std::mutex> lock(mDSPMutex);
-                mTrackFilters.erase(track);
+                mTrackStates.erase(track);
             }
             MIX_DestroyTrack(track);
         }
