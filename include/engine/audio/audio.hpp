@@ -86,6 +86,8 @@ namespace CE::Core::Audio {
 
             PlayingSound CreateSoundInstance(const AudioClip& clip);
             void PlaySound(PlayingSound& sound);
+            void PauseSound(PlayingSound& sound);
+            void ResumeSound(PlayingSound& sound);
             void SeekSound(PlayingSound& sound, float position_seconds);
             void StopSound(PlayingSound& sound);
             void StopAll();

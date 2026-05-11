@@ -160,6 +160,35 @@ namespace CE::Core::Audio {
         sound.PositionSeconds = position_seconds;
     }
 
+    void AudioSystem::PauseSound(PlayingSound& sound) {
+        if (!sound.Track) {
+            sound.IsPlaying = false;
+            return;
+        }
+
+        if (!MIX_PauseTrack(sound.Track)) {
+            CE::Log(LogLevel::Warn, "[Audio {}] Failed to pause track: {}", mInstanceID, SDL_GetError());
+            return;
+        }
+
+        sound.IsPlaying = false;
+    }
+
+    void AudioSystem::ResumeSound(PlayingSound& sound) {
+        if (!sound.Track) {
+            sound.IsPlaying = false;
+            return;
+        }
+
+        if (!MIX_ResumeTrack(sound.Track)) {
+            CE::Log(LogLevel::Warn, "[Audio {}] Failed to resume track: {}", mInstanceID, SDL_GetError());
+            sound.IsPlaying = false;
+            return;
+        }
+
+        sound.IsPlaying = MIX_TrackPlaying(sound.Track);
+    }
+
     void AudioSystem::StopSound(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
