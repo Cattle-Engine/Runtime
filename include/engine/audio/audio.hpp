@@ -26,7 +26,7 @@ namespace CE::Core::Audio {
             Reverb,
             Delay,
             Chorus
-        } Type = Type::LowPass;
+        } Kind = Type::LowPass;
 
         float CutoffHz = 1000.0f;
         float WetMix = 0.35f;
@@ -90,6 +90,8 @@ namespace CE::Core::Audio {
             void ResumeSound(PlayingSound& sound);
             void SeekSound(PlayingSound& sound, float position_seconds);
             void StopSound(PlayingSound& sound);
+            void UpdateSound(PlayingSound& sound);
+            void DestroySoundInstance(PlayingSound& sound);
             void StopAll();
             void SetMasterVolume(float v);
             void SetSFXVolume(float v);

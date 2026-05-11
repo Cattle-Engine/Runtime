@@ -472,6 +472,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         for (const auto& batch : gTexBatches) {
             if (batch.idxCount == 0) continue;
+            if (!batch.texture || !batch.texture->gpuTex) continue;
 
             SDL_GPUTextureSamplerBinding binding{
                 batch.texture->gpuTex,

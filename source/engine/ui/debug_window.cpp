@@ -15,6 +15,7 @@
 #include "engine/input/keyboard.hpp"
 #include "engine/instance.hpp"
 #include "engine/settings.hpp"
+#include "engine/assets/audio.hpp"
 
 namespace CE::UI {
     void DebugWindow::SetOpen(bool open) {
@@ -108,7 +109,7 @@ namespace CE::UI {
         );
     }
 
-    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings) {
+    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman) {
         auto& s = settings.Settings;
         auto& state = gSettingsState;
 
@@ -150,6 +151,21 @@ namespace CE::UI {
 
         ImGui::Text("Supported renderers: Metal, DX12, Vulkan, Software");
         ImGui::Text("Note: To change renderer you need to close engine and reopen.");
+
+        Utils::SpaceSep();
+
+        ImGui::Text("Audio");
+        ImGui::Spacing();
+
+        bool audio_dirty = false;
+        audio_dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
+        audio_dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
+        audio_dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
+        if (audio_dirty && audioman) {
+            audioman->SetMasterVolume(s.masterVolume);
+            audioman->SetMusicVolume(s.musicVolume);
+            audioman->SetSFXVolume(s.sfxVolume);
+        }
 
         Utils::SpaceSep();
 
@@ -332,12 +348,93 @@ namespace CE::UI {
         }
     }
 
+    void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings) {
+        ImGui::Text("Audio");
+        ImGui::Spacing();
+
+        auto& s = settings.Settings;
+
+        bool dirty = false;
+        dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
+        dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
+        dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
+
+        if (dirty && audioman) {
+            audioman->SetMasterVolume(s.masterVolume);
+            audioman->SetMusicVolume(s.musicVolume);
+            audioman->SetSFXVolume(s.sfxVolume);
+        }
+
+        CE::UI::Utils::SpaceSep();
+
+        if (!audioman) {
+            ImGui::TextDisabled("Audio system not available");
+            return;
+        }
+
+        ImGui::Text("Cached Clips: %zu", audioman->Debug_CachedClipsCount());
+
+        const auto snapshot = audioman->Debug_PlayingSoundsSnapshot();
+        ImGui::Text("Playing Handles: %zu", snapshot.size());
+
+        if (ImGui::BeginTable("AudioPlayingTable", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+            ImGui::TableSetupColumn("Handle");
+            ImGui::TableSetupColumn("Clip");
+            ImGui::TableSetupColumn("Bus");
+            ImGui::TableSetupColumn("Vol");
+            ImGui::TableSetupColumn("Playing");
+            ImGui::TableSetupColumn("FX");
+            ImGui::TableSetupColumn("Actions");
+            ImGui::TableHeadersRow();
+
+            for (const auto& row : snapshot) {
+                ImGui::PushID(static_cast<int>(row.Handle));
+                ImGui::TableNextRow();
+
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%u", row.Handle);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::TextUnformatted(row.ClipName.c_str());
+                ImGui::TableSetColumnIndex(2);
+                ImGui::TextUnformatted(row.Bus.c_str());
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%d", row.Volume);
+                ImGui::TableSetColumnIndex(4);
+                ImGui::TextUnformatted(row.IsPlaying ? "Yes" : "No");
+                ImGui::TableSetColumnIndex(5);
+                ImGui::Text("%zu", row.EffectCount);
+
+                ImGui::TableSetColumnIndex(6);
+                if (ImGui::SmallButton("Play")) {
+                    audioman->PlaySound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Pause")) {
+                    audioman->PauseSound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Resume")) {
+                    audioman->ResumeSound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Stop")) {
+                    audioman->StopSound(row.Handle);
+                }
+
+                ImGui::PopID();
+            }
+
+            ImGui::EndTable();
+        }
+    }
+
     void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
+        CE::Assets::Audio::AudioManager* audioman,
         Input::Keyboard& kbmanger,
         CE::Instance& instance,
         Input::Mouse& msmanager,
@@ -364,12 +461,17 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Settings")) {
-                DrawSettingsTab(settings);
+                DrawSettingsTab(settings, audioman);
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Performance")) {
                 DrawPerformanceTab(renderer, texman, settings, fps, deltaTime, frameTime);
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Audio")) {
+                DrawAudioTab(audioman, settings);
                 ImGui::EndTabItem();
             }
 
@@ -390,6 +492,7 @@ namespace CE::UI {
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
+        CE::Assets::Audio::AudioManager* audioman,
         Input::Keyboard& kbmanger,
         CE::Instance& instance,
         Input::Mouse& msmanager,
@@ -404,6 +507,7 @@ namespace CE::UI {
             fontman,
             gameinfo,
             settings,
+            audioman,
             kbmanger,
             instance,
             msmanager,

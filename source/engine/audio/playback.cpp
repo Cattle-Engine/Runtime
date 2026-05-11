@@ -200,6 +200,58 @@ namespace CE::Core::Audio {
         sound.IsPlaying = false;
     }
 
+    void AudioSystem::UpdateSound(PlayingSound& sound) {
+        if (!sound.Track) {
+            return;
+        }
+
+        if (sound.Bus.empty()) {
+            sound.Bus = DefaultBusName(sound.Clip ? sound.Clip->Type : AudioType::SFX);
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mDSPMutex);
+            TrackState& state = mTrackStates[sound.Track];
+            state.Type = sound.Clip ? sound.Clip->Type : AudioType::Error;
+            state.Volume = sound.Volume;
+            state.Bus = sound.Bus;
+        }
+
+        UpdateTrackGain(sound.Track);
+        ApplyDSP(sound);
+    }
+
+    void AudioSystem::DestroySoundInstance(PlayingSound& sound) {
+        if (!sound.Track) {
+            sound.IsPlaying = false;
+            return;
+        }
+
+        MIX_Track* track = sound.Track;
+        StopSound(sound);
+
+        // Disable DSP callback before the track is destroyed.
+        if (!MIX_SetTrackCookedCallback(track, nullptr, nullptr)) {
+            CE::Log(LogLevel::Warn, "[Audio {}] Failed to clear DSP callback: {}", mInstanceID, SDL_GetError());
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mDSPMutex);
+            mTrackStates.erase(track);
+        }
+
+        auto it = std::find(mTracks.begin(), mTracks.end(), track);
+        if (it != mTracks.end()) {
+            mTracks.erase(it);
+        }
+
+        MIX_DestroyTrack(track);
+
+        sound.Track = nullptr;
+        sound.IsPlaying = false;
+        sound.PositionSeconds = 0.0f;
+    }
+
     void AudioSystem::StopAll() {
         for (MIX_Track* track : mTracks) {
             MIX_StopTrack(track, 0);

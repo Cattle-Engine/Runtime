@@ -18,6 +18,10 @@ namespace CE {
         namespace Fonts {
             class FontManager;
         }
+
+        namespace Audio {
+            class AudioManager;
+        }
     }
 
     namespace Settings {
@@ -39,6 +43,7 @@ namespace CE::UI {
                 CE::Assets::Fonts::FontManager& fontman,
                 CE::GameInfo& gameinfo,
                 CE::Settings::SettingsManager& settings,
+                CE::Assets::Audio::AudioManager* audioman,
                 Input::Keyboard& kbmanger,
                 CE::Instance& instance,
                 Input::Mouse& msmanager,
@@ -53,7 +58,7 @@ namespace CE::UI {
         private:
             void DrawInstanceTab(CE::GameInfo& gameinfo, CE::Instance& instance);
             void DrawInputTab(CE::Input::Keyboard& kbmanger, CE::Input::Mouse& msmanager);
-            void DrawSettingsTab(CE::Settings::SettingsManager& settings);
+            void DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman);
             void DrawPerformanceTab(
                 CE::Renderer::IRenderer& renderer,
                 CE::Assets::Textures::TextureManager& texman,
@@ -68,6 +73,7 @@ namespace CE::UI {
                 CE::Assets::Textures::TextureManager& texman,
                 CE::Assets::Fonts::FontManager& fontman
             );
+            void DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings);
 
             struct SettingsTabState {
                 std::array<char, 501> rendererBuffer{};

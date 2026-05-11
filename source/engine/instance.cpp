@@ -87,6 +87,11 @@ namespace CE {
             CE::Log(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
             gAudioSystem.reset();
         }
+
+        gAudioManager = std::make_unique<CE::Assets::Audio::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
+        gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
+        gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
+        gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
 #endif
         
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
@@ -98,7 +103,12 @@ namespace CE {
             *gTextureManager,
             *gFontManager,
             *gKeyboardManger,
-            *gMouseManger
+            *gMouseManger,
+#if defined(CE_ENABLE_AUDIO)
+            gAudioManager.get()
+#else
+            nullptr
+#endif
         );
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());
@@ -180,6 +190,11 @@ namespace CE {
             *gFontManager,
             *gGameInfo,
             *gSettingsManager,
+#if defined(CE_ENABLE_AUDIO)
+            gAudioManager.get(),
+#else
+            nullptr,
+#endif
             *gKeyboardManger,
             *this,
             *gMouseManger,
@@ -283,6 +298,14 @@ namespace CE {
         }
 
         gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);
+
+#if defined(CE_ENABLE_AUDIO)
+        if (gAudioManager) {
+            gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
+            gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
+            gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
+        }
+#endif
     }
 
     void Instance::SetWindowIcon(std::string path) {

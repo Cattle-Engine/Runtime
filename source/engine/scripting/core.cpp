@@ -30,7 +30,8 @@ namespace CE::Scripting {
         Assets::Textures::TextureManager& textureManager,
         Assets::Fonts::FontManager& fontManager,
         Input::Keyboard& keyboard,
-        Input::Mouse& mouse
+        Input::Mouse& mouse,
+        CE::Assets::Audio::AudioManager* audioManager
     )
         : mVFS(vfs)
         , mGameInfo(gameInfo)
@@ -40,7 +41,8 @@ namespace CE::Scripting {
         , mTextureManager(textureManager)
         , mFontManager(fontManager)
         , mKeyboard(keyboard)
-        , mMouse(mouse) {
+        , mMouse(mouse)
+        , mAudioManager(audioManager) {
     }
 
     Runtime::~Runtime() {
@@ -87,6 +89,10 @@ namespace CE::Scripting {
 
         if (!RegisterCallbackBindings()) {
             return Fail("Failed to register AngelScript callback bindings");
+        }
+
+        if (!RegisterAudioBindings()) {
+            return Fail("Failed to register AngelScript audio bindings");
         }
 
         mContext = mScriptEngine->CreateContext();

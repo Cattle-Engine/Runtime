@@ -31,6 +31,28 @@ namespace CE::Assets::Audio {
         mAudioCache[name] = audio_clip;
     }
 
+    void AudioManager::UnloadSound(const std::string& name) {
+        auto it = mAudioCache.find(name);
+        if (it == mAudioCache.end()) {
+            CE::Log(LogLevel::Warn, "[Audio Manager {}] Tried to unload missing asset: {}", mInstanceID, name);
+            return;
+        }
+
+        std::vector<uint32_t> handles_to_delete;
+        handles_to_delete.reserve(mPlayingSounds.size());
+        for (const auto& [handle, info] : mPlayingSounds) {
+            if (info.ClipName == name) {
+                handles_to_delete.push_back(handle);
+            }
+        }
+        for (uint32_t handle : handles_to_delete) {
+            DeleteSoundInstance(handle);
+        }
+
+        mAudioSys.DestroySound(it->second);
+        mAudioCache.erase(it);
+    }
+
    uint32_t AudioManager::CreateSoundInstance(const std::string& name) {
         auto it = mAudioCache.find(name);
         if (it != mAudioCache.end()) {
@@ -85,4 +107,154 @@ namespace CE::Assets::Audio {
         }
         mAudioSys.StopSound(info->Sound);
    }
+
+   bool AudioManager::IsPlaying(uint32_t handle) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if (!info) {
+            return false;
+        }
+        return info->Sound.IsPlaying;
+   }
+
+   void AudioManager::SetSoundBus(uint32_t handle, const std::string& bus) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if(!info) {
+            return;
+        }
+        info->Sound.Bus = bus;
+        mAudioSys.UpdateSound(info->Sound);
+   }
+
+   std::string AudioManager::GetSoundBus(uint32_t handle) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if(!info) {
+            return {};
+        }
+        return info->Sound.Bus;
+   }
+
+   void AudioManager::SetBusVolume(const std::string& bus, float volume) {
+        mAudioSys.SetBusVolume(bus, volume);
+   }
+
+   void AudioManager::SetBusVoiceLimit(const std::string& bus, size_t limit) {
+        mAudioSys.SetBusVoiceLimit(bus, limit);
+   }
+
+   void AudioManager::SetSoundVolume(uint32_t handle, int volume) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if(!info) {
+            return;
+        }
+        info->Sound.Volume = volume;
+        mAudioSys.UpdateSound(info->Sound);
+   }
+
+    void AudioManager::SetMasterVolume(float volume) {
+        mAudioSys.SetMasterVolume(volume);
+    }
+
+    void AudioManager::SetMusicVolume(float volume) {
+        mAudioSys.SetMusicVolume(volume);
+    }
+
+    void AudioManager::SetSFXVolume(float volume) {
+        mAudioSys.SetSFXVolume(volume);
+    }
+
+    void AudioManager::AddEffect(uint32_t handle, std::string name, Core::Audio::AudioFilter effect) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if (!info) {
+            return;
+        }
+
+        bool replaced = false;
+        for (auto& named : info->Effects) {
+            if (named.Name == name) {
+                named.Effect = effect;
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) {
+            info->Effects.push_back({std::move(name), effect});
+        }
+
+        info->Sound.Effects.clear();
+        info->Sound.Effects.reserve(info->Effects.size());
+        for (const auto& named : info->Effects) {
+            info->Sound.Effects.push_back(named.Effect);
+        }
+        mAudioSys.UpdateSound(info->Sound);
+    }
+
+    void AudioManager::RemoveEffect(uint32_t handle, std::string name) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if (!info) {
+            return;
+        }
+
+        auto it = info->Effects.begin();
+        for (; it != info->Effects.end(); ++it) {
+            if (it->Name == name) {
+                info->Effects.erase(it);
+                break;
+            }
+        }
+
+        info->Sound.Effects.clear();
+        info->Sound.Effects.reserve(info->Effects.size());
+        for (const auto& named : info->Effects) {
+            info->Sound.Effects.push_back(named.Effect);
+        }
+        mAudioSys.UpdateSound(info->Sound);
+    }
+
+    void AudioManager::ClearEffects(uint32_t handle) {
+        AMPlayingSoundInfo* info = GetSoundInfo(handle);
+        if (!info) {
+            return;
+        }
+
+        info->Effects.clear();
+        info->Sound.Effects.clear();
+        mAudioSys.UpdateSound(info->Sound);
+    }
+
+    void AudioManager::DeleteSoundInstance(uint32_t handle) {
+        auto it = mPlayingSounds.find(handle);
+        if (it == mPlayingSounds.end()) {
+            CE::Log(LogLevel::Warn,
+                "[Audio Manager {}] Tried to delete invalid handle: {}",
+                mInstanceID, handle);
+            return;
+        }
+
+        AMPlayingSoundInfo& info = it->second;
+        mAudioSys.StopSound(info.Sound);
+        info.Effects.clear();
+        mAudioSys.DestroySoundInstance(it->second.Sound);
+        mPlayingSounds.erase(it);
+    }
+
+    size_t AudioManager::Debug_CachedClipsCount() const {
+        return mAudioCache.size();
+    }
+
+    std::vector<AudioManager::DebugPlayingSound> AudioManager::Debug_PlayingSoundsSnapshot() const {
+        std::vector<DebugPlayingSound> snapshot;
+        snapshot.reserve(mPlayingSounds.size());
+        for (const auto& [handle, info] : mPlayingSounds) {
+            DebugPlayingSound row;
+            row.Handle = handle;
+            row.ClipName = info.ClipName;
+            row.Bus = info.Sound.Bus;
+            row.Volume = info.Sound.Volume;
+            row.IsPlaying = info.Sound.IsPlaying;
+            row.EffectCount = info.Effects.size();
+            snapshot.push_back(std::move(row));
+        }
+        return snapshot;
+    }
+
 }

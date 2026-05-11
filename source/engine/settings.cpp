@@ -38,6 +38,9 @@ namespace CE::Settings {
             Settings.enableVSync = mGameInfo.enableVSync;
             Settings.rendererName = mGameInfo.rendererName;
             Settings.fullscreen = mGameInfo.fullscreen;
+            Settings.masterVolume = 1.0f;
+            Settings.musicVolume = 1.0f;
+            Settings.sfxVolume = 1.0f;
             return false;
         }
 
@@ -47,6 +50,9 @@ namespace CE::Settings {
         Settings.enableVSync = mIniFile.get_bool("graphics", "vsync", mGameInfo.enableVSync);
         Settings.rendererName = mIniFile.get_string("graphics", "renderer", mGameInfo.rendererName);
         Settings.fullscreen = mIniFile.get_bool("graphics", "fullscreen", mGameInfo.fullscreen);
+        Settings.masterVolume = mIniFile.get_float("audio", "master_volume", 1.0f);
+        Settings.musicVolume = mIniFile.get_float("audio", "music_volume", 1.0f);
+        Settings.sfxVolume = mIniFile.get_float("audio", "sfx_volume", 1.0f);
         return true;
     }
 
@@ -57,6 +63,9 @@ namespace CE::Settings {
         mIniFile.set_bool("graphics", "vsync", Settings.enableVSync);
         mIniFile.set_string("graphics", "renderer", Settings.rendererName);
         mIniFile.set_bool("graphics", "fullscreen", Settings.fullscreen);
+        mIniFile.set_float("audio", "master_volume", Settings.masterVolume);
+        mIniFile.set_float("audio", "music_volume", Settings.musicVolume);
+        mIniFile.set_float("audio", "sfx_volume", Settings.sfxVolume);
 
         std::string config_path =
             std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");

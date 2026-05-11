@@ -31,7 +31,7 @@ namespace CE::Core::Audio {
             const float rc = 1.0f / (kTwoPi * cutoff);
             const float dt = 1.0f / sr;
 
-            if (filter.Type == AudioFilter::Type::LowPass) {
+            if (filter.Kind == AudioFilter::Type::LowPass) {
                 filter.Alpha = dt / (rc + dt);
             } else {
                 filter.Alpha = rc / (rc + dt);
@@ -60,7 +60,7 @@ namespace CE::Core::Audio {
             }
 
             float* cursor = pcm;
-            if (filter.Type == AudioFilter::Type::LowPass) {
+            if (filter.Kind == AudioFilter::Type::LowPass) {
                 for (int i = 0; i < frames; ++i) {
                     for (int ch = 0; ch < channels; ++ch) {
                         const float x = *cursor;
@@ -251,7 +251,7 @@ namespace CE::Core::Audio {
         }
 
         static void ApplyEffect(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
-            switch (filter.Type) {
+            switch (filter.Kind) {
                 case AudioFilter::Type::LowPass:
                 case AudioFilter::Type::HighPass:
                     ApplyOnePole(filter, spec, pcm, samples);

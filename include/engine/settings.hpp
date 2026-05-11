@@ -18,6 +18,9 @@ namespace CE::Settings {
         bool enableVSync;
         std::string rendererName;
         bool fullscreen;
+        float masterVolume = 1.0f;
+        float musicVolume = 1.0f;
+        float sfxVolume = 1.0f;
     };
 
     class SettingsManager {

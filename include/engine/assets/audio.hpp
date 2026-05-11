@@ -17,7 +17,7 @@ namespace CE::Assets::Audio {
         void UnloadSound(const std::string& name);
 
         uint32_t CreateSoundInstance(const std::string& name);
-        bool IsPlaying(uint32_t handle) const;
+        bool IsPlaying(uint32_t handle);
         void DeleteSoundInstance(uint32_t handle);
 
         void PlaySound(uint32_t handle);
@@ -31,16 +31,34 @@ namespace CE::Assets::Audio {
         void ClearEffects(uint32_t handle);
 
         void SetSoundBus(uint32_t handle, const std::string& bus);
-        std::string GetSoundBus(uint32_t handle) const;
+        std::string GetSoundBus(uint32_t handle);
         void SetBusVolume(const std::string& bus, float volume);
         void SetBusVoiceLimit(const std::string& bus, size_t limit);
         void SetSoundVolume(uint32_t handle, int volume);
+        void SetMasterVolume(float volume);
+        void SetMusicVolume(float volume);
+        void SetSFXVolume(float volume);
+
+        struct DebugPlayingSound {
+            uint32_t Handle = 0;
+            std::string ClipName;
+            std::string Bus;
+            int Volume = 128;
+            bool IsPlaying = false;
+            size_t EffectCount = 0;
+        };
+        size_t Debug_CachedClipsCount() const;
+        std::vector<DebugPlayingSound> Debug_PlayingSoundsSnapshot() const;
 
         private:
         struct AMPlayingSoundInfo {
             uint32_t Id;
             Core::Audio::PlayingSound Sound;
-            std::vector<Core::Audio::AudioFilter> Effects;
+            struct NamedEffect {
+                std::string Name;
+                Core::Audio::AudioFilter Effect;
+            };
+            std::vector<NamedEffect> Effects;
             std::string ClipName;
         };
         uint32_t NextHandleID = 0;

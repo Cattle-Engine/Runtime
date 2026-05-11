@@ -57,8 +57,10 @@ namespace CE::Assets::Textures {
             if (!tex->second.IsErrorTex) {
                 gRenderer->UnloadTex(tex->second.Texture);
                 CE::Log(LogLevel::Info, "[Texture Manager] Unloaded texture {}", name);
+                return;
             } else {
                 CE::Log(LogLevel::Warn, "[Texture Manager] Can not unload error texture! \n                 Deleting from texture list");
+                return;
             }
             gTextures.erase(name);
         }

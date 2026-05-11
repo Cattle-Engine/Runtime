@@ -7,6 +7,7 @@
 #include "engine/assets/fonts.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/assets/textures.hpp"
+#include "engine/assets/audio.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
@@ -64,6 +65,7 @@ namespace CE {
 
 #if defined(CE_ENABLE_AUDIO)
             std::unique_ptr<CE::Core::Audio::AudioSystem> gAudioSystem;
+            std::unique_ptr<CE::Assets::Audio::AudioManager> gAudioManager;
 #endif
             
             SDL_Window* gWindow = nullptr;

@@ -17,7 +17,24 @@ namespace CE {
     class Instance;
 }
 
+namespace CE::Assets::Audio {
+    class AudioManager;
+}
+
 namespace CE::Scripting {
+    struct AudioEffectDesc {
+        bool enabled = false;
+        int type = 0;
+        float cutoffHz = 1000.0f;
+        float wetMix = 0.35f;
+        float feedback = 0.35f;
+        float delayMs = 180.0f;
+        float depthMs = 8.0f;
+        float rateHz = 0.5f;
+        float roomSize = 0.6f;
+        float damping = 0.4f;
+    };
+
     class Runtime {
         public:
             Runtime(
@@ -29,7 +46,8 @@ namespace CE::Scripting {
                 Assets::Textures::TextureManager& textureManager,
                 Assets::Fonts::FontManager& fontManager,
                 Input::Keyboard& keyboard,
-                Input::Mouse& mouse
+                Input::Mouse& mouse,
+                CE::Assets::Audio::AudioManager* audioManager = nullptr
             );
             ~Runtime();
 
@@ -45,6 +63,7 @@ namespace CE::Scripting {
             bool RegisterInputBindings();
             bool RegisterInstanceBindings();
             bool RegisterCallbackBindings();
+            bool RegisterAudioBindings();
             bool Fail(const std::string& message);
 
             struct ScriptCallbackRegistration {
@@ -118,6 +137,25 @@ namespace CE::Scripting {
             bool InvokeStateCallback(asIScriptFunction* callback, const std::string& state, const std::string& eventName);
             void ReleaseStateCallbacks();
 
+            void LoadSound(const std::string& path, const std::string& name, int type);
+            void UnloadSound(const std::string& name);
+            uint32_t CreateSoundInstance(const std::string& name);
+            void DeleteSoundInstance(uint32_t handle);
+            void PlaySound(uint32_t handle);
+            void PauseSound(uint32_t handle);
+            void ResumeSound(uint32_t handle);
+            void StopSound(uint32_t handle);
+            void SeekSound(uint32_t handle, float seconds);
+            void SetSoundBus(uint32_t handle, const std::string& bus);
+            std::string GetSoundBus(uint32_t handle);
+            void SetSoundVolume(uint32_t handle, int volume);
+            void SetMasterVolume(float volume);
+            void SetMusicVolume(float volume);
+            void SetSFXVolume(float volume);
+            void AddEffect(uint32_t handle, const std::string& name, const AudioEffectDesc& effect);
+            void RemoveEffect(uint32_t handle, const std::string& name);
+            void ClearEffects(uint32_t handle);
+
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
             asIScriptModule* mScriptModule = nullptr;
@@ -136,6 +174,7 @@ namespace CE::Scripting {
             Assets::Fonts::FontManager& mFontManager;
             Input::Keyboard& mKeyboard;
             Input::Mouse& mMouse;
+            CE::Assets::Audio::AudioManager* mAudioManager = nullptr;
     };
 }
 
