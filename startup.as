@@ -76,6 +76,25 @@ void main() {
     gOnDrawId = CE::Events::On("InGame", "Draw", @InGameDraw);
 
     CE::State::Set("InGame");
+
+    CE::Audio::LoadSound(
+        "test.mp3",
+        "test",
+        CE::Audio::Music
+    );
+    uint test = CE::Audio::CreateInstance("test");
+    CE::Audio::AudioEffect reverb;
+    reverb.enabled = true;
+    reverb.type = CE::Audio::Reverb;
+    reverb.wetMix = 0.45f;    
+    reverb.roomSize = 0.85f;  
+    reverb.damping = 0.25f;   
+    CE::Audio::AddEffect(
+        test,
+        "test",
+        reverb
+    );
+    CE::Audio::Play(test);
 }
 
 void update() {
@@ -121,8 +140,6 @@ void update() {
     }
 
     if (CE::Input::IsKeyPressed(CE::Input::KEY_ESCAPE)) {
-        CE::Graphics::Text::UnloadFont("roboto");
-        CE::Graphics::Textures::UnloadTexture("garry_spud");
         CE::Exit();
     }
 }
