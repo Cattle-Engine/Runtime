@@ -1,6 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
-#include <limits>
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 
@@ -322,6 +322,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         
         if (gDevice) {
             SDL_WaitForGPUIdle(gDevice);
+            for (auto& entry : gDeferredDeletes) {
+                if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
+                if (entry.data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, entry.data->gpuTex);
+                delete entry.data;
+            }
+            gDeferredDeletes.clear();
         }
 
         SDL_ReleaseWindowFromGPUDevice(gDevice, window);
@@ -414,6 +420,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gMappedTexVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexVerts, true);
         gMappedTexIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
+        gFrameActive = true;
         return 0;
     }
 
@@ -516,12 +523,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
         mPendingImGuiDrawData = nullptr;
         gSwapchainTexture = nullptr;
+        gFrameActive = false;
+        ProcessDeferredDeletions();
         return 0;
     }
 
     void SDL_GPU_Renderer::DrawRect(float x, float y, float w, float h,
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                     float rotation) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) return;
 
         float cx = x + w * 0.5f;
@@ -550,6 +563,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawRectLines(float x, float y, float w, float h,
                                         float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         DrawLine(x,     y,     x + w, y,     thickness, r, g, b, a); // top
         DrawLine(x + w, y,     x + w, y + h, thickness, r, g, b, a); // right
         DrawLine(x + w, y + h, x,     y + h, thickness, r, g, b, a); // bottom
@@ -562,6 +579,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float x2, float y2,
         uint8_t r, uint8_t g, uint8_t b, uint8_t a,
         float rotation) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) return;
 
         // Centroid is the average of the three vertices
@@ -589,6 +610,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawLine(float x1, float y1, float x2, float y2,
                                 float thickness,
                                 uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
             CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping line");
             return;
@@ -623,6 +648,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawCircle(float cx, float cy, float radius,
                                     int segments,
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (segments < 3) segments = 3;
 
         uint32_t vNeeded = (uint32_t)(segments + 1); // centre + rim
@@ -661,6 +690,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawCircleLines(float cx, float cy, float radius,
                                         int segments, float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (segments < 3) segments = 3;
         float step = (float)(2.0 * M_PI) / (float)segments;
         for (int i = 0; i < segments; ++i) {
@@ -986,6 +1019,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
                                     float rotation) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (!texture || !texture->handle) return;
         auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
@@ -1034,6 +1071,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                     float u1, float v1,
                     Colour colour,
                     float rotation) {
+        if(!gFrameActive) {
+            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            return;
+        } 
         if (!texture || !texture->handle) return;
         auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
@@ -1075,13 +1116,33 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
     }
 
+    void SDL_GPU_Renderer::ProcessDeferredDeletions() {
+        if (gDeferredDeletes.empty()) return;
+        std::vector<DeferredDeleteEntry> entriesToDelete;
+
+        for (auto& entry : gDeferredDeletes) {
+            entry.framesUntilDelete--;
+            if (entry.framesUntilDelete <= 0) {
+                if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
+                if (entry.data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, entry.data->gpuTex);
+                delete entry.data;
+                entriesToDelete.push_back(entry);
+            }
+        }
+
+        for (const auto& entry : entriesToDelete) {
+            gDeferredDeletes.erase(
+                std::remove(gDeferredDeletes.begin(), gDeferredDeletes.end(), entry),
+                gDeferredDeletes.end()
+            );
+        }
+    }
+
     void SDL_GPU_Renderer::UnloadTex(Texture* texture) {
         if (!texture) return;
         if (texture->handle) {
             auto* data = static_cast<SDLGPUTexData*>(texture->handle);
-            if (data->sampler) SDL_ReleaseGPUSampler(gDevice, data->sampler);
-            if (data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, data->gpuTex);
-            delete data;
+            gDeferredDeletes.push_back({ data, 3 });  
         }
         delete texture;
     }

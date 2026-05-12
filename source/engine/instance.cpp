@@ -166,7 +166,9 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
-        
+
+        gGameStateManager.Emit("Update");
+
         int bfr = gRenderer->BeginFrame(gWindow);
         if (bfr != 0) {
             return 1;
@@ -174,7 +176,6 @@ namespace CE {
 
         gGameStateManager.Emit("Draw");
 
-        gGameStateManager.Emit("Update");
         if (!gScriptingManager->RunUpdate()) {
             ShowError(gScriptingManager->GetLastError());
             CE::Log(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);

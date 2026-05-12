@@ -18,6 +18,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUSampler* sampler = nullptr;
     };
 
+    struct DeferredDeleteEntry {
+        SDLGPUTexData* data;
+        int framesUntilDelete;  // Number of frames to wait before deletion
+
+        bool operator==(const DeferredDeleteEntry& other) const {
+            return data == other.data;
+        }
+    };
+
     struct TexVertexBatch {
         SDLGPUTexData* texture = nullptr;
 
@@ -103,6 +112,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
 
+            // Deferred deletion support
+            void ProcessDeferredDeletions();
+
         private:
             ImGuiContext* mImguicontext;
             ImDrawData* mPendingImGuiDrawData = nullptr;
@@ -143,7 +155,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUTexture* gErrorTex = nullptr;
             SDL_GPUSampler* gErrorSampler = nullptr;
             RendererBackend gBackend;
+            bool gFrameActive = false;
             CE::VFS::VFS* gVFS;
+
+            std::vector<DeferredDeleteEntry> gDeferredDeletes;
     };
 }
 
