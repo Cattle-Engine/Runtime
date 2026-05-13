@@ -1,11 +1,11 @@
 Notes:
     It's turned into C++ header with xxd, this header can be found in [include/engine/assets/default_font.hpp](../include/engine/assets/default_font.hpp)
 ```
-Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
+Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-https://openfontlicense.org
+https://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

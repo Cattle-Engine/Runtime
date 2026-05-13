@@ -1,6 +1,6 @@
 # Third party stuff used!
 
-[Noto Sans Font](Noto_Sans.md): Used for the default/fallback font
+[JetBrains Mono Font](Jetbrains_mono.md): Used for the default/fallback font
 
 [SDL3](SDL3.md): Used for a lot of the cross platform stuff and the main renderer (sdl_gpu)
 
