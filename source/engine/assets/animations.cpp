@@ -80,8 +80,18 @@ namespace CE::Assets::Animations {
 
         if(it != mAnimations.end()) {
             AnimationInstance instance = {};
-
+            instance.Loop = loop;
             instance.IsPlaying = false;
+            instance.CurrentFrame = 0;
+            instance.X = 0;
+            instance.Y = 0;
+            instance.Rotation = 0.0f;
+            instance.AnimInfo = &it->second;
+            mAnimationInstances[mNextHandleID++] = std::move(instance);
+            return mNextHandleID;
         }
+        CE::Log(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}", 
+        mInstanceID, name);
+        return 0;
     }
 }
