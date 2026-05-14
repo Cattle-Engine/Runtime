@@ -19,6 +19,7 @@ namespace CE::Assets::Animations {
     
     struct AnimationInfo {
         std::string mSourceFileName;
+        int FrameCount;
         Renderer::Texture* Texture;
         std::vector<FrameInfo> FramesInfo;
     };
@@ -38,18 +39,20 @@ namespace CE::Assets::Animations {
 
         void Load(std::string name, std::string path);
         void Unload(std::string name);
-        uint32_t CreateInstance(std::string name, bool loop);
+        uint32_t CreateInstance(std::string name);
         void DeleteInstance(uint32_t handle);
 
-        void Play(uint32_t handle, int x, int y);
-        void PlayRot(uint32_t handle, int x, int y, float rotation);
+        void Play(uint32_t handle, int x, int y, bool loop);
+        void PlayRot(uint32_t handle, int x, int y, bool loop, float rotation);
         void SetPosition(uint32_t handle, int x, int y, float rotation);
         void Seek(uint32_t handle, uint32_t frame);
+        void SetLooping(uint32_t handle, bool loop);
         void Pause(uint32_t handle);
         void Stop(uint32_t handle);
 
         void Update();
         private:
+        AnimationInstance* GetAnimationInfo(uint32_t handle);
         std::unordered_map<std::string, AnimationInfo> mAnimations;
         std::unordered_map<uint32_t, AnimationInstance> mAnimationInstances; 
         VFS::VFS& mVFS;

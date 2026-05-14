@@ -11,7 +11,7 @@ namespace CE::Assets::Audio {
     AudioManager::AMPlayingSoundInfo* AudioManager::GetSoundInfo(uint32_t handle) {
         auto it = mPlayingSounds.find(handle);
         if (it == mPlayingSounds.end()) {
-            CE::Log(LogLevel::Error, "[Audio Manager {}] Use after free detected: {}", mInstanceID, handle);
+            CE::Log(LogLevel::Error, "[Audio Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
             return nullptr;
         } else {
             return &it->second;

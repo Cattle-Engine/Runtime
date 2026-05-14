@@ -8,6 +8,16 @@ namespace CE::Assets::Animations {
         mInstanceID = instance_id;
     }
 
+    AnimationInstance* AnimationManager::GetAnimationInfo(uint32_t handle) {
+        auto it = mAnimationInstances.find(handle);
+        if (it == mAnimationInstances.end()) {
+            CE::Log(LogLevel::Error, "[Animation Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
+            return nullptr;
+        } else {
+            return &it->second;
+        }
+    }
+
     void AnimationManager::Load(std::string name, std::string path) {
         if (!mVFS.FileExists(path.c_str())) {
             CE::Log(LogLevel::Error,
@@ -59,7 +69,7 @@ namespace CE::Assets::Animations {
         AnimationInfo anim;
         anim.mSourceFileName = source_image_path;
         anim.FramesInfo.reserve(frame_count);
-
+        anim.FrameCount = frame_count;
         for (const TDFFile& f : frames) {
             FrameInfo frame{};
 
@@ -75,12 +85,11 @@ namespace CE::Assets::Animations {
         mAnimations[name] = std::move(anim);
     }
 
-    uint32_t AnimationManager::CreateInstance(std::string name, bool loop) {
+    uint32_t AnimationManager::CreateInstance(std::string name) {
         auto it = mAnimations.find(name);
 
         if(it != mAnimations.end()) {
             AnimationInstance instance = {};
-            instance.Loop = loop;
             instance.IsPlaying = false;
             instance.CurrentFrame = 0;
             instance.X = 0;
@@ -93,5 +102,66 @@ namespace CE::Assets::Animations {
         CE::Log(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}", 
         mInstanceID, name);
         return 0;
+    }
+
+    void AnimationManager::Play(uint32_t handle, int x, int y, bool loop) {
+        this->PlayRot(handle, x, y, loop, 0.0f);
+    }
+
+    void AnimationManager::PlayRot(uint32_t handle, int x, int y, bool loop, float rotation) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+
+        info->X = x;
+        info->Y = y;
+        info->Rotation = rotation;
+        info->Loop = loop;
+        info->CurrentFrame = 0;
+        info->IsPlaying = true;
+    }
+
+    void AnimationManager::SetPosition(uint32_t handle, int x, int y, float rotation) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+
+        info->X = x;
+        info->Y = y;
+        info->Rotation = rotation;
+        info->CurrentFrame = 0;
+        info->IsPlaying = true;
+    }
+
+    void AnimationManager::Seek(uint32_t handle, uint32_t frame) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+
+        if (frame >= info->AnimInfo->FrameCount) {
+            CE::Log(LogLevel::Error, "[Animation Manager {}] Frame is out of range: {} (max: {})",
+            mInstanceID, frame, info->AnimInfo->FrameCount);
+            return;
+        }
+        info->CurrentFrame = frame;
+    }
+
+    void AnimationManager::SetLooping(uint32_t handle, bool loop) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+
+        info->Loop = loop;
+    }
+
+    void AnimationManager::Pause(uint32_t handle) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+        
+        info->IsPlaying = false;
+    }
+
+    void AnimationManager::Stop(uint32_t handle) {
+        auto info = GetAnimationInfo(handle);
+        if (info == nullptr) return;
+        
+        info->CurrentFrame = 0;
+        info->IsPlaying = false;
     }
 }
