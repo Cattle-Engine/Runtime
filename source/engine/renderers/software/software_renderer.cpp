@@ -42,6 +42,39 @@ namespace {
 }
 
 namespace CE::Renderer::Software {
+    namespace {
+        constexpr float kTileEpsilon = 0.0001f;
+
+        float PositiveFraction(float value) {
+            const float fraction = value - std::floor(value);
+            return fraction < 0.0f ? fraction + 1.0f : fraction;
+        }
+
+        bool ApproximatelyInteger(float value) {
+            return std::abs(value - std::round(value)) <= kTileEpsilon;
+        }
+    }
+
+    static SDL_FlipMode ToSDLFlipMode(bool flipX, bool flipY) {
+        if (flipX && flipY) {
+            return static_cast<SDL_FlipMode>(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+        }
+        if (flipX) {
+            return SDL_FLIP_HORIZONTAL;
+        }
+        if (flipY) {
+            return SDL_FLIP_VERTICAL;
+        }
+        return SDL_FLIP_NONE;
+    }
+
+    static void RotateCorner(SDL_FPoint& point, float cx, float cy, float sinA, float cosA) {
+        const float dx = point.x - cx;
+        const float dy = point.y - cy;
+        point.x = cx + dx * cosA - dy * sinA;
+        point.y = cy + dx * sinA + dy * cosA;
+    }
+
     Software_Renderer::Software_Renderer(VFS::VFS* vfs) : mVFS(vfs) {
     }
 
@@ -401,7 +434,8 @@ namespace CE::Renderer::Software {
                                           float w, float h,
                                           const SDL_FRect* srcRect,
                                           Colour colour,
-                                          float rotation) {
+                                          float rotation,
+                                          SDL_FlipMode flipMode) {
         if (mRenderer == nullptr || texture == nullptr || texture->handle == nullptr) {
             return false;
         }
@@ -434,15 +468,21 @@ namespace CE::Renderer::Software {
             &dstRect,
             rotation,
             &centre,
-            SDL_FLIP_NONE
+            flipMode
         );
     }
 
     void Software_Renderer::DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
-                                    float rotation) {
-        if (!RenderTexture(texture, x, y, w, h, nullptr, colour, rotation) && texture != GetErrorTexture()) {
-            RenderTexture(GetErrorTexture(), x, y, w, h, nullptr, colour, rotation);
+                                    float rotation,
+                                    TextureFlip flip) {
+        const SDL_FlipMode flipMode = ToSDLFlipMode(
+            HasTextureFlip(flip, TextureFlip::Horizontal),
+            HasTextureFlip(flip, TextureFlip::Vertical)
+        );
+
+        if (!RenderTexture(texture, x, y, w, h, nullptr, colour, rotation, flipMode) && texture != GetErrorTexture()) {
+            RenderTexture(GetErrorTexture(), x, y, w, h, nullptr, colour, rotation, flipMode);
         }
     }
 
@@ -452,24 +492,154 @@ namespace CE::Renderer::Software {
                                       float u0, float v0,
                                       float u1, float v1,
                                       Colour colour,
-                                      float rotation) {
+                                      float rotation,
+                                      TextureFlip flip) {
         if (tex == nullptr) {
             return;
         }
 
-        SDL_FRect srcRect{
-            std::min(u0, u1) * tex->width,
-            std::min(v0, v1) * tex->height,
-            std::abs(u1 - u0) * tex->width,
-            std::abs(v1 - v0) * tex->height
-        };
-
-        if (srcRect.w <= 0.0f || srcRect.h <= 0.0f) {
+        if (mRenderer == nullptr || tex->handle == nullptr) {
             return;
         }
 
-        if (!RenderTexture(tex, x, y, w, h, &srcRect, colour, rotation) && tex != GetErrorTexture()) {
-            RenderTexture(GetErrorTexture(), x, y, w, h, nullptr, colour, rotation);
+        auto* data = static_cast<SoftwareTextureData*>(tex->handle);
+        if (data->texture == nullptr) {
+            return;
+        }
+
+        const bool flipX = (u1 < u0) ^ HasTextureFlip(flip, TextureFlip::Horizontal);
+        const bool flipY = (v1 < v0) ^ HasTextureFlip(flip, TextureFlip::Vertical);
+        const float minU = std::min(u0, u1);
+        const float maxU = std::max(u0, u1);
+        const float minV = std::min(v0, v1);
+        const float maxV = std::max(v0, v1);
+        const bool requiresTiling =
+            minU < 0.0f || maxU > 1.0f ||
+            minV < 0.0f || maxV > 1.0f;
+
+        if (!requiresTiling) {
+            SDL_FRect srcRect{
+                minU * tex->width,
+                minV * tex->height,
+                std::abs(u1 - u0) * tex->width,
+                std::abs(v1 - v0) * tex->height
+            };
+
+            if (srcRect.w <= 0.0f || srcRect.h <= 0.0f) {
+                return;
+            }
+
+            const SDL_FlipMode flipMode = ToSDLFlipMode(flipX, flipY);
+
+            if (!RenderTexture(tex, x, y, w, h, &srcRect, colour, rotation, flipMode) && tex != GetErrorTexture()) {
+                RenderTexture(GetErrorTexture(), x, y, w, h, nullptr, colour, rotation, flipMode);
+            }
+            return;
+        }
+
+        const float totalU = u1 - u0;
+        const float totalV = v1 - v0;
+        const float absTotalU = std::abs(totalU);
+        const float absTotalV = std::abs(totalV);
+        if (absTotalU <= kTileEpsilon || absTotalV <= kTileEpsilon) {
+            return;
+        }
+
+        const SDL_FColor vertexColour{
+            colour.r / 255.0f,
+            colour.g / 255.0f,
+            colour.b / 255.0f,
+            colour.a / 255.0f
+        };
+        const float centreX = x + w * 0.5f;
+        const float centreY = y + h * 0.5f;
+        const float sinA = std::sin(rotation);
+        const float cosA = std::cos(rotation);
+
+        float currentU = u0;
+        float travelledU = 0.0f;
+        while (travelledU < absTotalU - kTileEpsilon) {
+            float nextU = u1;
+            if (totalU > 0.0f) {
+                nextU = std::min(std::floor(currentU + 1.0f), u1);
+            } else {
+                nextU = std::max(std::ceil(currentU - 1.0f), u1);
+            }
+
+            const float spanU = std::abs(nextU - currentU);
+            if (spanU <= kTileEpsilon) {
+                break;
+            }
+
+            const float dstLeft = x + (travelledU / absTotalU) * w;
+            const float dstRight = x + ((travelledU + spanU) / absTotalU) * w;
+
+            float currentV = v0;
+            float travelledV = 0.0f;
+            while (travelledV < absTotalV - kTileEpsilon) {
+                float nextV = v1;
+                if (totalV > 0.0f) {
+                    nextV = std::min(std::floor(currentV + 1.0f), v1);
+                } else {
+                    nextV = std::max(std::ceil(currentV - 1.0f), v1);
+                }
+
+                const float spanV = std::abs(nextV - currentV);
+                if (spanV <= kTileEpsilon) {
+                    break;
+                }
+
+                const float dstTop = y + (travelledV / absTotalV) * h;
+                const float dstBottom = y + ((travelledV + spanV) / absTotalV) * h;
+
+                float srcU0 = PositiveFraction(currentU);
+                float srcV0 = PositiveFraction(currentV);
+                if (totalU < 0.0f && ApproximatelyInteger(currentU)) {
+                    srcU0 = 1.0f;
+                }
+                if (totalV < 0.0f && ApproximatelyInteger(currentV)) {
+                    srcV0 = 1.0f;
+                }
+
+                const float srcU1 = srcU0 + (totalU > 0.0f ? spanU : -spanU);
+                const float srcV1 = srcV0 + (totalV > 0.0f ? spanV : -spanV);
+
+                SDL_FPoint corners[4] = {
+                    {dstLeft,  dstTop},
+                    {dstRight, dstTop},
+                    {dstRight, dstBottom},
+                    {dstLeft,  dstBottom}
+                };
+
+                for (SDL_FPoint& corner : corners) {
+                    RotateCorner(corner, centreX, centreY, sinA, cosA);
+                    corner = ApplyCamera(corner.x, corner.y);
+                }
+
+                SDL_Vertex verts[4];
+                verts[0].position = corners[0];
+                verts[1].position = corners[1];
+                verts[2].position = corners[2];
+                verts[3].position = corners[3];
+
+                verts[0].tex_coord = {srcU0, srcV0};
+                verts[1].tex_coord = {srcU1, srcV0};
+                verts[2].tex_coord = {srcU1, srcV1};
+                verts[3].tex_coord = {srcU0, srcV1};
+
+                for (SDL_Vertex& vert : verts) {
+                    vert.color = vertexColour;
+                }
+
+                const int indices[6] = {0, 1, 2, 2, 3, 0};
+                SDL_RenderGeometry(mRenderer, data->texture, verts, 4, indices, 6);
+
+                currentV = nextV;
+                travelledV += spanV;
+            }
+
+            currentU = nextU;
+            travelledU += spanU;
         }
     }
 

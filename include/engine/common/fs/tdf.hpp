@@ -1,72 +1,95 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <unordered_map>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "engine/common/fs/vfs.hpp"
 
-enum class TDFType : uint8_t {
-    Null = 0,
-    Bool,
-    Int32,
-    UInt32,
-    Float,
-    String,
-    Object,
+namespace CE::TDF {
+    enum class Type : uint8_t {
+        Null = 0,
+        Bool,
+        Int32,
+        UInt32,
+        Float,
+        String,
+        Object,
 
-    ArrBool = 0xE0,
-    ArrInt32,
-    ArrUInt32,
-    ArrFloat,
-    ArrString,
-    ArrObject,
-};
+        ArrBool = 0xE0,
+        ArrInt32,
+        ArrUInt32,
+        ArrFloat,
+        ArrString,
+        ArrObject,
+    };
 
-struct TDFValue {
-    TDFType type;
-    std::vector<uint8_t> data;
-};
+    struct Value {
+        Type type = Type::Null;
+        std::vector<uint8_t> data;
+    };
 
-struct TDFFile {
-    std::unordered_map<std::string, TDFValue> entries;
+    struct File {
+        std::unordered_map<std::string, Value> entries;
 
-    void save(CE::VFS::VFS& vfs, const std::string& path, uint8_t version) const;
-    void load(CE::VFS::VFS& vfs, const std::string& path);
+        void save(VFS::VFS& vfs, const std::string& path, uint8_t version) const;
+        void load(VFS::VFS& vfs, const std::string& path);
 
-    void set(const std::string& key, const TDFValue& val);
-    bool remove(const std::string& key);
-    bool has(const std::string& key) const;
+        void set(const std::string& key, const Value& val);
+        bool remove(const std::string& key);
+        bool has(const std::string& key) const;
 
-    bool hasPath(const std::string& path, char separator = '/');
-    bool tryGetPath(const std::string& path, TDFValue& out, char separator = '/');
-    bool removePath(const std::string& path, char separator = '/');
-    void setPath(const std::string& path, const TDFValue& val, char separator = '/');
+        bool hasPath(const std::string& path, char separator = '/') const;
+        bool tryGetPath(const std::string& path, Value& out, char separator = '/') const;
+        bool removePath(const std::string& path, char separator = '/');
+        void setPath(const std::string& path, const Value& val, char separator = '/');
 
-    void appendToArray(const std::string& key, const TDFValue& val);
-    void deleteFromArray(const std::string& key, size_t index);
+        void appendToArray(const std::string& key, const Value& val);
+        void deleteFromArray(const std::string& key, size_t index);
 
-    static TDFValue makeNull();
-    static TDFValue makeBool(bool v);
-    static TDFValue makeInt(int32_t v);
-    static TDFValue makeUInt(uint32_t v);
-    static TDFValue makeFloat(float v);
-    static TDFValue makeString(const std::string& s);
+        static Value makeNull();
+        static Value makeBool(bool v);
+        static Value makeInt(int32_t v);
+        static Value makeUInt(uint32_t v);
+        static Value makeFloat(float v);
+        static Value makeString(const std::string& s);
 
-    static TDFValue makeBoolArray(const std::vector<bool>& arr);
-    static TDFValue makeIntArray(const std::vector<int32_t>& arr);
-    static TDFValue makeUIntArray(const std::vector<uint32_t>& arr);
-    static TDFValue makeFloatArray(const std::vector<float>& arr);
-    static TDFValue makeStringArray(const std::vector<std::string>& arr);
+        static Value makeBoolArray(const std::vector<bool>& arr);
+        static Value makeIntArray(const std::vector<int32_t>& arr);
+        static Value makeUIntArray(const std::vector<uint32_t>& arr);
+        static Value makeFloatArray(const std::vector<float>& arr);
+        static Value makeStringArray(const std::vector<std::string>& arr);
 
-    static TDFValue makeObject(const TDFFile& obj, uint8_t version);
-    static TDFValue makeObjectArray(const std::vector<TDFFile>& arr, uint8_t version);
+        static Value makeObject(const File& obj, uint8_t version);
+        static Value makeObjectArray(const std::vector<File>& arr, uint8_t version);
 
-    static void readValue(VirtualFile* file, TDFValue& v);
+        static bool readBool(const Value& v);
+        static int32_t readInt(const Value& v);
+        static uint32_t readUInt(const Value& v);
+        static float readFloat(const Value& v);
+        static std::string readString(const Value& v);
+        static File readObject(const Value& v);
 
-    static bool isArray(TDFType t);
-    static TDFType elementType(TDFType arrType);
-    static size_t elementSize(TDFType arrType, TDFType elemType);
-};
+        static std::vector<bool> readBoolArray(const Value& v);
+        static std::vector<int32_t> readIntArray(const Value& v);
+        static std::vector<uint32_t> readUIntArray(const Value& v);
+        static std::vector<float> readFloatArray(const Value& v);
+        static std::vector<std::string> readStringArray(const Value& v);
+        static std::vector<File> readObjectArray(const Value& v);
+
+        static size_t arraySize(const Value& v);
+        static Value arrayElement(const Value& v, size_t index);
+
+        static void readValue(::VirtualFile* file, Value& v);
+
+        static bool isArray(Type t);
+        static Type elementType(Type arrType);
+        static size_t elementSize(Type arrType, Type elemType);
+    };
+}
+
+using TDFType = CE::TDF::Type;
+using TDFValue = CE::TDF::Value;
+using TDFFile = CE::TDF::File;

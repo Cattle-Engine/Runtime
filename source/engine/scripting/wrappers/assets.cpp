@@ -104,7 +104,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTexture(const string &in name, int x, int y)",
+            "void DrawTexture(const string &in name, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -114,7 +114,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureEx(const string &in name, int x, int y, const CE::Graphics::Colour &in colour)",
+            "void DrawTextureEx(const string &in name, int x, int y, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -124,7 +124,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureRot(const string &in name, int x, int y, float rotation)",
+            "void DrawTextureRot(const string &in name, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureRot),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -134,7 +134,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureRotEx(const string &in name, int x, int y, float rotation, const CE::Graphics::Colour &in colour)",
+            "void DrawTextureRotEx(const string &in name, int x, int y, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureRotEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -144,7 +144,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTexturePro(const string &in name, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour)",
+            "void DrawTexturePro(const string &in name, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTexturePro),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -279,24 +279,24 @@ namespace CE::Scripting {
         mTextureManager.Unload(name.c_str());
     }
 
-    void Runtime::DrawTexture(const std::string& name, int x, int y) {
-        mTextureManager.Draw(name.c_str(), x, y, kWhite);
+    void Runtime::DrawTexture(const std::string& name, int x, int y, bool flipX, bool flipY, float tileX, float tileY) {
+        mTextureManager.Draw(name.c_str(), x, y, kWhite, flipX, flipY, tileX, tileY);
     }
 
-    void Runtime::DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour) {
-        mTextureManager.Draw(name.c_str(), x, y, colour);
+    void Runtime::DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        mTextureManager.Draw(name.c_str(), x, y, colour, flipX, flipY, tileX, tileY);
     }
 
-    void Runtime::DrawTextureRot(const std::string& name, int x, int y, float rotation) {
-        mTextureManager.DrawRot(name.c_str(), x, y, rotation, kWhite);
+    void Runtime::DrawTextureRot(const std::string& name, int x, int y, float rotation, bool flipX, bool flipY, float tileX, float tileY) {
+        mTextureManager.DrawRot(name.c_str(), x, y, rotation, kWhite, flipX, flipY, tileX, tileY);
     }
 
-    void Runtime::DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour) {
-        mTextureManager.DrawRot(name.c_str(), x, y, rotation, colour);
+    void Runtime::DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        mTextureManager.DrawRot(name.c_str(), x, y, rotation, colour, flipX, flipY, tileX, tileY);
     }
 
-    void Runtime::DrawTexturePro(const std::string& name, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour) {
-        mTextureManager.DrawPro(name.c_str(), x, y, w, h, rotation, colour);
+    void Runtime::DrawTexturePro(const std::string& name, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        mTextureManager.DrawPro(name.c_str(), x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
     }
 
     void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation) {

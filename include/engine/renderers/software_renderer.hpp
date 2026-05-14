@@ -48,14 +48,16 @@ namespace CE::Renderer::Software {
             ) override;
             void DrawTex(Texture* texture, float x, float y,
                          float w, float h, Colour colour,
-                         float rotation) override;
+                         float rotation,
+                         TextureFlip flip = TextureFlip::None) override;
             void DrawTexUV(Texture* tex,
                            float x, float y,
                            float w, float h,
                            float u0, float v0,
                            float u1, float v1,
                            Colour colour,
-                           float rotation) override;
+                           float rotation,
+                           TextureFlip flip = TextureFlip::None) override;
             void UnloadTex(Texture* texture) override;
             void DrawTriangle(float x0, float y0,
                               float x1, float y1,
@@ -98,7 +100,8 @@ namespace CE::Renderer::Software {
                                float w, float h,
                                const SDL_FRect* srcRect,
                                Colour colour,
-                               float rotation);
+                               float rotation,
+                               SDL_FlipMode flipMode);
             Texture* CreateTextureFromSurface(SDL_Surface* surface);
             void DestroyTexture(Texture* texture);
             void EnsureImGuiContext();

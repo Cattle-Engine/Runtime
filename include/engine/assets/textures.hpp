@@ -14,10 +14,16 @@ namespace CE::Assets::Textures {
             void Unload(const char* name);
             
             void DrawPro(const char* name, int x, int y, int w, 
-                int h, float rotation, CE::Renderer::Colour colour);
-            void Draw(const char* name, int x, int y, CE::Renderer::Colour colour);
+                int h, float rotation, CE::Renderer::Colour colour,
+                bool flipX = false, bool flipY = false,
+                float tileX = 1.0f, float tileY = 1.0f);
+            void Draw(const char* name, int x, int y, CE::Renderer::Colour colour,
+                bool flipX = false, bool flipY = false,
+                float tileX = 1.0f, float tileY = 1.0f);
             void DrawRot(const char* name, int x, int y, 
-                float rotation, CE::Renderer::Colour colour);
+                float rotation, CE::Renderer::Colour colour,
+                bool flipX = false, bool flipY = false,
+                float tileX = 1.0f, float tileY = 1.0f);
 
             void UnloadAll();
 

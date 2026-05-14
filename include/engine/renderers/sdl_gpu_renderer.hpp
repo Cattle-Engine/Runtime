@@ -14,8 +14,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     // Internal struct 
     // Stores the GPU-side texture + sampler behind Texture::handle.
     struct SDLGPUTexData {
-        SDL_GPUTexture* gpuTex  = nullptr;
-        SDL_GPUSampler* sampler = nullptr;
+        SDL_GPUTexture* gpuTex        = nullptr;
+        SDL_GPUSampler* sampler       = nullptr;
+        SDL_GPUSampler* repeatSampler = nullptr;
     };
 
     struct DeferredDeleteEntry {
@@ -29,6 +30,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     struct TexVertexBatch {
         SDLGPUTexData* texture = nullptr;
+        SDL_GPUSampler* sampler = nullptr;
 
         uint32_t vertOffset = 0;
         uint32_t vertCount  = 0;
@@ -79,14 +81,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                             ) override;
             void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
-                                    float rotation) override;
+                                    float rotation,
+                                    TextureFlip flip = TextureFlip::None) override;
             void DrawTexUV(Texture* tex,
                     float x, float y,
                     float w, float h,
                     float u0, float v0,
                     float u1, float v1,
                     Colour colour,
-                    float rotation) override;
+                    float rotation,
+                    TextureFlip flip = TextureFlip::None) override;
             void UnloadTex(Texture* texture) override;
             void DrawRectLines(float x, float y, float w, float h,
                                         float thickness,
@@ -151,6 +155,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             std::vector<TexVertexBatch> gTexBatches;
             uint32_t gTexVertCount  = 0;
             SDLGPUTexData* gCurrentTex = nullptr;
+            SDL_GPUSampler* gCurrentTexSampler = nullptr;
             glm::mat4 gMVP{};
             SDL_GPUTexture* gErrorTex = nullptr;
             SDL_GPUSampler* gErrorSampler = nullptr;

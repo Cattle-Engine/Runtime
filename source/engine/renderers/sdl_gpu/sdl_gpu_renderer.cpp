@@ -16,6 +16,31 @@
 #endif
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    namespace {
+        SDL_GPUSampler* CreateSampler(SDL_GPUDevice* device,
+                                      SDL_GPUFilter filter,
+                                      SDL_GPUSamplerAddressMode addressMode) {
+            SDL_GPUSamplerCreateInfo sampInfo{};
+            sampInfo.min_filter = filter;
+            sampInfo.mag_filter = filter;
+            sampInfo.address_mode_u = addressMode;
+            sampInfo.address_mode_v = addressMode;
+            sampInfo.address_mode_w = addressMode;
+            sampInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+            sampInfo.min_lod = 0.0f;
+            sampInfo.max_lod = 0.0f;
+            return SDL_CreateGPUSampler(device, &sampInfo);
+        }
+
+        bool RequiresRepeatSampler(float u0, float v0, float u1, float v1) {
+            constexpr float kEpsilon = 0.0001f;
+            return std::min(u0, u1) < -kEpsilon ||
+                   std::max(u0, u1) > 1.0f + kEpsilon ||
+                   std::min(v0, v1) < -kEpsilon ||
+                   std::max(v0, v1) > 1.0f + kEpsilon;
+        }
+    }
+
     void RotatePoint(float& x, float& y, float cx, float cy, float sinA, float cosA) {
         float dx = x - cx;
         float dy = y - cy;
@@ -324,6 +349,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_WaitForGPUIdle(gDevice);
             for (auto& entry : gDeferredDeletes) {
                 if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
+                if (entry.data->repeatSampler && entry.data->repeatSampler != entry.data->sampler) {
+                    SDL_ReleaseGPUSampler(gDevice, entry.data->repeatSampler);
+                }
                 if (entry.data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, entry.data->gpuTex);
                 delete entry.data;
             }
@@ -414,6 +442,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gTexBatches.clear();
         gCurrentTex = nullptr;
+        gCurrentTexSampler = nullptr;
 
         gMappedVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
         gMappedIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
@@ -483,7 +512,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             SDL_GPUTextureSamplerBinding binding{
                 batch.texture->gpuTex,
-                batch.texture->sampler
+                batch.sampler
             };
 
             SDL_BindGPUFragmentSamplers(gRenderPass, 0, &binding, 1);
@@ -794,17 +823,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_SubmitGPUCommandBuffer(cmd);
         SDL_ReleaseGPUTransferBuffer(gDevice, tb);
 
-        // Sampler
-        SDL_GPUSamplerCreateInfo sampInfo{};
-        sampInfo.min_filter     = SDL_GPU_FILTER_LINEAR;
-        sampInfo.mag_filter     = SDL_GPU_FILTER_LINEAR;
-        sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-
         SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex        = gpuTex;
-        data->sampler       = SDL_CreateGPUSampler(gDevice, &sampInfo);
+        data->sampler       = CreateSampler(gDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
+        data->repeatSampler = CreateSampler(gDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+        if (!data->sampler || !data->repeatSampler) {
+            if (data->sampler) {
+                SDL_ReleaseGPUSampler(gDevice, data->sampler);
+            }
+            if (data->repeatSampler) {
+                SDL_ReleaseGPUSampler(gDevice, data->repeatSampler);
+            }
+            SDL_ReleaseGPUTexture(gDevice, gpuTex);
+            delete data;
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create texture samplers: {}", SDL_GetError());
+            return nullptr;
+        }
 
         Texture* tex = new Texture();
         tex->handle  = data;
@@ -971,37 +1005,33 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_SubmitGPUCommandBuffer(cmd);
         SDL_ReleaseGPUTransferBuffer(gDevice, tb);
 
-        SDL_GPUSamplerCreateInfo sampInfo{};
-        sampInfo.min_filter = (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
-        sampInfo.mag_filter = (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
-
+        const SDL_GPUFilter gpuFilter =
+            (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
+        SDL_GPUSamplerAddressMode addressMode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         switch (wrap) {
             case TextureWrap::Clamp:
-                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                addressMode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
                 break;
             case TextureWrap::Repeat:
-                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                addressMode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
                 break;
             case TextureWrap::MirroredRepeat:
-                sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-                sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-                sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                addressMode = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
                 break;
         }
 
-        sampInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-        sampInfo.min_lod = 0.0f;
-        sampInfo.max_lod = 0.0f;
-
         SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex = gpuTex;
-        data->sampler = SDL_CreateGPUSampler(gDevice, &sampInfo);
-        if (!data->sampler) {
+        data->sampler = CreateSampler(gDevice, gpuFilter, addressMode);
+        data->repeatSampler = CreateSampler(gDevice, gpuFilter, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+        if (!data->sampler || !data->repeatSampler) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
+            if (data->sampler) {
+                SDL_ReleaseGPUSampler(gDevice, data->sampler);
+            }
+            if (data->repeatSampler) {
+                SDL_ReleaseGPUSampler(gDevice, data->repeatSampler);
+            }
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             delete data;
             return nullptr;
@@ -1018,7 +1048,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
-                                    float rotation) {
+                                    float rotation,
+                                    TextureFlip flip) {
         if(!gFrameActive) {
             CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
             return;
@@ -1026,10 +1057,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (!texture || !texture->handle) return;
         auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
+        SDL_GPUSampler* sampler = tex->sampler;
 
-        if (gCurrentTex != tex) {
-            gTexBatches.push_back({ tex, gTexVertCount, 0, gTexIndexCount, 0 });
+        if (gCurrentTex != tex || gCurrentTexSampler != sampler) {
+            gTexBatches.push_back({ tex, sampler, gTexVertCount, 0, gTexIndexCount, 0 });
             gCurrentTex = tex;
+            gCurrentTexSampler = sampler;
         }
 
         float cx = x + w * 0.5f;
@@ -1041,6 +1074,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float py[4] = { y,     y,     y + h, y + h  };
         float pu[4] = { 0, 1, 1, 0 };
         float pv[4] = { 0, 0, 1, 1 };
+
+        if (HasTextureFlip(flip, TextureFlip::Horizontal)) {
+            std::swap(pu[0], pu[1]);
+            std::swap(pu[3], pu[2]);
+        }
+        if (HasTextureFlip(flip, TextureFlip::Vertical)) {
+            std::swap(pv[0], pv[3]);
+            std::swap(pv[1], pv[2]);
+        }
 
         uint16_t base = (uint16_t)gTexVertCount;
         uint8_t r = colour.r, g = colour.g, b = colour.b, a = colour.a;
@@ -1070,7 +1112,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                     float u0, float v0,
                     float u1, float v1,
                     Colour colour,
-                    float rotation) {
+                    float rotation,
+                    TextureFlip flip) {
         if(!gFrameActive) {
             CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
             return;
@@ -1078,10 +1121,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (!texture || !texture->handle) return;
         auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
+        SDL_GPUSampler* sampler = RequiresRepeatSampler(u0, v0, u1, v1)
+            ? tex->repeatSampler
+            : tex->sampler;
 
-        if (gCurrentTex != tex) {
-            gTexBatches.push_back({ tex, gTexVertCount, 0, gTexIndexCount, 0 });
+        if (gCurrentTex != tex || gCurrentTexSampler != sampler) {
+            gTexBatches.push_back({ tex, sampler, gTexVertCount, 0, gTexIndexCount, 0 });
             gCurrentTex = tex;
+            gCurrentTexSampler = sampler;
         }
 
         float cx = x + w * 0.5f;
@@ -1093,6 +1140,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float py[4] = { y,     y,     y + h, y + h  };
         float pu[4] = { u0, u1, u1, u0 };
         float pv[4] = { v0, v0, v1, v1 };
+
+        if (HasTextureFlip(flip, TextureFlip::Horizontal)) {
+            std::swap(pu[0], pu[1]);
+            std::swap(pu[3], pu[2]);
+        }
+        if (HasTextureFlip(flip, TextureFlip::Vertical)) {
+            std::swap(pv[0], pv[3]);
+            std::swap(pv[1], pv[2]);
+        }
 
         uint16_t base = (uint16_t)gTexVertCount;
         uint8_t r = colour.r, g = colour.g, b = colour.b, a = colour.a;
@@ -1124,6 +1180,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             entry.framesUntilDelete--;
             if (entry.framesUntilDelete <= 0) {
                 if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
+                if (entry.data->repeatSampler && entry.data->repeatSampler != entry.data->sampler) {
+                    SDL_ReleaseGPUSampler(gDevice, entry.data->repeatSampler);
+                }
                 if (entry.data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, entry.data->gpuTex);
                 delete entry.data;
                 entriesToDelete.push_back(entry);
@@ -1195,8 +1254,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         static Texture errorTexture;
 
         static SDLGPUTexData data;
-        data.gpuTex  = gErrorTex;
-        data.sampler = gErrorSampler;
+        data.gpuTex        = gErrorTex;
+        data.sampler       = gErrorSampler;
+        data.repeatSampler = gErrorSampler;
 
         errorTexture.handle  = &data;
         errorTexture.width   = 8;

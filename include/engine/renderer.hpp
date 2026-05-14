@@ -83,6 +83,28 @@ namespace CE::Renderer {
         MirroredRepeat  // tile but mirrored each time
     };
 
+    enum class TextureFlip : uint8_t {
+        None = 0,
+        Horizontal = 1 << 0,
+        Vertical = 1 << 1
+    };
+
+    constexpr TextureFlip operator|(TextureFlip lhs, TextureFlip rhs) {
+        return static_cast<TextureFlip>(
+            static_cast<uint8_t>(lhs) | static_cast<uint8_t>(rhs)
+        );
+    }
+
+    constexpr TextureFlip operator&(TextureFlip lhs, TextureFlip rhs) {
+        return static_cast<TextureFlip>(
+            static_cast<uint8_t>(lhs) & static_cast<uint8_t>(rhs)
+        );
+    }
+
+    constexpr bool HasTextureFlip(TextureFlip flips, TextureFlip flag) {
+        return (flips & flag) != TextureFlip::None;
+    }
+
     class IRenderer {
         public:
                 virtual void PreWinInit() = 0;
@@ -115,14 +137,16 @@ namespace CE::Renderer {
                 ) = 0;
                 virtual void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
-                                    float rotation) = 0;
+                                    float rotation,
+                                    TextureFlip flip = TextureFlip::None) = 0;
                 virtual void DrawTexUV(Texture* tex,
                     float x, float y,
                     float w, float h,
                     float u0, float v0,
                     float u1, float v1,
                     Colour colour,
-                    float rotation) = 0;
+                    float rotation,
+                    TextureFlip flip = TextureFlip::None) = 0;
                 virtual void UnloadTex(Texture* texture) = 0;
                 virtual void DrawTriangle(
                             float x0, float y0,

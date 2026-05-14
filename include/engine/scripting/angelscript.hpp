@@ -84,12 +84,12 @@ namespace CE::Scripting {
 
             void LoadTexture(const std::string& path, const std::string& name);
             void UnloadTexture(const std::string& name);
-            void DrawTexture(const std::string& name, int x, int y);
-            void DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour);
-            void DrawTextureRot(const std::string& name, int x, int y, float rotation);
-            void DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour);
+            void DrawTexture(const std::string& name, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureRot(const std::string& name, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
             void DrawTexturePro(const std::string& name, int x, int y, int w,
-                int h, float rotation, const Renderer::Colour& colour);
+                int h, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
             void DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation);
             void DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour& colour);
             void DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour& colour);
