@@ -1,4 +1,5 @@
 #include "engine/scripting/angelscript.hpp"
+#include "engine/assets/animations.hpp"
 
 #include <new>
 
@@ -267,6 +268,148 @@ namespace CE::Scripting {
             return false;
         }
 
+        mScriptEngine->SetDefaultNamespace("CE::Graphics::Animations");
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void LoadAnimation(const string &in path, const string &in name)",
+            asMETHOD(Runtime, LoadAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void UnloadAnimation(const string &in name)",
+            asMETHOD(Runtime, UnloadAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "uint CreateInstance(const string &in name)",
+            asMETHOD(Runtime, CreateAnimationInstance),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void DeleteInstance(uint handle)",
+            asMETHOD(Runtime, DeleteAnimationInstance),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void Play(uint handle, int x, int y, bool loop = false, bool autoRender = true)",
+            asMETHOD(Runtime, PlayAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void PlayRot(uint handle, int x, int y, bool loop, float rotation, bool autoRender = true)",
+            asMETHOD(Runtime, PlayAnimationRot),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetPosition(uint handle, int x, int y, float rotation = 0.0f)",
+            asMETHOD(Runtime, SetAnimationPosition),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void Seek(uint handle, uint frame)",
+            asMETHOD(Runtime, SeekAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetDrawMode(uint handle, bool autoRender)",
+            asMETHOD(Runtime, SetAnimationDrawMode),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetLooping(uint handle, bool loop)",
+            asMETHOD(Runtime, SetAnimationLooping),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetTint(uint handle, const CE::Graphics::Colour &in colour)",
+            asMETHOD(Runtime, SetAnimationTint),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void Pause(uint handle)",
+            asMETHOD(Runtime, PauseAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void Stop(uint handle)",
+            asMETHOD(Runtime, StopAnimation),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void DrawFrame(uint handle)",
+            asMETHOD(Runtime, DrawAnimationFrame),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
         mScriptEngine->SetDefaultNamespace("");
         return true;
     }
@@ -341,5 +484,103 @@ namespace CE::Scripting {
 
     void Runtime::DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, const Renderer::Colour& colour) {
         mFontManager.DrawEx(text, name, x, y, size, colour);
+    }
+
+    void Runtime::LoadAnimation(const std::string& path, const std::string& name) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Load(name, path);
+    }
+
+    void Runtime::UnloadAnimation(const std::string& name) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Unload(name);
+    }
+
+    uint32_t Runtime::CreateAnimationInstance(const std::string& name) {
+        if (!mAnimationManager) {
+            return 0;
+        }
+        return mAnimationManager->CreateInstance(name);
+    }
+
+    void Runtime::DeleteAnimationInstance(uint32_t handle) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->DeleteInstance(handle);
+    }
+
+    void Runtime::PlayAnimation(uint32_t handle, int x, int y, bool loop, bool autoRender) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Play(handle, x, y, loop, autoRender);
+    }
+
+    void Runtime::PlayAnimationRot(uint32_t handle, int x, int y, bool loop, float rotation, bool autoRender) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->PlayRot(handle, x, y, loop, rotation, autoRender);
+    }
+
+    void Runtime::SetAnimationPosition(uint32_t handle, int x, int y, float rotation) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->SetPosition(handle, x, y, rotation);
+    }
+
+    void Runtime::SeekAnimation(uint32_t handle, uint32_t frame) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Seek(handle, frame);
+    }
+
+    void Runtime::SetAnimationDrawMode(uint32_t handle, bool autoRender) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->SetDrawMode(handle, autoRender);
+    }
+
+    void Runtime::SetAnimationLooping(uint32_t handle, bool loop) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->SetLooping(handle, loop);
+    }
+
+    void Runtime::SetAnimationTint(uint32_t handle, const Renderer::Colour& colour) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->SetTint(handle, colour);
+    }
+
+    void Runtime::PauseAnimation(uint32_t handle) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Pause(handle);
+    }
+
+    void Runtime::StopAnimation(uint32_t handle) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->Stop(handle);
+    }
+
+    void Runtime::DrawAnimationFrame(uint32_t handle) {
+        if (!mAnimationManager) {
+            return;
+        }
+        mAnimationManager->DrawFrame(handle);
     }
 }

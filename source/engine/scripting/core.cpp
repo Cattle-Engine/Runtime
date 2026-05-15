@@ -29,6 +29,7 @@ namespace CE::Scripting {
         Renderer::IRenderer& renderer,
         Assets::Textures::TextureManager& textureManager,
         Assets::Fonts::FontManager& fontManager,
+        CE::Assets::Animations::AnimationManager* animationManager,
         Input::Keyboard& keyboard,
         Input::Mouse& mouse,
         CE::Assets::Audio::AudioManager* audioManager
@@ -40,6 +41,7 @@ namespace CE::Scripting {
         , mRenderer(renderer)
         , mTextureManager(textureManager)
         , mFontManager(fontManager)
+        , mAnimationManager(animationManager)
         , mKeyboard(keyboard)
         , mMouse(mouse)
         , mAudioManager(audioManager) {

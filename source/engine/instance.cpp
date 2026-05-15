@@ -70,6 +70,8 @@ namespace CE {
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
         }
 
+        gAnimationManager = std::make_unique<CE::Assets::Animations::AnimationManager>(*gVFS, *gRenderer, gInstanceID);
+
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
@@ -102,6 +104,7 @@ namespace CE {
             *gRenderer,
             *gTextureManager,
             *gFontManager,
+            gAnimationManager.get(),
             *gKeyboardManger,
             *gMouseManger,
 #if defined(CE_ENABLE_AUDIO)
@@ -166,7 +169,8 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
-
+        
+        gAnimationManager->Update(gDeltaTime);
         gGameStateManager.Emit("Update");
 
         int bfr = gRenderer->BeginFrame(gWindow);
@@ -183,6 +187,7 @@ namespace CE {
             return 1;
         }
 
+        gAnimationManager->Render();
         gRenderer->ImGuiStartFrame();
 
         gDebugWindow.Draw(

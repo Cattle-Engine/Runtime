@@ -149,9 +149,10 @@ external/angelscript/sdk/add_on
 )
 
 target_compile_definitions(ce_engine PRIVATE
-ENGINE_BUILT_ON_OS="${HOST_OS}"
-CE_DATA_FILE_NAME="${DATA_FILE_NAME}"
-${PLATFORM_FLAGS}
+    ENGINE_BUILT_ON_OS="${HOST_OS}"
+    CE_DATA_FILE_NAME="${DATA_FILE_NAME}"
+    ${PLATFORM_FLAGS}
+    TDF_MODE_CE
 )
 
 
@@ -237,3 +238,4 @@ COMMAND ce_engine
 DEPENDS ce_engine
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+    

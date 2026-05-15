@@ -8,6 +8,7 @@
 #include "engine/common/fs/vfs.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/assets/audio.hpp"
+#include "engine/assets/animations.hpp"
 #include "engine/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
@@ -57,6 +58,7 @@ namespace CE {
             std::unique_ptr<CE::GameInfo> gGameInfo;
             std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
             std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
+            std::unique_ptr<CE::Assets::Animations::AnimationManager> gAnimationManager;
             std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;

@@ -21,6 +21,10 @@ namespace CE::Assets::Audio {
     class AudioManager;
 }
 
+namespace CE::Assets::Animations {
+    class AnimationManager;
+}
+
 namespace CE::Scripting {
     struct AudioEffectDesc {
         bool enabled = false;
@@ -45,6 +49,7 @@ namespace CE::Scripting {
                 Renderer::IRenderer& renderer,
                 Assets::Textures::TextureManager& textureManager,
                 Assets::Fonts::FontManager& fontManager,
+                CE::Assets::Animations::AnimationManager* animationManager,
                 Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
                 CE::Assets::Audio::AudioManager* audioManager = nullptr
@@ -102,6 +107,21 @@ namespace CE::Scripting {
             void DrawText(const std::string& text, int x, int y, float size);
             void DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, const Renderer::Colour& colour);
             void DrawTextCol(const std::string& text, int x, int y, float size, const Renderer::Colour& colour);
+
+            void LoadAnimation(const std::string& path, const std::string& name);
+            void UnloadAnimation(const std::string& name);
+            uint32_t CreateAnimationInstance(const std::string& name);
+            void DeleteAnimationInstance(uint32_t handle);
+            void PlayAnimation(uint32_t handle, int x, int y, bool loop, bool autoRender);
+            void PlayAnimationRot(uint32_t handle, int x, int y, bool loop, float rotation, bool autoRender);
+            void SetAnimationPosition(uint32_t handle, int x, int y, float rotation);
+            void SeekAnimation(uint32_t handle, uint32_t frame);
+            void SetAnimationDrawMode(uint32_t handle, bool autoRender);
+            void SetAnimationLooping(uint32_t handle, bool loop);
+            void SetAnimationTint(uint32_t handle, const Renderer::Colour& colour);
+            void PauseAnimation(uint32_t handle);
+            void StopAnimation(uint32_t handle);
+            void DrawAnimationFrame(uint32_t handle);
 
             bool IsKeyDown(Input::KeyboardKeys key);
             bool IsKeyPressed(Input::KeyboardKeys key);
@@ -172,6 +192,7 @@ namespace CE::Scripting {
             Renderer::IRenderer& mRenderer;
             Assets::Textures::TextureManager& mTextureManager;
             Assets::Fonts::FontManager& mFontManager;
+            CE::Assets::Animations::AnimationManager* mAnimationManager = nullptr;
             Input::Keyboard& mKeyboard;
             Input::Mouse& mMouse;
             CE::Assets::Audio::AudioManager* mAudioManager = nullptr;

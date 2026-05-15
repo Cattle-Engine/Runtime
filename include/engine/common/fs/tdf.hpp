@@ -1,12 +1,23 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#if !defined(TDF_MODE_CE) && !defined(TDF_MODE_EXTERN)
+#define TDF_MODE_CE
+#endif
+
+#if defined(TDF_MODE_CE) && defined(TDF_MODE_EXTERN)
+#error "TDF_MODE_CE and TDF_MODE_EXTERN are mutually exclusive"
+#endif
+
+#if defined(TDF_MODE_CE)
 #include "engine/common/fs/vfs.hpp"
+#endif
 
 namespace CE::TDF {
     enum class Type : uint8_t {
@@ -34,8 +45,14 @@ namespace CE::TDF {
     struct File {
         std::unordered_map<std::string, Value> entries;
 
+#if defined(TDF_MODE_CE)
         void save(VFS::VFS& vfs, const std::string& path, uint8_t version) const;
         void load(VFS::VFS& vfs, const std::string& path);
+#endif
+#if defined(TDF_MODE_EXTERN)
+        void save(const std::filesystem::path& path, uint8_t version) const;
+        void load(const std::filesystem::path& path);
+#endif
 
         void set(const std::string& key, const Value& val);
         bool remove(const std::string& key);
@@ -82,7 +99,9 @@ namespace CE::TDF {
         static size_t arraySize(const Value& v);
         static Value arrayElement(const Value& v, size_t index);
 
+#if defined(TDF_MODE_CE)
         static void readValue(::VirtualFile* file, Value& v);
+#endif
 
         static bool isArray(Type t);
         static Type elementType(Type arrType);

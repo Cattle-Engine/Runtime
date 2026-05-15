@@ -1,8 +1,8 @@
 #include "engine/common/fs/tdf.hpp"
-#include "engine/common/fs/vfs.hpp"
 
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 #include <stdexcept>
 #include <tuple>
 
@@ -565,19 +565,12 @@ void setPathRecursive(File& file, const std::vector<std::string>& parts, size_t 
 
 } // namespace
 
+#if defined(TDF_MODE_CE)
 void File::save(VFS::VFS& vfs, const std::string& path, uint8_t version) const {
-    ::VirtualFile* f = vfs.V_fopen(path.c_str(), "wb");
-    if (!f || !f->sdl_stream) {
-        throw std::runtime_error("TDF: VFS write fail");
-    }
-
-    const auto bytes = serializeToBytes(*this, version);
-    const size_t written = SDL_WriteIO(f->sdl_stream, bytes.data(), bytes.size());
-    vfs.V_fclose(f);
-
-    if (written != bytes.size()) {
-        throw std::runtime_error("TDF: incomplete write");
-    }
+    static_cast<void>(vfs);
+    static_cast<void>(path);
+    static_cast<void>(version);
+    throw std::runtime_error("TDF: write is not supported in TDF_MODE_CE");
 }
 
 void File::load(VFS::VFS& vfs, const std::string& path) {
@@ -598,6 +591,46 @@ void File::load(VFS::VFS& vfs, const std::string& path) {
 
     *this = parseFromBytes(buffer.data(), buffer.size());
 }
+#endif
+
+#if defined(TDF_MODE_EXTERN)
+void File::save(const std::filesystem::path& path, uint8_t version) const {
+    const auto bytes = serializeToBytes(*this, version);
+
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    if (!out.is_open()) {
+        throw std::runtime_error("TDF: filesystem write fail");
+    }
+
+    if (!bytes.empty()) {
+        out.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+    }
+
+    if (!out) {
+        throw std::runtime_error("TDF: incomplete write");
+    }
+}
+
+void File::load(const std::filesystem::path& path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in.is_open()) {
+        throw std::runtime_error("TDF: filesystem open fail");
+    }
+
+    const auto size = std::filesystem::file_size(path);
+    std::vector<uint8_t> buffer(static_cast<size_t>(size));
+
+    if (!buffer.empty()) {
+        in.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
+    }
+
+    if (!in) {
+        throw std::runtime_error("TDF: incomplete read");
+    }
+
+    *this = parseFromBytes(buffer.data(), buffer.size());
+}
+#endif
 
 void File::set(const std::string& key, const Value& val) {
     entries[key] = val;
@@ -824,6 +857,7 @@ Value File::arrayElement(const Value& v, size_t index) {
     }
 }
 
+#if defined(TDF_MODE_CE)
 void File::readValue(::VirtualFile* file, Value& v) {
     switch (v.type) {
         case Type::Null:
@@ -920,6 +954,7 @@ void File::readValue(::VirtualFile* file, Value& v) {
             throwFormat("unknown value type");
     }
 }
+#endif
 
 bool File::isArray(Type t) {
     const uint8_t raw = static_cast<uint8_t>(t);
