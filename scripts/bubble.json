@@ -1,0 +1,810 @@
+{ "frames": {
+   "bubble-says-''discusting' 0.gif": {
+    "frame": { "x": 2093, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 1.gif": {
+    "frame": { "x": 1196, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 2.gif": {
+    "frame": { "x": 897, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 3.gif": {
+    "frame": { "x": 598, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 4.gif": {
+    "frame": { "x": 299, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 5.gif": {
+    "frame": { "x": 0, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 6.gif": {
+    "frame": { "x": 2691, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 7.gif": {
+    "frame": { "x": 2392, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 8.gif": {
+    "frame": { "x": 2093, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 9.gif": {
+    "frame": { "x": 1794, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 10.gif": {
+    "frame": { "x": 1495, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 11.gif": {
+    "frame": { "x": 1196, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 12.gif": {
+    "frame": { "x": 0, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 13.gif": {
+    "frame": { "x": 598, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 14.gif": {
+    "frame": { "x": 299, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 15.gif": {
+    "frame": { "x": 0, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 16.gif": {
+    "frame": { "x": 2691, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 17.gif": {
+    "frame": { "x": 2392, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 18.gif": {
+    "frame": { "x": 2093, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 19.gif": {
+    "frame": { "x": 1794, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 20.gif": {
+    "frame": { "x": 1495, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 21.gif": {
+    "frame": { "x": 1196, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 22.gif": {
+    "frame": { "x": 897, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 23.gif": {
+    "frame": { "x": 598, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 24.gif": {
+    "frame": { "x": 299, "y": 1865, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 25.gif": {
+    "frame": { "x": 897, "y": 2238, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 26.gif": {
+    "frame": { "x": 2392, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 27.gif": {
+    "frame": { "x": 2093, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 28.gif": {
+    "frame": { "x": 1794, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 29.gif": {
+    "frame": { "x": 1495, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 30.gif": {
+    "frame": { "x": 1196, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 31.gif": {
+    "frame": { "x": 897, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 32.gif": {
+    "frame": { "x": 598, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 33.gif": {
+    "frame": { "x": 299, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 34.gif": {
+    "frame": { "x": 0, "y": 3357, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 35.gif": {
+    "frame": { "x": 2691, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 36.gif": {
+    "frame": { "x": 2392, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 37.gif": {
+    "frame": { "x": 1495, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 38.gif": {
+    "frame": { "x": 1794, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 39.gif": {
+    "frame": { "x": 1495, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 40.gif": {
+    "frame": { "x": 1196, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 41.gif": {
+    "frame": { "x": 897, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 42.gif": {
+    "frame": { "x": 598, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 43.gif": {
+    "frame": { "x": 299, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 44.gif": {
+    "frame": { "x": 0, "y": 2984, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 45.gif": {
+    "frame": { "x": 2691, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 46.gif": {
+    "frame": { "x": 2392, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 47.gif": {
+    "frame": { "x": 2093, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 48.gif": {
+    "frame": { "x": 1794, "y": 2611, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 49.gif": {
+    "frame": { "x": 2392, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 50.gif": {
+    "frame": { "x": 1196, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 51.gif": {
+    "frame": { "x": 897, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 52.gif": {
+    "frame": { "x": 598, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 53.gif": {
+    "frame": { "x": 299, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 54.gif": {
+    "frame": { "x": 0, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 55.gif": {
+    "frame": { "x": 2691, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 56.gif": {
+    "frame": { "x": 2392, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 57.gif": {
+    "frame": { "x": 2093, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 58.gif": {
+    "frame": { "x": 1794, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 59.gif": {
+    "frame": { "x": 1495, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 60.gif": {
+    "frame": { "x": 1196, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 61.gif": {
+    "frame": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 62.gif": {
+    "frame": { "x": 598, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 63.gif": {
+    "frame": { "x": 299, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 64.gif": {
+    "frame": { "x": 0, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 65.gif": {
+    "frame": { "x": 2691, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 66.gif": {
+    "frame": { "x": 2392, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 67.gif": {
+    "frame": { "x": 2093, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 68.gif": {
+    "frame": { "x": 1794, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 69.gif": {
+    "frame": { "x": 1495, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 70.gif": {
+    "frame": { "x": 1196, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 71.gif": {
+    "frame": { "x": 897, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 72.gif": {
+    "frame": { "x": 598, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 73.gif": {
+    "frame": { "x": 299, "y": 0, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 74.gif": {
+    "frame": { "x": 897, "y": 373, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 75.gif": {
+    "frame": { "x": 2691, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 76.gif": {
+    "frame": { "x": 2392, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 77.gif": {
+    "frame": { "x": 2093, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 78.gif": {
+    "frame": { "x": 1794, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 79.gif": {
+    "frame": { "x": 1495, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 80.gif": {
+    "frame": { "x": 1196, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 81.gif": {
+    "frame": { "x": 897, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 82.gif": {
+    "frame": { "x": 598, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 83.gif": {
+    "frame": { "x": 299, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 84.gif": {
+    "frame": { "x": 0, "y": 1492, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 85.gif": {
+    "frame": { "x": 2691, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 86.gif": {
+    "frame": { "x": 1495, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 87.gif": {
+    "frame": { "x": 2093, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 88.gif": {
+    "frame": { "x": 1794, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 89.gif": {
+    "frame": { "x": 1495, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 90.gif": {
+    "frame": { "x": 1196, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 91.gif": {
+    "frame": { "x": 897, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 92.gif": {
+    "frame": { "x": 598, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 93.gif": {
+    "frame": { "x": 299, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 94.gif": {
+    "frame": { "x": 0, "y": 1119, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 95.gif": {
+    "frame": { "x": 2691, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 96.gif": {
+    "frame": { "x": 2392, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 30
+   },
+   "bubble-says-''discusting' 97.gif": {
+    "frame": { "x": 2093, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   },
+   "bubble-says-''discusting' 98.gif": {
+    "frame": { "x": 1794, "y": 746, "w": 299, "h": 373 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 299, "h": 373 },
+    "sourceSize": { "w": 299, "h": 373 },
+    "duration": 40
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.3.17.2-dev",
+  "image": "bubble-says-''discusting'.png",
+  "format": "I8",
+  "size": { "w": 2990, "h": 3730 },
+  "scale": "1",
+  "frameTags": [
+  ],
+  "layers": [
+   { "name": "Background", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

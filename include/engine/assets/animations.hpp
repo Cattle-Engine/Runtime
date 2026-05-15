@@ -19,7 +19,7 @@ namespace CE::Assets::Animations {
     
     struct AnimationInfo {
         std::string mSourceFileName;
-        int FrameCount;
+        uint32_t FrameCount;
         Renderer::Texture* Texture;
         std::vector<FrameInfo> FramesInfo;
     };

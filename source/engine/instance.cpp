@@ -125,6 +125,9 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
+        gAnimationManager->Load("gooble", "testing.tdf");
+        auto anim_handle = gAnimationManager->CreateInstance("gooble");
+        gAnimationManager->Play(anim_handle, 50, 50, true, true);
     }
 
     bool Instance::ShouldExit() {
@@ -169,8 +172,6 @@ namespace CE {
         }
 
         gRenderer->SetClearColor(255, 255, 255, 255);
-        
-        gAnimationManager->Update(gDeltaTime);
         gGameStateManager.Emit("Update");
 
         int bfr = gRenderer->BeginFrame(gWindow);
@@ -188,6 +189,7 @@ namespace CE {
         }
 
         gAnimationManager->Render();
+
         gRenderer->ImGuiStartFrame();
 
         gDebugWindow.Draw(
@@ -236,7 +238,7 @@ namespace CE {
                     static_cast<float>(gPerformanceFrequency);
 
         gLastFrameCounter = frame_end_counter;
-
+        gAnimationManager->Update(gDeltaTime);
         return 0;
     }
 

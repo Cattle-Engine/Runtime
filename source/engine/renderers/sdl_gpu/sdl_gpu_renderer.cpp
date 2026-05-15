@@ -398,6 +398,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return 0;
     }
     int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
+        mWarnedOutsideFrame = false;
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
             CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
@@ -561,7 +562,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                     float rotation) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) return;
@@ -593,7 +597,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                         float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         DrawLine(x,     y,     x + w, y,     thickness, r, g, b, a); // top
@@ -609,7 +616,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint8_t r, uint8_t g, uint8_t b, uint8_t a,
         float rotation) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) return;
@@ -640,7 +650,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                 float thickness,
                                 uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
@@ -678,7 +691,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     int segments,
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (segments < 3) segments = 3;
@@ -720,7 +736,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                         int segments, float thickness,
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (segments < 3) segments = 3;
@@ -1051,7 +1070,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     float rotation,
                                     TextureFlip flip) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (!texture || !texture->handle) return;
@@ -1115,7 +1137,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                     float rotation,
                     TextureFlip flip) {
         if(!gFrameActive) {
-            CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                mWarnedOutsideFrame = true;
+            }
             return;
         } 
         if (!texture || !texture->handle) return;

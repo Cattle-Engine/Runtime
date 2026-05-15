@@ -127,7 +127,7 @@ namespace CE::UI {
         ImGui::Text("Performance");
         ImGui::Spacing();
 
-        ImGui::SliderInt("Max FPS", &s.maxFPS, 30, 240);
+        ImGui::SliderInt("Max FPS", &s.maxFPS, 5, 240);
         ImGui::Text("Note: This is ignored if VSync is on and\nFPS is locked to display refresh rate");
 
         Utils::SpaceSep();

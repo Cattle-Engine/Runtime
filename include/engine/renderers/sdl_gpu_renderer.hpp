@@ -161,6 +161,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUSampler* gErrorSampler = nullptr;
             RendererBackend gBackend;
             bool gFrameActive = false;
+            bool mWarnedOutsideFrame = false;
             CE::VFS::VFS* gVFS;
 
             std::vector<DeferredDeleteEntry> gDeferredDeletes;

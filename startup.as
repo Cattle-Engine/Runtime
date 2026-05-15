@@ -2,6 +2,7 @@ int gOnDrawId = -1;
 int gFrames = 0;
 float gAngle = 0.0f;
 bool gDidInit = false;
+uint gBubbleAnim = 0;
 
 CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
     CE::Graphics::Colour c(r, g, b, a);
@@ -61,11 +62,36 @@ void InGameDraw(const string &in state, const string &in eventName) {
         22.0f,
         MakeColour(20,20,20,255)
     );
+
+    if (gBubbleAnim != 0) {
+        CE::Graphics::Text::DrawTextCol(
+            "Animation test: assets/output.tdf (handle=" + gBubbleAnim + ")",
+            baseX,
+            infoY + 60,
+            18.0f,
+            MakeColour(0, 0, 0, 255)
+        );
+    } else {
+        CE::Graphics::Text::DrawTextCol(
+            "Animation test: failed to create instance (handle=0)",
+            baseX,
+            infoY + 60,
+            18.0f,
+            MakeColour(200, 0, 0, 255)
+        );
+    }
 }
 
 void main() {
     CE::Graphics::Textures::LoadTexture("tato.webp", "garry_spud");
     CE::Graphics::Text::LoadFont("Roboto.ttf", "roboto", 32);
+
+    CE::Graphics::Animations::LoadAnimation("output.tdf", "bubble");
+    gBubbleAnim = CE::Graphics::Animations::CreateInstance("bubble");
+    if (gBubbleAnim != 0) {
+        CE::Graphics::Animations::SetTint(gBubbleAnim, MakeColour(255, 255, 255, 255));
+        CE::Graphics::Animations::Play(gBubbleAnim, 1020, 520, true, true);
+    }
 
     CE::Settings::SetSettingInt("test_int", "ScriptTest", 123);
     CE::Settings::SetSettingFloat("test_float", "ScriptTest", 1.25f);

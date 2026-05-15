@@ -2,10 +2,13 @@
 #include "engine/common/fs/tdf.hpp"
 #include "engine/common/tracelog.hpp"
 
+#include <algorithm>
+
 namespace CE::Assets::Animations {
     AnimationManager::AnimationManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
     : mVFS(vfs), mRenderer(renderer) {
         mInstanceID = instance_id;
+        mNextHandleID = 1;
     }
 
     AnimationInstance* AnimationManager::GetAnimationInfo(uint32_t handle) {
@@ -19,6 +22,12 @@ namespace CE::Assets::Animations {
     }
 
     void AnimationManager::Load(std::string name, std::string path) {
+        CE::Log(LogLevel::Info,
+            "[Animation Manager {}] Loading '{}' from '{}'",
+            mInstanceID,
+            name,
+            path
+        );
         if (!mVFS.FileExists(path.c_str())) {
             CE::Log(LogLevel::Error,
                 "[Animation Manager {}] Missing animation info file: {}",
@@ -69,6 +78,10 @@ namespace CE::Assets::Animations {
         AnimationInfo anim;
         anim.mSourceFileName = source_image_path;
         anim.Texture = mRenderer.LoadTex(source_image_path.c_str());
+        if (anim.Texture == nullptr) {
+            CE::Log(LogLevel::Error, "[Animation Manager {}] Texture came back as nullptr! Name: {}", mInstanceID, name);
+            return;
+        }
         anim.FramesInfo.reserve(frame_count);
         anim.FrameCount = frame_count;
         for (const TDFFile& f : frames) {
@@ -87,6 +100,11 @@ namespace CE::Assets::Animations {
     }
 
     uint32_t AnimationManager::CreateInstance(std::string name) {
+        CE::Log(LogLevel::Info,
+            "[Animation Manager {}] Creating instance for: '{}'",
+            mInstanceID,
+            name
+        );
         auto it = mAnimations.find(name);
 
         if(it != mAnimations.end()) {
@@ -183,41 +201,45 @@ namespace CE::Assets::Animations {
     }
 
     void AnimationManager::Update(float dt) {
+        dt = std::clamp(dt, 0.0f, 0.1f);
         for (auto& [handle, anim] : mAnimationInstances) {
-
-            if (!anim.IsPlaying || anim.AnimInfo == nullptr)
+            if (!anim.IsPlaying || !anim.AnimInfo)
                 continue;
 
-            if (anim.CurrentFrame >= anim.AnimInfo->FrameCount)
-                anim.CurrentFrame = 0;
-
-            const FrameInfo& frame =
-                anim.AnimInfo->FramesInfo[anim.CurrentFrame];
+            const auto& frames = anim.AnimInfo->FramesInfo;
+            if (frames.empty()) continue;
+            if (anim.CurrentFrame >= frames.size()) {
+                anim.CurrentFrame = anim.Loop ? 0 : frames.size() - 1;
+            }
 
             anim.FrameTimer += dt;
-            float frameDuration =
-                static_cast<float>(frame.Duration) / 1000.0f;
-            while (anim.FrameTimer >= frameDuration) {
-                anim.FrameTimer -= frameDuration;
-                anim.CurrentFrame++;
-                if (anim.CurrentFrame >= anim.AnimInfo->FrameCount) {
 
+            float frameDuration = static_cast<float>(frames[anim.CurrentFrame].Duration) / 1000.0f;
+            if (frameDuration <= 0.0f) {
+                frameDuration = 0.001f;
+            }
+
+            while (anim.FrameTimer >= frameDuration && anim.IsPlaying) {
+                anim.FrameTimer -= frameDuration;
+                
+                if (anim.CurrentFrame + 1 >= frames.size()) {
                     if (anim.Loop) {
                         anim.CurrentFrame = 0;
                     } else {
-                        anim.CurrentFrame =
-                            anim.AnimInfo->FrameCount - 1;
-
+                        anim.CurrentFrame = frames.size() - 1;
                         anim.IsPlaying = false;
+                        anim.FrameTimer = 0.0f;
                         break;
                     }
+                } else {
+                    anim.CurrentFrame++;
                 }
-                frameDuration =
-                    static_cast<float>(
-                        anim.AnimInfo
-                            ->FramesInfo[anim.CurrentFrame]
-                            .Duration
-                    ) / 1000.0f;
+                if (anim.IsPlaying) {
+                    frameDuration = static_cast<float>(frames[anim.CurrentFrame].Duration) / 1000.0f;
+                    if (frameDuration <= 0.0f) {
+                        frameDuration = 0.001f;
+                    }
+                }
             }
         }
     }
