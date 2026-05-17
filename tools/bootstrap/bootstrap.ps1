@@ -1,10 +1,8 @@
 param(
     [string]$PythonVersion = "3.12.3",
     [string]$PythonArch = "amd64",
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$BuildArgs
+    [string[]]$BuildArgs = @("bootstrap")
 )
-
 $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -24,9 +22,9 @@ function Install-EmbeddedPython {
     )
 
     $ZipName = "python-$Version-embed-$Arch.zip"
-    $Url = "https://www.python.org/ftp/python/$Version/$ZipName"
+    $Url = "https://www.python.org/ftp/python/3.12.3/python-3.12.3-embed-amd64.zip"
     $ArchivePath = Join-Path ([System.IO.Path]::GetTempPath()) $ZipName
-
+    Write-Host "Downloading from: $Url"
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 
     Write-Host "Downloading embedded Python $Version ($Arch)..."

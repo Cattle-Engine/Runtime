@@ -3,6 +3,7 @@
 #include "engine/common/tracelog.hpp"
 
 #include <algorithm>
+#include <memory>
 
 namespace CE::Assets::Animations {
     AnimationManager::AnimationManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
@@ -75,15 +76,18 @@ namespace CE::Assets::Animations {
         std::vector<TDFFile> frames =
             TDFFile::readObjectArray(info.entries["Frames"]);
 
-        AnimationInfo anim;
-        anim.mSourceFileName = source_image_path;
-        anim.Texture = mRenderer.LoadTex(source_image_path.c_str());
-        if (anim.Texture == nullptr) {
+        std::shared_ptr<AnimationInfo> anim = std::make_shared<AnimationInfo>();
+
+        anim->mSourceFileName = source_image_path;
+        anim->Texture = mRenderer.LoadTex(source_image_path.c_str());
+        if (anim->Texture == nullptr) {
             CE::Log(LogLevel::Error, "[Animation Manager {}] Texture came back as nullptr! Name: {}", mInstanceID, name);
             return;
         }
-        anim.FramesInfo.reserve(frame_count);
-        anim.FrameCount = frame_count;
+
+        anim->FramesInfo.reserve(frame_count);
+        anim->FrameCount = frame_count;
+
         for (const TDFFile& f : frames) {
             FrameInfo frame{};
 
@@ -93,10 +97,10 @@ namespace CE::Assets::Animations {
             if (f.has("Y"))        frame.Y        = TDFFile::readUInt(f.entries.at("Y"));
             if (f.has("Duration")) frame.Duration  = TDFFile::readUInt(f.entries.at("Duration"));
 
-            anim.FramesInfo.push_back(frame);
+            anim->FramesInfo.push_back(frame);
         }
 
-        mAnimations[name] = std::move(anim);
+        mAnimations[name] = anim;
     }
 
     uint32_t AnimationManager::CreateInstance(std::string name) {
@@ -107,7 +111,7 @@ namespace CE::Assets::Animations {
         );
         auto it = mAnimations.find(name);
 
-        if(it != mAnimations.end()) {
+        if (it != mAnimations.end()) {
             AnimationInstance instance = {};
             instance.IsPlaying = false;
             instance.CurrentFrame = 0;
@@ -115,12 +119,13 @@ namespace CE::Assets::Animations {
             instance.Y = 0;
             instance.Rotation = 0.0f;
             instance.FrameTimer = 0.0f;
-            instance.AnimInfo = &it->second;
+            instance.AnimInfo = it->second.get();
             uint32_t handle = mNextHandleID++;
             mAnimationInstances[handle] = std::move(instance);
             return handle;
         }
-        CE::Log(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}", 
+
+        CE::Log(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}",
         mInstanceID, name);
         return 0;
     }
@@ -129,7 +134,7 @@ namespace CE::Assets::Animations {
         this->PlayRot(handle, x, y, loop, 0.0f, auto_render);
     }
 
-    void AnimationManager::PlayRot(uint32_t handle, int x, int y, bool loop, float rotation,  bool auto_render) {
+    void AnimationManager::PlayRot(uint32_t handle, int x, int y, bool loop, float rotation, bool auto_render) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
@@ -155,6 +160,8 @@ namespace CE::Assets::Animations {
     void AnimationManager::Seek(uint32_t handle, uint32_t frame) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
+
+        if (info->AnimInfo == nullptr) return;
 
         if (frame >= info->AnimInfo->FrameCount) {
             CE::Log(LogLevel::Error, "[Animation Manager {}] Frame is out of range: {} (max: {})",
@@ -208,6 +215,7 @@ namespace CE::Assets::Animations {
 
             const auto& frames = anim.AnimInfo->FramesInfo;
             if (frames.empty()) continue;
+
             if (anim.CurrentFrame >= frames.size()) {
                 anim.CurrentFrame = anim.Loop ? 0 : frames.size() - 1;
             }
@@ -250,10 +258,18 @@ namespace CE::Assets::Animations {
             if (anim.AnimInfo == nullptr)
                 continue;
 
-            if (!anim.AutoRender) continue;
+            if (!anim.AutoRender)
+                continue;
+
+            const auto& frames = anim.AnimInfo->FramesInfo;
+            if (frames.empty())
+                continue;
+
+            if (anim.CurrentFrame >= frames.size())
+                continue;
 
             const FrameInfo& frame =
-                anim.AnimInfo->FramesInfo[anim.CurrentFrame];
+                frames[anim.CurrentFrame];
 
             CE::Renderer::Texture* tex = anim.AnimInfo->Texture;
 
@@ -305,22 +321,28 @@ namespace CE::Assets::Animations {
         for (auto instIt = mAnimationInstances.begin();
             instIt != mAnimationInstances.end(); ) {
 
-            if (instIt->second.AnimInfo == &it->second) {
+            if (instIt->second.AnimInfo == it->second.get()) {
                 instIt = mAnimationInstances.erase(instIt);
             } else {
                 ++instIt;
             }
         }
-        mRenderer.UnloadTex(it->second.Texture);
+        mRenderer.UnloadTex(it->second->Texture);
         mAnimations.erase(it);
     }
 
     void AnimationManager::DrawFrame(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
+        if (it == mAnimationInstances.end()) return;
 
         if (it->second.AnimInfo == nullptr) return;
 
-        const FrameInfo& frame = it->second.AnimInfo->FramesInfo[it->second.CurrentFrame];
+        const auto& frames = it->second.AnimInfo->FramesInfo;
+        if (frames.empty()) return;
+
+        if (it->second.CurrentFrame >= frames.size()) return;
+
+        const FrameInfo& frame = frames[it->second.CurrentFrame];
 
         CE::Renderer::Texture* tex = it->second.AnimInfo->Texture;
 

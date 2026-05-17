@@ -13,6 +13,7 @@ imgui.ini
 .cache/
 __pycache__/
 *.pyc
+/assets/*
 
 # Compiled Object files
 *.slo

@@ -44,13 +44,24 @@ namespace CE {
         Common::RendererName2String(msettings.Settings.rendererName, mBackend);
         CE::Log(LogLevel::Info, "[Engine] Rendererbackend name: {}", msettings.Settings.rendererName);
         if (msettings.Settings.rendererName != "None") {
-            SDL_Init(SDL_INIT_VIDEO);
+            if (!SDL_Init(SDL_INIT_VIDEO)) {
+                CE::Log(LogLevel::Fatal, "[Engine] SDL_Init(SDL_INIT_VIDEO) failed: {}", SDL_GetError());
+                throw std::runtime_error("[Engine] SDL_Init(SDL_INIT_VIDEO) failed");
+            }
         }
         CE::Log(LogLevel::Info, "[Engine] Creating GPU handle");
         mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
         
-        if (mGPUHandle == nullptr) {
-            CE::Log(LogLevel::Fatal, "[Engine] Got a nullptr GPU handle");
+        if (mGPUHandle == nullptr || mGPUHandle->device == nullptr) {
+            CE::Log(LogLevel::Warn,
+                "[Engine] Failed to create requested GPU device (backend {}). Falling back to Software renderer.",
+                static_cast<int>(mBackend));
+            mBackend = RendererBackend::Software;
+            mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
+            if (mGPUHandle == nullptr) {
+                CE::Log(LogLevel::Fatal, "[Engine] Failed to create any GPU device (including Software)");
+                throw std::runtime_error("[Engine] Failed to create any GPU device (including Software)");
+            }
         }
         
         CE::Log(LogLevel::Info, "[Engine] Created GPU handle");

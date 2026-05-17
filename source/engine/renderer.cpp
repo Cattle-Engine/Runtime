@@ -44,7 +44,7 @@ namespace CE::Renderer {
     }
 
     void DestroyGPUDevice(GPUDeviceHandle device) {
-        if (device == nullptr) {
+        if (device == nullptr || device->device == nullptr) {
             return;
         }
 

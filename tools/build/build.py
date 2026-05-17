@@ -69,24 +69,28 @@ def ensure_vcpkg_dependencies(triplet: str) -> None:
     run([str(vcpkg_executable()), "install", "--triplet", triplet], cwd=ROOT, env=vcpkg_env())
 
 
-def locate_glslc(triplet: str) -> Path:
+def locate_glslc(triplet: str, build_dir: Path) -> Path:
+    exe_name = "glslc.exe" if os.name == "nt" else "glslc"
+
     candidates = [
         os.environ.get("GLSLC"),
         shutil.which("glslc"),
-        ROOT / "vcpkg_installed" / triplet / "tools" / "shaderc" / ("glslc.exe" if os.name == "nt" else "glslc"),
-        ROOT / "vcpkg_installed" / triplet / "tools" / "shaderc" / "glslc",
-        VCPKG_ROOT / "downloads" / "tools" / "shaderc" / ("glslc.exe" if os.name == "nt" else "glslc"),
+
+        build_dir / "vcpkg_installed" / triplet / "tools" / "shaderc" / exe_name,
+
+        VCPKG_ROOT / "installed" / triplet / "tools" / "shaderc" / exe_name,
     ]
 
-    for candidate in candidates:
-        if not candidate:
+    for c in candidates:
+        if not c:
             continue
-        path = Path(candidate)
-        if path.exists():
-            return path
+        p = Path(c)
+        if p.exists():
+            return p
 
     raise FileNotFoundError(
-        "Could not find 'glslc'. Install the VCPKG dependencies first or set the GLSLC environment variable."
+        f"Could not find glslc for triplet {triplet}. "
+        f"Looked in build_dir vcpkg_installed and PATH."
     )
 
 
@@ -120,8 +124,8 @@ def write_shader_header(symbol_name: str, payload: bytes, header_path: Path) -> 
     header_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def build_shaders(triplet: str) -> None:
-    glslc = locate_glslc(triplet)
+def build_shaders(triplet: str, build_dir: Path) -> None:
+    glslc = locate_glslc(triplet, build_dir)
     SHADER_ASSET_DIR.mkdir(parents=True, exist_ok=True)
 
     for shader_path in iter_shader_sources():
@@ -273,7 +277,7 @@ def main() -> int:
         ensure_vcpkg_dependencies(args.triplet)
 
     if args.command in {"shaders", "full"}:
-        build_shaders(args.triplet)
+        build_shaders(args.triplet, args.build_dir.resolve())
 
     if args.command in {"assets", "full"}:
         build_assets(build_dir)

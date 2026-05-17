@@ -4,7 +4,7 @@ import json
 import struct
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 # Matches include/engine/common/fs/tdf.hpp
@@ -151,7 +151,7 @@ def _iter_json_files(in_dir: Path) -> Iterable[Path]:
         return []
     return sorted([p for p in in_dir.rglob("*.json") if p.is_file()])
 
-def _maybe_typed_wrapper(obj: Any) -> Optional[tuple[str, Any]]:
+def _maybe_typed_wrapper(obj: Any) -> Optional[Tuple[str, Any]]:
     # Explicit type override:
     #   { "__type": "UInt32", "value": 123 }
     #   { "__type": "String", "value": "hi" }

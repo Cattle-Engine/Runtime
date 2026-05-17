@@ -60,7 +60,7 @@ namespace CE::Assets::Animations {
         void Render();
         private:
         AnimationInstance* GetAnimationInfo(uint32_t handle);
-        std::unordered_map<std::string, AnimationInfo> mAnimations;
+        std::unordered_map<std::string, std::shared_ptr<AnimationInfo>> mAnimations;
         std::unordered_map<uint32_t, AnimationInstance> mAnimationInstances; 
         VFS::VFS& mVFS;
         Renderer::IRenderer& mRenderer;

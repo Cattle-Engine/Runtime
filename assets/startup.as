@@ -67,11 +67,11 @@ void main() {
     CE::Graphics::Textures::LoadTexture("tato.webp", "garry_spud");
     CE::Graphics::Text::LoadFont("Roboto.ttf", "roboto", 32);
 
-    CE::Settings::SetSettingInt("test_int", "ScriptTest", 123);
-    CE::Settings::SetSettingFloat("test_float", "ScriptTest", 1.25f);
-    CE::Settings::SetSettingBool("test_bool", "ScriptTest", true);
-    CE::Settings::SetSettingString("test_string", "ScriptTest", "hello from script");
-    CE::Settings::ReloadSettings();
+    //CE::Settings::SetSettingInt("test_int", "ScriptTest", 123);
+    ///CE::Settings::SetSettingFloat("test_float", "ScriptTest", 1.25f);
+    //CE::Settings::SetSettingBool("test_bool", "ScriptTest", true);
+    ///CE::Settings::SetSettingString("test_string", "ScriptTest", "hello from script");
+    //CE::Settings::ReloadSettings();
 
     gOnDrawId = CE::Events::On("InGame", "Draw", @InGameDraw);
 
@@ -100,10 +100,10 @@ void update() {
     int mwx = CE::Input::GetMouseWheelX();
     int mwy = CE::Input::GetMouseWheelY();
 
-    int testInt = CE::Settings::GetSettingInt("test_int", "ScriptTest", -1);
-    float testFloat = CE::Settings::GetSettingFloat("test_float", "ScriptTest", -1.0f);
-    bool testBool = CE::Settings::GetSettingBool("test_bool", "ScriptTest", false);
-    string testString = CE::Settings::GetSettingString("test_string", "ScriptTest", "<missing>");
+    //int testInt = CE::Settings::GetSettingInt("test_int", "ScriptTest", -1);
+    //float testFloat = CE::Settings::GetSettingFloat("test_float", "ScriptTest", -1.0f);
+    //bool testBool = CE::Settings::GetSettingBool("test_bool", "ScriptTest", false);
+    //string testString = CE::Settings::GetSettingString("test_string", "ScriptTest", "<missing>");
 
     string state = CE::State::Get();
 
@@ -113,7 +113,7 @@ void update() {
     CE::Graphics::Text::DrawTextCol("A: down=" + aDown + " pressed=" + aPressed + " released=" + aReleased, 20, 260, 18.0f, MakeColour(0, 0, 0, 255));
     CE::Graphics::Text::DrawTextCol("Mouse: d=" + mDown + " p=" + mPressed + " r=" + mReleased + " x=" + mx + " y=" + my, 20, 280, 18.0f, MakeColour(0, 0, 0, 255));
     CE::Graphics::Text::DrawTextCol("Mouse delta: x=" + mdx + " y=" + mdy + " wheel=" + mwx + "," + mwy, 20, 300, 18.0f, MakeColour(0, 0, 0, 255));
-    CE::Graphics::Text::DrawTextCol("Settings: i=" + testInt + " f=" + testFloat + " b=" + testBool + " s=" + testString, 20, 320, 18.0f, MakeColour(0, 0, 0, 255));
+    //CE::Graphics::Text::DrawTextCol("Settings: i=" + testInt + " f=" + testFloat + " b=" + testBool + " s=" + testString, 20, 320, 18.0f, MakeColour(0, 0, 0, 255));
     CE::Graphics::Text::DrawTextCol("State.Get()=" + state, 20, 340, 18.0f, MakeColour(0, 0, 0, 255));
 
     if (!gDidInit && gFrames > 10) {
