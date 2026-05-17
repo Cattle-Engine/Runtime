@@ -1,6 +1,6 @@
 # Build outputs
 *.d
-build/
+/build/
 build-*/
 cmake-build-*/
 vcpkg_installed/
