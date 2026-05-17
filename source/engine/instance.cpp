@@ -76,7 +76,6 @@ namespace CE {
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
 
-#if defined(CE_ENABLE_AUDIO)
         try {
             CE::Log(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
             gAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
@@ -85,16 +84,16 @@ namespace CE {
                 static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK),
                 true
             );
+
+            gAudioManager = std::make_unique<CE::Assets::Audio::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
+            gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
+            gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
+            gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
         } catch (const std::exception& e) {
             CE::Log(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
+            gAudioManager.reset();
             gAudioSystem.reset();
         }
-
-        gAudioManager = std::make_unique<CE::Assets::Audio::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
-        gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
-        gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
-        gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
-#endif
         
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *gVFS,
@@ -107,11 +106,7 @@ namespace CE {
             gAnimationManager.get(),
             *gKeyboardManger,
             *gMouseManger,
-#if defined(CE_ENABLE_AUDIO)
             gAudioManager.get()
-#else
-            nullptr
-#endif
         );
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());
@@ -198,11 +193,7 @@ namespace CE {
             *gFontManager,
             *gGameInfo,
             *gSettingsManager,
-#if defined(CE_ENABLE_AUDIO)
             gAudioManager.get(),
-#else
-            nullptr,
-#endif
             *gKeyboardManger,
             *this,
             *gMouseManger,
@@ -307,13 +298,11 @@ namespace CE {
 
         gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);
 
-#if defined(CE_ENABLE_AUDIO)
         if (gAudioManager) {
             gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
             gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
             gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
         }
-#endif
     }
 
     void Instance::SetWindowIcon(std::string path) {
@@ -357,9 +346,8 @@ namespace CE {
 
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
-#if defined(CE_ENABLE_AUDIO)
+        gAudioManager.reset();
         gAudioSystem.reset();
-#endif
         gTextureManager.reset();
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);

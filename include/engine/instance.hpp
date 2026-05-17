@@ -17,10 +17,7 @@
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/ui/debug_window.hpp"
-
-#if defined(CE_ENABLE_AUDIO)
 #include "engine/audio/audio.hpp"
-#endif
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;
@@ -64,11 +61,8 @@ namespace CE {
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
             std::unique_ptr<CE::Scripting::Runtime> gScriptingManager;
-
-#if defined(CE_ENABLE_AUDIO)
             std::unique_ptr<CE::Core::Audio::AudioSystem> gAudioSystem;
             std::unique_ptr<CE::Assets::Audio::AudioManager> gAudioManager;
-#endif
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;

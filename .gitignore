@@ -1,9 +1,19 @@
-# Prerequisites
+# Build outputs
 *.d
-build/*
-assets/*
+build/
+build-*/
+cmake-build-*/
+vcpkg_installed/
+tools/cache/python/
+tools/cache/vcpkg/vcpkg/
+assets/shaders/Compiled/
+include/engine/renderers/shaders/*_spv.h
 imgui.ini
 .codex
+.cache/
+__pycache__/
+*.pyc
+
 # Compiled Object files
 *.slo
 *.lo

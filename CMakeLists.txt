@@ -1,11 +1,58 @@
 cmake_minimum_required(VERSION 3.16)
 
 option(USE_CLANG "Use Clang compiler" ON)
-option(CE_ENABLE_AUDIO "Build audio support with SDL3_mixer" ON)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VCPKG_ROOT})
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        CACHE STRING "Vcpkg toolchain file")
+set(CE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CE_BUILD_SCRIPT "${CE_ROOT_DIR}/tools/build/build.py")
+set(CE_BOOTSTRAP_SH "${CE_ROOT_DIR}/tools/bootstrap/bootstrap.sh")
+set(CE_BOOTSTRAP_PS1 "${CE_ROOT_DIR}/tools/bootstrap/bootstrap.ps1")
+set(CE_VCPKG_ROOT "${CE_ROOT_DIR}/tools/cache/vcpkg/vcpkg")
+set(CE_VCPKG_TOOLCHAIN "${CE_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+if(WIN32)
+    set(CE_VCPKG_EXE "${CE_VCPKG_ROOT}/vcpkg.exe")
+else()
+    set(CE_VCPKG_EXE "${CE_VCPKG_ROOT}/vcpkg")
+endif()
+
+if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+    if(WIN32)
+        set(VCPKG_TARGET_TRIPLET "x64-windows" CACHE STRING "Vcpkg target triplet")
+    elseif(APPLE)
+        set(VCPKG_TARGET_TRIPLET "x64-osx" CACHE STRING "Vcpkg target triplet")
+    else()
+        set(VCPKG_TARGET_TRIPLET "x64-linux" CACHE STRING "Vcpkg target triplet")
+    endif()
+endif()
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(DEFINED ENV{VCPKG_ROOT})
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    else()
+        if(NOT EXISTS "${CE_VCPKG_TOOLCHAIN}" OR NOT EXISTS "${CE_VCPKG_EXE}")
+            message(STATUS "Bootstrapping VCPKG before project configuration...")
+            if(WIN32)
+                execute_process(
+                    COMMAND powershell -NoProfile -ExecutionPolicy Bypass -File "${CE_BOOTSTRAP_PS1}" bootstrap
+                    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+                    RESULT_VARIABLE CE_BOOTSTRAP_RESULT
+                )
+            else()
+                execute_process(
+                    COMMAND bash "${CE_BOOTSTRAP_SH}" bootstrap
+                    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+                    RESULT_VARIABLE CE_BOOTSTRAP_RESULT
+                )
+            endif()
+
+            if(NOT CE_BOOTSTRAP_RESULT EQUAL 0)
+                message(FATAL_ERROR "Failed to bootstrap VCPKG for this project.")
+            endif()
+        endif()
+
+        set(CMAKE_TOOLCHAIN_FILE "${CE_VCPKG_TOOLCHAIN}"
+            CACHE STRING "Vcpkg toolchain file")
+    endif()
 endif()
 
 if(USE_CLANG)
@@ -17,6 +64,13 @@ project(ce_engine VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(WIN32 AND EXISTS "${CE_ROOT_DIR}/tools/cache/python/windows-embed/python.exe")
+    set(Python3_EXECUTABLE "${CE_ROOT_DIR}/tools/cache/python/windows-embed/python.exe"
+        CACHE FILEPATH "Python interpreter for CE build helpers")
+endif()
+
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 if(WIN32)
     set(HOST_OS "Windows")
@@ -31,12 +85,7 @@ elseif(UNIX)
     set(PLATFORM_FLAGS -DPLATFORM_LINUX)
 endif()
 
-set(ASSET_FOLDER assets)
-set(SCRIPT_FOLDER scripts)
-set(SHADER_DIR shaders)
 set(DATA_FILE_NAME data.tcf)
-
-find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     source/*.cpp
@@ -52,181 +101,74 @@ elseif(UNIX)
     list(FILTER SOURCES EXCLUDE REGEX "/platforms/windows/")
 endif()
 
-if(NOT CE_ENABLE_AUDIO)
-    list(FILTER SOURCES EXCLUDE REGEX "/engine/audio/")
+file(GLOB CE_SHADER_SOURCES CONFIGURE_DEPENDS
+    "${CE_ROOT_DIR}/shaders/*.frag"
+    "${CE_ROOT_DIR}/shaders/*.vert"
+)
+
+file(GLOB_RECURSE CE_ASSET_INPUTS CONFIGURE_DEPENDS
+    "${CE_ROOT_DIR}/assets/*"
+)
+
+file(GLOB_RECURSE CE_JSON_ASSET_INPUTS CONFIGURE_DEPENDS
+    "${CE_ROOT_DIR}/assets/*.json"
+)
+
+find_package(Angelscript CONFIG REQUIRED)
+
+find_path(
+    ANGELSCRIPT_ADDON_INCLUDE_DIR
+    NAMES scriptstdstring/scriptstdstring.h
+    PATH_SUFFIXES include/angelscript
+)
+
+if(NOT ANGELSCRIPT_ADDON_INCLUDE_DIR)
+    message(FATAL_ERROR
+        "AngelScript add-on sources were not found. "
+        "Install the 'angelscript[addons]' vcpkg feature before configuring."
+    )
 endif()
-
-set(AS_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
-
-add_subdirectory(external/angelscript/sdk/angelscript/projects/cmake)
 
 set(ANGELSCRIPT_ADDON_SOURCES
-    external/angelscript/sdk/add_on/datetime/datetime.cpp
-    external/angelscript/sdk/add_on/scriptmath/scriptmath.cpp
-    external/angelscript/sdk/add_on/scripthandle/scripthandle.cpp
-    external/angelscript/sdk/add_on/scriptstdstring/scriptstdstring.cpp
-    external/angelscript/sdk/add_on/scriptbuilder/scriptbuilder.cpp
-    external/angelscript/sdk/add_on/scriptarray/scriptarray.cpp
-    external/angelscript/sdk/add_on/scriptdictionary/scriptdictionary.cpp
-    external/angelscript/sdk/add_on/scriptany/scriptany.cpp
-    external/angelscript/sdk/add_on/scriptgrid/scriptgrid.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/datetime/datetime.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptmath/scriptmath.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scripthandle/scripthandle.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptstdstring/scriptstdstring.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptbuilder/scriptbuilder.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptarray/scriptarray.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptdictionary/scriptdictionary.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptany/scriptany.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptgrid/scriptgrid.cpp
 )
 
-file(GLOB SHADER_SOURCES
-    ${SHADER_DIR}/*.frag
-    ${SHADER_DIR}/*.vert
-)
-
-find_program(GLSLC_EXECUTABLE glslc)
-find_program(XXD_EXECUTABLE xxd)
-
-if(NOT GLSLC_EXECUTABLE)
-    message(FATAL_ERROR "Required tool 'glslc' not found on PATH.")
-endif()
-
-if(NOT XXD_EXECUTABLE)
-    message(FATAL_ERROR "Required tool 'xxd' not found on PATH.")
-endif()
-
-set(SHADER_HEADERS)
-
-foreach(SHADER ${SHADER_SOURCES})
-
-    get_filename_component(SHADER_NAME ${SHADER} NAME_WE)
-    get_filename_component(SHADER_EXT ${SHADER} EXT)
-
-    string(REPLACE "." "" SHADER_EXT_CLEAN ${SHADER_EXT})
-
-    set(SYMBOL_NAME ${SHADER_NAME}_${SHADER_EXT_CLEAN}_spv)
-
-    set(HEADER
-        ${CMAKE_SOURCE_DIR}/include/engine/renderers/shaders/${SYMBOL_NAME}.h
-    )
-
-    list(APPEND SHADER_HEADERS ${HEADER})
-
-    add_custom_command(
-        OUTPUT ${HEADER}
-
-        DEPENDS ${SHADER}
-
-        COMMAND ${GLSLC_EXECUTABLE}
-            ${SHADER}
-            -o
-            ${SHADER}.spv
-
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${SHADER}.spv
-            ${CMAKE_SOURCE_DIR}/assets/shaders/Compiled/SPIRV/${SHADER_NAME}.${SHADER_EXT_CLEAN}.spv
-
-        COMMAND ${XXD_EXECUTABLE}
-            -i
-            -n
-            ${SYMBOL_NAME}
-            ${SHADER}.spv
-            ${HEADER}
-
-        COMMAND ${CMAKE_COMMAND} -E remove -f
-            ${SHADER}.spv
-    )
-
+foreach(ANGELSCRIPT_ADDON_SOURCE ${ANGELSCRIPT_ADDON_SOURCES})
+    if(NOT EXISTS "${ANGELSCRIPT_ADDON_SOURCE}")
+        message(FATAL_ERROR
+            "Missing AngelScript add-on source '${ANGELSCRIPT_ADDON_SOURCE}'. "
+            "The vcpkg port must be installed with the 'addons' feature."
+        )
+    endif()
 endforeach()
 
-add_custom_target(shaders DEPENDS ${SHADER_HEADERS})
-
-file(GLOB_RECURSE ASSET_SOURCE_FILES CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/${ASSET_FOLDER}/*
+execute_process(
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders "--triplet" "${VCPKG_TARGET_TRIPLET}"
+    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+    RESULT_VARIABLE CE_SHADER_PREPARE_RESULT
 )
 
-file(GLOB_RECURSE JSON_SOURCE_FILES CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/${ASSET_FOLDER}/*.json
-)
-
-set(GENERATED_TDF_FILES)
-
-foreach(JSON_FILE ${JSON_SOURCE_FILES})
-
-    file(RELATIVE_PATH REL_PATH
-        ${CMAKE_SOURCE_DIR}/${ASSET_FOLDER}
-        ${JSON_FILE}
-    )
-
-    get_filename_component(JSON_DIR ${REL_PATH} DIRECTORY)
-    get_filename_component(JSON_NAME ${JSON_FILE} NAME_WE)
-
-    set(OUTPUT_DIR
-        ${CMAKE_BINARY_DIR}/${ASSET_FOLDER}/${JSON_DIR}
-    )
-
-    set(OUTPUT_TDF
-        ${OUTPUT_DIR}/${JSON_NAME}.tdf
-    )
-
-    list(APPEND GENERATED_TDF_FILES ${OUTPUT_TDF})
-
-    add_custom_command(
-        OUTPUT ${OUTPUT_TDF}
-
-        DEPENDS
-            ${JSON_FILE}
-            ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/json_to_tdf.py
-
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            ${OUTPUT_DIR}
-
-        COMMAND ${Python3_EXECUTABLE}
-            ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/json_to_tdf.py
-            --mode generic
-            --out-dir ${OUTPUT_DIR}
-            ${JSON_FILE}
-    )
-
-endforeach()
-
-add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/${DATA_FILE_NAME}
-
-    DEPENDS
-        ${ASSET_SOURCE_FILES}
-        ${GENERATED_TDF_FILES}
-        ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/tcf.py
-
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-        ${CMAKE_BINARY_DIR}/${ASSET_FOLDER}
-
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/${ASSET_FOLDER}
-        ${CMAKE_BINARY_DIR}/${ASSET_FOLDER}
-
-    COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/${SCRIPT_FOLDER}/tcf.py
-        pack
-        ${CMAKE_BINARY_DIR}/${ASSET_FOLDER}
-        ${DATA_FILE_NAME}
-
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-add_custom_target(assets
-    DEPENDS
-        ${CMAKE_BINARY_DIR}/${DATA_FILE_NAME}
-)
+if(NOT CE_SHADER_PREPARE_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to generate shader headers during CMake configure.")
+endif()
 
 add_executable(ce_engine ${SOURCES})
 
 target_sources(ce_engine PRIVATE ${ANGELSCRIPT_ADDON_SOURCES})
 
-add_dependencies(ce_engine shaders assets)
-
 target_include_directories(ce_engine PRIVATE
     include
     include/third_party
     include/third_party/imgui
-    external/angelscript/sdk/include
-    external/angelscript/sdk/add_on
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}
 )
 
 target_compile_definitions(ce_engine PRIVATE
@@ -269,18 +211,12 @@ else()
     message(FATAL_ERROR "SDL3_ttf not found.")
 endif()
 
-if(CE_ENABLE_AUDIO)
+find_package(SDL3_mixer CONFIG QUIET)
 
-    target_compile_definitions(ce_engine PRIVATE CE_ENABLE_AUDIO=1)
-
-    find_package(SDL3_mixer CONFIG QUIET)
-
-    if(SDL3_mixer_FOUND)
-        target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
-    else()
-        message(FATAL_ERROR "SDL3_mixer not found.")
-    endif()
-
+if(SDL3_mixer_FOUND)
+    target_link_libraries(ce_engine PRIVATE SDL3_mixer::SDL3_mixer)
+else()
+    message(FATAL_ERROR "SDL3_mixer not found.")
 endif()
 
 find_package(Vulkan REQUIRED)
@@ -289,7 +225,58 @@ target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(ce_engine PRIVATE glm::glm)
 
-target_link_libraries(ce_engine PRIVATE angelscript)
+set(ANGELSCRIPT_LINK_TARGET "")
+foreach(CANDIDATE_TARGET Angelscript::angelscript angelscript AngelScript::angelscript AngelScript)
+    if(TARGET ${CANDIDATE_TARGET})
+        set(ANGELSCRIPT_LINK_TARGET ${CANDIDATE_TARGET})
+        break()
+    endif()
+endforeach()
+
+if(NOT ANGELSCRIPT_LINK_TARGET)
+    message(FATAL_ERROR "Could not find an exported AngelScript CMake target.")
+endif()
+
+target_link_libraries(ce_engine PRIVATE ${ANGELSCRIPT_LINK_TARGET})
+
+set(CE_SHADER_STAMP "${CMAKE_BINARY_DIR}/generated/shaders.stamp")
+add_custom_command(
+    OUTPUT "${CE_SHADER_STAMP}"
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders "--triplet" "${VCPKG_TARGET_TRIPLET}"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${CE_SHADER_STAMP}"
+    DEPENDS
+        "${CE_BUILD_SCRIPT}"
+        ${CE_SHADER_SOURCES}
+    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+    VERBATIM
+)
+
+add_custom_target(ce_generated_shaders DEPENDS "${CE_SHADER_STAMP}")
+
+set(CE_DATA_FILE_PATH "${CMAKE_BINARY_DIR}/${DATA_FILE_NAME}")
+add_custom_command(
+    OUTPUT "${CE_DATA_FILE_PATH}"
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" assets "--build-dir" "${CMAKE_BINARY_DIR}"
+    DEPENDS
+        "${CE_BUILD_SCRIPT}"
+        "${CE_ROOT_DIR}/scripts/json_to_tdf.py"
+        "${CE_ROOT_DIR}/scripts/tcf.py"
+        "${CE_SHADER_STAMP}"
+        ${CE_ASSET_INPUTS}
+        ${CE_JSON_ASSET_INPUTS}
+    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+    VERBATIM
+)
+
+add_custom_target(ce_assets ALL DEPENDS "${CE_DATA_FILE_PATH}")
+add_dependencies(ce_assets ce_generated_shaders)
+add_dependencies(ce_engine ce_generated_shaders ce_assets)
+
+add_custom_target(ce_clean_generated
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" clean-generated "--build-dir" "${CMAKE_BINARY_DIR}"
+    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+    VERBATIM
+)
 
 if(WIN32)
 
@@ -315,6 +302,6 @@ install(TARGETS ce_engine DESTINATION bin)
 
 add_custom_target(run
     COMMAND ce_engine
-    DEPENDS ce_engine
+    DEPENDS ce_engine ce_assets
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )

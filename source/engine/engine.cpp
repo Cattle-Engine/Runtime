@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <format>
 
 #include <SDL3/SDL.h>
@@ -12,6 +13,7 @@
 #include "engine/common/tracelog.hpp"
 #include "engine/settings.hpp"
 #include "engine/bootstrap/engine.hpp"
+namespace fs = std::filesystem;
 
 namespace CE {
    Engine::Engine(int argc, char *argv[],
@@ -30,6 +32,10 @@ namespace CE {
 
         mDataFileName =  std::format("{}{}", base, datafilename);
         CE::Log(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
+        
+        if (!fs::exists(mDataFileName)) {
+            throw std::runtime_error("[Engine] Base game data file does not exist!");
+        }
 
         Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
         
