@@ -118,6 +118,7 @@ namespace CE::Core::Audio {
             bool EnforceVoiceLimits(MIX_Track* requested_track, const std::string& bus);
             static const char* DefaultBusName(AudioType type);
             static bool IsTrackActive(MIX_Track* track);
+            float GetSoundPositionSeconds(MIX_Track* track);
 
             VFS::VFS& mVFS;
             int mInstanceID;

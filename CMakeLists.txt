@@ -225,8 +225,6 @@ else()
     message(FATAL_ERROR "SDL3_mixer not found.")
 endif()
 
-find_package(Vulkan REQUIRED)
-target_link_libraries(ce_engine PRIVATE Vulkan::Vulkan)
 
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(ce_engine PRIVATE glm::glm)

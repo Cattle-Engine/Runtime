@@ -9,15 +9,17 @@
     "glm",
     {
       "name": "sdl3",
-      "features": ["vulkan"]
+      "features": ["vulkan", "x11", "wayland"]
     },
     {
       "name": "sdl3-image",
       "features": ["jpeg", "png", "tiff", "webp"]
     },
-    "sdl3-mixer",
+    {
+      "name": "sdl3-mixer",
+      "features": ["fluidsynth",  "libflac", "libvorbis", "mpg123", "opusfile", "wavpack"]
+    },
     "sdl3-ttf",
-    "shaderc",
-    "vulkan"
+    "shaderc"
   ]
 }

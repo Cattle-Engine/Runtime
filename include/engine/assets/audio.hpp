@@ -25,7 +25,9 @@ namespace CE::Assets::Audio {
         void ResumeSound(uint32_t handle);
         void SeekSound(uint32_t handle, float seconds);
         void StopSound(uint32_t handle);
-
+        void StopAll();
+        void PauseAll();
+        void ResumeAll();
         void AddEffect(uint32_t handle, std::string name,Core::Audio::AudioFilter effect);
         void RemoveEffect(uint32_t handle, std::string name);
         void ClearEffects(uint32_t handle);
@@ -39,6 +41,12 @@ namespace CE::Assets::Audio {
         void SetMusicVolume(float volume);
         void SetSFXVolume(float volume);
 
+        void SetSoundMuted(uint32_t handle, bool muted);
+        void SetSoundGain(uint32_t handle, float gain);
+
+        size_t Debug_ActiveVoices() const;
+        void Debug_KillOldestVoice();
+
         struct DebugPlayingSound {
             uint32_t Handle = 0;
             std::string ClipName;
@@ -46,6 +54,10 @@ namespace CE::Assets::Audio {
             int Volume = 128;
             bool IsPlaying = false;
             size_t EffectCount = 0;
+            float PositionSeconds = 0.0f;
+            float DurationSeconds = 0.0f;
+            bool Muted = false;
+            float Gain = 1.0f;
         };
         size_t Debug_CachedClipsCount() const;
         std::vector<DebugPlayingSound> Debug_PlayingSoundsSnapshot() const;
@@ -60,6 +72,9 @@ namespace CE::Assets::Audio {
             };
             std::vector<NamedEffect> Effects;
             std::string ClipName;
+            bool Muted = false;
+            float Gain = 1.0f;
+            float PreviousVolume = 1.0f;
         };
         uint32_t NextHandleID = 0;
         int mInstanceID;

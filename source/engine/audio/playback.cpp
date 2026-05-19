@@ -12,6 +12,16 @@ namespace CE::Core::Audio {
         };
     }
 
+    float AudioSystem::GetSoundPositionSeconds(MIX_Track* track) {
+        if (!track) return 0.0f;
+
+        Sint64 frames = MIX_GetTrackPlaybackPosition(track);
+        if (frames < 0) return 0.0f;
+
+        Sint64 ms = MIX_TrackFramesToMS(track, frames);
+        return ms / 1000.0f;
+    }
+
     PlayingSound AudioSystem::CreateSoundInstance(const AudioClip& clip) {
         PlayingSound sound;
         sound.Clip = &clip;
@@ -166,6 +176,8 @@ namespace CE::Core::Audio {
             return;
         }
 
+        sound.PositionSeconds = GetSoundPositionSeconds(sound.Track);
+
         if (!MIX_PauseTrack(sound.Track)) {
             CE::Log(LogLevel::Warn, "[Audio {}] Failed to pause track: {}", mInstanceID, SDL_GetError());
             return;
@@ -173,12 +185,14 @@ namespace CE::Core::Audio {
 
         sound.IsPlaying = false;
     }
-
+    
     void AudioSystem::ResumeSound(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
             return;
         }
+
+        SeekSound(sound, sound.PositionSeconds);
 
         if (!MIX_ResumeTrack(sound.Track)) {
             CE::Log(LogLevel::Warn, "[Audio {}] Failed to resume track: {}", mInstanceID, SDL_GetError());
@@ -186,7 +200,7 @@ namespace CE::Core::Audio {
             return;
         }
 
-        sound.IsPlaying = MIX_TrackPlaying(sound.Track);
+        sound.IsPlaying = true;
     }
 
     void AudioSystem::StopSound(PlayingSound& sound) {

@@ -111,7 +111,7 @@ namespace CE {
         auto handle = mInstances.find(name);
 
         if (handle != mInstances.end()) {
-            handle->second->Update();
+            return handle->second->Update();
         } else {
             CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
             return 0;

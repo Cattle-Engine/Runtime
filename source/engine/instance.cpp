@@ -120,9 +120,6 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
-        gAnimationManager->Load("gooble", "testing.tdf");
-        auto anim_handle = gAnimationManager->CreateInstance("gooble");
-        gAnimationManager->Play(anim_handle, 50, 50, true, true);
     }
 
     bool Instance::ShouldExit() {

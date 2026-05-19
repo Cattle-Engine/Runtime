@@ -257,4 +257,69 @@ namespace CE::Assets::Audio {
         return snapshot;
     }
 
+    void AudioManager::StopAll() {
+        mAudioSys.StopAll();
+    }
+
+    void AudioManager::PauseAll() {
+       for (auto& [handle, info] : mPlayingSounds) {
+           mAudioSys.PauseSound(info.Sound);
+       }
+    }
+
+    void AudioManager::ResumeAll() {
+        for (auto& [handle, info] : mPlayingSounds) {
+            mAudioSys.ResumeSound(info.Sound);
+        }
+    }
+
+    void AudioManager::SetSoundMuted(uint32_t handle, bool muted) {
+        auto* info = GetSoundInfo(handle);
+        if (!info) return;
+
+        if (muted && !info->Muted) {
+            info->PreviousVolume = info->Sound.Volume;
+            info->Sound.Volume = 0;
+        }
+        else if (!muted && info->Muted) {
+            info->Sound.Volume = info->PreviousVolume;
+        }
+
+        info->Muted = muted;
+
+        mAudioSys.UpdateSound(info->Sound);
+    }
+
+    void CE::Assets::Audio::AudioManager::SetSoundGain(uint32_t handle, float gain) {
+        auto* info = GetSoundInfo(handle);
+        if (!info) return;
+
+        gain = std::clamp(gain, 0.0f, 1.0f);
+        info->Gain = gain;
+
+        if (info->Muted) return;
+
+        info->Sound.Volume = static_cast<int>(gain * 128.0f);
+        mAudioSys.UpdateSound(info->Sound);
+    }
+
+    size_t CE::Assets::Audio::AudioManager::Debug_ActiveVoices() const {
+        return mPlayingSounds.size();
+    }
+
+    void CE::Assets::Audio::AudioManager::Debug_KillOldestVoice() {
+        uint32_t oldest = 0;
+        bool found = false;
+
+        for (auto& [id, info] : mPlayingSounds) {
+            if (!found || id < oldest) {
+                oldest = id;
+                found = true;
+            }
+        }
+
+        if (found) {
+            mAudioSys.StopSound(mPlayingSounds[oldest].Sound);
+        }
+    }
 }
