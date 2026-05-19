@@ -187,6 +187,7 @@ target_compile_definitions(ce_engine PRIVATE
 target_compile_options(ce_engine PRIVATE
     -Wall
     -Wextra
+    -mavx2
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

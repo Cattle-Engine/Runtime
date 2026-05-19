@@ -74,7 +74,7 @@ void main() {
     //CE::Settings::ReloadSettings();
 
     gOnDrawId = CE::Events::On("InGame", "Draw", @InGameDraw);
-    CE::Audio::LoadSound("BITE_ME.mp3", "tester", CE::Audio::AudioType::Music);
+    CE::Audio::LoadSound("Siliconvalleysyrup.Temp.mp3", "tester", CE::Audio::AudioType::Music);
     uint tester = CE::Audio::CreateInstance("tester");
     CE::Audio::Play(tester);
 

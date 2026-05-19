@@ -7,6 +7,7 @@ vcpkg_installed/
 tools/cache/python/
 tools/cache/vcpkg/vcpkg/
 assets/shaders/Compiled/
+/assets
 include/engine/renderers/shaders/*_spv.h
 imgui.ini
 .codex

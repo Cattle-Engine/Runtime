@@ -348,152 +348,86 @@ namespace CE::UI {
         }
     }
 
-  void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings) {
-    ImGui::Text("Audio");
-    ImGui::Spacing();
+    void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings) {
+        ImGui::Text("Audio");
+        ImGui::Spacing();
 
-    auto& s = settings.Settings;
+        auto& s = settings.Settings;
 
-    bool dirty = false;
-    dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
-    dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
-    dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
+        bool dirty = false;
+        dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
+        dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
+        dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
 
-    if (dirty && audioman) {
-        audioman->SetMasterVolume(s.masterVolume);
-        audioman->SetMusicVolume(s.musicVolume);
-        audioman->SetSFXVolume(s.sfxVolume);
-    }
-
-    CE::UI::Utils::SpaceSep();
-
-    if (!audioman) {
-        ImGui::TextDisabled("Audio system not available");
-        return;
-    }
-
-    ImGui::Text("Cached Clips: %zu", audioman->Debug_CachedClipsCount());
-
-    const auto snapshot = audioman->Debug_PlayingSoundsSnapshot();
-    ImGui::Text("Playing Handles: %zu", snapshot.size());
-
-    CE::UI::Utils::SpaceSep();
-
-    if (ImGui::Button("Stop All")) {
-        audioman->StopAll();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Pause All")) {
-        audioman->PauseAll();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Resume All")) {
-        audioman->ResumeAll();
-    }
-
-    CE::UI::Utils::SpaceSep();
-
-    ImGuiTableFlags flags =
-        ImGuiTableFlags_Borders |
-        ImGuiTableFlags_RowBg |
-        ImGuiTableFlags_Resizable |
-        ImGuiTableFlags_ScrollX |
-        ImGuiTableFlags_ScrollY;
-
-    if (ImGui::BeginTable("AudioPlayingTable", 11, flags)) {
-        ImGui::TableSetupColumn("Handle");
-        ImGui::TableSetupColumn("Clip");
-        ImGui::TableSetupColumn("Bus");
-        ImGui::TableSetupColumn("Vol");
-        ImGui::TableSetupColumn("Time");
-        ImGui::TableSetupColumn("Seek");
-        ImGui::TableSetupColumn("Playing");
-        ImGui::TableSetupColumn("Muted");
-        ImGui::TableSetupColumn("FX");
-        ImGui::TableSetupColumn("Gain");
-        ImGui::TableSetupColumn("Actions");
-        ImGui::TableHeadersRow();
-
-        for (auto& row : snapshot) {
-            ImGui::PushID((int)row.Handle);
-            ImGui::TableNextRow();
-
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%u", row.Handle);
-
-            ImGui::TableSetColumnIndex(1);
-            ImGui::TextUnformatted(row.ClipName.c_str());
-
-            ImGui::TableSetColumnIndex(2);
-            ImGui::TextUnformatted(row.Bus.c_str());
-
-            ImGui::TableSetColumnIndex(3);
-            ImGui::Text("%d", row.Volume);
-
-            ImGui::TableSetColumnIndex(4);
-            ImGui::Text("%.2f / %.2f",
-                row.PositionSeconds,
-                row.DurationSeconds);
-
-            ImGui::TableSetColumnIndex(5);
-            if (row.DurationSeconds > 0.0f) {
-                float pos = row.PositionSeconds;
-                if (ImGui::SliderFloat("##seek", &pos, 0.0f, row.DurationSeconds, "%.2f")) {
-                    audioman->SeekSound(row.Handle, pos);
-                }
-            } else {
-                ImGui::TextDisabled("N/A");
-            }
-
-            ImGui::TableSetColumnIndex(6);
-            ImGui::TextUnformatted(row.IsPlaying ? "Yes" : "No");
-
-            ImGui::TableSetColumnIndex(7);
-            bool muted = row.Muted;
-            if (ImGui::Checkbox("##mute", &muted)) {
-                audioman->SetSoundMuted(row.Handle, muted);
-            }
-
-            ImGui::TableSetColumnIndex(8);
-            ImGui::Text("%zu", row.EffectCount);
-
-            ImGui::TableSetColumnIndex(9);
-            int gainUI = static_cast<int>(row.Gain * 100.0f);
-
-            if (ImGui::SliderInt("##gain", &gainUI, 1, 100, "%d%%")) {
-                float gain = gainUI / 100.0f;
-                audioman->SetSoundGain(row.Handle, gain);
-            }
-
-            ImGui::TableSetColumnIndex(10);
-            if (ImGui::SmallButton("Play")) {
-                audioman->PlaySound(row.Handle);
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton("Pause")) {
-                audioman->PauseSound(row.Handle);
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton("Resume")) {
-                audioman->ResumeSound(row.Handle);
-            }
-            ImGui::SameLine();
-            if (ImGui::SmallButton("Stop")) {
-                audioman->StopSound(row.Handle);
-            }
-
-            ImGui::SameLine();
-            if (ImGui::SmallButton("Kill")) {
-                audioman->DeleteSoundInstance(row.Handle);
-            }
-
-            ImGui::PopID();
+        if (dirty && audioman) {
+            audioman->SetMasterVolume(s.masterVolume);
+            audioman->SetMusicVolume(s.musicVolume);
+            audioman->SetSFXVolume(s.sfxVolume);
         }
 
-        ImGui::EndTable();
-    }
-}
+        CE::UI::Utils::SpaceSep();
 
+        if (!audioman) {
+            ImGui::TextDisabled("Audio system not available");
+            return;
+        }
+
+        ImGui::Text("Cached Clips: %zu", audioman->Debug_CachedClipsCount());
+
+        const auto snapshot = audioman->Debug_PlayingSoundsSnapshot();
+        ImGui::Text("Playing Handles: %zu", snapshot.size());
+
+        if (ImGui::BeginTable("AudioPlayingTable", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+            ImGui::TableSetupColumn("Handle");
+            ImGui::TableSetupColumn("Clip");
+            ImGui::TableSetupColumn("Bus");
+            ImGui::TableSetupColumn("Vol");
+            ImGui::TableSetupColumn("Playing");
+            ImGui::TableSetupColumn("FX");
+            ImGui::TableSetupColumn("Actions");
+            ImGui::TableHeadersRow();
+
+            for (const auto& row : snapshot) {
+                ImGui::PushID(static_cast<int>(row.Handle));
+                ImGui::TableNextRow();
+
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%u", row.Handle);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::TextUnformatted(row.ClipName.c_str());
+                ImGui::TableSetColumnIndex(2);
+                ImGui::TextUnformatted(row.Bus.c_str());
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%d", row.Volume);
+                ImGui::TableSetColumnIndex(4);
+                ImGui::TextUnformatted(row.IsPlaying ? "Yes" : "No");
+                ImGui::TableSetColumnIndex(5);
+                ImGui::Text("%zu", row.EffectCount);
+
+                ImGui::TableSetColumnIndex(6);
+                if (ImGui::SmallButton("Play")) {
+                    audioman->PlaySound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Pause")) {
+                    audioman->PauseSound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Resume")) {
+                    audioman->ResumeSound(row.Handle);
+                }
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Stop")) {
+                    audioman->StopSound(row.Handle);
+                }
+
+                ImGui::PopID();
+            }
+
+            ImGui::EndTable();
+        }
+    }
+    
     void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,

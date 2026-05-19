@@ -1,6 +1,8 @@
 #include "engine/assets/audio.hpp"
 #include "engine/common/tracelog.hpp"
 
+#include <algorithm>
+
 namespace CE::Assets::Audio {
     AudioManager::AudioManager(Core::Audio::AudioSystem& audio_system,
                     VFS::VFS& vfs, int instance_id) : mVFS(vfs), mAudioSys(audio_system)
