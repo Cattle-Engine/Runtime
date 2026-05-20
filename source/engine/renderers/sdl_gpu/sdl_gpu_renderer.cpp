@@ -1336,4 +1336,100 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             );
         }
     }
+
+    void SDL_GPU_Renderer::LoadShader(const char* path) {
+        // The shader is loaded via the Utils::LoadShader function during init
+        // This method is a placeholder for potential runtime shader loading
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] LoadShader called with path: {}", path);
+    }
+
+    void SDL_GPU_Renderer::UnloadShader(Shader* shader) {
+        if (!shader) return;
+
+        auto* sdlShader = shader->Get<SDL_GPU_Renderer_Shader>();
+        if (sdlShader) {
+            if (sdlShader->Shader) {
+                SDL_ReleaseGPUShader(gDevice, sdlShader->Shader);
+                sdlShader->Shader = nullptr;
+            }
+            if (sdlShader->Pipeline) {
+                SDL_ReleaseGPUGraphicsPipeline(gDevice, sdlShader->Pipeline);
+                sdlShader->Pipeline = nullptr;
+            }
+        }
+    }
+
+    void SDL_GPU_Renderer::BindShader(Shader* shader) {
+        if (!shader) {
+            // UnbindShader is called with nullptr - go to default
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] BindShader called with nullptr, use UnbindShader instead");
+            return;
+        }
+
+        auto* sdlShader = shader->Get<SDL_GPU_Renderer_Shader>();
+        if (!sdlShader) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Invalid shader handle in BindShader");
+            return;
+        }
+
+        // Check if the shader is already bound - return immediately
+        if (gCurrentShader == sdlShader) {
+            CE::Log(LogLevel::Debug, "[SDL_GPU Renderer] BindShader: shader already bound, returning");
+            return;
+        }
+
+        // Replace current shader with new one
+        gCurrentShader = sdlShader;
+        gHasDefaultShader = false;
+
+        if (gRenderPass && gCurrentShader->Pipeline) {
+            SDL_BindGPUGraphicsPipeline(gRenderPass, gCurrentShader->Pipeline);
+            CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Bound shader: {}", gCurrentShader->Shader ? "custom" : "default");
+        }
+    }
+
+    void SDL_GPU_Renderer::UnbindShader() {
+        // Go back to default shader (standard pipeline)
+        if (gHasDefaultShader) {
+            // Already using default
+            return;
+        }
+
+        gCurrentShader = nullptr;
+        gHasDefaultShader = true;
+
+        // Rebind the default pipeline
+        if (gRenderPass && gPipeline) {
+            SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
+            CE::Log(LogLevel::Info, "[SDL_GPU Renderer] UnbindShader: reverted to default pipeline");
+        }
+    }
+
+    void SDL_GPU_Renderer::SetShaderFloat(const char* name, float value) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderFloat: Not implemented -Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderVec2(const char* name, float x, float y) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec2: Not implemented - Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderVec3(const char* name, float x, float y, float z) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec3: Not implemented - Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderVec4(const char* name, float x, float y, float z, float w) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec4: Not implemented - Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderMat4(const char* name, const float* mat4) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderMat4: Not implemented - Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderInt(const char* name, int value) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderInt: Not implemented - Uniform data is pushed before draw");
+    }
+
+    void SDL_GPU_Renderer::SetShaderTexture(const char* name, Texture* texture, int slot) {
+        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderTexture: Not implemented - Samplers are bound via pipeline");
+    }
 }

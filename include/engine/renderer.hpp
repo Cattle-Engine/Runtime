@@ -3,10 +3,12 @@
 #include <string>
 #include <memory>
 #include <cstdint>
+#include <variant>
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
 #include "engine/common/fs/vfs.hpp"
+
 namespace CE {
     enum class RendererBackend {
         Software,
@@ -18,6 +20,7 @@ namespace CE {
         None
     };
 }
+
 namespace CE::Renderer {
     class IRenderer;
 
@@ -25,16 +28,16 @@ namespace CE::Renderer {
         void* device;
         RendererBackend backend;
     };
-    
+
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
-    
+
     inline RendererBackend renderer = RendererBackend::None;
     inline std::string rendererName = "None";
 
     IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     void DestroyGPUDevice(GPUDeviceHandle device);
-    
+
     struct Camera2D {
         float x = 0.0f;
         float y = 0.0f;
@@ -65,16 +68,21 @@ namespace CE::Renderer {
     };
 
     struct Texture {
-        void* handle;    
+        void* handle;
         int width;
         int height;
         TextureFormat format;
         RendererBackend backend;
     };
 
+    struct Shader {
+        void* handle;
+        RendererBackend backend;
+    };
+
     enum class TextureFilter {
-        Nearest, 
-        Linear  
+        Nearest,
+        Linear
     };
 
     enum class TextureWrap {
@@ -108,12 +116,12 @@ namespace CE::Renderer {
     class IRenderer {
         public:
                 virtual void PreWinInit() = 0;
-            
+
                 virtual int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) = 0;
                 virtual int Shutdown(SDL_Window* window) = 0;
 
                 virtual void ChangeCameraPos(float X, float Y, float zoom) = 0;
-            
+
                 virtual void DrawRect(float x, float y, float w, float h,
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                     float rotation) = 0;
@@ -163,7 +171,7 @@ namespace CE::Renderer {
 
                 virtual int BeginFrame(SDL_Window* window) = 0;
                 virtual int EndFrame(SDL_Window* window) = 0;
-               
+
                 virtual Texture* GetErrorTexture() = 0;
                 virtual void* GetNativeTextureHandle(Texture* texture) = 0;
 
@@ -174,6 +182,19 @@ namespace CE::Renderer {
                 virtual Camera2D* GetCamera() = 0;
 
                 virtual void SetVSync(bool setting) = 0;
+
+                virtual void LoadShader(const char* path) = 0;
+                virtual void UnloadShader(Shader* shader) = 0;
+                virtual void BindShader(Shader* shader) = 0;
+                virtual void UnbindShader() = 0;
+                virtual void SetShaderFloat(const char* name, float value) = 0;
+                virtual void SetShaderVec2(const char* name, float x, float y) = 0;
+                virtual void SetShaderVec3(const char* name, float x, float y, float z) = 0;
+                virtual void SetShaderVec4(const char* name, float x, float y, float z, float w) = 0;
+
+                virtual void SetShaderMat4(const char* name, const float* mat4) = 0;
+                virtual void SetShaderInt(const char* name, int value) = 0;
+                virtual void SetShaderTexture(const char* name, Texture* texture, int slot) = 0;
 
                 virtual void ImGuiStartFrame() = 0;
                 virtual void ImGuiEndFrame(SDL_Window* window) = 0;

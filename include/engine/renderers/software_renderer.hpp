@@ -2,13 +2,12 @@
 
 #include <cstdint>
 #include <unordered_set>
+#include <memory>
 
 #include <SDL3/SDL.h>
 
 #include "engine/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
-
-struct ImDrawData;
 
 namespace CE::Renderer::Software {
     GPUDeviceHandle CreateGPUDevice();
@@ -85,6 +84,21 @@ namespace CE::Renderer::Software {
 
             void SetVSync(bool setting) override;
 
+            void LoadShader(const char* path) override;
+            void UnloadShader(Shader* shader) override;
+
+            void BindShader(Shader* shader) override;
+            void UnbindShader() override;
+
+            void SetShaderFloat(const char* name, float value) override;
+            void SetShaderVec2(const char* name, float x, float y) override;
+            void SetShaderVec3(const char* name, float x, float y, float z) override;
+            void SetShaderVec4(const char* name, float x, float y, float z, float w) override;
+
+            void SetShaderMat4(const char* name, const float* mat4) override;
+            void SetShaderInt(const char* name, int value) override;
+            void SetShaderTexture(const char* name, Texture* texture, int slot) override;
+
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
 
@@ -110,6 +124,7 @@ namespace CE::Renderer::Software {
             void ImGuiInit(SDL_Window* window);
             void ImGuiShutdown();
             void RenderImGuiDrawData(ImDrawData* drawData);
+            static void LogAboutShaders();
 
             SDL_Renderer* mRenderer = nullptr;
             Camera2D mCamera{};
@@ -121,5 +136,8 @@ namespace CE::Renderer::Software {
             void* mImGuiContext = nullptr;
             Texture* mImGuiFontTexture = nullptr;
             std::unordered_set<Texture*> mOwnedTextures;
+    };
+
+    struct Software_Shader {
     };
 }

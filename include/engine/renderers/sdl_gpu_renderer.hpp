@@ -1,27 +1,35 @@
+#pragma once
+
+#include <cstdint>
+#include <unordered_set>
+#include <memory>
+
+#include <SDL3/SDL.h>
+
 #include "engine/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 
-#include "imgui/imgui.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <vector>
-#include <memory>
-
+struct ImGuiContext;
+struct ImDrawData;
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     void DestroyGPUDevice(GPUDeviceHandle device);
-    // Internal struct 
-    // Stores the GPU-side texture + sampler behind Texture::handle.
+
     struct SDLGPUTexData {
         SDL_GPUTexture* gpuTex        = nullptr;
         SDL_GPUSampler* sampler       = nullptr;
         SDL_GPUSampler* repeatSampler = nullptr;
     };
 
+    struct SDL_GPU_Renderer_Shader {
+        SDL_GPUShader* Shader = nullptr;
+        SDL_GPUGraphicsPipeline* Pipeline = nullptr;
+    };
+
     struct DeferredDeleteEntry {
         SDLGPUTexData* data;
-        int framesUntilDelete;  // Number of frames to wait before deletion
+        int framesUntilDelete;
 
         bool operator==(const DeferredDeleteEntry& other) const {
             return data == other.data;
@@ -39,21 +47,21 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint32_t idxCount   = 0;
     };
 
-    class SDL_GPU_Renderer : public CE::Renderer::IRenderer {
+    class SDL_GPU_Renderer : public Renderer::IRenderer {
         public:
             SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs);
 
             void PreWinInit() override;
-        
+
             int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
             int Shutdown(SDL_Window* window) override;
 
             void ChangeCameraPos(float X, float Y, float zoom) override;
-        
+
             void DrawRect(float x, float y, float w, float h,
                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                        float rotation) override;
-            
+
             void DrawTriangle(
                 float x0, float y0,
                 float x1, float y1,
@@ -116,7 +124,21 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
 
-            // Deferred deletion support
+            void LoadShader(const char* path) override;
+            void UnloadShader(Shader* shader) override;
+
+            void BindShader(Shader* shader) override;
+            void UnbindShader() override;
+
+            void SetShaderFloat(const char* name, float value) override;
+            void SetShaderVec2(const char* name, float x, float y) override;
+            void SetShaderVec3(const char* name, float x, float y, float z) override;
+            void SetShaderVec4(const char* name, float x, float y, float z, float w) override;
+
+            void SetShaderMat4(const char* name, const float* mat4) override;
+            void SetShaderInt(const char* name, int value) override;
+            void SetShaderTexture(const char* name, Texture* texture, int slot) override;
+
             void ProcessDeferredDeletions();
 
         private:
@@ -146,7 +168,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUTexture*  gWhiteTex     = nullptr;
             SDL_GPUSampler*  gWhiteSampler = nullptr;
             CE::Renderer::Vertex* gMappedTexVerts   = nullptr;
-            uint16_t*             gMappedTexIndices = nullptr;
+            uint16_t* gMappedTexIndices = nullptr;
             uint32_t              gTexIndexCount    = 0;
             SDL_GPUBuffer*         gTexVertexBuffer = nullptr;
             SDL_GPUBuffer*         gTexIndexBuffer  = nullptr;
@@ -165,11 +187,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             CE::VFS::VFS* gVFS;
 
             std::vector<DeferredDeleteEntry> gDeferredDeletes;
+
+            SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
+            bool gHasDefaultShader = false;
     };
 }
 
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {
-    SDL_GPUShader* LoadShader( 
+    SDL_GPUShader* LoadShader(
         SDL_GPUDevice* device,
         const std::string& shaderfilename,
         Uint32 samplercount,
