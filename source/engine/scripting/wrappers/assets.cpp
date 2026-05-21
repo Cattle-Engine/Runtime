@@ -2,6 +2,7 @@
 #include "engine/assets/animations.hpp"
 
 #include <new>
+#include <scriptarray/scriptarray.h>
 
 namespace {
     constexpr CE::Renderer::Colour kWhite {255, 255, 255, 255};
@@ -82,6 +83,21 @@ namespace CE::Scripting {
             return false;
         }
 
+        result = mScriptEngine->RegisterEnum("ShaderStage");
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterEnumValue("ShaderStage", "Vertex", static_cast<int>(Renderer::ShaderStage::Vertex));
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterEnumValue("ShaderStage", "Fragment", static_cast<int>(Renderer::ShaderStage::Fragment));
+        if (result < 0) {
+            return false;
+        }
+
         mScriptEngine->SetDefaultNamespace("CE::Graphics::Textures");
 
         result = mScriptEngine->RegisterGlobalFunction(
@@ -147,6 +163,158 @@ namespace CE::Scripting {
         result = mScriptEngine->RegisterGlobalFunction(
             "void DrawTexturePro(const string &in name, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTexturePro),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        mScriptEngine->SetDefaultNamespace("CE::Graphics::Shaders");
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool CreateShaderProgram(const string &in name)",
+            asMETHOD(Runtime, CreateShaderProgram),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool LoadShader(const string &in path, const string &in name)",
+            asMETHOD(Runtime, LoadShader),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool LoadShaderStage(const string &in program, const string &in path, CE::Graphics::ShaderStage stage)",
+            asMETHOD(Runtime, LoadShaderStage),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool UseDefaultShaderStage(const string &in program, CE::Graphics::ShaderStage stage)",
+            asMETHOD(Runtime, UseDefaultShaderStage),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool CompileShaderProgram(const string &in name)",
+            asMETHOD(Runtime, CompileShaderProgram),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool BindShader(const string &in name)",
+            asMETHOD(Runtime, BindShaderProgram),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void UnbindShader()",
+            asMETHOD(Runtime, UnbindShaderProgram),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void UnloadShader(const string &in name)",
+            asMETHOD(Runtime, UnloadShader),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderFloat(const string &in uniformName, float value)",
+            asMETHOD(Runtime, SetShaderFloat),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderVec2(const string &in uniformName, float x, float y)",
+            asMETHOD(Runtime, SetShaderVec2),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderVec3(const string &in uniformName, float x, float y, float z)",
+            asMETHOD(Runtime, SetShaderVec3),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderVec4(const string &in uniformName, float x, float y, float z, float w)",
+            asMETHOD(Runtime, SetShaderVec4),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderMat4(const string &in uniformName, const array<float>@ values)",
+            asMETHOD(Runtime, SetShaderMat4),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetShaderInt(const string &in uniformName, int value)",
+            asMETHOD(Runtime, SetShaderInt),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "bool SetShaderTexture(const string &in uniformName, const string &in textureName, int slot = 0)",
+            asMETHOD(Runtime, SetShaderTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -440,6 +608,74 @@ namespace CE::Scripting {
 
     void Runtime::DrawTexturePro(const std::string& name, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
         mTextureManager.DrawPro(name.c_str(), x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
+    }
+
+    bool Runtime::CreateShaderProgram(const std::string& name) {
+        return mShaderManager.CreateProgram(name.c_str());
+    }
+
+    bool Runtime::LoadShader(const std::string& path, const std::string& name) {
+        return mShaderManager.Load(path.c_str(), name.c_str());
+    }
+
+    bool Runtime::LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage) {
+        return mShaderManager.LoadStage(program.c_str(), path.c_str(), stage);
+    }
+
+    bool Runtime::UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage) {
+        return mShaderManager.UseDefaultStage(program.c_str(), stage);
+    }
+
+    bool Runtime::CompileShaderProgram(const std::string& name) {
+        return mShaderManager.Compile(name.c_str());
+    }
+
+    bool Runtime::BindShaderProgram(const std::string& name) {
+        return mShaderManager.Bind(name.c_str());
+    }
+
+    void Runtime::UnbindShaderProgram() {
+        mShaderManager.Unbind();
+    }
+
+    void Runtime::UnloadShader(const std::string& name) {
+        mShaderManager.Unload(name.c_str());
+    }
+
+    void Runtime::SetShaderFloat(const std::string& uniformName, float value) {
+        mShaderManager.SetFloat(uniformName.c_str(), value);
+    }
+
+    void Runtime::SetShaderVec2(const std::string& uniformName, float x, float y) {
+        mShaderManager.SetVec2(uniformName.c_str(), x, y);
+    }
+
+    void Runtime::SetShaderVec3(const std::string& uniformName, float x, float y, float z) {
+        mShaderManager.SetVec3(uniformName.c_str(), x, y, z);
+    }
+
+    void Runtime::SetShaderVec4(const std::string& uniformName, float x, float y, float z, float w) {
+        mShaderManager.SetVec4(uniformName.c_str(), x, y, z, w);
+    }
+
+    void Runtime::SetShaderMat4(const std::string& uniformName, const CScriptArray* values) {
+        if (!values || values->GetSize() < 16) {
+            return;
+        }
+
+        float matrix[16] {};
+        for (asUINT i = 0; i < 16; ++i) {
+            matrix[i] = *static_cast<const float*>(values->At(i));
+        }
+        mShaderManager.SetMat4(uniformName.c_str(), matrix);
+    }
+
+    void Runtime::SetShaderInt(const std::string& uniformName, int value) {
+        mShaderManager.SetInt(uniformName.c_str(), value);
+    }
+
+    bool Runtime::SetShaderTexture(const std::string& uniformName, const std::string& textureName, int slot) {
+        return mShaderManager.SetTexture(uniformName.c_str(), textureName.c_str(), slot);
     }
 
     void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation) {

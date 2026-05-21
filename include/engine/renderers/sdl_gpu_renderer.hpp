@@ -1,8 +1,12 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
-#include <unordered_set>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include <SDL3/SDL.h>
 
@@ -23,8 +27,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     };
 
     struct SDL_GPU_Renderer_Shader {
-        SDL_GPUShader* Shader = nullptr;
+        SDL_GPUShader* VertexShader = nullptr;
+        SDL_GPUShader* FragmentShader = nullptr;
         SDL_GPUGraphicsPipeline* Pipeline = nullptr;
+        bool UsesDefaultVertex = true;
+        bool UsesDefaultFragment = true;
+        bool Dirty = true;
+        std::string VertexPath;
+        std::string FragmentPath;
+        glm::mat4 OverrideMVP { 1.0f };
+        bool HasOverrideMVP = false;
+        glm::mat4 ModelMatrix { 1.0f };
+        glm::mat4 CustomMat4 { 1.0f };
+        glm::vec4 Tint { 1.0f, 1.0f, 1.0f, 1.0f };
+        glm::vec4 Resolution { 0.0f, 0.0f, 0.0f, 0.0f };
+        glm::vec4 Misc { 0.0f, 0.0f, 0.0f, 0.0f };
+        std::array<glm::vec4, 8> CustomVec4 {};
+        std::array<glm::ivec4, 4> CustomInt4 {};
+        std::array<Texture*, 4> BoundTextures {};
     };
 
     struct DeferredDeleteEntry {
@@ -124,7 +144,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
 
-            void LoadShader(const char* path) override;
+            Shader* CreateShaderProgram() override;
+            Shader* LoadShader(const char* path) override;
+            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) override;
+            bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) override;
+            bool CompileShaderProgram(Shader* shaderProgram) override;
             void UnloadShader(Shader* shader) override;
 
             void BindShader(Shader* shader) override;
@@ -142,6 +166,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void ProcessDeferredDeletions();
 
         private:
+            SDL_GPUGraphicsPipeline* CreateGraphicsPipeline(
+                SDL_Window* window,
+                SDL_GPUShader* vertexShader,
+                SDL_GPUShader* fragmentShader
+            ) const;
+            int CreateDefaultPipeline(SDL_Window* window);
+            void DestroyDefaultPipeline();
+            void BindActivePipeline();
+            void PushActiveShaderUniforms();
+            void BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler);
+            static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
+            SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
+            bool LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path, ShaderStage stage);
+            void ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage);
+            static std::string GetShaderBaseName(const char* path);
+            static bool ParseIndexedUniformName(const char* name, const char* prefix, size_t maxCount, size_t& indexOut);
+
             ImGuiContext* mImguicontext;
             ImDrawData* mPendingImGuiDrawData = nullptr;
             void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
@@ -154,6 +195,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUTexture* gSwapchainTexture = nullptr;
             SDL_GPUBuffer* gVertexBuffer = nullptr;
             SDL_GPUGraphicsPipeline* gPipeline = nullptr;
+            SDL_GPUShader* gDefaultVertexShader = nullptr;
+            SDL_GPUShader* gDefaultFragmentShader = nullptr;
             Camera2D gCamera;
             static constexpr size_t MAX_VERTS   = 10000;
             static constexpr size_t MAX_INDICES = 15000;
@@ -189,7 +232,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             std::vector<DeferredDeleteEntry> gDeferredDeletes;
 
             SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
-            bool gHasDefaultShader = false;
     };
 }
 

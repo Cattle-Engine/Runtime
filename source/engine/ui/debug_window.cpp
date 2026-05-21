@@ -9,6 +9,7 @@
 #include "engine/ui/utils.hpp"
 #include "engine/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
+#include "engine/assets/shaders.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"
@@ -78,6 +79,7 @@ namespace CE::UI {
     void DebugWindow::DrawPerformanceTab(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
+        CE::Assets::Shaders::ShaderManager& shaderman,
         const CE::Settings::SettingsManager& settings,
         int fps,
         float deltaTime,
@@ -85,6 +87,7 @@ namespace CE::UI {
     ) {
         (void)renderer;
         (void)texman;
+        (void)shaderman;
         (void)settings;
 
         ImGui::Text("Performance");
@@ -199,6 +202,7 @@ namespace CE::UI {
         CE::Renderer::IRenderer& renderer,
         const Settings::SettingsManager& settings,
         Assets::Textures::TextureManager& texman,
+        Assets::Shaders::ShaderManager& shaderman,
         Assets::Fonts::FontManager& fontman
     ) 
     {
@@ -278,6 +282,34 @@ namespace CE::UI {
             ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
             ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
             ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+        }
+
+        CE::UI::Utils::SpaceSep();
+
+        if (ImGui::CollapsingHeader("Shaders")) {
+            ImGui::Text("Total loaded: %d", shaderman.Debug_LoadedShadersCount());
+            ImGui::Text("No error: %d", shaderman.Debug_LoadedShadersNoError());
+            ImGui::Text("Errors: %d", shaderman.Debug_LoadedShadersError());
+            ImGui::Text("Bound shader: %s", shaderman.Debug_GetBoundShaderName().c_str());
+
+            auto shaders = shaderman.Debug_GetShaders();
+            if (ImGui::TreeNode("Shader List")) {
+                for (const auto& shader : shaders) {
+                    ImGui::PushID(shader.name.c_str());
+                    if (ImGui::TreeNode(shader.name.c_str())) {
+                        ImGui::Text("Compiled: %s", shader.isCompiled ? "Yes" : "No");
+                        ImGui::Text("Error: %s", shader.isErrorShader ? "Yes" : "No");
+                        ImGui::Text("Bound: %s", shader.isBound ? "Yes" : "No");
+                        ImGui::Text("Default Vertex: %s", shader.usesDefaultVertex ? "Yes" : "No");
+                        ImGui::Text("Default Fragment: %s", shader.usesDefaultFragment ? "Yes" : "No");
+                        ImGui::Text("Vertex Path: %s", shader.vertexPath.empty() ? "<default>" : shader.vertexPath.c_str());
+                        ImGui::Text("Fragment Path: %s", shader.fragmentPath.empty() ? "<default>" : shader.fragmentPath.c_str());
+                        ImGui::TreePop();
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
         }
 
         CE::UI::Utils::SpaceSep();
@@ -431,6 +463,7 @@ namespace CE::UI {
     void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
+        CE::Assets::Shaders::ShaderManager& shaderman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
@@ -466,7 +499,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Performance")) {
-                DrawPerformanceTab(renderer, texman, settings, fps, deltaTime, frameTime);
+                DrawPerformanceTab(renderer, texman, shaderman, settings, fps, deltaTime, frameTime);
                 ImGui::EndTabItem();
             }
 
@@ -476,7 +509,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings, texman, fontman);
+                DrawRendererTab(renderer, settings, texman, shaderman, fontman);
                 ImGui::EndTabItem();
             }
 
@@ -489,6 +522,7 @@ namespace CE::UI {
     void DrawDebugUI(
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
+        CE::Assets::Shaders::ShaderManager& shaderman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
@@ -504,6 +538,7 @@ namespace CE::UI {
         window.Draw(
             renderer,
             texman,
+            shaderman,
             fontman,
             gameinfo,
             settings,

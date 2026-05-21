@@ -9,6 +9,9 @@
 #include "engine/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 
+struct ImGuiContext;
+struct ImDrawData;
+
 namespace CE::Renderer::Software {
     GPUDeviceHandle CreateGPUDevice();
 
@@ -84,7 +87,11 @@ namespace CE::Renderer::Software {
 
             void SetVSync(bool setting) override;
 
-            void LoadShader(const char* path) override;
+            Shader* CreateShaderProgram() override;
+            Shader* LoadShader(const char* path) override;
+            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) override;
+            bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) override;
+            bool CompileShaderProgram(Shader* shaderProgram) override;
             void UnloadShader(Shader* shader) override;
 
             void BindShader(Shader* shader) override;

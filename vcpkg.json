@@ -6,19 +6,44 @@
       "name": "angelscript",
       "features": ["addons"]
     },
+
     "glm",
+
     {
       "name": "sdl3",
-      "features": ["vulkan", "x11", "wayland"]
+      "features": ["vulkan"],
+      "platform": "windows"
     },
+
+    {
+      "name": "sdl3",
+      "features": ["vulkan", "x11", "wayland"],
+      "platform": "linux"
+    },
+
+    {
+      "name": "sdl3",
+      "features": ["vulkan"],
+      "platform": "osx"
+    },
+
     {
       "name": "sdl3-image",
       "features": ["jpeg", "png", "tiff", "webp"]
     },
+
     {
       "name": "sdl3-mixer",
-      "features": ["fluidsynth",  "libflac", "libvorbis", "mpg123", "opusfile", "wavpack"]
+      "features": [
+        "fluidsynth",
+        "libflac",
+        "libvorbis",
+        "mpg123",
+        "opusfile",
+        "wavpack"
+      ]
     },
+
     "sdl3-ttf",
     "shaderc"
   ]

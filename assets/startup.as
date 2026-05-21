@@ -1,6 +1,7 @@
 int gOnDrawId = -1;
 int gFrames = 0;
 float gAngle = 0.0f;
+float gShaderTime = 0.0f;
 bool gDidInit = false;
 
 CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
@@ -13,6 +14,13 @@ CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
 }
 
 void InGameDraw(const string &in state, const string &in eventName) {
+    CE::Graphics::Shaders::BindShader("raymarch_bg");
+    CE::Graphics::Shaders::SetShaderFloat("time", gShaderTime);
+    CE::Graphics::Shaders::SetShaderVec2("resolution", 1280.0f, 720.0f);
+    CE::Graphics::Shaders::SetShaderVec4("tint", 1.0f, 1.0f, 1.0f, 1.0f);
+    CE::Graphics::Primitives::DrawRectangle(0, 0, 1280, 720, MakeColour(255, 255, 255, 255));
+    CE::Graphics::Shaders::UnbindShader();
+
     float baseX = 40;
     float baseY = 40;
     float spacingX = 180;
@@ -66,6 +74,10 @@ void InGameDraw(const string &in state, const string &in eventName) {
 void main() {
     CE::Graphics::Textures::LoadTexture("tato.webp", "garry_spud");
     CE::Graphics::Text::LoadFont("Roboto.ttf", "roboto", 32);
+    CE::Graphics::Shaders::CreateShaderProgram("raymarch_bg");
+    CE::Graphics::Shaders::UseDefaultShaderStage("raymarch_bg", CE::Graphics::ShaderStage::Vertex);
+    CE::Graphics::Shaders::LoadShaderStage("raymarch_bg", "raymarch_refraction.frag", CE::Graphics::ShaderStage::Fragment);
+    CE::Graphics::Shaders::CompileShaderProgram("raymarch_bg");
 
     //CE::Settings::SetSettingInt("test_int", "ScriptTest", 123);
     ///CE::Settings::SetSettingFloat("test_float", "ScriptTest", 1.25f);
@@ -111,6 +123,7 @@ void update() {
     string state = CE::State::Get();
 
     gAngle += dt;
+    gShaderTime += dt;
 
     CE::Graphics::Text::DrawTextCol("dt=" + dt + " ft=" + ft + " fps=" + fps + " id=" + instanceId, 20, 240, 18.0f, MakeColour(0, 0, 0, 255));
     CE::Graphics::Text::DrawTextCol("A: down=" + aDown + " pressed=" + aPressed + " released=" + aReleased, 20, 260, 18.0f, MakeColour(0, 0, 0, 255));
@@ -124,6 +137,7 @@ void update() {
     }
 
     if (CE::Input::IsKeyPressed(CE::Input::KEY_ESCAPE)) {
+        CE::Graphics::Shaders::UnloadShader("raymarch_bg");
         CE::Graphics::Text::UnloadFont("roboto");
         CE::Graphics::Textures::UnloadTexture("garry_spud");
         CE::Exit();

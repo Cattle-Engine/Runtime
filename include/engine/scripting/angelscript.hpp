@@ -8,10 +8,13 @@
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/settings.hpp"
 #include "engine/assets/fonts.hpp"
+#include "engine/assets/shaders.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/renderer.hpp"
+
+class CScriptArray;
 
 namespace CE {
     class Instance;
@@ -48,6 +51,7 @@ namespace CE::Scripting {
                 Instance& instance,
                 Renderer::IRenderer& renderer,
                 Assets::Textures::TextureManager& textureManager,
+                Assets::Shaders::ShaderManager& shaderManager,
                 Assets::Fonts::FontManager& fontManager,
                 CE::Assets::Animations::AnimationManager* animationManager,
                 Input::Keyboard& keyboard,
@@ -101,6 +105,22 @@ namespace CE::Scripting {
             void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Renderer::Colour& colour, float rotation);
             void DrawRectangleLines(float x, float y, float w, float h, float thickness, const Renderer::Colour& colour);
             void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Renderer::Colour& colour);
+
+            bool CreateShaderProgram(const std::string& name);
+            bool LoadShader(const std::string& path, const std::string& name);
+            bool LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage);
+            bool UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage);
+            bool CompileShaderProgram(const std::string& name);
+            bool BindShaderProgram(const std::string& name);
+            void UnbindShaderProgram();
+            void UnloadShader(const std::string& name);
+            void SetShaderFloat(const std::string& uniformName, float value);
+            void SetShaderVec2(const std::string& uniformName, float x, float y);
+            void SetShaderVec3(const std::string& uniformName, float x, float y, float z);
+            void SetShaderVec4(const std::string& uniformName, float x, float y, float z, float w);
+            void SetShaderMat4(const std::string& uniformName, const CScriptArray* values);
+            void SetShaderInt(const std::string& uniformName, int value);
+            bool SetShaderTexture(const std::string& uniformName, const std::string& textureName, int slot);
 
             bool LoadFont(const std::string& path, const std::string& name, int size);
             void UnloadFont(const std::string& name);
@@ -191,6 +211,7 @@ namespace CE::Scripting {
             Instance& mInstance;
             Renderer::IRenderer& mRenderer;
             Assets::Textures::TextureManager& mTextureManager;
+            Assets::Shaders::ShaderManager& mShaderManager;
             Assets::Fonts::FontManager& mFontManager;
             CE::Assets::Animations::AnimationManager* mAnimationManager = nullptr;
             Input::Keyboard& mKeyboard;

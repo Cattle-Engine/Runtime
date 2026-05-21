@@ -53,6 +53,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     int SDL_GPU_Renderer::Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) {
+        (void)debug;
         switch (gdevice->backend)
         {
             case RendererBackend::DX12:
@@ -81,92 +82,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 3;
         }
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading vertex shader");
-        SDL_GPUShader* vertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, gVFS);
-        if (vertexShader == nullptr) {
-            CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create vertex shader!");
-            return 4;
+        mWindowID = SDL_GetWindowID(window);
+
+        const int pipelineResult = CreateDefaultPipeline(window);
+        if (pipelineResult != 0) {
+            return pipelineResult;
         }
-
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading fragment shader");
-        SDL_GPUShader* fragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, gVFS);
-        if (fragmentShader == nullptr) {
-            CE::Log(CE::LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create fragment shader!");
-            return 5;
-        }
-
-        // Colour target
-        SDL_GPUColorTargetDescription colorDesc{};
-        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(gDevice, window);
-
-        // Vertex buffer layout
-        SDL_GPUVertexBufferDescription vbDesc{};
-        vbDesc.slot               = 0;
-        vbDesc.input_rate         = SDL_GPU_VERTEXINPUTRATE_VERTEX;
-        vbDesc.instance_step_rate = 0;
-        vbDesc.pitch              = sizeof(Vertex);
-
-        // Vertex attributes
-        SDL_GPUVertexAttribute attrs[3]{};
-
-        attrs[0].buffer_slot = 0;
-        attrs[0].format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-        attrs[0].location    = 0;
-        attrs[0].offset      = 0;
-
-        attrs[1].buffer_slot = 0;
-        attrs[1].format      = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
-        attrs[1].location    = 1;
-        attrs[1].offset      = sizeof(float) * 3;
-
-        attrs[2].buffer_slot = 0;
-        attrs[2].format      = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-        attrs[2].location    = 2;
-        attrs[2].offset      = sizeof(float) * 3 + sizeof(uint8_t) * 4;
-
-        // Pipeline
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
-        pipelineCreateInfo.target_info.num_color_targets         = 1;
-        pipelineCreateInfo.target_info.color_target_descriptions = &colorDesc;
-
-        pipelineCreateInfo.vertex_input_state.num_vertex_buffers         = 1;
-        pipelineCreateInfo.vertex_input_state.vertex_buffer_descriptions = &vbDesc;
-        pipelineCreateInfo.vertex_input_state.num_vertex_attributes      = 3;
-        pipelineCreateInfo.vertex_input_state.vertex_attributes          = attrs;
-
-        pipelineCreateInfo.primitive_type  = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-        pipelineCreateInfo.vertex_shader   = vertexShader;
-        pipelineCreateInfo.fragment_shader = fragmentShader;
-
-        SDL_GPUColorTargetBlendState blend{};
-        blend.enable_blend = true;
-
-        blend.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-        blend.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-        blend.color_blend_op = SDL_GPU_BLENDOP_ADD;
-
-        blend.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-        blend.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-        blend.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
-
-        blend.color_write_mask =
-            SDL_GPU_COLORCOMPONENT_R |
-            SDL_GPU_COLORCOMPONENT_G |
-            SDL_GPU_COLORCOMPONENT_B |
-            SDL_GPU_COLORCOMPONENT_A;
-
-        colorDesc.blend_state = blend;
-
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Creating graphics pipeline");
-        gPipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
-        if (!gPipeline) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create pipeline: {}", SDL_GetError());
-            return 6;
-        }
-
-        SDL_ReleaseGPUShader(gDevice, vertexShader);
-        SDL_ReleaseGPUShader(gDevice, fragmentShader);
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Created graphics pipeline");
 
         // Vertex buffer
         SDL_GPUBufferCreateInfo vbInfo{};
@@ -369,7 +290,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gTransferTexVerts)  SDL_ReleaseGPUTransferBuffer(gDevice, gTransferTexVerts);
         if (gTransferTexIdx)    SDL_ReleaseGPUTransferBuffer(gDevice, gTransferTexIdx);
 
-        if (gPipeline)          SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
+        DestroyDefaultPipeline();
 
         if (gWhiteSampler) {
             SDL_ReleaseGPUSampler(gDevice, gWhiteSampler);
@@ -427,13 +348,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, NULL);
 
-        SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
-        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &gMVP, sizeof(glm::mat4));
-
-        SDL_GPUTextureSamplerBinding defaultBinding{};
-        defaultBinding.texture = gWhiteTex;
-        defaultBinding.sampler = gWhiteSampler;
-        SDL_BindGPUFragmentSamplers(gRenderPass, 0, &defaultBinding, 1);
+        BindActivePipeline();
+        PushActiveShaderUniforms();
+        BindShaderSamplers(gWhiteTex, gWhiteSampler);
 
         gVertCount  = 0;
         gIndexCount = 0;
@@ -495,8 +412,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_SubmitGPUCommandBuffer(uploadCmd);
 
         if (gIndexCount > 0) {
-            SDL_GPUTextureSamplerBinding binding{ gWhiteTex, gWhiteSampler };
-            SDL_BindGPUFragmentSamplers(gRenderPass, 0, &binding, 1);
+            BindShaderSamplers(gWhiteTex, gWhiteSampler);
 
             SDL_GPUBufferBinding vBind{ gVertexBuffer, 0 };
             SDL_GPUBufferBinding iBind{ gIndexBuffer,  0 };
@@ -511,12 +427,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             if (batch.idxCount == 0) continue;
             if (!batch.texture || !batch.texture->gpuTex) continue;
 
-            SDL_GPUTextureSamplerBinding binding{
-                batch.texture->gpuTex,
-                batch.sampler
-            };
-
-            SDL_BindGPUFragmentSamplers(gRenderPass, 0, &binding, 1);
+            BindShaderSamplers(batch.texture->gpuTex, batch.sampler);
 
             SDL_GPUBufferBinding vBind{ gTexVertexBuffer, 0 };
             SDL_GPUBufferBinding iBind{ gTexIndexBuffer,  0 };
@@ -1337,99 +1248,4 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::LoadShader(const char* path) {
-        // The shader is loaded via the Utils::LoadShader function during init
-        // This method is a placeholder for potential runtime shader loading
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] LoadShader called with path: {}", path);
-    }
-
-    void SDL_GPU_Renderer::UnloadShader(Shader* shader) {
-        if (!shader) return;
-
-        auto* sdlShader = shader->Get<SDL_GPU_Renderer_Shader>();
-        if (sdlShader) {
-            if (sdlShader->Shader) {
-                SDL_ReleaseGPUShader(gDevice, sdlShader->Shader);
-                sdlShader->Shader = nullptr;
-            }
-            if (sdlShader->Pipeline) {
-                SDL_ReleaseGPUGraphicsPipeline(gDevice, sdlShader->Pipeline);
-                sdlShader->Pipeline = nullptr;
-            }
-        }
-    }
-
-    void SDL_GPU_Renderer::BindShader(Shader* shader) {
-        if (!shader) {
-            // UnbindShader is called with nullptr - go to default
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] BindShader called with nullptr, use UnbindShader instead");
-            return;
-        }
-
-        auto* sdlShader = shader->Get<SDL_GPU_Renderer_Shader>();
-        if (!sdlShader) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Invalid shader handle in BindShader");
-            return;
-        }
-
-        // Check if the shader is already bound - return immediately
-        if (gCurrentShader == sdlShader) {
-            CE::Log(LogLevel::Debug, "[SDL_GPU Renderer] BindShader: shader already bound, returning");
-            return;
-        }
-
-        // Replace current shader with new one
-        gCurrentShader = sdlShader;
-        gHasDefaultShader = false;
-
-        if (gRenderPass && gCurrentShader->Pipeline) {
-            SDL_BindGPUGraphicsPipeline(gRenderPass, gCurrentShader->Pipeline);
-            CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Bound shader: {}", gCurrentShader->Shader ? "custom" : "default");
-        }
-    }
-
-    void SDL_GPU_Renderer::UnbindShader() {
-        // Go back to default shader (standard pipeline)
-        if (gHasDefaultShader) {
-            // Already using default
-            return;
-        }
-
-        gCurrentShader = nullptr;
-        gHasDefaultShader = true;
-
-        // Rebind the default pipeline
-        if (gRenderPass && gPipeline) {
-            SDL_BindGPUGraphicsPipeline(gRenderPass, gPipeline);
-            CE::Log(LogLevel::Info, "[SDL_GPU Renderer] UnbindShader: reverted to default pipeline");
-        }
-    }
-
-    void SDL_GPU_Renderer::SetShaderFloat(const char* name, float value) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderFloat: Not implemented -Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderVec2(const char* name, float x, float y) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec2: Not implemented - Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderVec3(const char* name, float x, float y, float z) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec3: Not implemented - Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderVec4(const char* name, float x, float y, float z, float w) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderVec4: Not implemented - Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderMat4(const char* name, const float* mat4) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderMat4: Not implemented - Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderInt(const char* name, int value) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderInt: Not implemented - Uniform data is pushed before draw");
-    }
-
-    void SDL_GPU_Renderer::SetShaderTexture(const char* name, Texture* texture, int slot) {
-        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderTexture: Not implemented - Samplers are bound via pipeline");
-    }
 }

@@ -27,6 +27,8 @@ namespace CE::Assets::Textures {
 
             void UnloadAll();
 
+            CE::Renderer::Texture* Get(const char* name);
+
             int Debug_LoadedTexturesCount();
             int Debug_LoadedTexturesNoError();
             int Debug_LoadedTexturesError();

@@ -169,6 +169,14 @@ namespace CE::Assets::Textures {
         CE::Log(LogLevel::Info, "[Texture Manager] Unloaded all textures");
     }
 
+    CE::Renderer::Texture* TextureManager::Get(const char* name) {
+        auto tex = gTextures.find(name ? name : "");
+        if (tex == gTextures.end()) {
+            return nullptr;
+        }
+        return tex->second.Texture;
+    }
+
     int TextureManager::Debug_LoadedTexturesCount()  {
         return gTextures.size();
     }

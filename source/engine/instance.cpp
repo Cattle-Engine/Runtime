@@ -64,7 +64,7 @@ namespace CE {
             SetWindowIcon(gGameInfo->windowIcon);
         }
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating asset managers", gInstanceID);
-        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gVFS, gRenderer, gFontManager, gInstanceID);
+        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gShaderManager, gVFS, gRenderer, gFontManager, gInstanceID);
         if (ams != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
@@ -102,6 +102,7 @@ namespace CE {
             *this,
             *gRenderer,
             *gTextureManager,
+            *gShaderManager,
             *gFontManager,
             gAnimationManager.get(),
             *gKeyboardManger,
@@ -187,6 +188,7 @@ namespace CE {
         gDebugWindow.Draw(
             *gRenderer,
             *gTextureManager,
+            *gShaderManager,
             *gFontManager,
             *gGameInfo,
             *gSettingsManager,
@@ -345,6 +347,7 @@ namespace CE {
         GLOBALINSTANCESCOUNTER--;
         gAudioManager.reset();
         gAudioSystem.reset();
+        gShaderManager.reset();
         gTextureManager.reset();
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);

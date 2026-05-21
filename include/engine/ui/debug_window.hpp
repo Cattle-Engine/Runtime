@@ -15,6 +15,10 @@ namespace CE {
             class TextureManager;
         }
 
+        namespace Shaders {
+            class ShaderManager;
+        }
+
         namespace Fonts {
             class FontManager;
         }
@@ -40,6 +44,7 @@ namespace CE::UI {
             void Draw(
                 CE::Renderer::IRenderer& renderer,
                 CE::Assets::Textures::TextureManager& texman,
+                CE::Assets::Shaders::ShaderManager& shaderman,
                 CE::Assets::Fonts::FontManager& fontman,
                 CE::GameInfo& gameinfo,
                 CE::Settings::SettingsManager& settings,
@@ -62,6 +67,7 @@ namespace CE::UI {
             void DrawPerformanceTab(
                 CE::Renderer::IRenderer& renderer,
                 CE::Assets::Textures::TextureManager& texman,
+                CE::Assets::Shaders::ShaderManager& shaderman,
                 const CE::Settings::SettingsManager& settings,
                 int fps,
                 float deltaTime,
@@ -71,6 +77,7 @@ namespace CE::UI {
                 CE::Renderer::IRenderer& renderer,
                 const CE::Settings::SettingsManager& settings,
                 CE::Assets::Textures::TextureManager& texman,
+                CE::Assets::Shaders::ShaderManager& shaderman,
                 CE::Assets::Fonts::FontManager& fontman
             );
             void DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings);

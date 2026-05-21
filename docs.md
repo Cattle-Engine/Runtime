@@ -5,6 +5,8 @@ You can use Color like this:
 CE::Graphics::Colour colour = CE::Graphics::Colour(255, 0, 0, 255);
 ```
 
+Btw the . is there for read-ability in actual code its ::
+
 ## CE Namespace
 
 ### CE.Exit()
@@ -122,6 +124,119 @@ Draws a texture with rotation and color tint at position (x, y)
 
 ### CE.Graphics.Textures.DrawTexturePro(name, x, y, w, h, rotation, colour, flipX = false, flipY = false, tileX = 1.0, tileY = 1.0)
 Draws a texture with proportional scaling, rotation, and color
+
+## CE::Graphics::ShaderStage (Enum)
+
+Values: `Vertex`, `Fragment`
+
+## CE::Graphics::Shaders
+
+### CE.Graphics.Shaders.CreateShaderProgram(name)
+Creates an empty shader program. Returns true if successful
+
+### CE.Graphics.Shaders.LoadShader(path, name)
+Loads a shader program from `path.vert` and `path.frag`. Returns true if successful
+
+### CE.Graphics.Shaders.LoadShaderStage(program, path, stage)
+Loads a single shader stage into an existing program. `stage` must be `CE::Graphics::ShaderStage::Vertex` or `CE::Graphics::ShaderStage::Fragment`
+
+### CE.Graphics.Shaders.UseDefaultShaderStage(program, stage)
+Makes a program use the renderer's default vertex or fragment shader for that stage
+
+### CE.Graphics.Shaders.CompileShaderProgram(name)
+Compiles/links the shader program after loading stages. Returns true if successful
+
+### CE.Graphics.Shaders.BindShader(name)
+Binds a compiled shader program. Returns true if successful
+
+### CE.Graphics.Shaders.UnbindShader()
+Unbinds the current shader program and goes back to the default renderer shader
+
+### CE.Graphics.Shaders.UnloadShader(name)
+Unloads a shader program by name
+
+### CE.Graphics.Shaders.SetShaderFloat(uniformName, value)
+Sets a float uniform on the currently bound shader
+
+### CE.Graphics.Shaders.SetShaderVec2(uniformName, x, y)
+Sets a vec2-style uniform on the currently bound shader
+
+### CE.Graphics.Shaders.SetShaderVec3(uniformName, x, y, z)
+Sets a vec3-style uniform on the currently bound shader
+
+### CE.Graphics.Shaders.SetShaderVec4(uniformName, x, y, z, w)
+Sets a vec4-style uniform on the currently bound shader
+
+### CE.Graphics.Shaders.SetShaderMat4(uniformName, values)
+Sets a mat4-style uniform on the currently bound shader. `values` must be an `array<float>` with at least 16 items
+
+### CE.Graphics.Shaders.SetShaderInt(uniformName, value)
+Sets an int uniform on the currently bound shader
+
+### CE.Graphics.Shaders.SetShaderTexture(uniformName, textureName, slot = 0)
+Binds a loaded texture asset to a shader texture slot. Returns true if successful
+
+### Shader Notes
+
+- `LoadShader(path, name)` is the quick path and loads `path.vert` and `path.frag`
+- If you want to mix custom and default stages, use `CreateShaderProgram`, `LoadShaderStage`, `UseDefaultShaderStage`, then `CompileShaderProgram`
+- Uniform support is convention-based right now, not fully reflection-based
+- Texture names passed to `SetShaderTexture` must already be loaded through `CE::Graphics::Textures`
+
+### Common Uniform Names
+
+- `mvp`
+- `model`
+- `customMat4`
+- `tint`
+- `color`
+- `colour`
+- `resolution`
+- `time`
+- `time2`
+- `time3`
+- `time4`
+- `customVec40` to `customVec47`
+- `customFloat0` to `customFloat31`
+- `customInt0` to `customInt15`
+
+### Example: Full Program Load
+
+```angelscript
+CE::Graphics::Shaders.LoadShader("shaders/wave", "wave");
+CE::Graphics::Shaders.BindShader("wave");
+CE::Graphics::Shaders.SetShaderFloat("time", CE.GetDeltaTime());
+CE::Graphics::Shaders.SetShaderVec4("tint", 1.0f, 0.8f, 0.8f, 1.0f);
+CE::Graphics::Textures.DrawTexture("player", 320, 180);
+CE::Graphics::Shaders.UnbindShader();
+```
+
+### Example: Custom Fragment + Default Vertex
+
+```angelscript
+CE::Graphics::Shaders.CreateShaderProgram("screen_tint");
+CE::Graphics::Shaders.UseDefaultShaderStage("screen_tint", CE::Graphics::ShaderStage::Vertex);
+CE::Graphics::Shaders.LoadShaderStage("screen_tint", "shaders/screen_tint.frag", CE::Graphics::ShaderStage::Fragment);
+CE::Graphics::Shaders.CompileShaderProgram("screen_tint");
+
+CE::Graphics::Shaders.BindShader("screen_tint");
+CE::Graphics::Shaders.SetShaderVec4("tint", 0.4f, 0.8f, 1.0f, 1.0f);
+CE::Graphics::Textures.DrawTexture("background", 320, 180);
+CE::Graphics::Shaders.UnbindShader();
+```
+
+### Example: Setting a Mat4
+
+```angelscript
+array<float> identity = {
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+};
+
+CE::Graphics::Shaders.SetShaderMat4("model", identity);
+```
 
 ## CE::Graphics::Primitives
 

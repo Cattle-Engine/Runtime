@@ -3,6 +3,7 @@
 #include "engine/common/tracelog.hpp"
 
 #include <format>
+#include <scriptarray/scriptarray.h>
 #include <scriptstdstring/scriptstdstring.h>
 
 namespace {
@@ -28,6 +29,7 @@ namespace CE::Scripting {
         Instance& instance,
         Renderer::IRenderer& renderer,
         Assets::Textures::TextureManager& textureManager,
+        Assets::Shaders::ShaderManager& shaderManager,
         Assets::Fonts::FontManager& fontManager,
         CE::Assets::Animations::AnimationManager* animationManager,
         Input::Keyboard& keyboard,
@@ -40,6 +42,7 @@ namespace CE::Scripting {
         , mInstance(instance)
         , mRenderer(renderer)
         , mTextureManager(textureManager)
+        , mShaderManager(shaderManager)
         , mFontManager(fontManager)
         , mAnimationManager(animationManager)
         , mKeyboard(keyboard)
@@ -76,6 +79,7 @@ namespace CE::Scripting {
         CE::Log(CE::LogLevel::Info, "[AngelScript] Engine created");
         mScriptEngine->SetMessageCallback(asFUNCTION(MessageCallback), this, asCALL_CDECL_OBJLAST);
         RegisterStdString(mScriptEngine);
+        RegisterScriptArray(mScriptEngine, true);
 
         if (!RegisterAssetsBindings()) {
             return Fail("Failed to register AngelScript asset bindings");

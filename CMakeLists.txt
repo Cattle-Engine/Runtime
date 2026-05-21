@@ -184,13 +184,20 @@ target_compile_definitions(ce_engine PRIVATE
     TDF_MODE_CE
 )
 
-target_compile_options(ce_engine PRIVATE
-    -Wall
-    -Wextra
-    -mavx2
-)
+if (MSVC)
+    target_compile_options(ce_engine PRIVATE
+        /W4
+        /arch:AVX2
+    )
+else()
+    target_compile_options(ce_engine PRIVATE
+        -Wall
+        -Wextra
+        -mavx2
+    )
+endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if (NOT MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_options(ce_engine PRIVATE -g)
 endif()
 
