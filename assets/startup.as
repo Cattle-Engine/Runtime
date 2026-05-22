@@ -86,9 +86,11 @@ void main() {
     //CE::Settings::ReloadSettings();
 
     gOnDrawId = CE::Events::On("InGame", "Draw", @InGameDraw);
-    CE::Audio::LoadSound("Siliconvalleysyrup.Temp.mp3", "tester", CE::Audio::AudioType::Music);
+    CE::Audio::LoadSound("AJ Dispirito - Get Prommed 3.mp3", "tester", CE::Audio::AudioType::Music);
     uint tester = CE::Audio::CreateInstance("tester");
-    CE::Audio::Play(tester);
+    if (tester != 0) {
+        CE::Audio::Play(tester);
+    }
 
     CE::State::Set("InGame");
 }

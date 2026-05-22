@@ -88,8 +88,8 @@ namespace CE::Renderer::Software {
             void SetVSync(bool setting) override;
 
             Shader* CreateShaderProgram() override;
-            Shader* LoadShader(const char* path) override;
-            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) override;
+            Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) override;
+            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount = 1) override;
             bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) override;
             bool CompileShaderProgram(Shader* shaderProgram) override;
             void UnloadShader(Shader* shader) override;

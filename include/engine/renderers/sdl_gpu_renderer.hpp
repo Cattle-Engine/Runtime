@@ -44,7 +44,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         glm::vec4 Misc { 0.0f, 0.0f, 0.0f, 0.0f };
         std::array<glm::vec4, 8> CustomVec4 {};
         std::array<glm::ivec4, 4> CustomInt4 {};
-        std::array<Texture*, 4> BoundTextures {};
+        Uint32 FragmentSamplerCount = 1;
+        std::vector<Texture*> BoundTextures;
     };
 
     struct DeferredDeleteEntry {
@@ -59,12 +60,19 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     struct TexVertexBatch {
         SDLGPUTexData* texture = nullptr;
         SDL_GPUSampler* sampler = nullptr;
+        SDL_GPU_Renderer_Shader* shader = nullptr;
 
         uint32_t vertOffset = 0;
         uint32_t vertCount  = 0;
 
         uint32_t idxOffset  = 0;
         uint32_t idxCount   = 0;
+    };
+
+    struct PrimitiveBatch {
+        SDL_GPU_Renderer_Shader* shader = nullptr;
+        uint32_t idxOffset = 0;
+        uint32_t idxCount = 0;
     };
 
     class SDL_GPU_Renderer : public Renderer::IRenderer {
@@ -145,8 +153,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void ImGuiEndFrame(SDL_Window* window) override;
 
             Shader* CreateShaderProgram() override;
-            Shader* LoadShader(const char* path) override;
-            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) override;
+            Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) override;
+            bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount = 1) override;
             bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) override;
             bool CompileShaderProgram(Shader* shaderProgram) override;
             void UnloadShader(Shader* shader) override;
@@ -178,7 +186,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler);
             static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
             SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
-            bool LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path, ShaderStage stage);
+            bool LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path, ShaderStage stage, Uint32 samplerCount);
             void ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage);
             static std::string GetShaderBaseName(const char* path);
             static bool ParseIndexedUniformName(const char* name, const char* prefix, size_t maxCount, size_t& indexOut);
@@ -217,8 +225,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUBuffer*         gTexIndexBuffer  = nullptr;
             SDL_GPUTransferBuffer* gTransferTexVerts = nullptr;
             SDL_GPUTransferBuffer* gTransferTexIdx   = nullptr;
+            std::vector<PrimitiveBatch> gPrimitiveBatches;
             std::vector<TexVertexBatch> gTexBatches;
             uint32_t gTexVertCount  = 0;
+            SDL_GPU_Renderer_Shader* gCurrentPrimitiveShader = nullptr;
             SDLGPUTexData* gCurrentTex = nullptr;
             SDL_GPUSampler* gCurrentTexSampler = nullptr;
             glm::mat4 gMVP{};

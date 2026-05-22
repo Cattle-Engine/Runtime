@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "engine/renderers/sdl_gpu_renderer.hpp"
 
 #include "engine/common/tracelog.hpp"
@@ -185,30 +187,32 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler) {
-        std::array<SDL_GPUTextureSamplerBinding, 4> bindings{};
-        Uint32 bindingCount = 1;
+        const size_t samplerCount = gCurrentShader ? std::max<size_t>(1, gCurrentShader->FragmentSamplerCount) : 1;
+        std::vector<SDL_GPUTextureSamplerBinding> bindings(samplerCount);
+
+        for (size_t slot = 0; slot < samplerCount; ++slot) {
+            bindings[slot].texture = gWhiteTex;
+            bindings[slot].sampler = gWhiteSampler;
+        }
 
         bindings[0].texture = drawTexture ? drawTexture : gWhiteTex;
         bindings[0].sampler = drawSampler ? drawSampler : gWhiteSampler;
 
         if (gCurrentShader) {
-            for (size_t slot = 0; slot < gCurrentShader->BoundTextures.size(); ++slot) {
-                Texture* texture = gCurrentShader->BoundTextures[slot];
-                if (!texture || !texture->handle) {
-                    continue;
+            for (size_t slot = 0; slot < samplerCount; ++slot) {
+                if (slot < gCurrentShader->BoundTextures.size()) {
+                    Texture* texture = gCurrentShader->BoundTextures[slot];
+                    if (texture && texture->handle) {
+                        auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
+                        if (texData && texData->gpuTex) {
+                            bindings[slot].texture = texData->gpuTex;
+                            bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;
+                        }
+                    }
                 }
-
-                auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
-                if (!texData || !texData->gpuTex) {
-                    continue;
-                }
-
-                bindings[slot].texture = texData->gpuTex;
-                bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;
-                bindingCount = static_cast<Uint32>(slot + 1);
             }
         }
 
-        SDL_BindGPUFragmentSamplers(gRenderPass, 0, bindings.data(), bindingCount);
+        SDL_BindGPUFragmentSamplers(gRenderPass, 0, bindings.data(), static_cast<Uint32>(samplerCount));
     }
 }

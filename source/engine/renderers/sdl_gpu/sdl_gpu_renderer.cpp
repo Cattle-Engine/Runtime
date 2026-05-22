@@ -39,6 +39,19 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                    std::min(v0, v1) < -kEpsilon ||
                    std::max(v0, v1) > 1.0f + kEpsilon;
         }
+
+        void UpdatePrimitiveBatchCounts(std::vector<PrimitiveBatch>& batches, uint32_t currentIndexCount) {
+            if (!batches.empty()) {
+                batches.back().idxCount = currentIndexCount - batches.back().idxOffset;
+            }
+        }
+
+        void UpdateTexBatchCounts(std::vector<TexVertexBatch>& batches, uint32_t currentVertCount, uint32_t currentIndexCount) {
+            if (!batches.empty()) {
+                batches.back().vertCount = currentVertCount - batches.back().vertOffset;
+                batches.back().idxCount = currentIndexCount - batches.back().idxOffset;
+            }
+        }
     }
 
     void RotatePoint(float& x, float& y, float cx, float cy, float sinA, float cosA) {
@@ -340,25 +353,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
             return 3;
         }
-        SDL_GPUColorTargetInfo colorTargetInfo{};
-        colorTargetInfo.texture     = gSwapchainTexture;
-        colorTargetInfo.clear_color = gClearColor;
-        colorTargetInfo.load_op     = SDL_GPU_LOADOP_CLEAR;
-        colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
-
-        gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, NULL);
-
-        BindActivePipeline();
-        PushActiveShaderUniforms();
-        BindShaderSamplers(gWhiteTex, gWhiteSampler);
-
         gVertCount  = 0;
         gIndexCount = 0;
 
         gTexVertCount  = 0;
         gTexIndexCount = 0;
 
+        gPrimitiveBatches.clear();
         gTexBatches.clear();
+        gCurrentPrimitiveShader = nullptr;
         gCurrentTex = nullptr;
         gCurrentTexSampler = nullptr;
 
@@ -379,8 +382,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexVerts);
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexIdx);
 
-        SDL_GPUCommandBuffer* uploadCmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(uploadCmd);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(gCommandBuffer);
 
         if (gIndexCount > 0) {
             size_t vSize = sizeof(Vertex) * gVertCount;
@@ -409,24 +411,47 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_EndGPUCopyPass(copy);
-        SDL_SubmitGPUCommandBuffer(uploadCmd);
+
+        SDL_GPUColorTargetInfo colorTargetInfo{};
+        colorTargetInfo.texture     = gSwapchainTexture;
+        colorTargetInfo.clear_color = gClearColor;
+        colorTargetInfo.load_op     = SDL_GPU_LOADOP_CLEAR;
+        colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
+
+        gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, NULL);
+
+        BindActivePipeline();
+        PushActiveShaderUniforms();
+        BindShaderSamplers(gWhiteTex, gWhiteSampler);
 
         if (gIndexCount > 0) {
-            BindShaderSamplers(gWhiteTex, gWhiteSampler);
-
             SDL_GPUBufferBinding vBind{ gVertexBuffer, 0 };
             SDL_GPUBufferBinding iBind{ gIndexBuffer,  0 };
 
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vBind, 1);
             SDL_BindGPUIndexBuffer(gRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
-            SDL_DrawGPUIndexedPrimitives(gRenderPass, gIndexCount, 1, 0, 0, 0);
+            for (const auto& batch : gPrimitiveBatches) {
+                if (batch.idxCount == 0) {
+                    continue;
+                }
+
+                gCurrentShader = batch.shader;
+                BindActivePipeline();
+                PushActiveShaderUniforms();
+                BindShaderSamplers(gWhiteTex, gWhiteSampler);
+
+                SDL_DrawGPUIndexedPrimitives(gRenderPass, batch.idxCount, 1, batch.idxOffset, 0, 0);
+            }
         }
 
         for (const auto& batch : gTexBatches) {
             if (batch.idxCount == 0) continue;
             if (!batch.texture || !batch.texture->gpuTex) continue;
 
+            gCurrentShader = batch.shader;
+            BindActivePipeline();
+            PushActiveShaderUniforms();
             BindShaderSamplers(batch.texture->gpuTex, batch.sampler);
 
             SDL_GPUBufferBinding vBind{ gTexVertexBuffer, 0 };
@@ -445,7 +470,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             );
         }
 
+        gCurrentShader = nullptr;
+
         SDL_EndGPURenderPass(gRenderPass);
+        gRenderPass = nullptr;
 
         if (mPendingImGuiDrawData && gSwapchainTexture) {
             ImGui::SetCurrentContext(mImguicontext);
@@ -462,8 +490,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_SubmitGPUCommandBuffer(gCommandBuffer);
+        gCommandBuffer = nullptr;
         mPendingImGuiDrawData = nullptr;
         gSwapchainTexture = nullptr;
+        gMappedVerts = nullptr;
+        gMappedIndices = nullptr;
+        gMappedTexVerts = nullptr;
+        gMappedTexIndices = nullptr;
         gFrameActive = false;
         ProcessDeferredDeletions();
         return 0;
@@ -480,6 +513,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) return;
+
+        if (gPrimitiveBatches.empty() || gCurrentPrimitiveShader != gCurrentShader) {
+            gPrimitiveBatches.push_back({ gCurrentShader, gIndexCount, 0 });
+            gCurrentPrimitiveShader = gCurrentShader;
+        }
 
         float cx = x + w * 0.5f;
         float cy = y + h * 0.5f;
@@ -502,6 +540,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMappedIndices[gIndexCount++] = base + 3;
         gMappedIndices[gIndexCount++] = base;
         gVertCount += 4;
+        UpdatePrimitiveBatchCounts(gPrimitiveBatches, gIndexCount);
     }
     
     void SDL_GPU_Renderer::DrawRectLines(float x, float y, float w, float h,
@@ -535,6 +574,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         } 
         if (gVertCount + 3 > MAX_VERTS || gIndexCount + 3 > MAX_INDICES) return;
 
+        if (gPrimitiveBatches.empty() || gCurrentPrimitiveShader != gCurrentShader) {
+            gPrimitiveBatches.push_back({ gCurrentShader, gIndexCount, 0 });
+            gCurrentPrimitiveShader = gCurrentShader;
+        }
+
         // Centroid is the average of the three vertices
         float cx = (x0 + x1 + x2) / 3.0f;
         float cy = (y0 + y1 + y2) / 3.0f;
@@ -555,6 +599,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMappedIndices[gIndexCount++] = base + 2;
 
         gVertCount += 3;
+        UpdatePrimitiveBatchCounts(gPrimitiveBatches, gIndexCount);
     }
 
     void SDL_GPU_Renderer::DrawLine(float x1, float y1, float x2, float y2,
@@ -570,6 +615,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
             CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping line");
             return;
+        }
+
+        if (gPrimitiveBatches.empty() || gCurrentPrimitiveShader != gCurrentShader) {
+            gPrimitiveBatches.push_back({ gCurrentShader, gIndexCount, 0 });
+            gCurrentPrimitiveShader = gCurrentShader;
         }
 
         float dx  = x2 - x1;
@@ -596,6 +646,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMappedIndices[gIndexCount++] = base;
 
         gVertCount += 4;
+        UpdatePrimitiveBatchCounts(gPrimitiveBatches, gIndexCount);
     }
 
     void SDL_GPU_Renderer::DrawCircle(float cx, float cy, float radius,
@@ -616,6 +667,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gVertCount + vNeeded > MAX_VERTS || gIndexCount + iNeeded > MAX_INDICES) {
             CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping circle");
             return;
+        }
+
+        if (gPrimitiveBatches.empty() || gCurrentPrimitiveShader != gCurrentShader) {
+            gPrimitiveBatches.push_back({ gCurrentShader, gIndexCount, 0 });
+            gCurrentPrimitiveShader = gCurrentShader;
         }
 
         uint16_t centre = (uint16_t)gVertCount;
@@ -641,6 +697,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         gVertCount += (uint32_t)segments;
+        UpdatePrimitiveBatchCounts(gPrimitiveBatches, gIndexCount);
     }
 
     void SDL_GPU_Renderer::DrawCircleLines(float cx, float cy, float radius,
@@ -992,8 +1049,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES) return;
         SDL_GPUSampler* sampler = tex->sampler;
 
-        if (gCurrentTex != tex || gCurrentTexSampler != sampler) {
-            gTexBatches.push_back({ tex, sampler, gTexVertCount, 0, gTexIndexCount, 0 });
+        if (gTexBatches.empty() || gCurrentTex != tex || gCurrentTexSampler != sampler || gTexBatches.back().shader != gCurrentShader) {
+            gTexBatches.push_back({ tex, sampler, gCurrentShader, gTexVertCount, 0, gTexIndexCount, 0 });
             gCurrentTex = tex;
             gCurrentTexSampler = sampler;
         }
@@ -1035,8 +1092,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gTexIndexCount += 6;
         gTexVertCount  += 4;
 
-        gTexBatches.back().vertCount = gTexVertCount - gTexBatches.back().vertOffset;
-        gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
+        UpdateTexBatchCounts(gTexBatches, gTexVertCount, gTexIndexCount);
     }
 
     void SDL_GPU_Renderer::DrawTexUV(Texture* texture,
@@ -1061,8 +1117,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             ? tex->repeatSampler
             : tex->sampler;
 
-        if (gCurrentTex != tex || gCurrentTexSampler != sampler) {
-            gTexBatches.push_back({ tex, sampler, gTexVertCount, 0, gTexIndexCount, 0 });
+        if (gTexBatches.empty() || gCurrentTex != tex || gCurrentTexSampler != sampler || gTexBatches.back().shader != gCurrentShader) {
+            gTexBatches.push_back({ tex, sampler, gCurrentShader, gTexVertCount, 0, gTexIndexCount, 0 });
             gCurrentTex = tex;
             gCurrentTexSampler = sampler;
         }
@@ -1104,8 +1160,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gTexIndexCount += 6;
         gTexVertCount  += 4;
 
-        gTexBatches.back().vertCount = gTexVertCount - gTexBatches.back().vertOffset;
-        gTexBatches.back().idxCount  = gTexIndexCount - gTexBatches.back().idxOffset;
+        UpdateTexBatchCounts(gTexBatches, gTexVertCount, gTexIndexCount);
     }
 
     void SDL_GPU_Renderer::ProcessDeferredDeletions() {

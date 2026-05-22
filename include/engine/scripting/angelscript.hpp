@@ -107,8 +107,8 @@ namespace CE::Scripting {
             void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Renderer::Colour& colour);
 
             bool CreateShaderProgram(const std::string& name);
-            bool LoadShader(const std::string& path, const std::string& name);
-            bool LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage);
+            bool LoadShader(const std::string& path, const std::string& name, int fragmentSamplerCount = 4);
+            bool LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage, int samplerCount = 1);
             bool UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage);
             bool CompileShaderProgram(const std::string& name);
             bool BindShaderProgram(const std::string& name);

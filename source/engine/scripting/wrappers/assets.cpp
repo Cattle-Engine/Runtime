@@ -183,7 +183,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool LoadShader(const string &in path, const string &in name)",
+            "bool LoadShader(const string &in path, const string &in name, int fragmentSamplerCount = 4)",
             asMETHOD(Runtime, LoadShader),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -193,7 +193,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool LoadShaderStage(const string &in program, const string &in path, CE::Graphics::ShaderStage stage)",
+            "bool LoadShaderStage(const string &in program, const string &in path, CE::Graphics::ShaderStage stage, int samplerCount = 1)",
             asMETHOD(Runtime, LoadShaderStage),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -614,12 +614,12 @@ namespace CE::Scripting {
         return mShaderManager.CreateProgram(name.c_str());
     }
 
-    bool Runtime::LoadShader(const std::string& path, const std::string& name) {
-        return mShaderManager.Load(path.c_str(), name.c_str());
+    bool Runtime::LoadShader(const std::string& path, const std::string& name, int fragmentSamplerCount) {
+        return mShaderManager.Load(path.c_str(), name.c_str(), fragmentSamplerCount);
     }
 
-    bool Runtime::LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage) {
-        return mShaderManager.LoadStage(program.c_str(), path.c_str(), stage);
+    bool Runtime::LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage, int samplerCount) {
+        return mShaderManager.LoadStage(program.c_str(), path.c_str(), stage, samplerCount);
     }
 
     bool Runtime::UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage) {

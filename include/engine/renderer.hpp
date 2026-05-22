@@ -189,8 +189,8 @@ namespace CE::Renderer {
                 virtual void SetVSync(bool setting) = 0;
 
                 virtual Shader* CreateShaderProgram() = 0;
-                virtual Shader* LoadShader(const char* path) = 0;
-                virtual bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) = 0;
+                virtual Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) = 0;
+                virtual bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount = 1) = 0;
                 virtual bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) = 0;
                 virtual bool CompileShaderProgram(Shader* shaderProgram) = 0;
                 virtual void UnloadShader(Shader* shader) = 0;

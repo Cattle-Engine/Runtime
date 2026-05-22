@@ -12,16 +12,18 @@ namespace CE::Renderer::Software {
         return nullptr;
     }
 
-    Shader* Software_Renderer::LoadShader(const char* path) {
+    Shader* Software_Renderer::LoadShader(const char* path, int fragmentSamplerCount) {
         (void)path;
+        (void)fragmentSamplerCount;
         LogAboutShaders();
         return nullptr;
     }
 
-    bool Software_Renderer::LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage) {
+    bool Software_Renderer::LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount) {
         (void)shaderProgram;
         (void)path;
         (void)stage;
+        (void)samplerCount;
         LogAboutShaders();
         return false;
     }

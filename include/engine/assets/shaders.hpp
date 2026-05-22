@@ -29,8 +29,8 @@ namespace CE::Assets::Shaders {
             );
 
             bool CreateProgram(const char* name);
-            bool Load(const char* filepath, const char* name);
-            bool LoadStage(const char* name, const char* filepath, CE::Renderer::ShaderStage stage);
+            bool Load(const char* filepath, const char* name, int fragmentSamplerCount = 4);
+            bool LoadStage(const char* name, const char* filepath, CE::Renderer::ShaderStage stage, int samplerCount = 1);
             bool UseDefaultStage(const char* name, CE::Renderer::ShaderStage stage);
             bool Compile(const char* name);
             bool Bind(const char* name);
@@ -65,16 +65,16 @@ namespace CE::Assets::Shaders {
                 std::string VertexPath;
                 std::string FragmentPath;
                 CE::Renderer::Shader* Shader = nullptr;
+                int FragmentSamplerCount = 4;
             };
+            CE::Renderer::IRenderer* renderer = nullptr;
+            CE::VFS::VFS* vfs = nullptr;
+            CE::Assets::Textures::TextureManager* textureManager = nullptr;
+            std::unordered_map<std::string, ManagedShader> shaders;
+            std::string gBoundShaderName;
 
-            static const char* StageToString(CE::Renderer::ShaderStage stage);
+            const char* StageToString(CE::Renderer::ShaderStage stage) const;
             ManagedShader* FindShader(const char* name);
             const ManagedShader* FindShader(const char* name) const;
-
-            CE::Renderer::IRenderer* gRenderer = nullptr;
-            CE::VFS::VFS* gVFS = nullptr;
-            CE::Assets::Textures::TextureManager* gTextureManager = nullptr;
-            std::unordered_map<std::string, ManagedShader> gShaders;
-            std::string gBoundShaderName;
     };
 }
