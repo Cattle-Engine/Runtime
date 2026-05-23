@@ -1,4 +1,5 @@
 #include <format>
+#include <algorithm>
 
 #include "engine/common/fs/ini.hpp"
 #include "engine/instance.hpp"
@@ -43,9 +44,17 @@ namespace CE::Settings {
             Settings.sfxVolume = 1.0f;
             return false;
         }
+        Settings.windowHeight = static_cast<int>(std::clamp<int64_t>(
+            mIniFile.get_int("graphics", "window_height", mGameInfo.windowHeight),
+            mGameInfo.minWindowHeight,
+            mGameInfo.maxWindowHeight
+        ));
 
-        Settings.windowHeight = mIniFile.get_int("graphics", "window_height", mGameInfo.windowHeight);
-        Settings.windowWidth = mIniFile.get_int("graphics", "window_width", mGameInfo.windowWidth);
+        Settings.windowWidth = static_cast<int>(std::clamp<int64_t>(
+            mIniFile.get_int("graphics", "window_width", mGameInfo.windowWidth),
+            mGameInfo.minWindowWidth,
+            mGameInfo.maxWindowWidth
+        ));
         Settings.maxFPS = mIniFile.get_int("graphics", "max_fps", mGameInfo.maxFPS);
         Settings.enableVSync = mIniFile.get_bool("graphics", "vsync", mGameInfo.enableVSync);
         Settings.rendererName = mIniFile.get_string("graphics", "renderer", mGameInfo.rendererName);

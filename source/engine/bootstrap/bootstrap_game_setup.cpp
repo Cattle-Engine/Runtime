@@ -67,6 +67,14 @@ namespace CE::Bootstrap {
             gameinfo->windowIcon = ini.get_string("Gameinfo", "Window_Icon", "");
         }
 
+        gameinfo->pauseRenderingWhenFocusLostInWindowedMode = ini.get_bool("Graphics", "No_Render_On_Focus_Lost", true);
+        gameinfo->pauseUpdateWhenFocusLost = ini.get_bool("Graphics", "No_Update_On_Focus_Lost", true);
+
+        gameinfo->maxWindowWidth = ini.get_int("Graphics", "Max_Window_Width", 640);
+        gameinfo->maxWindowHeight = ini.get_int("Graphics", "Max_Window_Height", 360);
+        gameinfo->minWindowWidth = ini.get_int("Graphics", "Min_Window_Width", 3840);
+        gameinfo->minWindowHeight = ini.get_int("Graphics", "Min_Window_Height", 2160);
+
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
         CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
         return 0;

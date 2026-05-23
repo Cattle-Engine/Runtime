@@ -112,7 +112,7 @@ namespace CE::Scripting {
 
     bool Runtime::RunStartup() {
         mLastError.clear();
-        mScriptModule = mScriptEngine->GetModule("Main", asGM_ALWAYS_CREATE);
+        mScriptModule = mScriptEngine->GetModule("Startup", asGM_ALWAYS_CREATE);
         if (mScriptModule == nullptr) {
             return Fail("Failed to create AngelScript module");
         }

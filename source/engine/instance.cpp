@@ -9,6 +9,7 @@
 #include "engine/common/fullscreen.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/settings.hpp"
+#include "engine/common/utils/is_fullscreen.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/sdl_events.hpp"
@@ -145,10 +146,34 @@ namespace CE {
                     gShouldExit = true;
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_LOST:
-                    gWindowFocus = false;
+                    if (gGameInfo->pauseRenderingWhenFocusLostInWindowedMode && !Utils::IsWindowFullScreen(gWindow)) {
+                        gShouldRender = false;
+                    }
+
+                    // Due to it being wasteful on the GPU to render the window when its not even visible 
+                    // and on windows the swapchain texture returns nullptr renderering is paused
+                    if (Utils::IsWindowFullScreen(gWindow)) {
+                        gShouldRender = false;
+                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
+                    } else {
+                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
+                    }
+
+                    if (gGameInfo->pauseUpdateWhenFocusLost) {
+                        gWindowFocus = false;
+                    }
+
                     break;
                 case SDL_EVENT_WINDOW_FOCUS_GAINED:
-                    gWindowFocus = true;
+                    if (gGameInfo->pauseUpdateWhenFocusLost) {
+                        gWindowFocus = true;
+                    }
+                    gShouldRender = true;
+                    if (Utils::IsWindowFullScreen(gWindow)) {
+                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAIMED_FULLSCREEN");
+                    } else {
+                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
+                    }
                     break;
             }
         }
@@ -166,7 +191,7 @@ namespace CE {
 
         gRenderer->SetClearColor(255, 255, 255, 255);
         gGameStateManager.Emit("Update");
-
+        if (gShouldRender) {
         int bfr = gRenderer->BeginFrame(gWindow);
         if (bfr != 0) {
             return 1;
@@ -205,6 +230,7 @@ namespace CE {
 
         gRenderer->EndFrame(gWindow);
         gFontManager->Update();
+        }
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();
         gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /

@@ -23,5 +23,14 @@ namespace CE {
 
         std::string startupFileName;
         const char* dataFileName;
+
+        int minWindowWidth;
+        int minWindowHeight;
+
+        int maxWindowWidth;
+        int maxWindowHeight;
+
+        bool pauseRenderingWhenFocusLostInWindowedMode;
+        bool pauseUpdateWhenFocusLost;
     };
 }

@@ -71,6 +71,7 @@ namespace CE {
             bool gDebug = false;
             bool gShouldExit = false;
             bool gWindowFocus = true;
+            bool gShouldRender = true;
             bool gPendingSettingsReload = false;
             float gDeltaTime = 0.0f;
             float gFrameTime = 0.0f;
