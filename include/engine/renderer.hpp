@@ -44,6 +44,12 @@ namespace CE::Renderer {
         float zoom = 1.0f;
     };
 
+    struct Camera3D {
+        glm::vec3 position;
+        glm::vec3 rotation;
+        float fov;
+    };
+
     enum class TextureFormat {
         RGBA8,
         RGB8,
@@ -59,6 +65,25 @@ namespace CE::Renderer {
 
     struct Vector2 {
         int x, y;
+    };
+
+    struct Vertex3D {
+        glm::vec3 position;
+        Colour color;
+        glm::vec2 uv;
+    };
+
+    struct Transform3D {
+        glm::vec3 position;
+        glm::vec3 rotation;
+        glm::vec3 scale;
+    };
+
+    struct Mesh {
+        std::vector<Vertex3D> vertices;
+        std::vector<uint32_t> indices;
+        uint32_t vertex_count;
+        uint32_t indice_count;
     };
 
     struct Vertex {
@@ -100,6 +125,11 @@ namespace CE::Renderer {
         None = 0,
         Horizontal = 1 << 0,
         Vertical = 1 << 1
+    };
+
+    enum class CameraMode {
+        Mode2D,
+        Mode3D
     };
 
     constexpr TextureFlip operator|(TextureFlip lhs, TextureFlip rhs) {
