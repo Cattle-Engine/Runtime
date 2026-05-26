@@ -25,7 +25,7 @@ namespace CE::Renderer::Software {
             int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
             int Shutdown(SDL_Window* window) override;
 
-            void ChangeCameraPos(float X, float Y, float zoom) override;
+            void ChangeCameraPos2D(float X, float Y, float zoom) override;
 
             void DrawRect(float x, float y, float w, float h,
                           uint8_t r, uint8_t g, uint8_t b, uint8_t a,
@@ -101,10 +101,19 @@ namespace CE::Renderer::Software {
             void SetShaderVec2(const char* name, float x, float y) override;
             void SetShaderVec3(const char* name, float x, float y, float z) override;
             void SetShaderVec4(const char* name, float x, float y, float z, float w) override;
-
             void SetShaderMat4(const char* name, const float* mat4) override;
             void SetShaderInt(const char* name, int value) override;
             void SetShaderTexture(const char* name, Texture* texture, int slot) override;
+
+            GPUMesh* CreateGPUMesh(MeshData& mesh) override;
+            void DestroyGPUMesh(GPUMesh* mesh) override;
+            void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform) override;
+            void BeginMode3D() override;
+            void EndMode3D() override;
+            void ChangeCameraPos3D(const Transform3D& transform) override;
+
+            void BeginMode2D() override;
+            void EndMode2D() override;
 
             void ImGuiStartFrame() override;
             void ImGuiEndFrame(SDL_Window* window) override;
@@ -132,6 +141,7 @@ namespace CE::Renderer::Software {
             void ImGuiShutdown();
             void RenderImGuiDrawData(ImDrawData* drawData);
             static void LogAboutShaders();
+            static void LogAbout3D();
 
             SDL_Renderer* mRenderer = nullptr;
             Camera2D mCamera{};
@@ -140,6 +150,8 @@ namespace CE::Renderer::Software {
             Texture* mErrorTexture = nullptr;
             VFS::VFS* mVFS = nullptr;
             bool mVSyncEnabled = true;
+            bool m2DFrameActive = false; // This is here to enforce API usage game side
+            bool mFrameActive = false; // This as well
             void* mImGuiContext = nullptr;
             Texture* mImGuiFontTexture = nullptr;
             std::unordered_set<Texture*> mOwnedTextures;

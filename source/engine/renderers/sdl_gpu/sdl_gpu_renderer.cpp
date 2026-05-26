@@ -102,6 +102,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return pipelineResult;
         }
 
+        const int pipeline3DResult = CreateDefault3DPipeline(window);
+        if (pipeline3DResult != 0) {
+            return pipeline3DResult;
+        }
+
         // Vertex buffer
         SDL_GPUBufferCreateInfo vbInfo{};
         vbInfo.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
@@ -304,6 +309,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gTransferTexIdx)    SDL_ReleaseGPUTransferBuffer(gDevice, gTransferTexIdx);
 
         DestroyDefaultPipeline();
+        DestroyDefault3DPipeline();
 
         if (gWhiteSampler) {
             SDL_ReleaseGPUSampler(gDevice, gWhiteSampler);
@@ -361,9 +367,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gPrimitiveBatches.clear();
         gTexBatches.clear();
+        gMeshCommands.clear();
         gCurrentPrimitiveShader = nullptr;
         gCurrentTex = nullptr;
         gCurrentTexSampler = nullptr;
+        m3DModeActive = false;
+        m2DModeActive = false;
 
         gMappedVerts   = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
         gMappedIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
@@ -415,8 +424,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUColorTargetInfo colorTargetInfo{};
         colorTargetInfo.texture     = gSwapchainTexture;
         colorTargetInfo.clear_color = gClearColor;
-        colorTargetInfo.load_op     = SDL_GPU_LOADOP_CLEAR;
+        colorTargetInfo.load_op     = SDL_GPU_LOADOP_LOAD;
         colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
+        colorTargetInfo.load_op     = gMeshCommands.empty() ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
+
+        if (!gMeshCommands.empty()) {
+            DrawQueuedMeshes();
+            colorTargetInfo.load_op = SDL_GPU_LOADOP_LOAD;
+        }
+
+        if (gMeshCommands.empty()) {
+            colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+        }
 
         gRenderPass = SDL_BeginGPURenderPass(gCommandBuffer, &colorTargetInfo, 1, NULL);
 
@@ -1197,7 +1216,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         delete texture;
     }
 
-    void SDL_GPU_Renderer::ChangeCameraPos(float X, float Y, float zoom) {
+    void SDL_GPU_Renderer::ChangeCameraPos2D(float X, float Y, float zoom) {
         gCamera = { X, Y, zoom };
     }
 

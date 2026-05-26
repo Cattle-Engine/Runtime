@@ -54,6 +54,13 @@ namespace CE::Bootstrap::Engine {
         gameinfo.enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
         gameinfo.fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
         gameinfo.resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
+        if (gameinfo.minWindowWidth > gameinfo.maxWindowWidth) {
+            std::swap(gameinfo.minWindowWidth, gameinfo.maxWindowWidth);
+        }
+
+        if (gameinfo.minWindowHeight > gameinfo.maxWindowHeight) {
+            std::swap(gameinfo.minWindowHeight, gameinfo.maxWindowHeight);
+        }
         return 0;
     }
 }

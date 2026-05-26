@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
 
 #include "engine/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
@@ -27,6 +28,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     };
 
     struct SDL_GPU_Renderer_Shader {
+        enum class PipelineMode {
+            Mode2D,
+            Mode3D
+        };
+
         SDL_GPUShader* VertexShader = nullptr;
         SDL_GPUShader* FragmentShader = nullptr;
         SDL_GPUGraphicsPipeline* Pipeline = nullptr;
@@ -46,6 +52,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         std::array<glm::ivec4, 4> CustomInt4 {};
         Uint32 FragmentSamplerCount = 1;
         std::vector<Texture*> BoundTextures;
+        PipelineMode Mode = PipelineMode::Mode2D;
     };
 
     struct DeferredDeleteEntry {
@@ -75,6 +82,34 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint32_t idxCount = 0;
     };
 
+    struct GPUVertex3D {
+        glm::vec3 position { 0.0f };
+        glm::vec3 normal { 0.0f, 1.0f, 0.0f };
+        uint8_t r = 255;
+        uint8_t g = 255;
+        uint8_t b = 255;
+        uint8_t a = 255;
+        glm::vec2 uv { 0.0f };
+    };
+
+    struct SDLGPUMeshData {
+        SDL_GPUBuffer* vertexBuffer = nullptr;
+        SDL_GPUBuffer* indexBuffer = nullptr;
+        uint32_t vertexCount = 0;
+        uint32_t indexCount = 0;
+    };
+
+    struct MeshDrawCommand {
+        SDLGPUMeshData* mesh = nullptr;
+        SDLGPUTexData* texture = nullptr;
+        SDL_GPUSampler* sampler = nullptr;
+        SDL_GPU_Renderer_Shader* shader = nullptr;
+        glm::mat4 model { 1.0f };
+        glm::mat4 normalMatrix { 1.0f };
+        glm::vec4 tint { 1.0f };
+        glm::vec4 materialProps { 1.0f, 0.0f, 0.0f, 0.0f };
+    };
+
     class SDL_GPU_Renderer : public Renderer::IRenderer {
         public:
             SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs);
@@ -84,7 +119,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
             int Shutdown(SDL_Window* window) override;
 
-            void ChangeCameraPos(float X, float Y, float zoom) override;
+            void ChangeCameraPos2D(float X, float Y, float zoom) override;
 
             void DrawRect(float x, float y, float w, float h,
                    uint8_t r, uint8_t g, uint8_t b, uint8_t a,
@@ -171,6 +206,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void SetShaderInt(const char* name, int value) override;
             void SetShaderTexture(const char* name, Texture* texture, int slot) override;
 
+            GPUMesh* CreateGPUMesh(MeshData& mesh) override;
+            void DestroyGPUMesh(GPUMesh* mesh) override;
+            void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform) override;
+            void ChangeCameraPos3D(const Transform3D& transform) override;
+            void SetCamera3D(const Camera3D& camera) override;
+            void BeginMode3D() override;
+            void EndMode3D() override;
+            void BeginMode2D() override;
+            void EndMode2D() override;
+
             void ProcessDeferredDeletions();
 
         private:
@@ -184,10 +229,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void BindActivePipeline();
             void PushActiveShaderUniforms();
             void BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler);
+            int CreateDefault3DPipeline(SDL_Window* window);
+            void DestroyDefault3DPipeline();
+            SDL_GPUGraphicsPipeline* Create3DGraphicsPipeline(
+                SDL_Window* window,
+                SDL_GPUShader* vertexShader,
+                SDL_GPUShader* fragmentShader
+            ) const;
+            bool EnsureDepthTexture(SDL_Window* window);
+            static glm::mat4 BuildTransformMatrix(const Transform3D& transform);
+            glm::mat4 BuildViewProjectionMatrix(const Camera3D& camera, float aspectRatio) const;
+            void DrawQueuedMeshes();
             static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
             SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
             bool LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path, ShaderStage stage, Uint32 samplerCount);
             void ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage);
+            static bool ShaderPathSuggests3D(const std::string& shaderPath);
             static std::string GetShaderBaseName(const char* path);
             static bool ParseIndexedUniformName(const char* name, const char* prefix, size_t maxCount, size_t& indexOut);
 
@@ -237,11 +294,26 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             RendererBackend gBackend;
             bool gFrameActive = false;
             bool mWarnedOutsideFrame = false;
+            bool m3DModeActive = false;
+            bool m2DModeActive = false;
             CE::VFS::VFS* gVFS;
 
             std::vector<DeferredDeleteEntry> gDeferredDeletes;
+            std::vector<MeshDrawCommand> gMeshCommands;
 
             SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
+            SDL_GPUGraphicsPipeline* g3DPipeline = nullptr;
+            SDL_GPUShader* gDefault3DVertexShader = nullptr;
+            SDL_GPUShader* gDefault3DFragmentShader = nullptr;
+            SDL_GPUTexture* gDepthTexture = nullptr;
+            SDL_GPUTextureFormat gDepthFormat = SDL_GPU_TEXTUREFORMAT_INVALID;
+            int gDepthTextureWidth = 0;
+            int gDepthTextureHeight = 0;
+            Transform3D gCamera3DTransform {
+                glm::vec3(0.0f, 0.0f, 3.0f),
+                glm::vec3(0.0f),
+                glm::vec3(1.0f)
+            };
     };
 }
 

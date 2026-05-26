@@ -10,6 +10,7 @@
 #include "imgui_impl_sdl3.h"
 
 #include "engine/common/sdl_events.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace {
     constexpr float kPi = 3.14159265358979323846f;
@@ -154,7 +155,7 @@ namespace CE::Renderer::Software {
         return 0;
     }
 
-    void Software_Renderer::ChangeCameraPos(float X, float Y, float zoom) {
+    void Software_Renderer::ChangeCameraPos2D(float X, float Y, float zoom) {
         mCamera.x = X;
         mCamera.y = Y;
         mCamera.zoom = zoom <= 0.0f ? 1.0f : zoom;
@@ -188,6 +189,14 @@ namespace CE::Renderer::Software {
     void Software_Renderer::DrawCircle(float cx, float cy, float radius,
                                        int segments,
                                        uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
+        
         if (mRenderer == nullptr || radius <= 0.0f) {
             return;
         }
@@ -231,6 +240,14 @@ namespace CE::Renderer::Software {
     void Software_Renderer::DrawLine(float x1, float y1, float x2, float y2,
                                      float thickness,
                                      uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
+        
         if (mRenderer == nullptr) {
             return;
         }
@@ -476,6 +493,14 @@ namespace CE::Renderer::Software {
                                     float w, float h, Colour colour,
                                     float rotation,
                                     TextureFlip flip) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
+
         const SDL_FlipMode flipMode = ToSDLFlipMode(
             HasTextureFlip(flip, TextureFlip::Horizontal),
             HasTextureFlip(flip, TextureFlip::Vertical)
@@ -494,6 +519,13 @@ namespace CE::Renderer::Software {
                                       Colour colour,
                                       float rotation,
                                       TextureFlip flip) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
         if (tex == nullptr) {
             return;
         }
@@ -678,6 +710,13 @@ namespace CE::Renderer::Software {
                                          float x2, float y2,
                                          uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                          float) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
         if (mRenderer == nullptr) {
             return;
         }
@@ -705,6 +744,13 @@ namespace CE::Renderer::Software {
     void Software_Renderer::DrawRectLines(float x, float y, float w, float h,
                                           float thickness,
                                           uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
         DrawLine(x, y, x + w, y, thickness, r, g, b, a);
         DrawLine(x + w, y, x + w, y + h, thickness, r, g, b, a);
         DrawLine(x + w, y + h, x, y + h, thickness, r, g, b, a);
@@ -714,6 +760,13 @@ namespace CE::Renderer::Software {
     void Software_Renderer::DrawCircleLines(float cx, float cy, float radius,
                                             int segments, float thickness,
                                             uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        if (!mFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
+        }
+        
+        if (!m2DFrameActive) {
+            CE::Log(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
+        }
         const int segmentCount = std::max(segments, 12);
         const float angleStep = (2.0f * kPi) / static_cast<float>(segmentCount);
 
@@ -998,5 +1051,13 @@ namespace CE::Renderer::Software {
         EnsureImGuiContext();
         ImGui::Render();
         RenderImGuiDrawData(ImGui::GetDrawData());
+    }
+
+    void Software_Renderer::BeginMode2D() {
+        m2DFrameActive = true;
+    }
+
+    void Software_Renderer::EndMode2D() {
+        m2DFrameActive = false;
     }
 }

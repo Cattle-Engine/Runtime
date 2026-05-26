@@ -75,6 +75,14 @@ namespace CE::Bootstrap {
         gameinfo->minWindowWidth = ini.get_int("Graphics", "Min_Window_Width", 3840);
         gameinfo->minWindowHeight = ini.get_int("Graphics", "Min_Window_Height", 2160);
 
+        if (gameinfo->minWindowWidth > gameinfo->maxWindowWidth) {
+            std::swap(gameinfo->minWindowWidth, gameinfo->maxWindowWidth);
+        }
+
+        if (gameinfo->minWindowHeight > gameinfo->maxWindowHeight) {
+            std::swap(gameinfo->minWindowHeight, gameinfo->maxWindowHeight);
+        }
+
         CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
         CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
         return 0;

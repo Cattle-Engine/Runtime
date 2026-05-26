@@ -1,7 +1,10 @@
 # Cattle Engine - NO BULLSHIT
 
-THIS IS NOT IN A USABLE STATE AT ALL 
-Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3..
+It's in a somewhat usable state? 
+Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3...
+
+It has experimental 3D support not the best but it works!
+
 Licences for third party stuff can be found in [/thirdparty/README.md](thirdparty)
 
 ## Building

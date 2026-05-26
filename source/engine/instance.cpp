@@ -122,6 +122,8 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
+
+
     }
 
     bool Instance::ShouldExit() {
@@ -196,9 +198,79 @@ namespace CE {
         if (bfr != 0) {
             return 1;
         } 
+        gRenderer->BeginMode3D();
+        gGameStateManager.Emit("Draw3D");
+CE::Renderer::MeshData cubeData;
 
-        gGameStateManager.Emit("Draw");
+float s = 0.5f;
 
+cubeData.vertices = {
+    // Front
+    {{-s,-s, s}, {0,0,1}, {255,0,0,255}, {0,0}},
+    {{ s,-s, s}, {0,0,1}, {0,255,0,255}, {1,0}},
+    {{ s, s, s}, {0,0,1}, {0,0,255,255}, {1,1}},
+    {{-s, s, s}, {0,0,1}, {255,255,0,255}, {0,1}},
+
+    // Back
+    {{ s,-s,-s}, {0,0,-1}, {255,0,255,255}, {0,0}},
+    {{-s,-s,-s}, {0,0,-1}, {0,255,255,255}, {1,0}},
+    {{-s, s,-s}, {0,0,-1}, {255,255,255,255}, {1,1}},
+    {{ s, s,-s}, {0,0,-1}, {128,128,128,255}, {0,1}},
+
+    // Left
+    {{-s,-s,-s}, {-1,0,0}, {255,0,0,255}, {0,0}},
+    {{-s,-s, s}, {-1,0,0}, {0,255,0,255}, {1,0}},
+    {{-s, s, s}, {-1,0,0}, {0,0,255,255}, {1,1}},
+    {{-s, s,-s}, {-1,0,0}, {255,255,0,255}, {0,1}},
+
+    // Right
+    {{ s,-s, s}, {1,0,0}, {255,0,255,255}, {0,0}},
+    {{ s,-s,-s}, {1,0,0}, {0,255,255,255}, {1,0}},
+    {{ s, s,-s}, {1,0,0}, {255,255,255,255}, {1,1}},
+    {{ s, s, s}, {1,0,0}, {128,128,128,255}, {0,1}},
+
+    // Top
+    {{-s, s, s}, {0,1,0}, {255,0,0,255}, {0,0}},
+    {{ s, s, s}, {0,1,0}, {0,255,0,255}, {1,0}},
+    {{ s, s,-s}, {0,1,0}, {0,0,255,255}, {1,1}},
+    {{-s, s,-s}, {0,1,0}, {255,255,0,255}, {0,1}},
+
+    // Bottom
+    {{-s,-s,-s}, {0,-1,0}, {255,0,255,255}, {0,0}},
+    {{ s,-s,-s}, {0,-1,0}, {0,255,255,255}, {1,0}},
+    {{ s,-s, s}, {0,-1,0}, {255,255,255,255}, {1,1}},
+    {{-s,-s, s}, {0,-1,0}, {128,128,128,255}, {0,1}},
+};
+
+cubeData.indices = {
+    0,1,2, 2,3,0,
+    4,5,6, 6,7,4,
+    8,9,10, 10,11,8,
+    12,13,14, 14,15,12,
+    16,17,18, 18,19,16,
+    20,21,22, 22,23,20
+};
+
+cubeData.vertex_count = cubeData.vertices.size();
+cubeData.indice_count = cubeData.indices.size();
+
+static CE::Renderer::GPUMesh* cube =
+    gRenderer->CreateGPUMesh(cubeData);
+
+CE::Renderer::Transform3D transform;
+transform.position = {0.0f, 0.0f, -3.0f};
+transform.rotation = {0.0f, SDL_GetTicks() * 0.001f, 0.0f};
+transform.scale = {1.0f, 1.0f, 1.0f};
+
+CE::Renderer::Material material {};
+material.tint = {255,255,255,255};
+
+gRenderer->DrawMesh(cube, material, transform);
+        gRenderer->EndMode3D();
+
+        gRenderer->BeginMode2D();
+
+        gGameStateManager.Emit("Draw2D");
         if (!gScriptingManager->RunUpdate()) {
             ShowError(gScriptingManager->GetLastError());
             CE::Log(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
@@ -208,8 +280,9 @@ namespace CE {
 
         gAnimationManager->Render();
 
-        gRenderer->ImGuiStartFrame();
+        gRenderer->EndMode2D();
 
+        gRenderer->ImGuiStartFrame();
         gDebugWindow.Draw(
             *gRenderer,
             *gTextureManager,
@@ -225,7 +298,6 @@ namespace CE {
             this->GetDeltaTime(),
             this->GetFrameTime()
         );
-
         gRenderer->ImGuiEndFrame(gWindow);
 
         gRenderer->EndFrame(gWindow);

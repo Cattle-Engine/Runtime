@@ -37,8 +37,12 @@ namespace CE {
             throw std::runtime_error("[Engine] Base game data file does not exist!");
         }
 
-        Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
+        int ggi_result = Bootstrap::Engine::GetGameInfo(mGameInfo, mDataFileName, debug);
         
+        if (ggi_result != 0) {
+            throw std::runtime_error("[Engine] Failed to get gameinfo");
+        }
+
         CE::Settings::SettingsManager msettings(mGameInfo, 1714284757 /*Why this large number? Its ENGINEC encoded to smth like base26*/);
 
         Common::RendererName2String(msettings.Settings.rendererName, mBackend);

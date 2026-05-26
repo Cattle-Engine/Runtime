@@ -62,6 +62,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     }
 
+    bool SDL_GPU_Renderer::ShaderPathSuggests3D(const std::string& shaderPath) {
+        std::string normalized = shaderPath;
+        for (char& ch : normalized) {
+            ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+        }
+
+        return normalized.find("3d") != std::string::npos;
+    }
+
     SDL_GPU_Renderer_Shader* SDL_GPU_Renderer::GetShaderProgram(Shader* shaderProgram) {
         if (!shaderProgram) {
             return nullptr;
@@ -183,6 +192,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             shaderProgram->FragmentPath = shaderPath;
         }
 
+        if (ShaderPathSuggests3D(shaderPath)) {
+            shaderProgram->Mode = SDL_GPU_Renderer_Shader::PipelineMode::Mode3D;
+        }
+
         shaderProgram->Dirty = true;
         return true;
     }
@@ -273,7 +286,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return false;
         }
 
-        SDL_GPUGraphicsPipeline* newPipeline = CreateGraphicsPipeline(window, vertexShader, fragmentShader);
+        SDL_GPUGraphicsPipeline* newPipeline =
+            (program->Mode == SDL_GPU_Renderer_Shader::PipelineMode::Mode3D)
+                ? Create3DGraphicsPipeline(window, vertexShader, fragmentShader)
+                : CreateGraphicsPipeline(window, vertexShader, fragmentShader);
         if (!newPipeline) {
             return false;
         }
@@ -472,6 +488,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         const std::string uniformName = NormalizeUniformName(name);
+        if (uniformName == "render3d" || uniformName == "pipeline3d" || uniformName == "mode3d") {
+            const auto requestedMode =
+                value != 0
+                    ? SDL_GPU_Renderer_Shader::PipelineMode::Mode3D
+                    : SDL_GPU_Renderer_Shader::PipelineMode::Mode2D;
+            if (gCurrentShader->Mode != requestedMode) {
+                gCurrentShader->Mode = requestedMode;
+                gCurrentShader->Dirty = true;
+            }
+            return;
+        }
+
         size_t index = 0;
         if (ParseIndexedUniformName(uniformName.c_str(), "customint", gCurrentShader->CustomInt4.size() * 4, index)) {
             gCurrentShader->CustomInt4[index / 4][index % 4] = value;
