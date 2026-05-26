@@ -122,8 +122,6 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
-
-
     }
 
     bool Instance::ShouldExit() {
@@ -258,14 +256,14 @@ static CE::Renderer::GPUMesh* cube =
     gRenderer->CreateGPUMesh(cubeData);
 
 CE::Renderer::Transform3D transform;
-transform.position = {0.0f, 0.0f, -3.0f};
+transform.position = {0.0f, 0.0f, 0.0f};
 transform.rotation = {0.0f, SDL_GetTicks() * 0.001f, 0.0f};
 transform.scale = {1.0f, 1.0f, 1.0f};
 
 CE::Renderer::Material material {};
 material.tint = {255,255,255,255};
 
-gRenderer->DrawMesh(cube, material, transform);
+gRenderer->DrawMesh(cube, material, transform, false);
         gRenderer->EndMode3D();
 
         gRenderer->BeginMode2D();

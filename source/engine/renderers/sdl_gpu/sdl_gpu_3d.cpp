@@ -422,7 +422,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         delete mesh;
     }
 
-    void SDL_GPU_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform) {
+    void SDL_GPU_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) {
         if (!gFrameActive) {
             if (!mWarnedOutsideFrame) {
                 CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Can't draw mesh outside of BeginFrame/EndFrame");
@@ -436,8 +436,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        Texture* texture = material.albedo ? material.albedo : GetErrorTexture();
-        auto* texData = texture && texture->handle ? static_cast<SDLGPUTexData*>(texture->handle) : nullptr;
+        Texture* texture = nullptr;
+
+        if (material.albedo) {
+            texture = material.albedo;
+        }
+        else if (error_tex) {
+            texture = GetErrorTexture();
+        }
+
+        auto* texData = texture && texture->handle
+            ? static_cast<SDLGPUTexData*>(texture->handle)
+            : nullptr;
 
         const glm::mat4 modelMatrix = BuildTransformMatrix(transform);
         const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);

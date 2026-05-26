@@ -336,6 +336,15 @@ Returns true if a key was released in the current frame
 
 Buttons: LEFT, MIDDLE, RIGHT, X1, X2
 
+## CE::Input::MouseVisiblity (Enum)
+Shown, Hidden
+
+### CE.Input.LockCursor(bool lock)
+Lock the mouse cursor to the window
+
+### CE.Input.SetCursorVisiblity(CE.Input.MouseVisiblity visiblity)
+Show/Hide the mouse cursor in the current window
+
 ### CE.Input.IsMouseButtonDown(button)
 Returns true if a mouse button is currently held down
 

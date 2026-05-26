@@ -107,7 +107,7 @@ namespace CE::Renderer::Software {
 
             GPUMesh* CreateGPUMesh(MeshData& mesh) override;
             void DestroyGPUMesh(GPUMesh* mesh) override;
-            void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform) override;
+            void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) override;
             void BeginMode3D() override;
             void EndMode3D() override;
             void ChangeCameraPos3D(const Transform3D& transform) override;

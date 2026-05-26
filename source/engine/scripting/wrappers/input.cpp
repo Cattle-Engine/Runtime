@@ -280,6 +280,25 @@ namespace CE::Scripting {
             asCALL_THISCALL_ASGLOBAL,
             this
         );
+
+        result = mScriptEngine->RegisterEnum("MouseVisibility");
+        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Hidden", static_cast<int>(Input::MouseVisiblity::Hidden));
+        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Shown", static_cast<int>(Input::MouseVisiblity::Shown));
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetMouseVisbility",
+            asMETHOD(Runtime, SetCursorVisiblity),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void LockMouseCursor",
+            asMETHOD(Runtime, LockCursor),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+
         if (result < 0) {
             return false;
         }
@@ -288,6 +307,14 @@ namespace CE::Scripting {
         return true;
     }
 
+    void Runtime::SetCursorVisiblity(Input::MouseVisiblity visiblity) {
+        mMouse.SetCursorVisiblity(visiblity);
+    }
+
+    void Runtime::LockCursor(bool lock) {
+        mMouse.LockCursor(lock);
+    }
+    
     bool Runtime::IsKeyDown(Input::KeyboardKeys key) {
         return mKeyboard.IsKeyDown(key);
     }
@@ -311,6 +338,8 @@ namespace CE::Scripting {
     bool Runtime::IsMouseButtonReleased(Input::MouseButtons button) {
         return mMouse.IsButtonReleased(button);
     }
+
+
 
     int Runtime::GetMouseX() {
         return mMouse.GetX();

@@ -17,10 +17,11 @@ namespace CE::Renderer::Software {
         LogAbout3D();
     }
 
-    void Software_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform) {
+    void Software_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) {
         (void)mesh;
         (void)material;
         (void)transform;
+        (void)error_tex;
         LogAbout3D();
     }
 

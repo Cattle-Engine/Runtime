@@ -30,7 +30,7 @@ CMake clean helper:
 
 - [X] Core stuff
 - [X] Angelscript API
-- [ ] Audio support
+- [X] Audio support
 - [ ] Plugins
 - [ ] Data & texture/audio compression
 - [ ] Stabilise everything 

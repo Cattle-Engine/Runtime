@@ -1,1 +1,5 @@
-Done
+- [X] Make mouse lock & visbility avalaible in AngelScript
+- [ ] Make a small manager for GPUMesh
+- [ ] Create file for 3D primtives
+- [ ] 3D model loading
+- [ ] Angelscript API for 3D stuff
