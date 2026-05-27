@@ -5,7 +5,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "engine/renderers/sdl_gpu_renderer.hpp"
+#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
 
 #include "engine/common/tracelog.hpp"
 

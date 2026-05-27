@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 
 namespace CE::Assets::Textures {

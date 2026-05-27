@@ -75,9 +75,7 @@ def locate_glslc(triplet: str, build_dir: Path) -> Path:
     candidates = [
         os.environ.get("GLSLC"),
         shutil.which("glslc"),
-
-        build_dir / "vcpkg_installed" / triplet / "tools" / "shaderc" / exe_name,
-
+        ROOT / "vcpkg_installed" / triplet / "tools" / "shaderc" / exe_name,
         VCPKG_ROOT / "installed" / triplet / "tools" / "shaderc" / exe_name,
     ]
 
@@ -90,7 +88,7 @@ def locate_glslc(triplet: str, build_dir: Path) -> Path:
 
     raise FileNotFoundError(
         f"Could not find glslc for triplet {triplet}. "
-        f"Looked in build_dir vcpkg_installed and PATH."
+        f"Searched vcpkg_installed and PATH."
     )
 
 
@@ -110,18 +108,7 @@ def generated_shader_header_path(shader_path: Path) -> Path:
 
 
 def write_shader_header(symbol_name: str, payload: bytes, header_path: Path) -> None:
-    lines = [f"unsigned char {symbol_name}[] = {{"]
-    for offset in range(0, len(payload), 12):
-        chunk = payload[offset : offset + 12]
-        values = ", ".join(f"0x{byte:02x}" for byte in chunk)
-        suffix = "," if offset + len(chunk) < len(payload) else ""
-        lines.append(f"  {values}{suffix}")
-    lines.append("};")
-    lines.append(f"unsigned int {symbol_name}_len = {len(payload)};")
-    lines.append("")
-
-    header_path.parent.mkdir(parents=True, exist_ok=True)
-    header_path.write_text("\n".join(lines), encoding="utf-8")
+    return
 
 
 def build_shaders(triplet: str, build_dir: Path) -> None:

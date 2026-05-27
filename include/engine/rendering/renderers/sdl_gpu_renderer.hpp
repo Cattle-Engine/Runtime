@@ -11,7 +11,7 @@
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 
 struct ImGuiContext;

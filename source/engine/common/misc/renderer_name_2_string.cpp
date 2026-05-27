@@ -1,5 +1,5 @@
 #include "engine/common/misc/gameinfo.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/renderer_name_2_string.hpp"
 
 namespace CE::Common {

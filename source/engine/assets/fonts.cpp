@@ -8,7 +8,7 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL.h>
 
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/assets/default_font.hpp"
 #include "engine/common/fs/vfs.hpp"

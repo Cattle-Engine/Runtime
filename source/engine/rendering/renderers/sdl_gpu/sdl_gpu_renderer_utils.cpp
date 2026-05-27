@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "engine/renderers/sdl_gpu_renderer.hpp"
+#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {

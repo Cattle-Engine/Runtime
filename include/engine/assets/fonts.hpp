@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 
 namespace CE::Assets::Fonts {

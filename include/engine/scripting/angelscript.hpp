@@ -12,7 +12,7 @@
 #include "engine/assets/textures.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 
 class CScriptArray;
 

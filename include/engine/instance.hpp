@@ -10,7 +10,7 @@
 #include "engine/assets/textures.hpp"
 #include "engine/assets/audio.hpp"
 #include "engine/assets/animations.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/core/event_bus.hpp"

@@ -1,6 +1,6 @@
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fullscreen.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/misc/error_box.hpp"

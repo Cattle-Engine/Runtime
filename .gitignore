@@ -14,7 +14,9 @@ imgui.ini
 .cache/
 __pycache__/
 *.pyc
-/assets/*
+/assets/*#
+/.vs/*
+/CMakeSettings.json
 
 # Compiled Object files
 *.slo

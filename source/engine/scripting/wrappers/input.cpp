@@ -286,14 +286,14 @@ namespace CE::Scripting {
         result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Shown", static_cast<int>(Input::MouseVisiblity::Shown));
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void SetMouseVisbility",
+            "void SetMouseVisbility(MouseVisiblity visiblity)",
             asMETHOD(Runtime, SetCursorVisiblity),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void LockMouseCursor",
+            "void LockMouseCursor(bool lock)",
             asMETHOD(Runtime, LockCursor),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -338,8 +338,6 @@ namespace CE::Scripting {
     bool Runtime::IsMouseButtonReleased(Input::MouseButtons button) {
         return mMouse.IsButtonReleased(button);
     }
-
-
 
     int Runtime::GetMouseX() {
         return mMouse.GetX();

@@ -4,8 +4,8 @@
 #include <cassert>
 #include <cmath>
 
-#include "engine/renderers/sdl_gpu_renderer.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/fs/vfs.hpp"

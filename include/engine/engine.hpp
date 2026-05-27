@@ -4,7 +4,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 

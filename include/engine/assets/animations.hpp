@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/common/fs/vfs.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 
 #include <vector>
 #include <string>

@@ -7,7 +7,7 @@
 #include "engine/engine.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/version.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/renderer_name_2_string.hpp"
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"

@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "engine/renderers/software_renderer.hpp"
+#include "engine/rendering/renderers/software_renderer.hpp"
 
 namespace CE::Renderer::Software {
     GPUDeviceHandle CreateGPUDevice() {

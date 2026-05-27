@@ -1,8 +1,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/renderers/sdl_gpu_renderer.hpp"
-#include "engine/renderer.hpp"
+#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {

@@ -1,6 +1,6 @@
-#include "engine/renderer.hpp"
-#include "engine/renderers/sdl_gpu_renderer.hpp"
-#include "engine/renderers/software_renderer.hpp"
+#include "engine/rendering/renderer.hpp"
+#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "engine/rendering/renderers/software_renderer.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "memory"
 
