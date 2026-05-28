@@ -156,7 +156,7 @@ namespace CE::Scripting {
             int GetMouseDeltaY();
             int GetMouseWheelX();
             int GetMouseWheelY();
-            void SetCursorVisiblity(Input::MouseVisiblity visiblity);
+            void SetCursorVisibility(Input::MouseVisibility visiblity);
             void LockCursor(bool lock);
 
             void ExitInstance();

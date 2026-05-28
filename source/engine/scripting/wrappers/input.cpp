@@ -282,15 +282,37 @@ namespace CE::Scripting {
         );
 
         result = mScriptEngine->RegisterEnum("MouseVisibility");
-        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Hidden", static_cast<int>(Input::MouseVisiblity::Hidden));
-        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Shown", static_cast<int>(Input::MouseVisiblity::Shown));
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterEnumValue(
+            "MouseVisibility",
+            "Hidden",
+            static_cast<int>(Input::MouseVisibility::Hidden)
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterEnumValue(
+            "MouseVisibility",
+            "Shown",
+            static_cast<int>(Input::MouseVisibility::Shown)
+        );
+        if (result < 0) {
+            return false;
+        }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void SetMouseVisbility(MouseVisiblity visiblity)",
-            asMETHOD(Runtime, SetCursorVisiblity),
+            "void SetMouseVisibility(MouseVisibility visibility)",
+            asMETHOD(Runtime, SetCursorVisibility),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
+        if (result < 0) {
+            return false;
+        }
 
         result = mScriptEngine->RegisterGlobalFunction(
             "void LockMouseCursor(bool lock)",
@@ -307,8 +329,8 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::SetCursorVisiblity(Input::MouseVisiblity visiblity) {
-        mMouse.SetCursorVisiblity(visiblity);
+    void Runtime::SetCursorVisibility(Input::MouseVisibility visiblity) {
+        mMouse.SetCursorVisibility(visiblity);
     }
 
     void Runtime::LockCursor(bool lock) {

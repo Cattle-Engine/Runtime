@@ -6,17 +6,27 @@
 
 namespace CE::Renderer::Resources {
     using MeshHandle = uint32_t;
-    
+
     class GPUMeshManager {
         public:
-            GPUMeshManager(IRenderer& renderer);
+            explicit GPUMeshManager(IRenderer& renderer);
+            ~GPUMeshManager();
+
             MeshHandle CreateMeshHandle(MeshData& data);
-            void DrawMeshHandle(const MeshHandle handle, Texture* tex, bool error_texture);
+            void DrawMeshHandle(MeshHandle handle, const Transform3D& transform, const Material* material = nullptr, bool error_texture = false);
             void ChangeMesh(MeshHandle& handle, MeshData& data);
             void DestroyMesh(MeshHandle& handle);
-            void GetMesh(MeshHandle& handle);
+            GPUMesh* GetMesh(MeshHandle handle);
+            const GPUMesh* GetMesh(MeshHandle handle) const;
+            bool HasMesh(MeshHandle handle) const;
         private:
-            std::unordered_map<MeshHandle, GPUMesh> mGPUMeshes;
-            MeshHandle mNextHandle;
+            struct MeshInfo {
+                GPUMesh* Mesh = nullptr;
+            };
+            GPUMesh* CreateMesh(MeshData& data);
+
+            IRenderer& mRenderer;
+            std::unordered_map<MeshHandle, MeshInfo> mGPUMeshes;
+            MeshHandle mNextHandle = 1;
     };
 }

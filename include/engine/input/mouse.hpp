@@ -14,7 +14,7 @@ namespace CE::Input {
         X2     = SDL_BUTTON_X2
     };
 
-    enum class MouseVisiblity {
+    enum class MouseVisibility {
         Hidden,
         Shown
     };
@@ -38,7 +38,7 @@ namespace CE::Input {
         int GetWheelX() const { return gWheelX; }
         int GetWheelY() const { return gWheelY; }
 
-        void SetCursorVisiblity(MouseVisiblity visiblity);
+        void SetCursorVisibility(MouseVisibility visiblity);
         void LockCursor(bool lock);
 
     private:

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include "engine/rendering/renderer.hpp"
 #include "engine/common/fs/vfs.hpp"

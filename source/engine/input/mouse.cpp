@@ -80,8 +80,8 @@ namespace CE::Input {
         return (i >= 0) ? (!gCurrent[i] && gPrevious[i]) : false;
     }
 
-    void Mouse::SetCursorVisiblity(MouseVisiblity visiblity) {
-        if (visiblity == MouseVisiblity::Shown) {
+    void Mouse::SetCursorVisibility(MouseVisibility visiblity) {
+        if (visiblity == MouseVisibility::Shown) {
             SDL_ShowCursor();
         } else {
             SDL_HideCursor();
