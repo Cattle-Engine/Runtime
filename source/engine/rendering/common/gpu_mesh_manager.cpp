@@ -48,15 +48,11 @@ namespace CE::Renderer::Resources {
             materialToDraw = *material;
         }
 
-        if (!materialToDraw.albedo && error_texture) {
-            materialToDraw.albedo = mRenderer.GetErrorTexture();
-        }
-
         mRenderer.DrawMesh(
             it->second.Mesh,
             materialToDraw,
             transform,
-            error_texture && materialToDraw.albedo == nullptr
+            error_texture && materialToDraw.albedo.expired()
         );
     }
 

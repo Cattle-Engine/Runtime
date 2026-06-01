@@ -6,8 +6,12 @@ import os
 import shutil
 import subprocess
 import sys
+import tarfile
+import tempfile
+import zipfile
 from pathlib import Path
 from typing import Iterable
+from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +23,8 @@ SHADER_HEADER_DIR = ROOT / "include" / "engine" / "renderers" / "shaders"
 SHADER_ASSET_DIR = ASSET_DIR / "shaders" / "Compiled" / "SPIRV"
 DATA_FILE_NAME = "data.tcf"
 VCPKG_ROOT = ROOT / "tools" / "cache" / "vcpkg" / "vcpkg"
+VULKAN_SDK_CACHE_ROOT = ROOT / "tools" / "cache" / "vulkan-sdk"
+VULKAN_SDK_DOWNLOAD_ROOT = "https://sdk.lunarg.com/sdk/download/latest"
 
 
 def log(message: str) -> None:
@@ -69,14 +75,122 @@ def ensure_vcpkg_dependencies(triplet: str) -> None:
     run([str(vcpkg_executable()), "install", "--triplet", triplet], cwd=ROOT, env=vcpkg_env())
 
 
-def locate_glslc(triplet: str, build_dir: Path) -> Path:
+def http_download(url: str, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    request = Request(url, headers={"User-Agent": "ce_engine-build/1.0"})
+    with urlopen(request) as response, destination.open("wb") as output:
+        shutil.copyfileobj(response, output)
+
+
+def extract_asset(archive_path: Path, extract_dir: Path) -> None:
+    extract_dir.mkdir(parents=True, exist_ok=True)
+    lower = "".join(archive_path.suffixes).lower()
+
+    if lower.endswith(".zip"):
+        with zipfile.ZipFile(archive_path) as archive:
+            archive.extractall(extract_dir)
+        return
+
+    if lower.endswith((".tar.gz", ".tgz", ".tar.xz", ".tar")):
+        mode = "r"
+        if lower.endswith(".tar.gz") or lower.endswith(".tgz"):
+            mode = "r:gz"
+        elif lower.endswith(".tar.xz"):
+            mode = "r:xz"
+
+        with tarfile.open(archive_path, mode) as archive:
+            archive.extractall(extract_dir)
+        return
+
+    raise ValueError(f"Unsupported archive type for {archive_path.name}")
+
+
+def find_glslc_in_tree(root: Path) -> Path | None:
     exe_name = "glslc.exe" if os.name == "nt" else "glslc"
+    for candidate in root.rglob(exe_name):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def host_platform() -> str:
+    if sys.platform.startswith("win"):
+        return "windows"
+    if sys.platform == "darwin":
+        return "mac"
+    return "linux"
+
+
+def sdk_archive_name() -> str:
+    if sys.platform.startswith("win"):
+        return "vulkan_sdk.exe"
+    if sys.platform == "darwin":
+        return "vulkan_sdk.zip"
+    return "vulkan_sdk.tar.xz"
+
+
+def sdk_cache_root() -> Path:
+    return VULKAN_SDK_CACHE_ROOT / host_platform()
+
+
+def download_vulkan_sdk() -> Path:
+    cache_root = sdk_cache_root()
+    existing = find_glslc_in_tree(cache_root)
+    if existing:
+        return existing
+
+    platform_name = host_platform()
+    archive_name = sdk_archive_name()
+    download_url = f"{VULKAN_SDK_DOWNLOAD_ROOT}/{platform_name}/{archive_name}"
+
+    with tempfile.TemporaryDirectory(prefix="ce-vulkan-sdk-") as temp_dir:
+        temp_root = Path(temp_dir)
+        download_path = temp_root / archive_name
+        log(f"Downloading Vulkan SDK from {download_url}")
+        http_download(download_url, download_path)
+
+        if sys.platform.startswith("win"):
+            cache_root.mkdir(parents=True, exist_ok=True)
+            run(
+                [
+                    str(download_path),
+                    "--root",
+                    str(cache_root),
+                    "--accept-licenses",
+                    "--default-answer",
+                    "--confirm-command",
+                    "install",
+                    "copy_only=1",
+                ]
+            )
+        else:
+            extract_asset(download_path, cache_root)
+
+    glslc = find_glslc_in_tree(cache_root)
+    if glslc:
+        if os.name != "nt":
+            glslc.chmod(glslc.stat().st_mode | 0o111)
+        return glslc
+
+    raise FileNotFoundError("Downloaded Vulkan SDK, but no glslc binary was found.")
+
+
+def locate_glslc() -> Path:
+    exe_name = "glslc.exe" if os.name == "nt" else "glslc"
+
+    vulkan_sdk = os.environ.get("VULKAN_SDK")
+    vulkan_sdk_candidates: list[Path] = []
+    if vulkan_sdk:
+        sdk_root = Path(vulkan_sdk)
+        vulkan_sdk_candidates.extend([
+            sdk_root / "Bin" / exe_name,
+            sdk_root / "bin" / exe_name,
+        ])
 
     candidates = [
         os.environ.get("GLSLC"),
-        shutil.which("glslc"),
-        ROOT / "vcpkg_installed" / triplet / "tools" / "shaderc" / exe_name,
-        VCPKG_ROOT / "installed" / triplet / "tools" / "shaderc" / exe_name,
+        *vulkan_sdk_candidates,
+        find_glslc_in_tree(sdk_cache_root()),
     ]
 
     for c in candidates:
@@ -86,10 +200,11 @@ def locate_glslc(triplet: str, build_dir: Path) -> Path:
         if p.exists():
             return p
 
-    raise FileNotFoundError(
-        f"Could not find glslc for triplet {triplet}. "
-        f"Searched vcpkg_installed and PATH."
-    )
+    cached = download_vulkan_sdk()
+    if cached.exists():
+        return cached
+
+    raise FileNotFoundError("Could not find or download glslc.")
 
 
 def iter_shader_sources() -> Iterable[Path]:
@@ -111,8 +226,8 @@ def write_shader_header(symbol_name: str, payload: bytes, header_path: Path) -> 
     return
 
 
-def build_shaders(triplet: str, build_dir: Path) -> None:
-    glslc = locate_glslc(triplet, build_dir)
+def build_shaders() -> None:
+    glslc = locate_glslc()
     SHADER_ASSET_DIR.mkdir(parents=True, exist_ok=True)
 
     for shader_path in iter_shader_sources():
@@ -264,7 +379,7 @@ def main() -> int:
         ensure_vcpkg_dependencies(args.triplet)
 
     if args.command in {"shaders", "full"}:
-        build_shaders(args.triplet, args.build_dir.resolve())
+        build_shaders()
 
     if args.command in {"assets", "full"}:
         build_assets(build_dir)

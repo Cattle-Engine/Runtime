@@ -44,7 +44,6 @@
       ]
     },
 
-    "sdl3-ttf",
-    "shaderc"
+    "sdl3-ttf"
   ]
 }

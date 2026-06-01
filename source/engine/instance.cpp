@@ -71,6 +71,9 @@ namespace CE {
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
         }
 
+        gGPUMeshManager = std::make_unique<CE::Renderer::Resources::GPUMeshManager>(*gRenderer);
+        gMaterialManager = std::make_unique<CE::Renderer::Resources::MaterialManager>(gRenderer.get(), gTextureManager.get());
+
         gAnimationManager = std::make_unique<CE::Assets::Animations::AnimationManager>(*gVFS, *gRenderer, gInstanceID);
 
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
@@ -105,6 +108,8 @@ namespace CE {
             *gTextureManager,
             *gShaderManager,
             *gFontManager,
+            *gGPUMeshManager,
+            *gMaterialManager,
             gAnimationManager.get(),
             *gKeyboardManger,
             *gMouseManger,

@@ -28,7 +28,7 @@ namespace CE::Assets::Textures {
 
             void UnloadAll();
 
-            CE::Renderer::Texture* Get(const char* name);
+            std::weak_ptr<CE::Renderer::Texture> Get(const char* name);
 
             int Debug_LoadedTexturesCount();
             int Debug_LoadedTexturesNoError();
@@ -39,13 +39,13 @@ namespace CE::Assets::Textures {
         private:
             CE::Renderer::IRenderer* gRenderer;
             CE::VFS::VFS* gVFS;
-            CE::Renderer::Texture* gErrorTex;
+            Renderer::Texture* gErrorTex;
             // An internal struct to hold some metadata for a texture
             struct TMTexture {
                 bool IsErrorTex = false;
                 bool ShownMissingError = false;
                 const char* Path = "Missing path";
-                CE::Renderer::Texture* Texture;
+                std::shared_ptr<CE::Renderer::Texture> Texture;
             };
             std::unordered_map<std::string, TMTexture> gTextures;
     };

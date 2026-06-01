@@ -157,7 +157,7 @@ foreach(ANGELSCRIPT_ADDON_SOURCE ${ANGELSCRIPT_ADDON_SOURCES})
 endforeach()
 
 execute_process(
-    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders "--triplet" "${VCPKG_TARGET_TRIPLET}"
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders
     WORKING_DIRECTORY "${CE_ROOT_DIR}"
     RESULT_VARIABLE CE_SHADER_PREPARE_RESULT
 )
@@ -254,7 +254,7 @@ target_link_libraries(ce_engine PRIVATE ${ANGELSCRIPT_LINK_TARGET})
 set(CE_SHADER_STAMP "${CMAKE_BINARY_DIR}/generated/shaders.stamp")
 add_custom_command(
     OUTPUT "${CE_SHADER_STAMP}"
-    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders "--triplet" "${VCPKG_TARGET_TRIPLET}"
+    COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" shaders
     COMMAND "${CMAKE_COMMAND}" -E touch "${CE_SHADER_STAMP}"
     DEPENDS
         "${CE_BUILD_SCRIPT}"

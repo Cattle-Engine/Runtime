@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -25,7 +26,7 @@ namespace CE::Renderer::Resources {
             CE::Renderer::Material* Get(const char* name);
             const CE::Renderer::Material* Get(const char* name) const;
 
-            bool SetAlbedo(const char* name, CE::Renderer::Texture* texture);
+            bool SetAlbedo(const char* name, const std::weak_ptr<CE::Renderer::Texture>& texture);
             bool SetAlbedo(const char* name, const char* textureName);
             bool SetAlbedo(
                 const char* name,
@@ -48,7 +49,7 @@ namespace CE::Renderer::Resources {
             ManagedMaterial* FindMaterial(const char* name);
             const ManagedMaterial* FindMaterial(const char* name) const;
 
-            CE::Renderer::IRenderer* mRenderer = nullptr;
+            [[maybe_unused]] CE::Renderer::IRenderer* mRenderer = nullptr;
             CE::Assets::Textures::TextureManager* mTextureManager = nullptr;
             std::unordered_map<std::string, ManagedMaterial> mMaterials;
     };

@@ -91,7 +91,7 @@ namespace CE::Assets::Textures {
             tex = gRenderer->LoadTex(filepath);
             texinfo.Path = filepath;
         }
-        texinfo.Texture = tex;
+        texinfo.Texture = std::shared_ptr<CE::Renderer::Texture>(tex, [](CE::Renderer::Texture*) {});
         gTextures[name] = texinfo;
     }
 
@@ -101,14 +101,14 @@ namespace CE::Assets::Textures {
         auto tex = gTextures.find(name);
         if (tex != gTextures.end()) {
             if (!tex->second.IsErrorTex) {
-                DrawTextureWithOptions(gRenderer, tex->second.Texture, x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
+                DrawTextureWithOptions(gRenderer, tex->second.Texture.get(), x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
                 return;
             } else {
                 if (!tex->second.ShownMissingError) {
                     CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw a missing asset: {}", tex->second.Path);
                     tex->second.ShownMissingError = true;
                 }
-                DrawTextureWithOptions(gRenderer, tex->second.Texture, x, y, w, h, 0.0f, {255, 255, 255, 255}, flipX, flipY, tileX, tileY);
+                DrawTextureWithOptions(gRenderer, tex->second.Texture.get(), x, y, w, h, 0.0f, {255, 255, 255, 255}, flipX, flipY, tileX, tileY);
                 return;
             }
         }
@@ -120,7 +120,7 @@ namespace CE::Assets::Textures {
         auto tex = gTextures.find(name);
         if(tex != gTextures.end()) {
             if (!tex->second.IsErrorTex) {
-                gRenderer->UnloadTex(tex->second.Texture);
+                gRenderer->UnloadTex(tex->second.Texture.get());
                 CE::Log(LogLevel::Info, "[Texture Manager] Unloaded texture {}", name);
                 return;
             } else {
@@ -140,14 +140,14 @@ namespace CE::Assets::Textures {
             if (!tex->second.IsErrorTex) {
                 int w = tex->second.Texture->width;
                 int h = tex->second.Texture->height;
-                DrawTextureWithOptions(gRenderer, tex->second.Texture, x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
+                DrawTextureWithOptions(gRenderer, tex->second.Texture.get(), x, y, w, h, rotation, colour, flipX, flipY, tileX, tileY);
                 return;
             } else {
                 if (!tex->second.ShownMissingError) {
                     CE::Log(LogLevel::Error, "[Texture Manager] Tried to draw a missing asset: {}", tex->second.Path);
                     tex->second.ShownMissingError = true;
                 }
-                DrawTextureWithOptions(gRenderer, tex->second.Texture, x, y, ERROR_SIZE, ERROR_SIZE, rotation, {255, 255, 255, 255}, flipX, flipY, tileX, tileY);
+                DrawTextureWithOptions(gRenderer, tex->second.Texture.get(), x, y, ERROR_SIZE, ERROR_SIZE, rotation, {255, 255, 255, 255}, flipX, flipY, tileX, tileY);
                 return; 
             }
         }
@@ -162,17 +162,17 @@ namespace CE::Assets::Textures {
     void TextureManager::UnloadAll() {
         for (auto& [name, texinfo] : gTextures) {
             if (!texinfo.IsErrorTex) {
-                gRenderer->UnloadTex(texinfo.Texture);
+                gRenderer->UnloadTex(texinfo.Texture.get());
             }
         }
         gTextures.clear();
         CE::Log(LogLevel::Info, "[Texture Manager] Unloaded all textures");
     }
 
-    CE::Renderer::Texture* TextureManager::Get(const char* name) {
+    std::weak_ptr<CE::Renderer::Texture> TextureManager::Get(const char* name) {
         auto tex = gTextures.find(name ? name : "");
         if (tex == gTextures.end()) {
-            return nullptr;
+            return {};
         }
         return tex->second.Texture;
     }

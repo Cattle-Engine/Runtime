@@ -227,13 +227,14 @@ namespace CE::Assets::Shaders {
             return false;
         }
 
-        CE::Renderer::Texture* texture = textureManager->Get(textureName);
-        if (!texture) {
+        auto texture = textureManager->Get(textureName);
+        auto sharedTexture = texture.lock();
+        if (!sharedTexture) {
             CE::Log(LogLevel::Error, "[Shader Manager] Texture '{}' was not found for shader uniform '{}'", textureName ? textureName : "", uniformName ? uniformName : "");
             return false;
         }
 
-        renderer->SetShaderTexture(uniformName, texture, slot);
+        renderer->SetShaderTexture(uniformName, sharedTexture.get(), slot);
         return true;
     }
 

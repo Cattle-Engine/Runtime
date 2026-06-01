@@ -238,6 +238,123 @@ array<float> identity = {
 CE::Graphics::Shaders.SetShaderMat4("model", identity);
 ```
 
+## CE::Graphics::ThreeD
+
+### CE.Graphics.ThreeD.Vec3(x = 0.0, y = 0.0, z = 0.0)
+Simple 3D vector used by the camera, transform, and lighting bindings
+
+### CE.Graphics.ThreeD.Transform3D
+Contains `position`, `rotation`, and `scale` fields, each a `Vec3`
+
+### CE.Graphics.ThreeD.Camera3D
+Contains `position`, `rotation`, `target`, `up`, `fov`, `nearClip`, `farClip`, `orthoSize`, `aspectOverride`, `useTarget`, and `projection`
+
+### CE.Graphics.ThreeD.Material
+Contains `tint`, `roughness`, and `metallic`
+
+### CE.Graphics.ThreeD.CameraProjection (Enum)
+
+Values: `Perspective`, `Orthographic`
+
+### CE.Graphics.ThreeD.SetCamera3D(camera)
+Sets the active 3D camera
+
+### CE.Graphics.ThreeD.GetCamera3D()
+Returns the active 3D camera state
+
+### CE.Graphics.ThreeD.SetSunEnabled(enabled)
+Enables or disables directional lighting
+
+### CE.Graphics.ThreeD.SetSunDirection(direction)
+Sets the sun direction vector
+
+### CE.Graphics.ThreeD.SetSunPosition(position)
+Sets the sun direction from a world-space position
+
+### CE.Graphics.ThreeD.SetSunTint(colour)
+Sets the directional light tint
+
+### CE.Graphics.ThreeD.SetSunIntensity(intensity)
+Sets the directional light intensity
+
+### CE.Graphics.ThreeD.SetAmbientLight(colour, intensity)
+Sets the ambient light colour and intensity
+
+### CE.Graphics.ThreeD.LoadMaterial(name)
+Creates an empty material entry
+
+### CE.Graphics.ThreeD.LoadMaterial(name, material)
+Creates a material entry from a `Material` value
+
+### CE.Graphics.ThreeD.UnloadMaterial(name)
+Removes a material entry by name
+
+### CE.Graphics.ThreeD.SetMaterialAlbedo(name, textureName)
+Assigns a loaded texture to a material albedo slot
+
+### CE.Graphics.ThreeD.SetMaterialTint(name, colour)
+Sets the material tint
+
+### CE.Graphics.ThreeD.SetMaterialRoughness(name, roughness)
+Sets the material roughness value
+
+### CE.Graphics.ThreeD.SetMaterialMetallic(name, metallic)
+Sets the material metallic value
+
+### CE.Graphics.ThreeD.HasMaterial(name)
+Returns true when a material exists
+
+### CE.Graphics.ThreeD.DebugLoadedMaterialsCount()
+Returns the number of loaded material entries
+
+### CE.Graphics.ThreeD.CreateMeshHandle(meshData)
+Uploads a `MeshData` object and returns a mesh handle
+
+### CE.Graphics.ThreeD.ChangeMesh(handle, meshData)
+Rebuilds a mesh handle from new mesh data
+
+### CE.Graphics.ThreeD.DestroyMesh(handle)
+Destroys a mesh handle and returns `0`
+
+### CE.Graphics.ThreeD.HasMesh(handle)
+Returns true when a mesh handle exists
+
+### CE.Graphics.ThreeD.DrawMesh(handle, transform, materialName = "", errorTexture = false)
+Queues a mesh for 3D rendering using the given transform and optional material name
+
+### 3D Notes
+
+- 3D drawing happens from the `Draw3D` event
+- `MeshData` is created with the existing `CE::Graphics::CreateCube`, `CreateSphere`, `CreatePlane`, `CreateCylinder`, `CreateCone`, `CreateTorus`, and `CreateCapsule` helpers
+- The 3D material system uses internal `weak_ptr` texture ownership, so scripts should set albedo by texture name rather than managing texture lifetime directly
+
+### Example: Basic 3D Scene
+
+```angelscript
+CE::Graphics::ThreeD::LoadMaterial("demo_material");
+CE::Graphics::ThreeD::SetMaterialTint("demo_material", CE::Graphics::Colour(255, 255, 255, 255));
+CE::Graphics::ThreeD::SetMaterialRoughness("demo_material", 0.35f);
+CE::Graphics::ThreeD::SetMaterialMetallic("demo_material", 0.05f);
+
+CE::Graphics::MeshData@ cube = CE::Graphics::CreateCube(1.0f, 1.0f, 1.0f, CE::Graphics::Colour(255, 120, 80, 255));
+uint cubeHandle = CE::Graphics::ThreeD::CreateMeshHandle(cube);
+
+CE::Graphics::ThreeD::Camera3D camera;
+camera.position = CE::Graphics::ThreeD::Vec3(0.0f, 1.5f, 4.0f);
+camera.target = CE::Graphics::ThreeD::Vec3(0.0f, 0.5f, 0.0f);
+camera.up = CE::Graphics::ThreeD::Vec3(0.0f, 1.0f, 0.0f);
+camera.projection = CE::Graphics::ThreeD::CameraProjection::Perspective;
+CE::Graphics::ThreeD::SetCamera3D(camera);
+CE::Graphics::ThreeD::SetSunEnabled(true);
+CE::Graphics::ThreeD::SetAmbientLight(CE::Graphics::ThreeD::Vec3(1.0f, 0.96f, 0.92f), 0.25f);
+
+void Draw3D() {
+    CE::Graphics::ThreeD::Transform3D transform;
+    transform.rotation = CE::Graphics::ThreeD::Vec3(0.0f, CE::GetDeltaTime(), 0.0f);
+    CE::Graphics::ThreeD::DrawMesh(cubeHandle, transform, "demo_material", true);
+}
+```
+
 ## CE::Graphics::Primitives
 
 ### CE.Graphics.Primitives.DrawRectangle(x, y, w, h, colour, rotation = 0.0)

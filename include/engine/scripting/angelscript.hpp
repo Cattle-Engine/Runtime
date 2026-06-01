@@ -28,7 +28,31 @@ namespace CE::Assets::Animations {
     class AnimationManager;
 }
 
+namespace CE::Renderer::Resources {
+    class GPUMeshManager;
+    class MaterialManager;
+}
+
 namespace CE::Scripting {
+    class ASMeshData {
+        public:
+            ASMeshData() = default;
+
+            void AddRef() { ++ref_count; }
+            void Release() {
+                if (--ref_count == 0) {
+                    delete this;
+                }
+            }
+
+            void SetColour(const Renderer::Colour& colour);
+
+            Renderer::MeshData mesh;
+
+        private:
+            unsigned int ref_count = 1;
+    };
+
     struct AudioEffectDesc {
         bool enabled = false;
         int type = 0;
@@ -42,6 +66,38 @@ namespace CE::Scripting {
         float damping = 0.4f;
     };
 
+    struct Vec3Desc {
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+    };
+
+    struct Transform3DDesc {
+        Vec3Desc position {0.0f, 0.0f, 0.0f};
+        Vec3Desc rotation {0.0f, 0.0f, 0.0f};
+        Vec3Desc scale {1.0f, 1.0f, 1.0f};
+    };
+
+    struct Camera3DDesc {
+        Vec3Desc position {0.0f, 0.0f, 3.0f};
+        Vec3Desc rotation {0.0f, 0.0f, 0.0f};
+        Vec3Desc target {0.0f, 0.0f, 0.0f};
+        Vec3Desc up {0.0f, 1.0f, 0.0f};
+        float fov = 1.0471976f;
+        float nearClip = 0.05f;
+        float farClip = 2048.0f;
+        float orthoSize = 10.0f;
+        float aspectOverride = 0.0f;
+        bool useTarget = false;
+        Renderer::Camera3D::ProjectionMode projection = Renderer::Camera3D::ProjectionMode::Perspective;
+    };
+
+    struct MaterialDesc {
+        Renderer::Colour tint {};
+        float roughness = 1.0f;
+        float metallic = 0.0f;
+    };
+
     class Runtime {
         public:
             Runtime(
@@ -53,6 +109,8 @@ namespace CE::Scripting {
                 Assets::Textures::TextureManager& textureManager,
                 Assets::Shaders::ShaderManager& shaderManager,
                 Assets::Fonts::FontManager& fontManager,
+                Renderer::Resources::GPUMeshManager& gpuMeshManager,
+                Renderer::Resources::MaterialManager& materialManager,
                 CE::Assets::Animations::AnimationManager* animationManager,
                 Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
@@ -69,6 +127,7 @@ namespace CE::Scripting {
             static void MessageCallback(const asSMessageInfo* msg, void* param);
 
             bool RegisterAssetsBindings();
+            bool Register3DBindings();
             bool RegisterInputBindings();
             bool RegisterInstanceBindings();
             bool RegisterCallbackBindings();
@@ -90,6 +149,11 @@ namespace CE::Scripting {
                 uint8_t a,
                 Renderer::Colour* self
             );
+            static void ConstructVec3(Vec3Desc* self);
+            static void ConstructVec3XYZ(float x, float y, float z, Vec3Desc* self);
+            static void ConstructTransform3D(Transform3DDesc* self);
+            static void ConstructCamera3D(Camera3DDesc* self);
+            static void ConstructMaterial(MaterialDesc* self);
 
             void LoadTexture(const std::string& path, const std::string& name);
             void UnloadTexture(const std::string& name);
@@ -197,6 +261,28 @@ namespace CE::Scripting {
             void AddEffect(uint32_t handle, const std::string& name, const AudioEffectDesc& effect);
             void RemoveEffect(uint32_t handle, const std::string& name);
             void ClearEffects(uint32_t handle);
+            void SetCamera3D(const Camera3DDesc& camera);
+            Camera3DDesc GetCamera3D() const;
+            void SetSunEnabled(bool enabled);
+            void SetSunDirection(const Vec3Desc& direction);
+            void SetSunPosition(const Vec3Desc& position);
+            void SetSunTint(const Vec3Desc& colour);
+            void SetSunIntensity(float intensity);
+            void SetAmbientLight(const Vec3Desc& colour, float intensity);
+            void LoadMaterial(const std::string& name);
+            void LoadMaterial(const std::string& name, const MaterialDesc& material);
+            void UnloadMaterial(const std::string& name);
+            bool SetMaterialAlbedo(const std::string& name, const std::string& textureName);
+            bool SetMaterialTint(const std::string& name, const Renderer::Colour& colour);
+            bool SetMaterialRoughness(const std::string& name, float roughness);
+            bool SetMaterialMetallic(const std::string& name, float metallic);
+            bool HasMaterial(const std::string& name) const;
+            int DebugLoadedMaterialsCount() const;
+            uint32_t CreateMeshHandle(ASMeshData* meshData);
+            void ChangeMesh(uint32_t handle, ASMeshData* meshData);
+            uint32_t DestroyMesh(uint32_t handle);
+            bool HasMesh(uint32_t handle) const;
+            void DrawMesh(uint32_t handle, const Transform3DDesc& transform, const std::string& materialName, bool errorTexture = false);
 
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
@@ -215,6 +301,8 @@ namespace CE::Scripting {
             Assets::Textures::TextureManager& mTextureManager;
             Assets::Shaders::ShaderManager& mShaderManager;
             Assets::Fonts::FontManager& mFontManager;
+            Renderer::Resources::GPUMeshManager& mGPUMeshManager;
+            Renderer::Resources::MaterialManager& mMaterialManager;
             CE::Assets::Animations::AnimationManager* mAnimationManager = nullptr;
             Input::Keyboard& mKeyboard;
             Input::Mouse& mMouse;

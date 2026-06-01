@@ -9,6 +9,8 @@
 #include "engine/assets/shaders.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/assets/audio.hpp"
+#include "engine/rendering/common/gpu_mesh_manager.hpp"
+#include "engine/rendering/common/material_manager.hpp"
 #include "engine/assets/animations.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
@@ -65,6 +67,8 @@ namespace CE {
             std::unique_ptr<CE::Scripting::Runtime> gScriptingManager;
             std::unique_ptr<CE::Core::Audio::AudioSystem> gAudioSystem;
             std::unique_ptr<CE::Assets::Audio::AudioManager> gAudioManager;
+            std::unique_ptr<CE::Renderer::Resources::GPUMeshManager> gGPUMeshManager;
+            std::unique_ptr<CE::Renderer::Resources::MaterialManager> gMaterialManager;
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;

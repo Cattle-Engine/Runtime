@@ -31,6 +31,8 @@ namespace CE::Scripting {
         Assets::Textures::TextureManager& textureManager,
         Assets::Shaders::ShaderManager& shaderManager,
         Assets::Fonts::FontManager& fontManager,
+        Renderer::Resources::GPUMeshManager& gpuMeshManager,
+        Renderer::Resources::MaterialManager& materialManager,
         CE::Assets::Animations::AnimationManager* animationManager,
         Input::Keyboard& keyboard,
         Input::Mouse& mouse,
@@ -44,6 +46,8 @@ namespace CE::Scripting {
         , mTextureManager(textureManager)
         , mShaderManager(shaderManager)
         , mFontManager(fontManager)
+        , mGPUMeshManager(gpuMeshManager)
+        , mMaterialManager(materialManager)
         , mAnimationManager(animationManager)
         , mKeyboard(keyboard)
         , mMouse(mouse)
@@ -83,6 +87,10 @@ namespace CE::Scripting {
 
         if (!RegisterAssetsBindings()) {
             return Fail("Failed to register AngelScript asset bindings");
+        }
+
+        if (!Register3DBindings()) {
+            return Fail("Failed to register AngelScript 3D bindings");
         }
 
         if (!RegisterInputBindings()) {

@@ -10,26 +10,9 @@ namespace {
 }
 
 namespace CE::Scripting {
-    class ASMeshData {
-    public:
-        ASMeshData() = default;
-
-        void AddRef() { ++ref_count; }
-        void Release() {
-            if (--ref_count == 0) {
-                delete this;
-            }
-        }
-
-        void SetColour(const Renderer::Colour& colour) {
-            Renderer::Primitives3D::SetMeshColour(mesh, colour);
-        }
-
-        Renderer::MeshData mesh;
-
-    private:
-        unsigned int ref_count = 1;
-    };
+    void ASMeshData::SetColour(const Renderer::Colour& colour) {
+        Renderer::Primitives3D::SetMeshColour(mesh, colour);
+    }
 
     static ASMeshData* MeshDataFactory() {
         return new ASMeshData();

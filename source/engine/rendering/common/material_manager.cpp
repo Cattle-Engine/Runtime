@@ -63,7 +63,7 @@ namespace CE::Renderer::Resources {
         return material ? &material->Material : nullptr;
     }
 
-    bool MaterialManager::SetAlbedo(const char* name, CE::Renderer::Texture* texture) {
+    bool MaterialManager::SetAlbedo(const char* name, const std::weak_ptr<CE::Renderer::Texture>& texture) {
         ManagedMaterial* material = FindMaterial(name);
         if (!material) {
             CE::Log(LogLevel::Warn, "[Material Manager] Tried to set albedo on missing material '{}'", name ? name : "");
@@ -94,12 +94,10 @@ namespace CE::Renderer::Resources {
             return false;
         }
 
-        CE::Renderer::Texture* texture = textureManager.Get(textureName);
-        if (!texture) {
+        auto texture = textureManager.Get(textureName);
+        if (texture.expired()) {
             CE::Log(LogLevel::Error, "[Material Manager] Texture '{}' was not found for material '{}'", textureName ? textureName : "", name ? name : "");
-            if (mRenderer) {
-                material->Material.albedo = mRenderer->GetErrorTexture();
-            }
+            material->Material.albedo.reset();
             return false;
         }
 

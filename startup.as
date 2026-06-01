@@ -1,8 +1,13 @@
 int gOnDrawId = -1;
+int gOnDraw3DId = -1;
 int gFrames = 0;
 float gAngle = 0.0f;
 bool gDidInit = false;
 uint gBubbleAnim = 0;
+uint gCubeHandle = 0;
+CE::Graphics::MeshData@ gCubeMesh = null;
+CE::Graphics::ThreeD::Camera3D gCamera3D;
+bool gCameraReady = false;
 
 CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
     CE::Graphics::Colour c(r, g, b, a);
@@ -11,6 +16,11 @@ CE::Graphics::Colour MakeColour(uint8 r, uint8 g, uint8 b, uint8 a) {
     c.b = b;
     c.a = a;
     return c;
+}
+
+CE::Graphics::ThreeD::Vec3 MakeVec3(float x, float y, float z) {
+    CE::Graphics::ThreeD::Vec3 v(x, y, z);
+    return v;
 }
 
 void InGameDraw(const string &in state, const string &in eventName) {
@@ -82,6 +92,34 @@ void InGameDraw(const string &in state, const string &in eventName) {
     }
 }
 
+void InGameDraw3D(const string &in state, const string &in eventName) {
+    if (gCubeHandle == 0) {
+        return;
+    }
+
+    if (!gCameraReady) {
+        gCamera3D.position = MakeVec3(0.0f, 1.5f, 4.0f);
+        gCamera3D.target = MakeVec3(0.0f, 0.5f, 0.0f);
+        gCamera3D.up = MakeVec3(0.0f, 1.0f, 0.0f);
+        gCamera3D.fov = 1.0471976f;
+        gCamera3D.nearClip = 0.05f;
+        gCamera3D.farClip = 128.0f;
+        gCamera3D.projection = CE::Graphics::ThreeD::CameraProjection::Perspective;
+        CE::Graphics::ThreeD::SetCamera3D(gCamera3D);
+        CE::Graphics::ThreeD::SetSunEnabled(true);
+        CE::Graphics::ThreeD::SetSunDirection(MakeVec3(-0.4f, -1.0f, -0.3f));
+        CE::Graphics::ThreeD::SetAmbientLight(MakeVec3(1.0f, 0.96f, 0.92f), 0.25f);
+        gCameraReady = true;
+    }
+
+    CE::Graphics::ThreeD::Transform3D cubeTransform;
+    cubeTransform.position = MakeVec3(0.0f, 0.0f, 0.0f);
+    cubeTransform.rotation = MakeVec3(gAngle * 0.4f, gAngle, 0.0f);
+    cubeTransform.scale = MakeVec3(1.0f, 1.0f, 1.0f);
+
+    CE::Graphics::ThreeD::DrawMesh(gCubeHandle, cubeTransform, "demo_material", true);
+}
+
 void main() {
     CE::Graphics::Textures::LoadTexture("tato.webp", "garry_spud");
     CE::Graphics::Text::LoadFont("Roboto.ttf", "roboto", 32);
@@ -93,13 +131,24 @@ void main() {
         CE::Graphics::Animations::Play(gBubbleAnim, 1020, 520, true, true);
     }
 
+    CE::Graphics::ThreeD::LoadMaterial("demo_material");
+    CE::Graphics::ThreeD::SetMaterialTint("demo_material", MakeColour(255, 255, 255, 255));
+    CE::Graphics::ThreeD::SetMaterialRoughness("demo_material", 0.35f);
+    CE::Graphics::ThreeD::SetMaterialMetallic("demo_material", 0.05f);
+
+    @gCubeMesh = CE::Graphics::CreateCube(1.0f, 1.0f, 1.0f, MakeColour(255, 120, 80, 255));
+    if (gCubeMesh !is null) {
+        gCubeHandle = CE::Graphics::ThreeD::CreateMeshHandle(gCubeMesh);
+    }
+
     CE::Settings::SetSettingInt("test_int", "ScriptTest", 123);
     CE::Settings::SetSettingFloat("test_float", "ScriptTest", 1.25f);
     CE::Settings::SetSettingBool("test_bool", "ScriptTest", true);
     CE::Settings::SetSettingString("test_string", "ScriptTest", "hello from script");
     CE::Settings::ReloadSettings();
 
-    gOnDrawId = CE::Events::On("InGame", "Draw", @InGameDraw);
+    gOnDrawId = CE::Events::On("InGame", "Draw2D", @InGameDraw);
+    gOnDraw3DId = CE::Events::On("InGame", "Draw3D", @InGameDraw3D);
 
     CE::State::Set("InGame");
 
