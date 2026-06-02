@@ -45,6 +45,7 @@ struct VirtualFile {
     std::string path;
     uint64_t position;
     uint64_t size;
+    bool writable;
 
     tcf_file_t* tcf_handle;    
     FILE* dir_handle;         
@@ -82,10 +83,14 @@ namespace CE::VFS {
         bool FileExists(const char* virtual_path);
 
         bool GetFileSize(const char* virtual_path, uint64_t& out_size);
+        bool CreateFile(const char* virtual_path);
 
         VirtualFile* OpenFile(const char* virtual_path);
+        VirtualFile* OpenFile(const char* virtual_path, const char* mode);
 
         size_t ReadFile(VirtualFile* file, void* buffer, size_t size);
+        size_t WriteFile(VirtualFile* file, const void* buffer, size_t size);
+        bool FlushFile(VirtualFile* file);
 
         bool SeekFile(VirtualFile* file, int64_t offset, int whence);
 
@@ -97,9 +102,11 @@ namespace CE::VFS {
 
         VirtualFile* V_fopen(const char* virtual_path, const char* mode);
         size_t V_fread(void* ptr, size_t size, size_t nmemb, VirtualFile* stream);
+        size_t V_fwrite(const void* ptr, size_t size, size_t nmemb, VirtualFile* stream);
         int V_fseek(VirtualFile* stream, long offset, int whence);
         long V_ftell(VirtualFile* stream);
         int V_fclose(VirtualFile* stream);
+        int V_fflush(VirtualFile* stream);
         int V_feof(VirtualFile* stream);
         int V_ferror(VirtualFile* stream);
         void V_clearerr(VirtualFile* stream);
@@ -117,6 +124,7 @@ namespace CE::VFS {
                                     const std::string& mount_path);
 
         MountPoint* FindMount(const std::string& virtual_path, std::string& relative_path);
+        MountPoint* FindWritableMount(const std::string& virtual_path, std::string& relative_path);
 
         bool LoadEntireFolder(MountPoint* mount);
 
@@ -132,6 +140,10 @@ namespace CE::VFS {
     inline VirtualFile* virtual_fopen(VFS* vfs, const char* virtual_path, const char* mode)
     {
         return vfs ? vfs->V_fopen(virtual_path, mode) : nullptr;
+    }
+    inline bool virtual_create_file(VFS* vfs, const char* virtual_path)
+    {
+        return vfs ? vfs->CreateFile(virtual_path) : false;
     }
     inline size_t virtual_fread(VFS* vfs, void* ptr, size_t size, size_t nmemb, VirtualFile* stream)
     {

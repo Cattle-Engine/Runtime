@@ -567,10 +567,24 @@ void setPathRecursive(File& file, const std::vector<std::string>& parts, size_t 
 
 #if defined(TDF_MODE_CE)
 void File::save(VFS::VFS& vfs, const std::string& path, uint8_t version) const {
-    static_cast<void>(vfs);
-    static_cast<void>(path);
-    static_cast<void>(version);
-    throw std::runtime_error("TDF: write is not supported in TDF_MODE_CE");
+    const auto bytes = serializeToBytes(*this, version);
+
+    ::VirtualFile* f = vfs.V_fopen(path.c_str(), "wb");
+    if (!f) {
+        throw std::runtime_error("TDF: VFS write fail");
+    }
+
+    size_t written = 0;
+    if (!bytes.empty()) {
+        written = vfs.V_fwrite(bytes.data(), 1, bytes.size(), f);
+    }
+
+    const bool ok = written == bytes.size() && vfs.V_fflush(f);
+    vfs.V_fclose(f);
+
+    if (!ok) {
+        throw std::runtime_error("TDF: incomplete write");
+    }
 }
 
 void File::load(VFS::VFS& vfs, const std::string& path) {

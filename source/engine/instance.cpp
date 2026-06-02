@@ -9,6 +9,7 @@
 #include "engine/common/fullscreen.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/settings.hpp"
+#include "engine/platforms.hpp"
 #include "engine/common/utils/is_fullscreen.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/tracelog.hpp"
@@ -39,6 +40,7 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to get gameinfo with code: {}", gInstanceID, gis_return));
         }
+        gVFS->MountFolder(Platforms::GetConfigPath(gGameInfo->gameNameString.c_str()).c_str(), "/config", LoadMode::OnDemand, 100);
 
         gSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*gGameInfo, gInstanceID);
         gSettingsManager->SetInstance(*this);

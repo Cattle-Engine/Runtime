@@ -1,6 +1,7 @@
 #include "engine/common/fs/vfs.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -14,6 +15,13 @@ static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL
 static size_t SDLCALL sdl_vfile_write(void* userdata, const void* ptr, size_t size, SDL_IOStatus* status);
 static bool SDLCALL sdl_vfile_flush(void* userdata, SDL_IOStatus* status);
 static bool SDLCALL sdl_vfile_close(void* userdata);
+
+static bool mode_wants_write(const char* mode)
+{
+    if (!mode || mode[0] == '\0')
+        return false;
+    return mode[0] == 'w';
+}
 
 static const SDL_IOStreamInterface* get_vfile_io_interface()
 {
@@ -116,6 +124,20 @@ static Sint64 SDLCALL sdl_vfile_seek(void* userdata, Sint64 offset, SDL_IOWhence
     return -1;
 }
 
+static size_t write_to_dir_handle(VirtualFile* file, const void* ptr, size_t size)
+{
+    if (!file || !ptr || size == 0 || !file->dir_handle || !file->writable)
+        return 0;
+
+    const size_t written = std::fwrite(ptr, 1, size, file->dir_handle);
+    file->position += static_cast<uint64_t>(written);
+    if (file->position > file->size)
+        file->size = file->position;
+    if (written != size && std::ferror(file->dir_handle))
+        file->error = true;
+    return written;
+}
+
 static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL_IOStatus* status)
 {
     auto* file = static_cast<VirtualFile*>(userdata);
@@ -170,14 +192,30 @@ static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL
     return 0;
 }
 
-static size_t SDLCALL sdl_vfile_write(void* /*userdata*/, const void* /*ptr*/, size_t /*size*/, SDL_IOStatus* status)
+static size_t SDLCALL sdl_vfile_write(void* userdata, const void* ptr, size_t size, SDL_IOStatus* status)
 {
-    if (status) *status = SDL_IO_STATUS_READONLY;
-    return 0;
+    auto* file = static_cast<VirtualFile*>(userdata);
+    if (!file || !file->writable) {
+        if (status) *status = SDL_IO_STATUS_READONLY;
+        return 0;
+    }
+
+    const size_t written = write_to_dir_handle(file, ptr, size);
+    if (status) *status = file->error ? SDL_IO_STATUS_ERROR : SDL_IO_STATUS_READY;
+    return written;
 }
 
-static bool SDLCALL sdl_vfile_flush(void* /*userdata*/, SDL_IOStatus* /*status*/)
+static bool SDLCALL sdl_vfile_flush(void* userdata, SDL_IOStatus* /*status*/)
 {
+    auto* file = static_cast<VirtualFile*>(userdata);
+    if (!file)
+        return false;
+    if (file->dir_handle && file->writable) {
+        const bool ok = std::fflush(file->dir_handle) == 0;
+        if (!ok)
+            file->error = true;
+        return ok;
+    }
     return true;
 }
 
@@ -228,6 +266,7 @@ VirtualFile::VirtualFile()
     : mount(nullptr),
       position(0),
       size(0),
+      writable(false),
       tcf_handle(nullptr),
       dir_handle(nullptr),
       loaded_data(nullptr),
@@ -280,6 +319,17 @@ static bool mount_has_file(MountPoint* mount, const std::string& rel_path)
 
     std::filesystem::path full_path = std::filesystem::path(mount->source_path) / rel_path;
     return std::filesystem::exists(full_path) && std::filesystem::is_regular_file(full_path);
+}
+
+static bool ensure_parent_directories(const std::filesystem::path& path)
+{
+    const std::filesystem::path parent = path.parent_path();
+    if (parent.empty())
+        return true;
+
+    std::error_code ec;
+    std::filesystem::create_directories(parent, ec);
+    return !ec;
 }
 
 static bool mount_precedes(const MountPoint* a, const MountPoint* b)
@@ -404,14 +454,58 @@ bool VFS::GetFileSize(const char* virtual_path, uint64_t& out_size)
     return true;
 }
 
+bool VFS::CreateFile(const char* virtual_path)
+{
+    if (!virtual_path)
+        return false;
+
+    std::string rel_path;
+    MountPoint* mount = FindWritableMount(virtual_path, rel_path);
+    if (!mount || mount->is_archive || rel_path.empty())
+        return false;
+
+    std::filesystem::path full_path = std::filesystem::path(mount->source_path) / rel_path;
+    if (std::filesystem::exists(full_path))
+        return false;
+
+    if (!ensure_parent_directories(full_path))
+        return false;
+
+    FILE* file = std::fopen(full_path.string().c_str(), "wb");
+    if (!file)
+        return false;
+
+    if (std::fclose(file) != 0)
+        return false;
+
+    if (mount->load_mode == All) {
+        auto loaded = std::make_unique<LoadedFile>();
+        mount->loaded_files[rel_path] = std::move(loaded);
+    }
+
+    return true;
+}
+
 VirtualFile* VFS::OpenFile(const char* virtual_path)
+{
+    return OpenFile(virtual_path, "rb");
+}
+
+VirtualFile* VFS::OpenFile(const char* virtual_path, const char* mode)
 {
     if (!virtual_path)
         return nullptr;
+    if (!mode || mode[0] == '\0')
+        return nullptr;
+
+    const bool wants_write = mode_wants_write(mode);
 
     std::string rel_path;
-    MountPoint* mount = FindMount(virtual_path, rel_path);
+    MountPoint* mount = wants_write ? FindWritableMount(virtual_path, rel_path) : FindMount(virtual_path, rel_path);
     if (!mount)
+        return nullptr;
+
+    if (wants_write && rel_path.empty())
         return nullptr;
 
     auto* vfile = new VirtualFile();
@@ -419,8 +513,9 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
     vfile->path = rel_path;
     vfile->eof = false;
     vfile->error = false;
+    vfile->writable = wants_write;
 
-    if (mount->load_mode == All) {
+    if (mount->load_mode == All && !wants_write) {
         auto it = mount->loaded_files.find(rel_path);
         if (it == mount->loaded_files.end()) {
             delete vfile;
@@ -435,6 +530,10 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
     }
 
     if (mount->is_archive) {
+        if (wants_write) {
+            delete vfile;
+            return nullptr;
+        }
         tcf_file_t* file = nullptr;
         int result = tcf_vfs_open_file(mount->tcf_handle, rel_path.c_str(), &file);
         if (result != TCF_OK) {
@@ -450,13 +549,23 @@ VirtualFile* VFS::OpenFile(const char* virtual_path)
     }
 
     std::filesystem::path full_path = std::filesystem::path(mount->source_path) / rel_path;
-    FILE* file = std::fopen(full_path.string().c_str(), "rb");
+    if (wants_write) {
+        if (!ensure_parent_directories(full_path)) {
+            delete vfile;
+            return nullptr;
+        }
+    } else if (!std::filesystem::exists(full_path) || !std::filesystem::is_regular_file(full_path)) {
+        delete vfile;
+        return nullptr;
+    }
+
+    FILE* file = std::fopen(full_path.string().c_str(), wants_write ? "wb" : "rb");
     if (!file) {
         delete vfile;
         return nullptr;
     }
 
-    vfile->size = static_cast<uint64_t>(std::filesystem::file_size(full_path));
+    vfile->size = wants_write ? 0 : static_cast<uint64_t>(std::filesystem::file_size(full_path));
     vfile->position = 0;
     std::fseek(file, 0, SEEK_SET);
     vfile->dir_handle = file;
@@ -509,6 +618,34 @@ size_t VFS::ReadFile(VirtualFile* file, void* buffer, size_t size)
     }
 
     return 0;
+}
+
+size_t VFS::WriteFile(VirtualFile* file, const void* buffer, size_t size)
+{
+    if (!file || !buffer)
+        return 0;
+    if (file->loaded_data || file->tcf_handle) {
+        file->error = true;
+        return 0;
+    }
+    if (!file->writable) {
+        file->error = true;
+        return 0;
+    }
+    return write_to_dir_handle(file, buffer, size);
+}
+
+bool VFS::FlushFile(VirtualFile* file)
+{
+    if (!file)
+        return false;
+    if (file->dir_handle && file->writable) {
+        const bool ok = std::fflush(file->dir_handle) == 0;
+        if (!ok)
+            file->error = true;
+        return ok;
+    }
+    return true;
 }
 
 bool VFS::SeekFile(VirtualFile* file, int64_t offset, int whence)
@@ -568,18 +705,44 @@ int64_t VFS::TellFile(VirtualFile* file)
     return static_cast<int64_t>(file->position);
 }
 
-void VFS::CloseFile(VirtualFile* file) { delete file; }
+void VFS::CloseFile(VirtualFile* file)
+{
+    if (!file)
+        return;
+
+    if (file->sdl_stream) {
+        SDL_CloseIO(file->sdl_stream);
+        file->sdl_stream = nullptr;
+    }
+    if (file->tcf_handle) {
+        tcf_vfs_close_file(file->tcf_handle);
+        file->tcf_handle = nullptr;
+    }
+    if (file->dir_handle) {
+        if (file->writable)
+            (void)std::fflush(file->dir_handle);
+        if (std::fclose(file->dir_handle) != 0)
+            file->error = true;
+        file->dir_handle = nullptr;
+    }
+
+    if (!file->error && file->writable && file->mount && !file->mount->is_archive && file->mount->load_mode == All && !file->path.empty()) {
+        std::vector<uint8_t> data;
+        if (load_file_from_directory(file->mount, file->path, data)) {
+            auto loaded = std::make_unique<LoadedFile>();
+            loaded->data = std::move(data);
+            file->mount->loaded_files[file->path] = std::move(loaded);
+        }
+    }
+
+    delete file;
+}
 
 VirtualFile* VFS::V_fopen(const char* virtual_path, const char* mode)
 {
     if (!mode || mode[0] == '\0')
         return nullptr;
-
-    // Read-only support: "r" or "rb" (and common variants like "rt").
-    if (mode[0] != 'r')
-        return nullptr;
-
-    return OpenFile(virtual_path);
+    return OpenFile(virtual_path, mode);
 }
 
 size_t VFS::V_fread(void* ptr, size_t size, size_t nmemb, VirtualFile* stream)
@@ -596,6 +759,22 @@ size_t VFS::V_fread(void* ptr, size_t size, size_t nmemb, VirtualFile* stream)
     const size_t total = size * nmemb;
     const size_t bytes_read = ReadFile(stream, ptr, total);
     return bytes_read / size;
+}
+
+size_t VFS::V_fwrite(const void* ptr, size_t size, size_t nmemb, VirtualFile* stream)
+{
+    if (!stream || !ptr)
+        return 0;
+    if (size == 0 || nmemb == 0)
+        return 0;
+    if (nmemb > (std::numeric_limits<size_t>::max() / size)) {
+        stream->error = true;
+        return 0;
+    }
+
+    const size_t total = size * nmemb;
+    const size_t bytes_written = WriteFile(stream, ptr, total);
+    return bytes_written / size;
 }
 
 int VFS::V_fseek(VirtualFile* stream, long offset, int whence)
@@ -624,6 +803,13 @@ int VFS::V_fclose(VirtualFile* stream)
         return -1;
     CloseFile(stream);
     return 0;
+}
+
+int VFS::V_fflush(VirtualFile* stream)
+{
+    if (!stream)
+        return EOF;
+    return FlushFile(stream) ? 0 : EOF;
 }
 
 int VFS::V_feof(VirtualFile* stream)
@@ -694,6 +880,42 @@ char* VFS::V_fgets(char* s, int n, VirtualFile* stream)
 
     s[i] = '\0';
     return s;
+}
+
+MountPoint* VFS::FindWritableMount(const std::string& virtual_path, std::string& relative_path)
+{
+    std::string norm_path = NormalizePath(virtual_path);
+
+    struct Candidate {
+        MountPoint* mount;
+        size_t mount_len;
+    };
+
+    std::vector<Candidate> candidates;
+    candidates.reserve(mounts.size());
+
+    for (auto& mount : mounts) {
+        if (mount->is_archive)
+            continue;
+        if (norm_path.rfind(mount->mount_path, 0) != 0)
+            continue;
+        const size_t mount_len = mount->mount_path.length();
+        if (mount->mount_path != "/" && norm_path.length() != mount_len && norm_path[mount_len] != '/')
+            continue;
+        candidates.push_back({mount.get(), mount_len});
+    }
+
+    if (candidates.empty())
+        return nullptr;
+
+    std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
+        if (a.mount_len != b.mount_len)
+            return a.mount_len > b.mount_len;
+        return mount_precedes(a.mount, b.mount);
+    });
+
+    relative_path = GetRelativePath(norm_path, candidates.front().mount->mount_path);
+    return candidates.front().mount;
 }
 
 void VFS::ListMounts()
