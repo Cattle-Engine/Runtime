@@ -3,6 +3,7 @@
 #include "engine/bootstrap/instance.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/shaders.hpp"
+#include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/common/fs/vfs.hpp"
 
@@ -10,6 +11,7 @@ namespace CE::Bootstrap {
     int Init_AssetManagers(
         std::unique_ptr<CE::Assets::Textures::TextureManager>& texturemanager_ptr,
         std::unique_ptr<CE::Assets::Shaders::ShaderManager>& shadermanager_ptr,
+        std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager>& skyboxmanager_ptr,
         std::unique_ptr<VFS::VFS>& vfs_ptr,
         std::unique_ptr<CE::Renderer::IRenderer>& renderer,
         std::unique_ptr<CE::Assets::Fonts::FontManager>& font_manager_ptr,
@@ -21,6 +23,10 @@ namespace CE::Bootstrap {
 
         shadermanager_ptr = std::make_unique<CE::Assets::Shaders::ShaderManager>(
             renderer.get(), vfs_ptr.get(), texturemanager_ptr.get()
+        );
+
+        skyboxmanager_ptr = std::make_unique<CE::Assets::Skyboxes::SkyBoxManager>(
+            renderer.get(), vfs_ptr.get()
         );
 
         font_manager_ptr = std::make_unique<CE::Assets::Fonts::FontManager> (

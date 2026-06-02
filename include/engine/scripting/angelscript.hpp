@@ -9,6 +9,7 @@
 #include "engine/settings.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/shaders.hpp"
+#include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
@@ -108,6 +109,7 @@ namespace CE::Scripting {
                 Renderer::IRenderer& renderer,
                 Assets::Textures::TextureManager& textureManager,
                 Assets::Shaders::ShaderManager& shaderManager,
+                Assets::Skyboxes::SkyBoxManager& skyboxManager,
                 Assets::Fonts::FontManager& fontManager,
                 Renderer::Resources::GPUMeshManager& gpuMeshManager,
                 Renderer::Resources::MaterialManager& materialManager,
@@ -269,6 +271,16 @@ namespace CE::Scripting {
             void SetSunTint(const Vec3Desc& colour);
             void SetSunIntensity(float intensity);
             void SetAmbientLight(const Vec3Desc& colour, float intensity);
+            void LoadSkyBox(
+                const std::string& name,
+                const std::string& frontPath,
+                const std::string& backPath,
+                const std::string& leftPath,
+                const std::string& rightPath
+            );
+            void SetSkyBox(const std::string& name);
+            void ClearSkyBox();
+            void UnloadSkyBox(const std::string& name);
             void LoadMaterial(const std::string& name);
             void LoadMaterial(const std::string& name, const MaterialDesc& material);
             void UnloadMaterial(const std::string& name);
@@ -300,6 +312,7 @@ namespace CE::Scripting {
             Renderer::IRenderer& mRenderer;
             Assets::Textures::TextureManager& mTextureManager;
             Assets::Shaders::ShaderManager& mShaderManager;
+            Assets::Skyboxes::SkyBoxManager& mSkyboxManager;
             Assets::Fonts::FontManager& mFontManager;
             Renderer::Resources::GPUMeshManager& mGPUMeshManager;
             Renderer::Resources::MaterialManager& mMaterialManager;

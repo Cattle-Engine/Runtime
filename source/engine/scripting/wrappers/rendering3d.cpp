@@ -377,6 +377,46 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
+            "void LoadSkyBox(const string &in name, const string &in frontPath, const string &in backPath, const string &in leftPath, const string &in rightPath)",
+            asMETHOD(Runtime, LoadSkyBox),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void SetSkyBox(const string &in name)",
+            asMETHOD(Runtime, SetSkyBox),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void ClearSkyBox()",
+            asMETHOD(Runtime, ClearSkyBox),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
+            "void UnloadSkyBox(const string &in name)",
+            asMETHOD(Runtime, UnloadSkyBox),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
             "void LoadMaterial(const string &in name)",
             asMETHODPR(Runtime, LoadMaterial, (const std::string&), void),
             asCALL_THISCALL_ASGLOBAL,
@@ -550,6 +590,34 @@ namespace CE::Scripting {
 
     void Runtime::SetAmbientLight(const Vec3Desc& colour, float intensity) {
         mRenderer.SetAmbientLight(ToVec3(colour), intensity);
+    }
+
+    void Runtime::LoadSkyBox(
+        const std::string& name,
+        const std::string& frontPath,
+        const std::string& backPath,
+        const std::string& leftPath,
+        const std::string& rightPath
+    ) {
+        mSkyboxManager.Load(
+            frontPath.c_str(),
+            backPath.c_str(),
+            leftPath.c_str(),
+            rightPath.c_str(),
+            name.c_str()
+        );
+    }
+
+    void Runtime::SetSkyBox(const std::string& name) {
+        mSkyboxManager.Set(name.c_str());
+    }
+
+    void Runtime::ClearSkyBox() {
+        mSkyboxManager.Set("");
+    }
+
+    void Runtime::UnloadSkyBox(const std::string& name) {
+        mSkyboxManager.Unload(name.c_str());
     }
 
     void Runtime::LoadMaterial(const std::string& name) {

@@ -4,11 +4,14 @@
 #include "third_party/imgui_stdlib.h"
 
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
+#include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/shaders.hpp"
 #include "engine/assets/textures.hpp"
 #include "engine/assets/fonts.hpp"
@@ -25,6 +28,75 @@ namespace CE::UI {
 
     bool DebugWindow::IsOpen() const {
         return gOpen;
+    }
+
+    void DebugWindow::UpdateFreeCam(
+        Renderer::IRenderer& renderer,
+        Input::Keyboard& keyboard,
+        Input::Mouse& mouse,
+        float deltaTime
+    ) {
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_CONTROL) &&
+            keyboard.IsKeyDown(Input::KeyboardKeys::KEY_ESCAPE)) {
+            gFreeCam.enabled = false;
+            mouse.LockCursor(false);
+            mouse.SetCursorVisibility(Input::MouseVisibility::Shown);
+            return;
+        }
+
+        if (!gFreeCam.enabled)
+            return;
+
+        auto* cam = renderer.GetCamera3D();
+        if (!cam)
+            return;
+
+        mouse.LockCursor(true);
+        mouse.SetCursorVisibility(Input::MouseVisibility::Hidden);
+
+        cam->rotation.y += mouse.GetDeltaX() * gFreeCam.sensitivity;
+        cam->rotation.x -= mouse.GetDeltaY() * gFreeCam.sensitivity;
+
+        cam->rotation.x = glm::clamp(
+            cam->rotation.x,
+            -89.0f,
+            89.0f
+        );
+
+        const float pitch = glm::radians(cam->rotation.x);
+        const float yaw   = glm::radians(cam->rotation.y);
+
+        // Match the renderer's default camera convention: yaw 0 looks down -Z.
+        glm::vec3 forward;
+        forward.x = cosf(pitch) * sinf(yaw);
+        forward.y = sinf(pitch);
+        forward.z = -cosf(pitch) * cosf(yaw);
+        forward = glm::normalize(forward);
+
+        glm::vec3 right =
+            glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+
+        glm::vec3 up(0, 1, 0);
+
+        float speed = gFreeCam.speed * deltaTime;
+
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_W))
+            cam->position += forward * speed;
+
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_S))
+            cam->position -= forward * speed;
+            
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_A))
+            cam->position -= right * speed;
+
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_D))
+            cam->position += right * speed;
+
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_SPACE))
+            cam->position += up * speed;
+
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT))
+            cam->position -= up * speed;
     }
 
     void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
@@ -80,6 +152,7 @@ namespace CE::UI {
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         const CE::Settings::SettingsManager& settings,
         int fps,
         float deltaTime,
@@ -88,6 +161,7 @@ namespace CE::UI {
         (void)renderer;
         (void)texman;
         (void)shaderman;
+        (void)skyboxman;
         (void)settings;
 
         ImGui::Text("Performance");
@@ -203,16 +277,29 @@ namespace CE::UI {
         const Settings::SettingsManager& settings,
         Assets::Textures::TextureManager& texman,
         Assets::Shaders::ShaderManager& shaderman,
+        Assets::Skyboxes::SkyBoxManager& skyboxman,
         Assets::Fonts::FontManager& fontman
     ) 
     {
+        ImGui::Checkbox("Enable FreeCam", &gFreeCam.enabled);
+
+        ImGui::SliderFloat("Move Speed", &gFreeCam.speed, 0.1f, 50.0f);
+        ImGui::SliderFloat(
+            "Mouse Sensitivity",
+            &gFreeCam.sensitivity,
+            0.001f,
+            0.1f,
+            "%.4f"
+        );
+
+
         Renderer::Camera2D* camera = renderer.GetCamera();
 
         ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
 
         CE::UI::Utils::SpaceSep();
 
-        ImGui::Text("Camera");
+        ImGui::Text("Camera2D");
         if (camera) {
             static float editX = 0.0f;
             static float editY = 0.0f;
@@ -266,7 +353,109 @@ namespace CE::UI {
             ImGui::TextDisabled("No camera available");
         }
 
+        Utils::SpaceSep();
+
+        ImGui::Text("Camera3D");
+        auto camera3 = renderer.GetCamera3D();
+
+        ImGui::InputFloat3("Position", &camera3->position.x);
+        ImGui::InputFloat3("Rotation", &camera3->rotation.x);
+
+        ImGui::Checkbox("Use Target", &camera3->useTarget);
+        ImGui::SliderFloat("FOV", &camera3->fov, 0.1f, glm::radians(120.0f));
+        ImGui::InputFloat("Near", &camera3->nearClip);
+        ImGui::InputFloat("Far", &camera3->farClip);
+
+        ImGui::Combo("Projection",
+            (int*)&camera3->projection,
+            "Perspective\0Orthographic\0");
+
+        ImGui::InputFloat("Ortho Size", &camera3->orthoSize);
+
         CE::UI::Utils::SpaceSep();
+
+        if (ImGui::CollapsingHeader("SkyBoxes")) {
+            ImGui::Text("Active Skybox: %s", skyboxman.Debug_GetBoundSkyBoxName().c_str());
+            ImGui::Text("Loaded: %d", skyboxman.Debug_LoadedSkyBoxesCount());
+            ImGui::Text("Valid: %d", skyboxman.Debug_LoadedSkyBoxesNoError());
+            ImGui::Text("Errored: %d", skyboxman.Debug_LoadedSkyBoxesError());
+
+            ImGui::SeparatorText("Create / Load");
+            ImGui::InputText("Skybox Name", gSkyBoxState.nameBuffer.data(), gSkyBoxState.nameBuffer.size());
+            ImGui::InputText("Front", gSkyBoxState.frontBuffer.data(), gSkyBoxState.frontBuffer.size());
+            ImGui::InputText("Back", gSkyBoxState.backBuffer.data(), gSkyBoxState.backBuffer.size());
+            ImGui::InputText("Left", gSkyBoxState.leftBuffer.data(), gSkyBoxState.leftBuffer.size());
+            ImGui::InputText("Right", gSkyBoxState.rightBuffer.data(), gSkyBoxState.rightBuffer.size());
+
+            if (ImGui::Button("Load Skybox")) {
+                skyboxman.Load(
+                    gSkyBoxState.frontBuffer.data(),
+                    gSkyBoxState.backBuffer.data(),
+                    gSkyBoxState.leftBuffer.data(),
+                    gSkyBoxState.rightBuffer.data(),
+                    gSkyBoxState.nameBuffer.data()
+                );
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Set Active")) {
+                skyboxman.Set(gSkyBoxState.nameBuffer.data());
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Clear Active")) {
+                skyboxman.Set("");
+            }
+
+            CE::UI::Utils::SpaceSep();
+
+            auto skyboxes = skyboxman.Debug_GetSkyBoxes();
+            if (ImGui::TreeNode("Loaded Skyboxes")) {
+                for (const auto& skybox : skyboxes) {
+                    ImGui::PushID(skybox.name.c_str());
+                    if (ImGui::TreeNode(skybox.name.c_str())) {
+                        ImGui::Text("Active: %s", skybox.isActive ? "Yes" : "No");
+                        ImGui::Text("Error Skybox: %s", skybox.isErrorSkyBox ? "Yes" : "No");
+                        ImGui::Text("Front: %s", skybox.frontPath.c_str());
+                        ImGui::Text("Back: %s", skybox.backPath.c_str());
+                        ImGui::Text("Left: %s", skybox.leftPath.c_str());
+                        ImGui::Text("Right: %s", skybox.rightPath.c_str());
+
+                        if (ImGui::Button("Set")) {
+                            skyboxman.Set(skybox.name.c_str());
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Unload")) {
+                            skyboxman.Unload(skybox.name.c_str());
+                            ImGui::TreePop();
+                            ImGui::PopID();
+                            continue;
+                        }
+
+                        auto previewFace = [&](const char* label, const std::shared_ptr<CE::Renderer::Texture>& face) {
+                            ImGui::Text("%s", label);
+                            if (face) {
+                                void* nativeTexture = renderer.GetNativeTextureHandle(face.get());
+                                if (nativeTexture) {
+                                    ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(96, 96));
+                                } else {
+                                    ImGui::TextDisabled("No native preview available");
+                                }
+                            } else {
+                                ImGui::TextDisabled("Missing face");
+                            }
+                        };
+
+                        previewFace("Front", skybox.cubeMap.front);
+                        previewFace("Back", skybox.cubeMap.back);
+                        previewFace("Left", skybox.cubeMap.left);
+                        previewFace("Right", skybox.cubeMap.right);
+
+                        ImGui::TreePop();
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+        }
 
         if (ImGui::CollapsingHeader("Geometry")) {
             ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
@@ -464,6 +653,7 @@ namespace CE::UI {
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
@@ -499,7 +689,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Performance")) {
-                DrawPerformanceTab(renderer, texman, shaderman, settings, fps, deltaTime, frameTime);
+                DrawPerformanceTab(renderer, texman, shaderman, skyboxman, settings, fps, deltaTime, frameTime);
                 ImGui::EndTabItem();
             }
 
@@ -509,13 +699,13 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings, texman, shaderman, fontman);
+                DrawRendererTab(renderer, settings, texman, shaderman, skyboxman, fontman);
                 ImGui::EndTabItem();
             }
 
             ImGui::EndTabBar();
         }
-
+        this->UpdateFreeCam(renderer, kbmanger, msmanager, instance.GetDeltaTime());
         ImGui::End();
     }
 
@@ -523,6 +713,7 @@ namespace CE::UI {
         CE::Renderer::IRenderer& renderer,
         CE::Assets::Textures::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
         CE::Settings::SettingsManager& settings,
@@ -539,6 +730,7 @@ namespace CE::UI {
             renderer,
             texman,
             shaderman,
+            skyboxman,
             fontman,
             gameinfo,
             settings,

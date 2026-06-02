@@ -89,6 +89,9 @@ namespace CE::Input {
     }
 
     void Mouse::LockCursor(bool lock) {
-        SDL_SetWindowMouseGrab(SDL_GetWindowFromID(static_cast<SDL_WindowID>(gWindowID)), lock);
+        SDL_Window* window =
+            SDL_GetWindowFromID(static_cast<SDL_WindowID>(gWindowID));
+
+        SDL_SetWindowRelativeMouseMode(window, lock);
     }
 }

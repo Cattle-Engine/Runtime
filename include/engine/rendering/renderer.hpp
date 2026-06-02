@@ -29,6 +29,15 @@ namespace CE::Renderer {
         RendererBackend backend;
     };
 
+    struct Texture;
+
+    struct CubeMap {
+        std::shared_ptr<Texture> front {};
+        std::shared_ptr<Texture> back {};
+        std::shared_ptr<Texture> left {};
+        std::shared_ptr<Texture> right {};
+    };
+
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
 
     inline RendererBackend renderer = RendererBackend::None;
@@ -211,6 +220,9 @@ namespace CE::Renderer {
                     glm::vec3(1.0f)
                 });
             }
+            virtual void SetSkyBox(const CubeMap& cubemap) {
+                mSkyBoxState = cubemap;
+            }
 
             virtual void BeginMode2D() = 0;
             virtual void EndMode2D() = 0;
@@ -273,6 +285,9 @@ namespace CE::Renderer {
             virtual int Debug_GetTexIndexCount() = 0;
             virtual int Debug_GetTexVertCount() = 0;
             virtual Camera2D* GetCamera() = 0;
+            virtual Camera3D* GetCamera3D() {
+                return &mCamera3DState;
+            }
 
             virtual void SetVSync(bool setting) = 0;
 
@@ -337,6 +352,10 @@ namespace CE::Renderer {
                 return mCamera3DState;
             }
 
+            [[nodiscard]] const CubeMap& GetSkyBoxState() const {
+                return mSkyBoxState;
+            }
+
             void SetCamera3DFov(float fovRadians) {
                 mCamera3DState.fov = fovRadians;
                 SetCamera3D(mCamera3DState);
@@ -366,5 +385,6 @@ namespace CE::Renderer {
         protected:
             LightingState mLightingState {};
             Camera3D mCamera3DState {};
+            CubeMap mSkyBoxState {};
     };
 }

@@ -67,7 +67,7 @@ namespace CE {
             SetWindowIcon(gGameInfo->windowIcon);
         }
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating asset managers", gInstanceID);
-        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gShaderManager, gVFS, gRenderer, gFontManager, gInstanceID);
+        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gShaderManager, gSkyBoxManager, gVFS, gRenderer, gFontManager, gInstanceID);
         if (ams != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
@@ -109,6 +109,7 @@ namespace CE {
             *gRenderer,
             *gTextureManager,
             *gShaderManager,
+            *gSkyBoxManager,
             *gFontManager,
             *gGPUMeshManager,
             *gMaterialManager,
@@ -205,76 +206,9 @@ namespace CE {
         } 
         gRenderer->BeginMode3D();
         gGameStateManager.Emit("Draw3D");
-CE::Renderer::MeshData cubeData;
-
-float s = 0.5f;
-
-cubeData.vertices = {
-    // Front
-    {{-s,-s, s}, {0,0,1}, {255,0,0,255}, {0,0}},
-    {{ s,-s, s}, {0,0,1}, {0,255,0,255}, {1,0}},
-    {{ s, s, s}, {0,0,1}, {0,0,255,255}, {1,1}},
-    {{-s, s, s}, {0,0,1}, {255,255,0,255}, {0,1}},
-
-    // Back
-    {{ s,-s,-s}, {0,0,-1}, {255,0,255,255}, {0,0}},
-    {{-s,-s,-s}, {0,0,-1}, {0,255,255,255}, {1,0}},
-    {{-s, s,-s}, {0,0,-1}, {255,255,255,255}, {1,1}},
-    {{ s, s,-s}, {0,0,-1}, {128,128,128,255}, {0,1}},
-
-    // Left
-    {{-s,-s,-s}, {-1,0,0}, {255,0,0,255}, {0,0}},
-    {{-s,-s, s}, {-1,0,0}, {0,255,0,255}, {1,0}},
-    {{-s, s, s}, {-1,0,0}, {0,0,255,255}, {1,1}},
-    {{-s, s,-s}, {-1,0,0}, {255,255,0,255}, {0,1}},
-
-    // Right
-    {{ s,-s, s}, {1,0,0}, {255,0,255,255}, {0,0}},
-    {{ s,-s,-s}, {1,0,0}, {0,255,255,255}, {1,0}},
-    {{ s, s,-s}, {1,0,0}, {255,255,255,255}, {1,1}},
-    {{ s, s, s}, {1,0,0}, {128,128,128,255}, {0,1}},
-
-    // Top
-    {{-s, s, s}, {0,1,0}, {255,0,0,255}, {0,0}},
-    {{ s, s, s}, {0,1,0}, {0,255,0,255}, {1,0}},
-    {{ s, s,-s}, {0,1,0}, {0,0,255,255}, {1,1}},
-    {{-s, s,-s}, {0,1,0}, {255,255,0,255}, {0,1}},
-
-    // Bottom
-    {{-s,-s,-s}, {0,-1,0}, {255,0,255,255}, {0,0}},
-    {{ s,-s,-s}, {0,-1,0}, {0,255,255,255}, {1,0}},
-    {{ s,-s, s}, {0,-1,0}, {255,255,255,255}, {1,1}},
-    {{-s,-s, s}, {0,-1,0}, {128,128,128,255}, {0,1}},
-};
-
-cubeData.indices = {
-    0,1,2, 2,3,0,
-    4,5,6, 6,7,4,
-    8,9,10, 10,11,8,
-    12,13,14, 14,15,12,
-    16,17,18, 18,19,16,
-    20,21,22, 22,23,20
-};
-
-cubeData.vertex_count = cubeData.vertices.size();
-cubeData.indice_count = cubeData.indices.size();
-
-static CE::Renderer::GPUMesh* cube =
-    gRenderer->CreateGPUMesh(cubeData);
-
-CE::Renderer::Transform3D transform;
-transform.position = {0.0f, 0.0f, 0.0f};
-transform.rotation = {0.0f, SDL_GetTicks() * 0.001f, 0.0f};
-transform.scale = {1.0f, 1.0f, 1.0f};
-
-CE::Renderer::Material material {};
-material.tint = {255,255,255,255};
-
-gRenderer->DrawMesh(cube, material, transform, false);
         gRenderer->EndMode3D();
 
         gRenderer->BeginMode2D();
-
         gGameStateManager.Emit("Draw2D");
         if (!gScriptingManager->RunUpdate()) {
             ShowError(gScriptingManager->GetLastError());
@@ -282,9 +216,7 @@ gRenderer->DrawMesh(cube, material, transform, false);
             gShouldExit = true;
             return 1;
         }
-
         gAnimationManager->Render();
-
         gRenderer->EndMode2D();
 
         gRenderer->ImGuiStartFrame();
@@ -292,6 +224,7 @@ gRenderer->DrawMesh(cube, material, transform, false);
             *gRenderer,
             *gTextureManager,
             *gShaderManager,
+            *gSkyBoxManager,
             *gFontManager,
             *gGameInfo,
             *gSettingsManager,
