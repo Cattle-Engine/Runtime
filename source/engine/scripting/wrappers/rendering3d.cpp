@@ -377,7 +377,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void LoadSkyBox(const string &in name, const string &in frontPath, const string &in backPath, const string &in leftPath, const string &in rightPath)",
+            "void LoadSkyBox(const string &in name, const string &in frontPath, const string &in backPath, const string &in leftPath, const string &in rightPath, const string &in topPath, const string &in bottomPath)",
             asMETHOD(Runtime, LoadSkyBox),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -597,14 +597,18 @@ namespace CE::Scripting {
         const std::string& frontPath,
         const std::string& backPath,
         const std::string& leftPath,
-        const std::string& rightPath
+        const std::string& rightPath,
+        const std::string& topPath,
+        const std::string& bottomPath
     ) {
         mSkyboxManager.Load(
-            frontPath.c_str(),
-            backPath.c_str(),
-            leftPath.c_str(),
-            rightPath.c_str(),
-            name.c_str()
+            frontPath,
+            backPath,
+            leftPath,
+            rightPath,
+            topPath,
+            bottomPath,
+            name
         );
     }
 

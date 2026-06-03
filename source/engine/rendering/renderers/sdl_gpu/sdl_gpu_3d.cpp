@@ -2,6 +2,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <utility>
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,6 +15,9 @@
 namespace CE::Renderer::SDL_GPU_Renderer {
     namespace {
         constexpr SDL_GPUTextureUsageFlags kDepthTextureUsage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+        constexpr float kSkyboxHalfExtent = 1.0f;
+        constexpr float kPi = 3.14159265358979323846f;
+        constexpr float kHalfPi = kPi * 0.5f;
 
         struct Camera3DUniformData {
             glm::mat4 viewProjection { 1.0f };
@@ -41,6 +45,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             glm::ivec4 customInt4[4] {};
         };
 
+        struct SkyboxFace {
+            const std::shared_ptr<Texture>* texture = nullptr;
+            glm::vec3 offset { 0.0f };
+            glm::vec3 rotation { 0.0f };
+            float textureRotation;
+        };
+
         glm::vec4 ToColourVec4(const Colour& colour) {
             constexpr float kInvByte = 1.0f / 255.0f;
             return glm::vec4(
@@ -58,6 +69,37 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float RoughnessToShininess(float roughness) {
             const float clamped = std::clamp(roughness, 0.0f, 1.0f);
             return std::max(2.0f, 128.0f - clamped * 120.0f);
+        }
+
+        bool HasSkyboxTextures(const CubeMap& skybox) {
+            return skybox.front || skybox.back || skybox.left || skybox.right || skybox.top || skybox.bottom;
+        }
+
+        std::array<SDL_GPUTexture*, 6> GetSkyboxSourceTextures(const CubeMap& skybox) {
+            std::array<SDL_GPUTexture*, 6> sourceTextures {};
+
+            const std::array<const std::shared_ptr<Texture>*, 6> faces = {{
+                &skybox.right,
+                &skybox.left,
+                &skybox.top,
+                &skybox.bottom,
+                &skybox.front,
+                &skybox.back
+            }};
+
+            for (size_t i = 0; i < faces.size(); ++i) {
+                const std::shared_ptr<Texture>& face = *faces[i];
+                if (!face || !face->handle) {
+                    continue;
+                }
+
+                auto* texData = static_cast<SDLGPUTexData*>(face->handle);
+                if (texData && texData->gpuTex) {
+                    sourceTextures[i] = texData->gpuTex;
+                }
+            }
+
+            return sourceTextures;
         }
 
         SDL_GPUTextureFormat PickDepthFormat(SDL_GPUDevice* device) {
@@ -80,7 +122,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     SDL_GPUGraphicsPipeline* SDL_GPU_Renderer::Create3DGraphicsPipeline(
         SDL_Window* window,
         SDL_GPUShader* vertexShader,
-        SDL_GPUShader* fragmentShader
+        SDL_GPUShader* fragmentShader,
+        bool isSkybox
     ) const {
         if (!gDevice || !window || !vertexShader || !fragmentShader || gDepthFormat == SDL_GPU_TEXTUREFORMAT_INVALID) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Create3DGraphicsPipeline received invalid input");
@@ -141,13 +184,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         pipelineCreateInfo.vertex_input_state.vertex_attributes = attrs;
         pipelineCreateInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-        pipelineCreateInfo.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+        pipelineCreateInfo.rasterizer_state.cull_mode = isSkybox ? SDL_GPU_CULLMODE_NONE : SDL_GPU_CULLMODE_BACK;
         pipelineCreateInfo.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
         pipelineCreateInfo.rasterizer_state.enable_depth_clip = true;
         pipelineCreateInfo.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
         pipelineCreateInfo.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
-        pipelineCreateInfo.depth_stencil_state.enable_depth_test = true;
-        pipelineCreateInfo.depth_stencil_state.enable_depth_write = true;
+        pipelineCreateInfo.depth_stencil_state.enable_depth_test = !isSkybox;
+        pipelineCreateInfo.depth_stencil_state.enable_depth_write = !isSkybox;
         pipelineCreateInfo.target_info.color_target_descriptions = &colorDesc;
         pipelineCreateInfo.target_info.num_color_targets = 1;
         pipelineCreateInfo.target_info.depth_stencil_format = gDepthFormat;
@@ -159,6 +202,267 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         return pipeline;
+    }
+
+    bool SDL_GPU_Renderer::EnsureSkyboxMesh() {
+        if (gSkyboxMesh) {
+            return true;
+        }
+
+        if (!gDevice) {
+            return false;
+        }
+
+        auto* meshData = new SDLGPUMeshData();
+        meshData->vertexCount = 4;
+        meshData->indexCount = 6;
+
+        const std::array<GPUVertex3D, 4> vertices = {{
+            { glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 1.0f) },
+            { glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 1.0f) },
+            { glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 0.0f) },
+            { glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 0.0f) },
+        }};
+
+        const std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
+
+        SDL_GPUBufferCreateInfo vertexBufferInfo{};
+        vertexBufferInfo.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        vertexBufferInfo.size = static_cast<Uint32>(sizeof(GPUVertex3D) * vertices.size());
+        meshData->vertexBuffer = SDL_CreateGPUBuffer(gDevice, &vertexBufferInfo);
+
+        SDL_GPUBufferCreateInfo indexBufferInfo{};
+        indexBufferInfo.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+        indexBufferInfo.size = static_cast<Uint32>(sizeof(uint32_t) * indices.size());
+        meshData->indexBuffer = SDL_CreateGPUBuffer(gDevice, &indexBufferInfo);
+
+        if (!meshData->vertexBuffer || !meshData->indexBuffer) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create skybox mesh buffers");
+            if (meshData->vertexBuffer) {
+                SDL_ReleaseGPUBuffer(gDevice, meshData->vertexBuffer);
+            }
+            if (meshData->indexBuffer) {
+                SDL_ReleaseGPUBuffer(gDevice, meshData->indexBuffer);
+            }
+            delete meshData;
+            return false;
+        }
+
+        SDL_GPUTransferBufferCreateInfo vertexTransferInfo{};
+        vertexTransferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        vertexTransferInfo.size = static_cast<Uint32>(sizeof(GPUVertex3D) * vertices.size());
+        SDL_GPUTransferBuffer* vertexTransfer = SDL_CreateGPUTransferBuffer(gDevice, &vertexTransferInfo);
+
+        SDL_GPUTransferBufferCreateInfo indexTransferInfo{};
+        indexTransferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        indexTransferInfo.size = static_cast<Uint32>(sizeof(uint32_t) * indices.size());
+        SDL_GPUTransferBuffer* indexTransfer = SDL_CreateGPUTransferBuffer(gDevice, &indexTransferInfo);
+
+        if (!vertexTransfer || !indexTransfer) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create skybox transfer buffers");
+            if (vertexTransfer) {
+                SDL_ReleaseGPUTransferBuffer(gDevice, vertexTransfer);
+            }
+            if (indexTransfer) {
+                SDL_ReleaseGPUTransferBuffer(gDevice, indexTransfer);
+            }
+            SDL_ReleaseGPUBuffer(gDevice, meshData->vertexBuffer);
+            SDL_ReleaseGPUBuffer(gDevice, meshData->indexBuffer);
+            delete meshData;
+            return false;
+        }
+
+        void* mappedVertices = SDL_MapGPUTransferBuffer(gDevice, vertexTransfer, false);
+        SDL_memcpy(mappedVertices, vertices.data(), sizeof(GPUVertex3D) * vertices.size());
+        SDL_UnmapGPUTransferBuffer(gDevice, vertexTransfer);
+
+        void* mappedIndices = SDL_MapGPUTransferBuffer(gDevice, indexTransfer, false);
+        SDL_memcpy(mappedIndices, indices.data(), sizeof(uint32_t) * indices.size());
+        SDL_UnmapGPUTransferBuffer(gDevice, indexTransfer);
+
+        SDL_GPUCommandBuffer* commandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
+        if (!commandBuffer) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire command buffer for skybox mesh upload");
+            SDL_ReleaseGPUTransferBuffer(gDevice, vertexTransfer);
+            SDL_ReleaseGPUTransferBuffer(gDevice, indexTransfer);
+            SDL_ReleaseGPUBuffer(gDevice, meshData->vertexBuffer);
+            SDL_ReleaseGPUBuffer(gDevice, meshData->indexBuffer);
+            delete meshData;
+            return false;
+        }
+
+        SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+        if (!copyPass) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to begin copy pass for skybox mesh upload");
+            SDL_ReleaseGPUTransferBuffer(gDevice, vertexTransfer);
+            SDL_ReleaseGPUTransferBuffer(gDevice, indexTransfer);
+            SDL_ReleaseGPUBuffer(gDevice, meshData->vertexBuffer);
+            SDL_ReleaseGPUBuffer(gDevice, meshData->indexBuffer);
+            delete meshData;
+            return false;
+        }
+
+        SDL_GPUTransferBufferLocation vertexLocation{ vertexTransfer, 0 };
+        SDL_GPUBufferRegion vertexRegion{ meshData->vertexBuffer, 0, vertexTransferInfo.size };
+        SDL_UploadToGPUBuffer(copyPass, &vertexLocation, &vertexRegion, true);
+
+        SDL_GPUTransferBufferLocation indexLocation{ indexTransfer, 0 };
+        SDL_GPUBufferRegion indexRegion{ meshData->indexBuffer, 0, indexTransferInfo.size };
+        SDL_UploadToGPUBuffer(copyPass, &indexLocation, &indexRegion, true);
+
+        SDL_EndGPUCopyPass(copyPass);
+        SDL_SubmitGPUCommandBuffer(commandBuffer);
+        SDL_WaitForGPUIdle(gDevice);
+
+        SDL_ReleaseGPUTransferBuffer(gDevice, vertexTransfer);
+        SDL_ReleaseGPUTransferBuffer(gDevice, indexTransfer);
+
+        gSkyboxMesh = meshData;
+        return true;
+    }
+
+    bool SDL_GPU_Renderer::EnsureSkyboxCubemap(const CubeMap& skybox) {
+        const auto sourceTextures = GetSkyboxSourceTextures(skybox);
+        if (std::any_of(sourceTextures.begin(), sourceTextures.end(), [](SDL_GPUTexture* tex) { return tex == nullptr; })) {
+            return false;
+        }
+
+        const SDL_GPUTexture* referenceTexture = sourceTextures[0];
+        if (!referenceTexture) {
+            return false;
+        }
+
+        Texture* rightFace = skybox.right.get();
+        if (!rightFace || rightFace->width <= 0 || rightFace->height <= 0) {
+            return false;
+        }
+
+        const int faceSize = rightFace->width;
+        if (rightFace->height != faceSize) {
+            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Skybox faces are not square, using {}x{} as cubemap size", rightFace->width, rightFace->height);
+        }
+
+        const bool cacheValid =
+            gSkyboxCubeTexture &&
+            gSkyboxCubeSize == faceSize &&
+            std::equal(gSkyboxFaceHandles.begin(), gSkyboxFaceHandles.end(), sourceTextures.begin());
+
+        if (cacheValid && gSkyboxCubeSampler) {
+            return true;
+        }
+
+        DestroySkyboxCubemap();
+
+        SDL_GPUTextureCreateInfo cubeInfo{};
+        cubeInfo.type = SDL_GPU_TEXTURETYPE_CUBE;
+        cubeInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        cubeInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        cubeInfo.width = static_cast<Uint32>(faceSize);
+        cubeInfo.height = static_cast<Uint32>(faceSize);
+        cubeInfo.layer_count_or_depth = 6;
+        cubeInfo.num_levels = 1;
+        cubeInfo.sample_count = SDL_GPU_SAMPLECOUNT_1;
+
+        gSkyboxCubeTexture = SDL_CreateGPUTexture(gDevice, &cubeInfo);
+        if (!gSkyboxCubeTexture) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create skybox cubemap: {}", SDL_GetError());
+            return false;
+        }
+
+        if (!gSkyboxCubeSampler) {
+            SDL_GPUSamplerCreateInfo sampInfo{};
+            sampInfo.min_filter = SDL_GPU_FILTER_LINEAR;
+            sampInfo.mag_filter = SDL_GPU_FILTER_LINEAR;
+            sampInfo.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+            sampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            sampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            sampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            gSkyboxCubeSampler = SDL_CreateGPUSampler(gDevice, &sampInfo);
+            if (!gSkyboxCubeSampler) {
+                CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create skybox cubemap sampler: {}", SDL_GetError());
+                DestroySkyboxCubemap();
+                return false;
+            }
+        }
+
+        SDL_GPUCommandBuffer* commandBuffer = gCommandBuffer ? gCommandBuffer : SDL_AcquireGPUCommandBuffer(gDevice);
+        if (!commandBuffer) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire command buffer for skybox cubemap upload");
+            DestroySkyboxCubemap();
+            return false;
+        }
+
+        SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+        if (!copyPass) {
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to begin copy pass for skybox cubemap upload");
+            if (!gCommandBuffer) {
+                SDL_ReleaseGPUTexture(gDevice, gSkyboxCubeTexture);
+                gSkyboxCubeTexture = nullptr;
+            }
+            return false;
+        }
+
+        const std::array<SDL_GPUCubeMapFace, 6> faces = {{
+            SDL_GPU_CUBEMAPFACE_POSITIVEX,
+            SDL_GPU_CUBEMAPFACE_NEGATIVEX,
+            SDL_GPU_CUBEMAPFACE_POSITIVEY,
+            SDL_GPU_CUBEMAPFACE_NEGATIVEY,
+            SDL_GPU_CUBEMAPFACE_POSITIVEZ,
+            SDL_GPU_CUBEMAPFACE_NEGATIVEZ
+        }};
+
+        for (size_t i = 0; i < faces.size(); ++i) {
+            SDL_GPUTextureLocation srcLoc{};
+            srcLoc.texture = sourceTextures[i];
+            srcLoc.mip_level = 0;
+            srcLoc.layer = 0;
+
+            SDL_GPUTextureLocation dstLoc{};
+            dstLoc.texture = gSkyboxCubeTexture;
+            dstLoc.mip_level = 0;
+            dstLoc.layer = static_cast<Uint32>(faces[i]);
+
+            SDL_CopyGPUTextureToTexture(copyPass, &srcLoc, &dstLoc, static_cast<Uint32>(faceSize), static_cast<Uint32>(faceSize), 1, false);
+        }
+
+        SDL_EndGPUCopyPass(copyPass);
+
+        if (!gCommandBuffer) {
+            SDL_SubmitGPUCommandBuffer(commandBuffer);
+            SDL_WaitForGPUIdle(gDevice);
+        }
+
+        gSkyboxCubeSize = faceSize;
+        gSkyboxFaceHandles = sourceTextures;
+        return true;
+    }
+
+    void SDL_GPU_Renderer::DestroySkyboxCubemap() {
+        if (gSkyboxCubeTexture) {
+            SDL_ReleaseGPUTexture(gDevice, gSkyboxCubeTexture);
+            gSkyboxCubeTexture = nullptr;
+        }
+
+        gSkyboxCubeSize = 0;
+        gSkyboxFaceHandles.fill(nullptr);
+    }
+
+    void SDL_GPU_Renderer::DestroySkyboxMesh() {
+        if (!gSkyboxMesh) {
+            return;
+        }
+
+        if (gDevice) {
+            if (gSkyboxMesh->vertexBuffer) {
+                SDL_ReleaseGPUBuffer(gDevice, gSkyboxMesh->vertexBuffer);
+            }
+            if (gSkyboxMesh->indexBuffer) {
+                SDL_ReleaseGPUBuffer(gDevice, gSkyboxMesh->indexBuffer);
+            }
+        }
+
+        delete gSkyboxMesh;
+        gSkyboxMesh = nullptr;
     }
 
     int SDL_GPU_Renderer::CreateDefault3DPipeline(SDL_Window* window) {
@@ -182,15 +486,33 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 9;
         }
 
-        g3DPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gDefault3DFragmentShader);
+        g3DPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gDefault3DFragmentShader, false);
         if (!g3DPipeline) {
             DestroyDefault3DPipeline();
             return 10;
         }
 
+        gSkyboxFragmentShader = Utils::LoadShader(gDevice, "skybox_3d.frag", 1, 1, 0, 0, gVFS);
+        if (!gSkyboxFragmentShader) {
+            DestroyDefault3DPipeline();
+            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to load skybox fragment shader");
+            return 11;
+        }
+
+        gSkyboxPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gSkyboxFragmentShader, true);
+        if (!gSkyboxPipeline) {
+            DestroyDefault3DPipeline();
+            return 12;
+        }
+
+        if (!EnsureSkyboxMesh()) {
+            DestroyDefault3DPipeline();
+            return 13;
+        }
+
         if (!EnsureDepthTexture(window)) {
             DestroyDefault3DPipeline();
-            return 11;
+            return 14;
         }
 
         return 0;
@@ -209,6 +531,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             g3DPipeline = nullptr;
         }
 
+        if (gSkyboxPipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(gDevice, gSkyboxPipeline);
+            gSkyboxPipeline = nullptr;
+        }
+
+        if (gSkyboxFragmentShader) {
+            SDL_ReleaseGPUShader(gDevice, gSkyboxFragmentShader);
+            gSkyboxFragmentShader = nullptr;
+        }
+
         if (gDefault3DVertexShader) {
             SDL_ReleaseGPUShader(gDevice, gDefault3DVertexShader);
             gDefault3DVertexShader = nullptr;
@@ -218,6 +550,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_ReleaseGPUShader(gDevice, gDefault3DFragmentShader);
             gDefault3DFragmentShader = nullptr;
         }
+
+        DestroySkyboxCubemap();
+        DestroySkyboxMesh();
     }
 
     bool SDL_GPU_Renderer::EnsureDepthTexture(SDL_Window* window) {
@@ -470,6 +805,78 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMeshCommands.push_back(command);
     }
 
+    void SDL_GPU_Renderer::DrawSkybox(SDL_GPURenderPass* renderPass, const Camera3D& camera, float aspectRatio, int width, int height) {
+        if (!renderPass || !gSkyboxPipeline || !gSkyboxMesh || !HasSkyboxTextures(GetSkyBoxState())) {
+            return;
+        }
+
+        const CubeMap& skybox = GetSkyBoxState();
+
+        const glm::mat4 viewProjection = BuildViewProjectionMatrix(camera, aspectRatio);
+        Camera3DUniformData cameraUniform{};
+        cameraUniform.viewProjection = viewProjection;
+        cameraUniform.cameraPosition = glm::vec4(camera.position, 1.0f);
+        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &cameraUniform, sizeof(cameraUniform));
+
+        SDL_BindGPUGraphicsPipeline(renderPass, gSkyboxPipeline);
+
+        const std::array<SkyboxFace, 6> faces = {{
+            { &skybox.front,  { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f, 0.0f } },
+            { &skybox.back,   { 0.0f, 0.0f, -1.0f }, { 0.0f, glm::radians(180.0f), 0.0f } },
+            { &skybox.left,   { -1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(-90.0f), 0.0f } },
+            { &skybox.right,  {  1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(90.0f), 0.0f } },
+            { &skybox.top,    { 0.0f,  1.0f, 0.0f }, { glm::radians(-90.0f), glm::radians(90.0f), 0.0f } },  // Pitch -90°, Yaw +90°
+            { &skybox.bottom, { 0.0f, -1.0f, 0.0f }, { glm::radians(90.0f), glm::radians(90.0f), 0.0f } },   // Pitch +90°, Yaw +90°
+        }};
+
+        SDL_GPUBufferBinding vertexBinding{ gSkyboxMesh->vertexBuffer, 0 };
+        SDL_GPUBufferBinding indexBinding{ gSkyboxMesh->indexBuffer, 0 };
+        SDL_BindGPUVertexBuffers(renderPass, 0, &vertexBinding, 1);
+        SDL_BindGPUIndexBuffer(renderPass, &indexBinding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+        for (const auto& face : faces) {
+            if (!face.texture) {
+                continue;
+            }
+
+            const std::shared_ptr<Texture>& faceTexture = *face.texture;
+            if (!faceTexture || !faceTexture->handle) {
+                continue;
+            }
+
+            auto* faceData = static_cast<SDLGPUTexData*>(faceTexture->handle);
+            if (!faceData || !faceData->gpuTex) {
+                continue;
+            }
+
+            Transform3D faceTransform{};
+            faceTransform.position = camera.position + face.offset;
+            faceTransform.rotation = face.rotation;
+            faceTransform.scale = glm::vec3(kSkyboxHalfExtent);
+
+            Model3DUniformData modelUniform{};
+            modelUniform.model = BuildTransformMatrix(faceTransform);
+            modelUniform.normalMatrix = glm::inverseTranspose(modelUniform.model);
+            SDL_PushGPUVertexUniformData(gCommandBuffer, 1, &modelUniform, sizeof(modelUniform));
+
+            Lighting3DUniformData fragmentUniform{};
+            fragmentUniform.sunDirectionEnabled = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            fragmentUniform.sunColourIntensity = glm::vec4(0.0f);
+            fragmentUniform.ambientColourIntensity = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            fragmentUniform.materialTint = glm::vec4(1.0f);
+            fragmentUniform.materialProps = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+            fragmentUniform.cameraPositionShininess = glm::vec4(camera.position, 0.0f);
+            fragmentUniform.resolution = glm::vec4(static_cast<float>(width), static_cast<float>(height), aspectRatio, 0.0f);
+            SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUniform, sizeof(fragmentUniform));
+
+            SDL_GPUTextureSamplerBinding binding{};
+            binding.texture = faceData->gpuTex;
+            binding.sampler = faceData->sampler ? faceData->sampler : gWhiteSampler;
+            SDL_BindGPUFragmentSamplers(renderPass, 0, &binding, 1);
+            SDL_DrawGPUIndexedPrimitives(renderPass, gSkyboxMesh->indexCount, 1, 0, 0, 0);
+        }
+    }
+
     void SDL_GPU_Renderer::ChangeCameraPos3D(const Transform3D& transform) {
         gCamera3DTransform = transform;
         mCamera3DState.position = transform.position;
@@ -503,7 +910,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::DrawQueuedMeshes() {
-        if (!gCommandBuffer || !gSwapchainTexture || gMeshCommands.empty()) {
+        if (!gCommandBuffer || !gSwapchainTexture) {
             return;
         }
 
@@ -539,6 +946,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (!renderPass) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to begin 3D render pass: {}", SDL_GetError());
             return;
+        }
+
+        if (HasSkyboxTextures(GetSkyBoxState())) {
+            DrawSkybox(renderPass, mCamera3DState, aspectRatio, width, height);
         }
 
         SDL_BindGPUGraphicsPipeline(renderPass, g3DPipeline);

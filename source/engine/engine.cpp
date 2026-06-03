@@ -164,8 +164,8 @@ namespace CE {
             instanceinfo.reset();         
         }
         mInstances.clear();
-    
-        // GPU device is managed by shared_ptr, will be destroyed when use count reaches 0
+        
+        Renderer::DestroyGPUDevice(mGPUHandle);
         mGPUHandle.reset();
     }
 }

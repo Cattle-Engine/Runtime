@@ -276,7 +276,9 @@ namespace CE::Scripting {
                 const std::string& frontPath,
                 const std::string& backPath,
                 const std::string& leftPath,
-                const std::string& rightPath
+                const std::string& rightPath,
+                const std::string& topPath,
+                const std::string& bottomPath
             );
             void SetSkyBox(const std::string& name);
             void ClearSkyBox();

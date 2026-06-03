@@ -234,11 +234,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUGraphicsPipeline* Create3DGraphicsPipeline(
                 SDL_Window* window,
                 SDL_GPUShader* vertexShader,
-                SDL_GPUShader* fragmentShader
+                SDL_GPUShader* fragmentShader,
+                bool isSkybox = false
             ) const;
             bool EnsureDepthTexture(SDL_Window* window);
+            bool EnsureSkyboxMesh();
+            bool EnsureSkyboxCubemap(const CubeMap& skybox);
+            void DestroySkyboxCubemap();
+            void DestroySkyboxMesh();
             static glm::mat4 BuildTransformMatrix(const Transform3D& transform);
             glm::mat4 BuildViewProjectionMatrix(const Camera3D& camera, float aspectRatio) const;
+            void DrawSkybox(SDL_GPURenderPass* renderPass, const Camera3D& camera, float aspectRatio, int width, int height);
             void DrawQueuedMeshes();
             static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
             SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
@@ -303,8 +309,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
             SDL_GPUGraphicsPipeline* g3DPipeline = nullptr;
+            SDL_GPUGraphicsPipeline* gSkyboxPipeline = nullptr;
             SDL_GPUShader* gDefault3DVertexShader = nullptr;
             SDL_GPUShader* gDefault3DFragmentShader = nullptr;
+            SDL_GPUShader* gSkyboxFragmentShader = nullptr;
+            SDLGPUMeshData* gSkyboxMesh = nullptr;
+            SDL_GPUTexture* gSkyboxCubeTexture = nullptr;
+            SDL_GPUSampler* gSkyboxCubeSampler = nullptr;
+            std::array<SDL_GPUTexture*, 6> gSkyboxFaceHandles {};
+            int gSkyboxCubeSize = 0;
             SDL_GPUTexture* gDepthTexture = nullptr;
             SDL_GPUTextureFormat gDepthFormat = SDL_GPU_TEXTUREFORMAT_INVALID;
             int gDepthTextureWidth = 0;

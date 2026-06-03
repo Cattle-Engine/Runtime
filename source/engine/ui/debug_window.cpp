@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/ui/debug_window.hpp"
@@ -54,29 +55,23 @@ namespace CE::UI {
         mouse.LockCursor(true);
         mouse.SetCursorVisibility(Input::MouseVisibility::Hidden);
 
-        cam->rotation.y += mouse.GetDeltaX() * gFreeCam.sensitivity;
+        cam->useTarget = false;
+
+        cam->rotation.y -= mouse.GetDeltaX() * gFreeCam.sensitivity;
         cam->rotation.x -= mouse.GetDeltaY() * gFreeCam.sensitivity;
 
+        constexpr float kPitchLimit = glm::radians(89.0f);
         cam->rotation.x = glm::clamp(
             cam->rotation.x,
-            -89.0f,
-            89.0f
+            -kPitchLimit,
+            kPitchLimit
         );
 
-        const float pitch = glm::radians(cam->rotation.x);
-        const float yaw   = glm::radians(cam->rotation.y);
-
-        // Match the renderer's default camera convention: yaw 0 looks down -Z.
-        glm::vec3 forward;
-        forward.x = cosf(pitch) * sinf(yaw);
-        forward.y = sinf(pitch);
-        forward.z = -cosf(pitch) * cosf(yaw);
-        forward = glm::normalize(forward);
-
-        glm::vec3 right =
-            glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
-
-        glm::vec3 up(0, 1, 0);
+        const glm::mat4 cameraRotation = glm::mat4_cast(glm::quat(cam->rotation));
+        const glm::vec3 forward = glm::normalize(glm::vec3(cameraRotation * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+        const glm::vec3 right = -glm::normalize(glm::vec3(cameraRotation * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
+        const glm::vec3 up = glm::normalize(glm::vec3(cameraRotation * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
+        const glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 
         float speed = gFreeCam.speed * deltaTime;
 
@@ -87,16 +82,16 @@ namespace CE::UI {
             cam->position -= forward * speed;
             
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_A))
-            cam->position -= right * speed;
-
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_D))
             cam->position += right * speed;
 
+        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_D))
+            cam->position -= right * speed;
+
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_SPACE))
-            cam->position += up * speed;
+            cam->position += worldUp * speed;
 
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT))
-            cam->position -= up * speed;
+            cam->position -= worldUp * speed;
     }
 
     void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
@@ -281,8 +276,12 @@ namespace CE::UI {
         Assets::Fonts::FontManager& fontman
     ) 
     {
+        ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
+        
+        Utils::SpaceSep();
+        
         ImGui::Checkbox("Enable FreeCam", &gFreeCam.enabled);
-
+        ImGui::Text("To exit freecam press: CTR + Escape ");
         ImGui::SliderFloat("Move Speed", &gFreeCam.speed, 0.1f, 50.0f);
         ImGui::SliderFloat(
             "Mouse Sensitivity",
@@ -292,65 +291,30 @@ namespace CE::UI {
             "%.4f"
         );
 
+        if (ImGui::Button("Reset FreeCam")) {
+            gFreeCam.sensitivity = 0.02f;
+            gFreeCam.speed = 5.0f;
+        }
+
+        Utils::SpaceSep();
 
         Renderer::Camera2D* camera = renderer.GetCamera();
 
-        ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
-
-        CE::UI::Utils::SpaceSep();
-
         ImGui::Text("Camera2D");
-        if (camera) {
-            static float editX = 0.0f;
-            static float editY = 0.0f;
-            static float editZoom = 1.0f;
-            static bool initialized = false;
-            if (!initialized) {
-                editX = camera->x;
-                editY = camera->y;
-                editZoom = camera->zoom;
-                initialized = true;
-            }
+        ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
+        ImGui::Text("Zoom: %f", camera->zoom);
 
-            ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
-            ImGui::Text("Zoom: %f", camera->zoom);
+        ImGui::Text("Edit Camera");
+        ImGui::InputFloat("X", &camera->x);
+        ImGui::InputFloat("Y", &camera->y);
+        ImGui::SliderFloat("Zoom", &camera->zoom, 0.1f, 10.0f, "%.2f");
 
-            CE::UI::Utils::SpaceSep();
-
-            ImGui::Text("Edit Camera");
-            ImGui::InputFloat("X", &editX);
-            ImGui::InputFloat("Y", &editY);
-            ImGui::SliderFloat("Zoom", &editZoom, 0.1f, 10.0f, "%.2f");
-
-            // Clamp zoom so I don't break stuff
-            if (editZoom < 0.01f) editZoom = 0.01f;
-
-            if (ImGui::Button("Apply")) {
-                camera->x = editX;
-                camera->y = editY;
-                camera->zoom = editZoom;
-            }
-
-            ImGui::SameLine();
-            if (ImGui::Button("Reset from Camera")) {
-                editX = camera->x;
-                editY = camera->y;
-                editZoom = camera->zoom;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Reset Camera")) {
-                editX = 0.0f;
-                editY = 0.0f;
-                editZoom = 1.0f;
-
-                if (camera) {
-                    camera->x = 0.0f;
-                    camera->y = 0.0f;
-                    camera->zoom = 1.0f;
-                }
-            }
-        } else {
-            ImGui::TextDisabled("No camera available");
+        // Clamp zoom so I don't break stuff
+        if (camera->zoom < 0.01f) camera->zoom = 0.01f;
+        if (ImGui::Button("Reset 2D Camera")) {
+            camera->x = 0.0f;
+            camera->y = 0.0f;
+            camera->zoom = 1.0f;
         }
 
         Utils::SpaceSep();
@@ -372,6 +336,20 @@ namespace CE::UI {
 
         ImGui::InputFloat("Ortho Size", &camera3->orthoSize);
 
+        if (ImGui::Button("Reset 3D Camera")) {
+            camera3->position = glm::vec3(0.0f);
+            camera3->rotation = glm::vec3(0.0f);
+
+            camera3->fov = glm::radians(60.0f);
+            camera3->nearClip = 0.1f;
+            camera3->farClip = 1000.0f;
+
+            camera3->useTarget = false;
+            camera3->projection = Renderer::Camera3D::ProjectionMode::Perspective; 
+
+            camera3->orthoSize = 10.0f; 
+        }
+
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("SkyBoxes")) {
@@ -381,24 +359,28 @@ namespace CE::UI {
             ImGui::Text("Errored: %d", skyboxman.Debug_LoadedSkyBoxesError());
 
             ImGui::SeparatorText("Create / Load");
-            ImGui::InputText("Skybox Name", gSkyBoxState.nameBuffer.data(), gSkyBoxState.nameBuffer.size());
-            ImGui::InputText("Front", gSkyBoxState.frontBuffer.data(), gSkyBoxState.frontBuffer.size());
-            ImGui::InputText("Back", gSkyBoxState.backBuffer.data(), gSkyBoxState.backBuffer.size());
-            ImGui::InputText("Left", gSkyBoxState.leftBuffer.data(), gSkyBoxState.leftBuffer.size());
-            ImGui::InputText("Right", gSkyBoxState.rightBuffer.data(), gSkyBoxState.rightBuffer.size());
+            ImGui::InputText("Skybox Name", &gSkyBoxState.name);
+            ImGui::InputText("Front", &gSkyBoxState.front);
+            ImGui::InputText("Back", &gSkyBoxState.back);
+            ImGui::InputText("Left", &gSkyBoxState.left);
+            ImGui::InputText("Right", &gSkyBoxState.right);
+            ImGui::InputText("Top", &gSkyBoxState.top);
+            ImGui::InputText("Bottom", &gSkyBoxState.bottom);
 
             if (ImGui::Button("Load Skybox")) {
                 skyboxman.Load(
-                    gSkyBoxState.frontBuffer.data(),
-                    gSkyBoxState.backBuffer.data(),
-                    gSkyBoxState.leftBuffer.data(),
-                    gSkyBoxState.rightBuffer.data(),
-                    gSkyBoxState.nameBuffer.data()
+                    gSkyBoxState.front,
+                    gSkyBoxState.back,
+                    gSkyBoxState.left,
+                    gSkyBoxState.right,
+                    gSkyBoxState.top,
+                    gSkyBoxState.bottom,
+                    gSkyBoxState.name
                 );
             }
             ImGui::SameLine();
             if (ImGui::Button("Set Active")) {
-                skyboxman.Set(gSkyBoxState.nameBuffer.data());
+                skyboxman.Set(gSkyBoxState.name);
             }
             ImGui::SameLine();
             if (ImGui::Button("Clear Active")) {
@@ -456,6 +438,8 @@ namespace CE::UI {
                 ImGui::TreePop();
             }
         }
+
+        Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Geometry")) {
             ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());

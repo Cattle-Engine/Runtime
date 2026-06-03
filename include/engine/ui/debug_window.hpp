@@ -102,11 +102,13 @@ namespace CE::UI {
             };
 
             struct SkyBoxTabState {
-                std::array<char, 256> nameBuffer{};
-                std::array<char, 256> frontBuffer{};
-                std::array<char, 256> backBuffer{};
-                std::array<char, 256> leftBuffer{};
-                std::array<char, 256> rightBuffer{};
+                std::string name;
+                std::string front;
+                std::string back;
+                std::string left;
+                std::string right;
+                std::string top;
+                std::string bottom;
             };
 
             SettingsTabState gSettingsState{};

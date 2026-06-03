@@ -428,7 +428,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         colorTargetInfo.store_op    = SDL_GPU_STOREOP_STORE;
         colorTargetInfo.load_op     = gMeshCommands.empty() ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
 
-        if (!gMeshCommands.empty()) {
+        const CubeMap& skyboxState = GetSkyBoxState();
+        const bool hasSkybox =
+            skyboxState.front ||
+            skyboxState.back ||
+            skyboxState.left ||
+            skyboxState.right ||
+            skyboxState.top ||
+            skyboxState.bottom;
+
+        if (!gMeshCommands.empty() || hasSkybox) {
             DrawQueuedMeshes();
             colorTargetInfo.load_op = SDL_GPU_LOADOP_LOAD;
         }

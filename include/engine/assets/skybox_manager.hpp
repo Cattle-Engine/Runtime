@@ -24,9 +24,9 @@ namespace CE::Assets::Skyboxes {
 
             SkyBoxManager(CE::Renderer::IRenderer* renderer, CE::VFS::VFS* vfs);
 
-            void Load(const char* frontPath, const char* backPath, const char* leftPath, const char* rightPath, const char* name);
-            void Set(const char* name);
-            void Unload(const char* name);
+            void Load(std::string frontPath, std::string backPath, std::string leftPath, std::string rightPath, std::string top_path, std::string bottom_path, std::string name);
+            void Set(std::string name);
+            void Unload(std::string name);
             void UnloadAll();
 
             int Debug_LoadedSkyBoxesCount() const;
@@ -44,10 +44,12 @@ namespace CE::Assets::Skyboxes {
                 std::string BackPath;
                 std::string LeftPath;
                 std::string RightPath;
+                std::string TopPath;
+                std::string BottomPath;
                 CE::Renderer::CubeMap CubeMapData {};
             };
 
-            std::shared_ptr<CE::Renderer::Texture> LoadFaceTexture(const char* path, bool& isErrorFace) const;
+            std::shared_ptr<CE::Renderer::Texture> LoadFaceTexture(std::string path, bool& isErrorFace) const;
 
             CE::Renderer::IRenderer* gRenderer = nullptr;
             CE::VFS::VFS* gVFS = nullptr;

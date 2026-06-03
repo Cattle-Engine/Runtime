@@ -15,7 +15,7 @@ namespace CE::Assets::Skyboxes {
         gErrorTex = gRenderer ? gRenderer->GetErrorTexture() : nullptr;
     }
 
-    std::shared_ptr<CE::Renderer::Texture> SkyBoxManager::LoadFaceTexture(const char* path, bool& isErrorFace) const {
+    std::shared_ptr<CE::Renderer::Texture> SkyBoxManager::LoadFaceTexture(std::string path, bool& isErrorFace) const {
         isErrorFace = true;
 
         if (!gRenderer || !gVFS) {
@@ -23,17 +23,17 @@ namespace CE::Assets::Skyboxes {
             return {};
         }
 
-        if (!path || path[0] == '\0') {
+        if (path.empty()) {
             CE::Log(LogLevel::Error, "[SkyBox Manager] Skybox face path was empty");
             return MakeTextureHandle(gErrorTex);
         }
 
-        if (!gVFS->FileExists(path)) {
+        if (!gVFS->FileExists(path.c_str())) {
             CE::Log(LogLevel::Error, "[SkyBox Manager] Missing skybox face: {}", path);
             return MakeTextureHandle(gErrorTex);
         }
 
-        if (auto* texture = gRenderer->LoadTex(path)) {
+        if (auto* texture = gRenderer->LoadTex(path.c_str())) {
             isErrorFace = false;
             return MakeTextureHandle(texture);
         }
@@ -42,8 +42,8 @@ namespace CE::Assets::Skyboxes {
         return MakeTextureHandle(gErrorTex);
     }
 
-    void SkyBoxManager::Load(const char* frontPath, const char* backPath, const char* leftPath, const char* rightPath, const char* name) {
-        if (!name || name[0] == '\0') {
+    void SkyBoxManager::Load(std::string frontPath, std::string backPath, std::string leftPath, std::string rightPath, std::string top_path, std::string bottom_path, std::string name) {
+        if (name.empty()) {
             CE::Log(LogLevel::Error, "[SkyBox Manager] Load called with an empty name");
             return;
         }
@@ -58,18 +58,24 @@ namespace CE::Assets::Skyboxes {
         bool backError = false;
         bool leftError = false;
         bool rightError = false;
+        bool top_error = false;
+        bool bottom_error = false;
 
-        skybox.FrontPath = frontPath ? frontPath : "";
-        skybox.BackPath = backPath ? backPath : "";
-        skybox.LeftPath = leftPath ? leftPath : "";
-        skybox.RightPath = rightPath ? rightPath : "";
+        skybox.FrontPath = frontPath;
+        skybox.BackPath = backPath;
+        skybox.LeftPath = leftPath;
+        skybox.RightPath = rightPath;
+        skybox.BottomPath = bottom_path;
+        skybox.TopPath = top_path;
 
         skybox.CubeMapData.front = LoadFaceTexture(frontPath, frontError);
         skybox.CubeMapData.back = LoadFaceTexture(backPath, backError);
         skybox.CubeMapData.left = LoadFaceTexture(leftPath, leftError);
         skybox.CubeMapData.right = LoadFaceTexture(rightPath, rightError);
+        skybox.CubeMapData.top = LoadFaceTexture(top_path, top_error);
+        skybox.CubeMapData.bottom = LoadFaceTexture(bottom_path, bottom_error);
 
-        skybox.IsErrorSkyBox = frontError || backError || leftError || rightError;
+        skybox.IsErrorSkyBox = frontError || backError || leftError || rightError || top_error || bottom_error;
         gSkyBoxes[name] = skybox;
 
         if (wasActive) {
@@ -77,12 +83,12 @@ namespace CE::Assets::Skyboxes {
         }
     }
 
-    void SkyBoxManager::Set(const char* name) {
+    void SkyBoxManager::Set(std::string name) {
         if (!gRenderer) {
             return;
         }
 
-        if (!name || name[0] == '\0') {
+        if (name.empty()) {
             gRenderer->SetSkyBox({});
             gBoundSkyBoxName.clear();
             return;
@@ -98,8 +104,8 @@ namespace CE::Assets::Skyboxes {
         gBoundSkyBoxName = name;
     }
 
-    void SkyBoxManager::Unload(const char* name) {
-        auto it = gSkyBoxes.find(name ? name : "");
+    void SkyBoxManager::Unload(std::string name) {
+        auto it = gSkyBoxes.find(name);
         if (it == gSkyBoxes.end()) {
             CE::Log(LogLevel::Error, "[SkyBox Manager] Can not unload a non-existant skybox");
             return;
@@ -125,6 +131,8 @@ namespace CE::Assets::Skyboxes {
         unloadFace(it->second.CubeMapData.back);
         unloadFace(it->second.CubeMapData.left);
         unloadFace(it->second.CubeMapData.right);
+        unloadFace(it->second.CubeMapData.top);
+        unloadFace(it->second.CubeMapData.bottom);
 
         gSkyBoxes.erase(it);
     }
@@ -149,6 +157,8 @@ namespace CE::Assets::Skyboxes {
             unloadFace(skybox.CubeMapData.back);
             unloadFace(skybox.CubeMapData.left);
             unloadFace(skybox.CubeMapData.right);
+            unloadFace(skybox.CubeMapData.top);
+            unloadFace(skybox.CubeMapData.bottom);
         }
 
         gSkyBoxes.clear();
