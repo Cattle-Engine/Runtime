@@ -141,7 +141,7 @@ namespace CE::Renderer {
     };
 
     struct Material {
-        std::weak_ptr<Texture> albedo {};
+        Texture* albedo;
         Colour tint;
         float roughness = 1.0f;
         float metallic = 0.0f;
