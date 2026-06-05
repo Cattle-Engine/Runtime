@@ -1,5 +1,6 @@
 - [X] Make mouse lock & visbility avalaible in AngelScript
-- [ ] Make a small manager for GPUMesh
-- [ ] Create file for 3D primtives
+- [X] Make a small manager for GPUMesh
+- [X] Create file for 3D primtives
+- [ ] Refactor to new texture manager
+- [ ] Normal support
 - [ ] 3D model loading
-- [ ] Angelscript API for 3D stuff

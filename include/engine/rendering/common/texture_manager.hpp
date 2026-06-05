@@ -26,6 +26,10 @@ namespace CE::Renderer::Resources {
 
             Texture* Get() const { return mTexture; }
 
+            bool IsValid() const {
+                return mTexture != nullptr;
+            }
+
             TextureRef(const TextureRef&) = delete;
             TextureRef& operator=(const TextureRef&) = delete;
 
@@ -34,13 +38,16 @@ namespace CE::Renderer::Resources {
             }
 
             TextureRef& operator=(TextureRef&& other) noexcept {
-                if (this != &other)
-                {
+                if (this != &other) {
+                    if (mManager) {
+                        mManager->Return(mHandle);
+                    }
+
                     mManager = other.mManager;
                     mHandle = other.mHandle;
                     mTexture = other.mTexture;
-
                     other.mManager = nullptr;
+                    other.mHandle = 0;
                     other.mTexture = nullptr;
                 }
                 return *this;
@@ -85,7 +92,6 @@ namespace CE::Renderer::Resources {
             IRenderer& mRenderer;
             VFS::VFS& mVFS;
             uint64_t mNextHandleID = 0;
-            std::vector<TextureEntry> mPendingDeletions;
             std::unordered_map<TextureHandle, TextureEntry> mTextureCache;
     };
 }
