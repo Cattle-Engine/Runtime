@@ -65,6 +65,18 @@ namespace CE::Renderer::Resources {
         it->second.IsPendingUnload = true;
     }
 
+    Texture* TextureManager::GetTexture(TextureHandle handle) {
+        TextureEntry* entry = GetTextureEntry(handle);
+
+        if (entry->IsPendingUnload) return nullptr;
+
+        if (entry) {
+            return entry->Resource;
+        } else {
+            return nullptr;
+        }
+    }
+
     void TextureManager::UnloadPendingDeletions() {
         for (auto it = mTextureCache.begin(); it != mTextureCache.end(); ) {
             TextureEntry& entry = it->second;

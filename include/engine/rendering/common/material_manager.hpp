@@ -13,6 +13,9 @@ namespace CE::Renderer::Resources {
             MaterialManager(TextureManager& texture_manager, IRenderer& renderer);
 
             MaterialHandle CreateMaterial(TextureHandle tex_handle);
+            
+            // Internally used
+            Material* GetMaterial(MaterialHandle matt_handle);
             void DestroyMaterial(MaterialHandle matt_handle);
             void DestroyAllMaterials();
 

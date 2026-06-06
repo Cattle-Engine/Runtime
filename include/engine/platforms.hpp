@@ -1,9 +1,11 @@
 #pragma once
 
+#include <string>
+
 namespace CE::Platforms {
-    std::string GetCachePath(const char* game_name);
-    std::string GetConfigPath(const char* game_name);
-    std::string GetSavePath(const char* game_name);
+    std::string GetCachePath(std::string game_name);
+    std::string GetConfigPath(std::string game_name);
+    std::string GetSavePath(std::string game_name);
     bool SupportsANSI();
     bool EnableANSI(); 
 }

@@ -3,8 +3,8 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
-    GPUMeshManager::GPUMeshManager(IRenderer& renderer) :
-        mRenderer(renderer) {
+    GPUMeshManager::GPUMeshManager(IRenderer& renderer, MaterialManager& mat_manager) :
+        mRenderer(renderer), mMaterialManager(mat_manager) {
     }
 
     GPUMeshManager::~GPUMeshManager() {
@@ -36,23 +36,26 @@ namespace CE::Renderer::Resources {
         return handle;
     }
 
-    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, const Material* material, bool error_texture) {
+    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture = false) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end() || !it->second.Mesh) {
             CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
             return;
         }
 
-        Material materialToDraw{};
-        if (material) {
-            materialToDraw = *material;
+        Material material_to_draw = {};
+
+        auto material_from_manager = mMaterialManager.GetMaterial(matt_handle);
+
+        if (material_from_manager) {
+            material_to_draw = *material_from_manager;
         }
 
         mRenderer.DrawMesh(
             it->second.Mesh,
-            materialToDraw,
+            material_to_draw,
             transform,
-            error_texture && materialToDraw.albedo.expired()
+            error_texture
         );
     }
 

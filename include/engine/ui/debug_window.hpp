@@ -2,46 +2,6 @@
 
 #include <array>
 
-namespace CE {
-    class Instance;
-    struct GameInfo;
-
-    namespace Renderer {
-        class IRenderer;
-    }
-
-    namespace Assets {
-        namespace Textures {
-            class TextureManager;
-        }
-
-        namespace Shaders {
-            class ShaderManager;
-        }
-
-        namespace Skyboxes {
-            class SkyBoxManager;
-        }
-
-        namespace Fonts {
-            class FontManager;
-        }
-
-        namespace Audio {
-            class AudioManager;
-        }
-    }
-
-    namespace Settings {
-        class SettingsManager;
-    }
-
-    namespace Input {
-        class Keyboard;
-        class Mouse;
-    }
-}
-
 namespace CE::UI {
     class DebugWindow {
         public:

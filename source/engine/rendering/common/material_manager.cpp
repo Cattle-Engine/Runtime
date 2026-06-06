@@ -73,6 +73,16 @@ namespace CE::Renderer::Resources {
         mMaterials.erase(it);
     }
 
+    Material* MaterialManager::GetMaterial(MaterialHandle handle) {
+        auto material = GetMaterialEntry(handle);
+
+        if (material) {
+            return &material->Resource;
+        } else {
+            return nullptr;
+        }   
+    }
+
     void MaterialManager::DestroyAllMaterials() {
         mMaterials.clear();
     }

@@ -1,17 +1,16 @@
 #pragma once
 
-#include <cstdint>
 #include <memory>
 #include <SDL3/SDL.h>
 
 #include "engine/assets/fonts.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/assets/shaders.hpp"
-#include "engine/assets/textures.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/audio.hpp"
 #include "engine/rendering/common/gpu_mesh_manager.hpp"
 #include "engine/rendering/common/material_manager.hpp"
+#include "engine/rendering/common/texture_manager.hpp"
 #include "engine/assets/animations.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/bootstrap/instance.hpp"
@@ -27,13 +26,6 @@
 inline uint64_t GLOBALINSTANCESCOUNTER;
 
 namespace CE {
-    namespace Settings {
-        class SettingsManager;
-    }
-    namespace Scripting {
-        class Runtime;
-    }
-
     class Instance {
         public:
             Instance(const char* data_file_path, bool debugmode, 
@@ -44,7 +36,7 @@ namespace CE {
             float GetDeltaTime() const;
             float GetFrameTime() const;
             int GetFPS() const;
-            void ReloadSettings(); // Reload settings, thats all it does :shrug:
+            void ReloadSettings(); // Reload settings, that's all it does :shrug:
             void SetWindowIcon(std::string path);
             int GetInstanceID();
             void SetGameState(const std::string& state);
@@ -55,22 +47,29 @@ namespace CE {
         private:
             void ApplySettingsReload();
 
+            // Only to be called at startup!
+            int Bootstrap_RendererResourceManagers();
+
             std::unique_ptr<CE::VFS::VFS> gVFS;
             std::unique_ptr<CE::GameInfo> gGameInfo;
+            std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
             std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
-            std::unique_ptr<CE::Assets::Textures::TextureManager> gTextureManager;
-            std::unique_ptr<CE::Assets::Shaders::ShaderManager> gShaderManager;
-            std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
-            std::unique_ptr<CE::Assets::Animations::AnimationManager> gAnimationManager;
+
             std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
             std::unique_ptr<CE::Input::Mouse> gMouseManger;
-            std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
-            std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
+
             std::unique_ptr<CE::Scripting::Runtime> gScriptingManager;
+
             std::unique_ptr<CE::Core::Audio::AudioSystem> gAudioSystem;
             std::unique_ptr<CE::Assets::Audio::AudioManager> gAudioManager;
+
             std::unique_ptr<CE::Renderer::Resources::GPUMeshManager> gGPUMeshManager;
             std::unique_ptr<CE::Renderer::Resources::MaterialManager> gMaterialManager;
+            std::unique_ptr<CE::Renderer::Resources::TextureManager> gTextureManager;
+            std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
+            std::unique_ptr<CE::Assets::Shaders::ShaderManager> gShaderManager;
+            std::unique_ptr<CE::Assets::Animations::AnimationManager> gAnimatedTextureManager;
+            std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             
             SDL_Window* gWindow = nullptr;
             RendererBackend gRendererBackend = RendererBackend::None;

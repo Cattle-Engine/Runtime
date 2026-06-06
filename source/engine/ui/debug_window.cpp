@@ -14,7 +14,7 @@
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/shaders.hpp"
-#include "engine/assets/textures.hpp"
+
 #include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"

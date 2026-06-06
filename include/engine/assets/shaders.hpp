@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/assets/textures.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
+#include "engine/rendering/common/texture_manager.hpp"
 
 namespace CE::Assets::Shaders {
     class ShaderManager {
@@ -25,7 +25,7 @@ namespace CE::Assets::Shaders {
             ShaderManager(
                 CE::Renderer::IRenderer* renderer,
                 CE::VFS::VFS* vfs,
-                CE::Assets::Textures::TextureManager* textureManager = nullptr
+                CE::Renderer::Resources::TextureManager& textureManager
             );
 
             bool CreateProgram(const char* name);
@@ -69,7 +69,7 @@ namespace CE::Assets::Shaders {
             };
             CE::Renderer::IRenderer* renderer = nullptr;
             CE::VFS::VFS* vfs = nullptr;
-            CE::Assets::Textures::TextureManager* textureManager = nullptr;
+            CE::Renderer::Resources::TextureManager& mTextureManager;
             std::unordered_map<std::string, ManagedShader> shaders;
             std::string gBoundShaderName;
 

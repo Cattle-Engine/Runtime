@@ -12,16 +12,16 @@
 
 namespace CE::Platforms {
     #if defined(__linux__)
-        std::string GetCachePath(const char* game_name) {
-            return CE::Platforms::Linux::GetCachePath(game_name);
+        std::string GetCachePath(std::string game_name) {
+            return CE::Platforms::Linux::GetCachePath(game_name.c_str());
         }
 
-        std::string GetConfigPath(const char* game_name) {
-            return CE::Platforms::Linux::GetConfigPath(game_name);
+        std::string GetConfigPath(std::string game_name) {
+            return CE::Platforms::Linux::GetConfigPath(game_name.c_str());
         }
 
-        std::string GetSavePath(const char* game_name) {
-            return CE::Platforms::Linux::GetSavePath(game_name);
+        std::string GetSavePath(std::string game_name) {
+            return CE::Platforms::Linux::GetSavePath(game_name.c_str());
         }
 
         bool SupportsANSI() {
@@ -34,16 +34,16 @@ namespace CE::Platforms {
     #endif
 
     #if defined(_WIN32)
-        std::string GetCachePath(const char* game_name) {
-            return CE::Platforms::Windows::GetCachePath(game_name);
+        std::string GetCachePath(std::string game_name) {
+            return CE::Platforms::Windows::GetCachePath(game_name.c_str());
         }
 
-        std::string GetConfigPath(const char* game_name) {
-            return CE::Platforms::Windows::GetConfigPath(game_name);
+        std::string GetConfigPath(std::string game_name) {
+            return CE::Platforms::Windows::GetConfigPath(game_name.c_str());
         }
 
-        std::string GetSavePath(const char* game_name) {
-            return CE::Platforms::Windows::GetSavePath(game_name);
+        std::string GetSavePath(std::string game_name) {
+            return CE::Platforms::Windows::GetSavePath(game_name.c_str());
         }
 
         bool SupportsANSI() {

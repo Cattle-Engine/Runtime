@@ -40,7 +40,7 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to get gameinfo with code: {}", gInstanceID, gis_return));
         }
-        gVFS->MountFolder(Platforms::GetConfigPath(gGameInfo->gameNameString.c_str()).c_str(), "/config", LoadMode::OnDemand, 100);
+        gVFS->MountFolder(Platforms::GetConfigPath(gGameInfo->gameNameString).c_str(), "/config", LoadMode::OnDemand, 100);
 
         gSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*gGameInfo, gInstanceID);
         gSettingsManager->SetInstance(*this);
@@ -66,17 +66,12 @@ namespace CE {
         if (!gGameInfo->windowIcon.empty()) {
             SetWindowIcon(gGameInfo->windowIcon);
         }
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating asset managers", gInstanceID);
-        int ams = CE::Bootstrap::Init_AssetManagers(gTextureManager, gShaderManager, gSkyBoxManager, gVFS, gRenderer, gFontManager, gInstanceID);
-        if (ams != 0) {
+        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", gInstanceID);
+        int brrms = this->Bootstrap_RendererResourceManagers();
+        if (brrms != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to init asset managers: {}", gInstanceID, ams));
+                std::format("[Instance {}] Failed to init renderer resource managers: {}", gInstanceID, brrms));
         }
-
-        gGPUMeshManager = std::make_unique<CE::Renderer::Resources::GPUMeshManager>(*gRenderer);
-        gMaterialManager = std::make_unique<CE::Renderer::Resources::MaterialManager>(gRenderer.get(), gTextureManager.get());
-
-        gAnimationManager = std::make_unique<CE::Assets::Animations::AnimationManager>(*gVFS, *gRenderer, gInstanceID);
 
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
@@ -113,10 +108,10 @@ namespace CE {
             *gFontManager,
             *gGPUMeshManager,
             *gMaterialManager,
-            gAnimationManager.get(),
+            *gAnimatedTextureManager,
             *gKeyboardManger,
             *gMouseManger,
-            gAudioManager.get()
+            *gAudioManager
         );
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());
@@ -216,7 +211,7 @@ namespace CE {
             gShouldExit = true;
             return 1;
         }
-        gAnimationManager->Render();
+        gAnimatedTextureManager->Render();
         gRenderer->EndMode2D();
 
         gRenderer->ImGuiStartFrame();
@@ -264,7 +259,7 @@ namespace CE {
                     static_cast<float>(gPerformanceFrequency);
 
         gLastFrameCounter = frame_end_counter;
-        gAnimationManager->Update(gDeltaTime);
+        gAnimatedTextureManager->Update(gDeltaTime);
         return 0;
     }
 
