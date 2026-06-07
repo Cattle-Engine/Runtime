@@ -44,6 +44,7 @@
       ]
     },
 
-    "sdl3-ttf"
+    "sdl3-ttf",
+    "assimp"
   ]
 }

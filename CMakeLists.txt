@@ -202,7 +202,7 @@ if (NOT MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 find_package(SDL3 CONFIG QUIET)
-
+find_package(assimp CONFIG REQUIRED)
 if(SDL3_FOUND)
     target_link_libraries(ce_engine PRIVATE SDL3::SDL3)
 else()
@@ -210,7 +210,7 @@ else()
 endif()
 
 find_package(SDL3_image CONFIG QUIET)
-
+target_link_libraries(ce_engine PRIVATE assimp::assimp)
 if(SDL3_image_FOUND)
     target_link_libraries(ce_engine PRIVATE SDL3_image::SDL3_image)
 else()
