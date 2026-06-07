@@ -2,12 +2,23 @@
 
 #include <array>
 
+#include "engine/rendering/renderer.hpp"
+#include "engine/audio/audio.hpp"
+#include "engine/rendering/common/texture_manager.hpp"
+#include "engine/settings.hpp"
+#include "engine/input/keyboard.hpp"
+#include "engine/input/mouse.hpp"
+#include "engine/assets/shaders.hpp"
+#include "engine/assets/skybox_manager.hpp"
+#include "engine/assets/fonts.hpp"
+#include "engine/assets/audio.hpp"
+
 namespace CE::UI {
     class DebugWindow {
         public:
             void Draw(
                 CE::Renderer::IRenderer& renderer,
-                CE::Assets::Textures::TextureManager& texman,
+                CE::Renderer::Resources::TextureManager& texman,
                 CE::Assets::Shaders::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 CE::Assets::Fonts::FontManager& fontman,
@@ -31,7 +42,7 @@ namespace CE::UI {
             void DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman);
             void DrawPerformanceTab(
                 CE::Renderer::IRenderer& renderer,
-                CE::Assets::Textures::TextureManager& texman,
+                CE::Renderer::Resources::TextureManager& texman,
                 CE::Assets::Shaders::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 const CE::Settings::SettingsManager& settings,
@@ -42,7 +53,7 @@ namespace CE::UI {
             void DrawRendererTab(
                 CE::Renderer::IRenderer& renderer,
                 const CE::Settings::SettingsManager& settings,
-                CE::Assets::Textures::TextureManager& texman,
+                CE::Renderer::Resources::TextureManager& texman,
                 CE::Assets::Shaders::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 CE::Assets::Fonts::FontManager& fontman

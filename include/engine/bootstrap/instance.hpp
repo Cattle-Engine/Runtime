@@ -17,7 +17,7 @@ namespace CE::Bootstrap {
         std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
         std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice);
     int Init_AssetManagers(
-        std::unique_ptr<CE::Assets::Textures::TextureManager>& texturemanager_ptr,
+        std::unique_ptr<CE::Renderer::Resources::TextureManager>& texturemanager_ptr,
         std::unique_ptr<CE::Assets::Shaders::ShaderManager>& shadermanager_ptr,
         std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager>& skyboxmanager_ptr,
         std::unique_ptr<VFS::VFS>& vfs_ptr,

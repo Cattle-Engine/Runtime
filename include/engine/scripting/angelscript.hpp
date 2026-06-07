@@ -10,6 +10,7 @@
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/shaders.hpp"
 #include "engine/assets/skybox_manager.hpp"
+#include "engine/rendering/common/texture_manager.hpp"
 
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
@@ -107,7 +108,7 @@ namespace CE::Scripting {
                 Settings::SettingsManager& settingsManager,
                 Instance& instance,
                 Renderer::IRenderer& renderer,
-                Assets::Textures::TextureManager& textureManager,
+                Renderer::Resources::TextureManager& textureManager,
                 Assets::Shaders::ShaderManager& shaderManager,
                 Assets::Skyboxes::SkyBoxManager& skyboxManager,
                 Assets::Fonts::FontManager& fontManager,
@@ -157,14 +158,13 @@ namespace CE::Scripting {
             static void ConstructCamera3D(Camera3DDesc* self);
             static void ConstructMaterial(MaterialDesc* self);
 
-            void LoadTexture(const std::string& path, const std::string& name);
-            void UnloadTexture(const std::string& name);
-            void DrawTexture(const std::string& name, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
-            void DrawTextureEx(const std::string& name, int x, int y, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
-            void DrawTextureRot(const std::string& name, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
-            void DrawTextureRotEx(const std::string& name, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
-            void DrawTexturePro(const std::string& name, int x, int y, int w,
-                int h, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            Renderer::Resources::TextureHandle LoadTexture(std::string& path);
+            void UnloadTexture(CE::Renderer::Resources::TextureHandle handle);
+            void DrawTexture(CE::Renderer::Resources::TextureHandle texture, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureEx(CE::Renderer::Resources::TextureHandle texture, int x, int y, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureRot(CE::Renderer::Resources::TextureHandle texture, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTextureRotEx(CE::Renderer::Resources::TextureHandle texture, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);
+            void DrawTexturePro(CE::Renderer::Resources::TextureHandle texture, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f);;
             void DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation);
             void DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour& colour);
             void DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour& colour);
@@ -186,7 +186,7 @@ namespace CE::Scripting {
             void SetShaderVec4(const std::string& uniformName, float x, float y, float z, float w);
             void SetShaderMat4(const std::string& uniformName, const CScriptArray* values);
             void SetShaderInt(const std::string& uniformName, int value);
-            bool SetShaderTexture(const std::string& uniformName, const std::string& textureName, int slot);
+            bool SetShaderTexture(const std::string& uniformName, Renderer::Resources::TextureHandle texture, int slot);
 
             bool LoadFont(const std::string& path, const std::string& name, int size);
             void UnloadFont(const std::string& name);
@@ -283,20 +283,22 @@ namespace CE::Scripting {
             void SetSkyBox(const std::string& name);
             void ClearSkyBox();
             void UnloadSkyBox(const std::string& name);
-            void LoadMaterial(const std::string& name);
-            void LoadMaterial(const std::string& name, const MaterialDesc& material);
-            void UnloadMaterial(const std::string& name);
-            bool SetMaterialAlbedo(const std::string& name, const std::string& textureName);
-            bool SetMaterialTint(const std::string& name, const Renderer::Colour& colour);
-            bool SetMaterialRoughness(const std::string& name, float roughness);
-            bool SetMaterialMetallic(const std::string& name, float metallic);
-            bool HasMaterial(const std::string& name) const;
+            
             int DebugLoadedMaterialsCount() const;
-            uint32_t CreateMeshHandle(ASMeshData* meshData);
-            void ChangeMesh(uint32_t handle, ASMeshData* meshData);
-            uint32_t DestroyMesh(uint32_t handle);
-            bool HasMesh(uint32_t handle) const;
-            void DrawMesh(uint32_t handle, const Transform3DDesc& transform, const std::string& materialName, bool errorTexture = false);
+            uint64_t CreateMeshHandle(ASMeshData* meshData);
+            void ChangeMesh(uint64_t handle, ASMeshData* meshData);
+            uint64_t DestroyMesh(uint64_t handle);
+            bool HasMesh(uint64_t handle) const;
+            void DrawMesh(uint64_t handle, const Transform3DDesc& transform, uint64_t materialHandle = 0, bool errorTexture = false);
+
+            // Material handle based API
+            uint64_t CreateMaterialHandle(const MaterialDesc& material, const std::string& textureName = "");
+            void DestroyMaterialHandle(uint64_t handle);
+            bool SetMaterialAlbedo(uint64_t handle, const std::string& textureName);
+            bool SetMaterialTint(uint64_t handle, const Renderer::Colour& colour);
+            bool SetMaterialRoughness(uint64_t handle, float roughness);
+            bool SetMaterialMetallic(uint64_t handle, float metallic);
+            bool HasMaterial(uint64_t handle) const;
 
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
@@ -312,7 +314,7 @@ namespace CE::Scripting {
             Settings::SettingsManager& mSettingsManager;
             Instance& mInstance;
             Renderer::IRenderer& mRenderer;
-            Assets::Textures::TextureManager& mTextureManager;
+            Renderer::Resources::TextureManager& mTextureManager;
             Assets::Shaders::ShaderManager& mShaderManager;
             Assets::Skyboxes::SkyBoxManager& mSkyboxManager;
             Assets::Fonts::FontManager& mFontManager;

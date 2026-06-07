@@ -108,10 +108,10 @@ namespace CE {
             *gFontManager,
             *gGPUMeshManager,
             *gMaterialManager,
-            *gAnimatedTextureManager,
+            gAnimatedTextureManager.get() /*TODO: Make this use & not a fucking pointer*/,
             *gKeyboardManger,
             *gMouseManger,
-            *gAudioManager
+            gAudioManager.get() // Also make this use refrence not a fucking pointer
         );
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());

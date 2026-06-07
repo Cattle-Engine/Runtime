@@ -28,23 +28,23 @@ namespace CE::Assets::Shaders {
                 CE::Renderer::Resources::TextureManager& textureManager
             );
 
-            bool CreateProgram(const char* name);
-            bool Load(const char* filepath, const char* name, int fragmentSamplerCount = 4);
-            bool LoadStage(const char* name, const char* filepath, CE::Renderer::ShaderStage stage, int samplerCount = 1);
-            bool UseDefaultStage(const char* name, CE::Renderer::ShaderStage stage);
-            bool Compile(const char* name);
-            bool Bind(const char* name);
+            bool CreateProgram(const std::string& name);
+            bool Load(const std::string& filepath, const std::string& name, int fragmentSamplerCount = 4);
+            bool LoadStage(const std::string& name, const std::string& filepath, CE::Renderer::ShaderStage stage, int samplerCount = 1);
+            bool UseDefaultStage(const std::string& name, CE::Renderer::ShaderStage stage);
+            bool Compile(const std::string& name);
+            bool Bind(const std::string& name);
             void Unbind();
-            void Unload(const char* name);
+            void Unload(const std::string& name);
             void UnloadAll();
 
-            void SetFloat(const char* uniformName, float value);
-            void SetVec2(const char* uniformName, float x, float y);
-            void SetVec3(const char* uniformName, float x, float y, float z);
-            void SetVec4(const char* uniformName, float x, float y, float z, float w);
-            void SetMat4(const char* uniformName, const float* value);
-            void SetInt(const char* uniformName, int value);
-            bool SetTexture(const char* uniformName, const char* textureName, int slot = 0);
+            void SetFloat(const std::string& uniformName, float value);
+            void SetVec2(const std::string& uniformName, float x, float y);
+            void SetVec3(const std::string& uniformName, float x, float y, float z);
+            void SetVec4(const std::string& uniformName, float x, float y, float z, float w);
+            void SetMat4(const std::string& uniformName, const float* value);
+            void SetInt(const std::string& uniformName, int value);
+            bool SetTexture(const std::string& uniformName, const Renderer::Resources::TextureHandle texturehandle, int slot = 0);
 
             int Debug_LoadedShadersCount() const;
             int Debug_LoadedShadersNoError() const;
@@ -74,7 +74,7 @@ namespace CE::Assets::Shaders {
             std::string gBoundShaderName;
 
             const char* StageToString(CE::Renderer::ShaderStage stage) const;
-            ManagedShader* FindShader(const char* name);
-            const ManagedShader* FindShader(const char* name) const;
+            ManagedShader* FindShader(const std::string& name);
+            const ManagedShader* FindShader(const std::string& name) const;
     };
 }

@@ -28,7 +28,7 @@ namespace CE::Scripting {
         Settings::SettingsManager& settingsManager,
         Instance& instance,
         Renderer::IRenderer& renderer,
-        Assets::Textures::TextureManager& textureManager,
+        Renderer::Resources::TextureManager& textureManager,
         Assets::Shaders::ShaderManager& shaderManager,
         Assets::Skyboxes::SkyBoxManager& skyboxManager,
         Assets::Fonts::FontManager& fontManager,

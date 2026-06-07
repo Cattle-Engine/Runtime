@@ -15,8 +15,8 @@ namespace CE::Renderer::Resources {
 
             MeshHandle CreateMeshHandle(MeshData& data);
             void DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture = false);
-            void ChangeMesh(MeshHandle& handle, MeshData& data);
-            void DestroyMesh(MeshHandle& handle);
+            void ChangeMesh(MeshHandle handle, MeshData& data);
+            void DestroyMesh(MeshHandle handle);
             GPUMesh* GetMesh(MeshHandle handle);
             const GPUMesh* GetMesh(MeshHandle handle) const;
             bool HasMesh(MeshHandle handle) const;

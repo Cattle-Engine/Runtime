@@ -18,6 +18,8 @@ namespace CE::Renderer::Resources {
             Material* GetMaterial(MaterialHandle matt_handle);
             void DestroyMaterial(MaterialHandle matt_handle);
             void DestroyAllMaterials();
+            // Debug helpers
+            size_t Debug_LoadedMaterialsCount() const;
 
             void SetMaterialAlbedo(MaterialHandle matt_handle, TextureHandle tex_handle);
             void SetMaterialColour(MaterialHandle matt_handle, Colour colour);

@@ -13,6 +13,7 @@
 #include "engine/rendering/common/texture_manager.hpp"
 #include "engine/assets/animations.hpp"
 #include "engine/rendering/renderer.hpp"
+#include "engine/scripting/angelscript.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/core/event_bus.hpp"

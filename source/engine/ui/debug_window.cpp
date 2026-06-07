@@ -145,7 +145,7 @@ namespace CE::UI {
 
     void DebugWindow::DrawPerformanceTab(
         CE::Renderer::IRenderer& renderer,
-        CE::Assets::Textures::TextureManager& texman,
+        CE::Renderer::Resources::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         const CE::Settings::SettingsManager& settings,
@@ -270,7 +270,7 @@ namespace CE::UI {
     void DebugWindow::DrawRendererTab(
         CE::Renderer::IRenderer& renderer,
         const Settings::SettingsManager& settings,
-        Assets::Textures::TextureManager& texman,
+        Renderer::Resources::TextureManager& texman,
         Assets::Shaders::ShaderManager& shaderman,
         Assets::Skyboxes::SkyBoxManager& skyboxman,
         Assets::Fonts::FontManager& fontman
@@ -452,9 +452,10 @@ namespace CE::UI {
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Textures")) {
-            ImGui::Text("Total loaded: %d", texman.Debug_LoadedTexturesCount());
-            ImGui::Text("No error: %d", texman.Debug_LoadedTexturesNoError());
-            ImGui::Text("Errors: %d", texman.Debug_LoadedTexturesError());
+            ImGui::Text("Total loaded: %zu", texman.GetLoadedTextureCount());
+            ImGui::Text("No error: %zu", texman.GetValidTextureCount());
+            ImGui::Text("Errors: %zu", texman.GetErrorTextureCount());
+            ImGui::Text("Pending Unload: %zu", texman.GetPendingUnloadCount());
         }
 
         CE::UI::Utils::SpaceSep();
@@ -635,7 +636,7 @@ namespace CE::UI {
     
     void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
-        CE::Assets::Textures::TextureManager& texman,
+        CE::Renderer::Resources::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,
@@ -695,7 +696,7 @@ namespace CE::UI {
 
     void DrawDebugUI(
         CE::Renderer::IRenderer& renderer,
-        CE::Assets::Textures::TextureManager& texman,
+        CE::Renderer::Resources::TextureManager& texman,
         CE::Assets::Shaders::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,

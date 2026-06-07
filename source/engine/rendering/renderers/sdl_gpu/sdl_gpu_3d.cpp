@@ -773,8 +773,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         Texture* texture = nullptr;
 
-        if (auto albedo = material.albedo.lock()) {
-            texture = albedo.get();
+        if (auto albedo = material.albedo) {
+            texture = albedo;
         }
         else if (error_tex) {
             texture = GetErrorTexture();

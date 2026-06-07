@@ -2,6 +2,36 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
+    TextureRef::TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex)
+        : mManager(mgr), mHandle(handle), mTexture(tex) {}
+
+    TextureRef::~TextureRef() {
+        if (mManager)
+            mManager->Return(mHandle);
+    }
+
+    TextureRef::TextureRef(TextureRef&& other) noexcept {
+        *this = std::move(other);
+    }
+
+    TextureRef& TextureRef::operator=(TextureRef&& other) noexcept {
+        if (this != &other) {
+            if (mManager) {
+                mManager->Return(mHandle);
+            }
+            
+            mManager = other.mManager;
+            mHandle = other.mHandle;
+            mTexture = other.mTexture;
+            other.mManager = nullptr;
+            other.mHandle = 0;
+            other.mTexture = nullptr;
+        }
+        return *this;
+    }
+}
+
+namespace CE::Renderer::Resources {
     TextureManager::TextureManager(VFS::VFS& vfs, IRenderer& renderer) : mVFS(vfs), mRenderer(renderer) {}
 
     TextureManager::TextureEntry* TextureManager::GetTextureEntry(TextureHandle handle) {
@@ -97,5 +127,45 @@ namespace CE::Renderer::Resources {
                 ++it;
             }
         }
+    }
+
+    size_t TextureManager::GetLoadedTextureCount() const {
+        return mTextureCache.size();
+    }
+
+    size_t TextureManager::GetValidTextureCount() const {
+        size_t count = 0;
+
+        for (const auto& [handle, entry] : mTextureCache) {
+            if (!entry.IsError && !entry.IsPendingUnload) {
+                ++count;
+            }
+        }
+
+        return count;
+    }
+
+    size_t TextureManager::GetErrorTextureCount() const {
+        size_t count = 0;
+
+        for (const auto& [handle, entry] : mTextureCache) {
+            if (entry.IsError) {
+                ++count;
+            }
+        }
+
+        return count;
+    }
+
+    size_t TextureManager::GetPendingUnloadCount() const {
+        size_t count = 0;
+
+        for (const auto& [handle, entry] : mTextureCache) {
+            if (entry.IsPendingUnload) {
+                ++count;
+            }
+        }
+
+        return count;
     }
 }

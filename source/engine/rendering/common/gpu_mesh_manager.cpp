@@ -36,7 +36,7 @@ namespace CE::Renderer::Resources {
         return handle;
     }
 
-    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture = false) {
+    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end() || !it->second.Mesh) {
             CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
@@ -59,7 +59,7 @@ namespace CE::Renderer::Resources {
         );
     }
 
-    void GPUMeshManager::ChangeMesh(MeshHandle& handle, MeshData& data) {
+    void GPUMeshManager::ChangeMesh(MeshHandle handle, MeshData& data) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
             CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to change missing mesh handle {}", handle);
@@ -78,10 +78,9 @@ namespace CE::Renderer::Resources {
         it->second.Mesh = newMesh;
     }
 
-    void GPUMeshManager::DestroyMesh(MeshHandle& handle) {
+    void GPUMeshManager::DestroyMesh(MeshHandle handle) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
-            handle = 0;
             return;
         }
 
@@ -91,7 +90,6 @@ namespace CE::Renderer::Resources {
         }
 
         mGPUMeshes.erase(it);
-        handle = 0;
     }
 
     GPUMesh* GPUMeshManager::GetMesh(MeshHandle handle) {

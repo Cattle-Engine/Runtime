@@ -86,4 +86,8 @@ namespace CE::Renderer::Resources {
     void MaterialManager::DestroyAllMaterials() {
         mMaterials.clear();
     }
+
+    size_t MaterialManager::Debug_LoadedMaterialsCount() const {
+        return mMaterials.size();
+    }
 }
