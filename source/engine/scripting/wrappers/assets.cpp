@@ -372,14 +372,19 @@ namespace CE::Scripting {
 
         mScriptEngine->RegisterObjectType(
             "Texture",
-            sizeof(CE::Renderer::Resources::TextureHandle),
-            asOBJ_VALUE | asOBJ_POD
+            sizeof(TextureHandle),
+            asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<TextureHandle>()
         );
+
+        result = mScriptEngine->RegisterObjectProperty("Texture", "uint64 handle", asOFFSET(TextureHandle, handle));
+        if (result < 0) {
+            return false;
+        }
 
         mScriptEngine->SetDefaultNamespace("CE::Graphics::Textures");
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "CE::Texture@ LoadTexture(const string &in path)",
+            "void LoadTexture(const string &in path, CE::Texture &out texture)",
             asMETHOD(Runtime, LoadTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -389,7 +394,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void UnloadTexture(CE::Texture@ texture)",
+            "void UnloadTexture(const CE::Texture &in texture)",
             asMETHOD(Runtime, UnloadTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -399,7 +404,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTexture(CE::Texture@ texture, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
+            "void DrawTexture(const CE::Texture &in texture, int x, int y, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -409,7 +414,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureEx(CE::Texture@ texture, int x, int y, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
+            "void DrawTextureEx(const CE::Texture &in texture, int x, int y, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -419,7 +424,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureRot(CE::Texture@ texture, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
+            "void DrawTextureRot(const CE::Texture &in texture, int x, int y, float rotation, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureRot),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -429,7 +434,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTextureRotEx(CE::Texture@ texture, int x, int y, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
+            "void DrawTextureRotEx(const CE::Texture &in texture, int x, int y, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTextureRotEx),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -439,7 +444,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawTexturePro(CE::Texture@ texture, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
+            "void DrawTexturePro(const CE::Texture &in texture, int x, int y, int w, int h, float rotation, const CE::Graphics::Colour &in colour, bool flipX = false, bool flipY = false, float tileX = 1.0f, float tileY = 1.0f)",
             asMETHOD(Runtime, DrawTexturePro),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -591,7 +596,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool SetShaderTexture(const string &in uniformName, CE::Texture texture, int slot = 0)",
+            "bool SetShaderTexture(const string &in uniformName, const CE::Texture &in texture, int slot = 0)",
             asMETHOD(Runtime, SetShaderTexture),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -860,16 +865,16 @@ namespace CE::Scripting {
         return true;
     }
 
-    Renderer::Resources::TextureHandle Runtime::LoadTexture(std::string& path) {
-        mTextureManager.Load(path);
+    void Runtime::LoadTexture(const std::string& path, TextureHandle& texture) {
+        texture.handle = mTextureManager.Load(path);
     }
 
-    void Runtime::UnloadTexture(Renderer::Resources::TextureHandle handle) {
-        mTextureManager.Unload(handle);
+    void Runtime::UnloadTexture(const TextureHandle& texture) {
+        mTextureManager.Unload(texture.handle);
     }
 
-    void Runtime::DrawTexture(CE::Renderer::Resources::TextureHandle texture, int x, int y, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture);
+    void Runtime::DrawTexture(const TextureHandle& texture, int x, int y, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex) return;
         
         CE::Renderer::TextureFlip flip = CE::Renderer::TextureFlip::None;
@@ -886,8 +891,8 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, kWhite, 0.0f, flip);
     }
 
-    void Runtime::DrawTextureEx(CE::Renderer::Resources::TextureHandle texture, int x, int y, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture);
+    void Runtime::DrawTextureEx(const TextureHandle& texture, int x, int y, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex) return;
         
         CE::Renderer::TextureFlip flip = CE::Renderer::TextureFlip::None;
@@ -904,8 +909,8 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, colour, 0.0f, flip);
     }
 
-    void Runtime::DrawTextureRot(CE::Renderer::Resources::TextureHandle texture, int x, int y, float rotation, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture);
+    void Runtime::DrawTextureRot(const TextureHandle& texture, int x, int y, float rotation, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex) return;
         
         CE::Renderer::TextureFlip flip = CE::Renderer::TextureFlip::None;
@@ -922,8 +927,8 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, kWhite, rotation, flip);
     }
 
-    void Runtime::DrawTextureRotEx(CE::Renderer::Resources::TextureHandle texture, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture);
+    void Runtime::DrawTextureRotEx(const TextureHandle& texture, int x, int y, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex) return;
         
         CE::Renderer::TextureFlip flip = CE::Renderer::TextureFlip::None;
@@ -940,8 +945,8 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, colour, rotation, flip);
     }
 
-    void Runtime::DrawTexturePro(CE::Renderer::Resources::TextureHandle texture, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture);
+    void Runtime::DrawTexturePro(const TextureHandle& texture, int x, int y, int w, int h, float rotation, const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex) return;
         
         CE::Renderer::TextureFlip flip = CE::Renderer::TextureFlip::None;
@@ -1021,8 +1026,8 @@ namespace CE::Scripting {
         mShaderManager.SetInt(uniformName.c_str(), value);
     }
 
-    bool Runtime::SetShaderTexture(const std::string& uniformName, Renderer::Resources::TextureHandle texture, int slot) {
-        return mShaderManager.SetTexture(uniformName.c_str(), texture, slot);
+    bool Runtime::SetShaderTexture(const std::string& uniformName, const TextureHandle& texture, int slot) {
+        return mShaderManager.SetTexture(uniformName.c_str(), texture.handle, slot);
     }
 
     void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation) {

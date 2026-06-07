@@ -5,9 +5,26 @@
 #include "engine/rendering/common/material_manager.hpp"
 
 #include <new>
+#include <cstdint>
 
 namespace {
     constexpr const char* k3DNamespace = "CE::Graphics::Rendering3D";
+
+    static bool MeshHandleEquals(const CE::Scripting::MeshHandle& self, const CE::Scripting::MeshHandle& other) {
+        return self.handle == other.handle;
+    }
+
+    static bool MeshHandleEqualsInt(const CE::Scripting::MeshHandle& self, int64_t other) {
+        return self.handle == static_cast<uint64_t>(other);
+    }
+
+    static bool MaterialHandleEquals(const CE::Scripting::MaterialHandle& self, const CE::Scripting::MaterialHandle& other) {
+        return self.handle == other.handle;
+    }
+
+    static bool MaterialHandleEqualsInt(const CE::Scripting::MaterialHandle& self, int64_t other) {
+        return self.handle == static_cast<uint64_t>(other);
+    }
 }
 
 namespace CE::Scripting {
@@ -92,15 +109,65 @@ namespace CE::Scripting {
 
         mScriptEngine->RegisterObjectType(
             "MaterialHandle",
-            sizeof(CE::Renderer::Resources::MaterialHandle),
-            asOBJ_VALUE | asOBJ_POD
+            sizeof(MaterialHandle),
+            asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<MaterialHandle>()
         );
+
+        result = mScriptEngine->RegisterObjectProperty("MaterialHandle", "uint64 handle", asOFFSET(MaterialHandle, handle));
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterObjectMethod(
+            "MaterialHandle",
+            "bool opEquals(const MaterialHandle &in) const",
+            asFUNCTION(MaterialHandleEquals),
+            asCALL_CDECL_OBJFIRST
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterObjectMethod(
+            "MaterialHandle",
+            "bool opEquals(int64) const",
+            asFUNCTION(MaterialHandleEqualsInt),
+            asCALL_CDECL_OBJFIRST
+        );
+        if (result < 0) {
+            return false;
+        }
 
         mScriptEngine->RegisterObjectType(
             "MeshHandle",
-            sizeof(CE::Renderer::Resources::MeshHandle),
-            asOBJ_VALUE | asOBJ_POD
+            sizeof(MeshHandle),
+            asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<MeshHandle>()
         );
+
+        result = mScriptEngine->RegisterObjectProperty("MeshHandle", "uint64 handle", asOFFSET(MeshHandle, handle));
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterObjectMethod(
+            "MeshHandle",
+            "bool opEquals(const MeshHandle &in) const",
+            asFUNCTION(MeshHandleEquals),
+            asCALL_CDECL_OBJFIRST
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterObjectMethod(
+            "MeshHandle",
+            "bool opEquals(int64) const",
+            asFUNCTION(MeshHandleEqualsInt),
+            asCALL_CDECL_OBJFIRST
+        );
+        if (result < 0) {
+            return false;
+        }
 
         mScriptEngine->SetDefaultNamespace(k3DNamespace);
 
@@ -321,7 +388,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "Camera3D GetCamera3D()",
+            "void GetCamera3D(Camera3D& out camera)",
             asMETHOD(Runtime, GetCamera3D),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -411,6 +478,16 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
+            "void LoadMaterial(const string &in name, MaterialHandle& out handle)",
+            asMETHOD(Runtime, LoadMaterial),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        );
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction(
             "void ClearSkyBox()",
             asMETHOD(Runtime, ClearSkyBox),
             asCALL_THISCALL_ASGLOBAL,
@@ -431,8 +508,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "uint64 CreateMaterialHandle(const Material &in material, const string &in textureName = \"\")",
-            asMETHODPR(Runtime, CreateMaterialHandle, (const MaterialDesc&, const std::string&), uint64_t),
+            "void CreateMaterialHandle(const Material &in material, const string &in textureName, MaterialHandle &out materialHandle)",
+            asMETHODPR(Runtime, CreateMaterialHandle, (const MaterialDesc&, const std::string&, MaterialHandle&), void),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -441,8 +518,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DestroyMaterialHandle(uint64 handle)",
-            asMETHODPR(Runtime, DestroyMaterialHandle, (uint64_t), void),
+            "void DestroyMaterialHandle(const MaterialHandle &in handle)",
+            asMETHODPR(Runtime, DestroyMaterialHandle, (const MaterialHandle&), void),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -451,8 +528,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool SetMaterialAlbedo(uint64 handle, const string &in textureName)",
-            asMETHODPR(Runtime, SetMaterialAlbedo, (uint64_t, const std::string&), bool),
+            "bool SetMaterialAlbedo(const MaterialHandle &in handle, const string &in textureName)",
+            asMETHODPR(Runtime, SetMaterialAlbedo, (const MaterialHandle&, const std::string&), bool),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -461,8 +538,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool SetMaterialTint(uint64 handle, const CE::Graphics::Colour &in colour)",
-            asMETHODPR(Runtime, SetMaterialTint, (uint64_t, const Renderer::Colour&), bool),
+            "bool SetMaterialTint(const MaterialHandle &in handle, const CE::Graphics::Colour &in colour)",
+            asMETHODPR(Runtime, SetMaterialTint, (const MaterialHandle&, const Renderer::Colour&), bool),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -471,8 +548,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool SetMaterialRoughness(uint64 handle, float roughness)",
-            asMETHODPR(Runtime, SetMaterialRoughness, (uint64_t, float), bool),
+            "bool SetMaterialRoughness(const MaterialHandle &in handle, float roughness)",
+            asMETHODPR(Runtime, SetMaterialRoughness, (const MaterialHandle&, float), bool),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -481,8 +558,8 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool SetMaterialMetallic(uint64 handle, float metallic)",
-            asMETHODPR(Runtime, SetMaterialMetallic, (uint64_t, float), bool),
+            "bool SetMaterialMetallic(const MaterialHandle &in handle, float metallic)",
+            asMETHODPR(Runtime, SetMaterialMetallic, (const MaterialHandle&, float), bool),
             asCALL_THISCALL_ASGLOBAL,
             this
         );
@@ -491,7 +568,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool HasMaterial(uint64 handle)",
+            "bool HasMaterial(const MaterialHandle &in handle)",
             asMETHOD(Runtime, HasMaterial),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -511,7 +588,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "uint64 CreateMeshHandle(CE::Graphics::MeshData@ meshData)",
+            "void CreateMeshHandle(CE::Graphics::MeshData@ meshData, MeshHandle &out handle)",
             asMETHOD(Runtime, CreateMeshHandle),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -521,7 +598,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void ChangeMesh(uint64 handle, CE::Graphics::MeshData@ meshData)",
+            "void ChangeMesh(const MeshHandle &in handle, CE::Graphics::MeshData@ meshData)",
             asMETHOD(Runtime, ChangeMesh),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -531,7 +608,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "uint64 DestroyMesh(uint64 handle)",
+            "void DestroyMesh(const MeshHandle &in handle)",
             asMETHOD(Runtime, DestroyMesh),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -541,7 +618,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool HasMesh(uint64 handle)",
+            "bool HasMesh(const MeshHandle &in handle)",
             asMETHOD(Runtime, HasMesh),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -551,7 +628,7 @@ namespace CE::Scripting {
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DrawMesh(uint64 handle, const Transform3D &in transform, uint64 materialHandle = 0, bool errorTexture = false)",
+            "void DrawMesh(const MeshHandle &in handle, const Transform3D &in transform, const MaterialHandle &in materialHandle = MaterialHandle(), bool errorTexture = false)",
             asMETHOD(Runtime, DrawMesh),
             asCALL_THISCALL_ASGLOBAL,
             this
@@ -568,8 +645,8 @@ namespace CE::Scripting {
         mRenderer.SetCamera3D(ToCamera(camera));
     }
 
-    Camera3DDesc Runtime::GetCamera3D() const {
-        return FromCamera(mRenderer.GetCamera3DState());
+    void Runtime::GetCamera3D(Camera3DDesc& outCamera) const {
+        outCamera = FromCamera(mRenderer.GetCamera3DState());
     }
 
     void Runtime::SetSunEnabled(bool enabled) {
@@ -627,82 +704,90 @@ namespace CE::Scripting {
     void Runtime::UnloadSkyBox(const std::string& name) {
         mSkyboxManager.Unload(name.c_str());
     }
-    uint64_t Runtime::CreateMaterialHandle(const MaterialDesc& material, const std::string& textureName) {
+
+    void Runtime::LoadMaterial(const std::string& /*name*/, MaterialHandle& handle) {
+        handle.handle = mMaterialManager.CreateMaterial(0);
+    }
+
+    void Runtime::CreateMaterialHandle(const MaterialDesc& material, const std::string& textureName, MaterialHandle& materialHandle) {
         Renderer::Resources::TextureHandle texHandle = 0;
         if (!textureName.empty()) {
             std::string tmp = textureName;
-            texHandle = LoadTexture(tmp);
+            TextureHandle tempTexture;
+            LoadTexture(tmp, tempTexture);
+            texHandle = tempTexture.handle;
         }
 
         auto handle = mMaterialManager.CreateMaterial(texHandle);
         mMaterialManager.SetMaterialColour(handle, material.tint);
         mMaterialManager.SetMaterialRoughness(handle, material.roughness);
         mMaterialManager.SetMaterialMetallic(handle, material.metallic);
-        return handle;
+        materialHandle.handle = handle;
     }
 
-    void Runtime::DestroyMaterialHandle(uint64_t handle) {
-        mMaterialManager.DestroyMaterial(handle);
+    void Runtime::DestroyMaterialHandle(const MaterialHandle& handle) {
+        mMaterialManager.DestroyMaterial(handle.handle);
     }
 
-    bool Runtime::SetMaterialAlbedo(uint64_t handle, const std::string& textureName) {
+    bool Runtime::SetMaterialAlbedo(const MaterialHandle& handle, const std::string& textureName) {
         if (textureName.empty()) return false;
         std::string tmp = textureName;
-        auto tex = LoadTexture(tmp);
-        mMaterialManager.SetMaterialAlbedo(handle, tex);
-        return mMaterialManager.GetMaterial(handle) != nullptr;
+        TextureHandle tex;
+        LoadTexture(tmp, tex);
+        mMaterialManager.SetMaterialAlbedo(handle.handle, tex.handle);
+        return mMaterialManager.GetMaterial(handle.handle) != nullptr;
     }
 
-    bool Runtime::SetMaterialTint(uint64_t handle, const Renderer::Colour& colour) {
-        mMaterialManager.SetMaterialColour(handle, colour);
-        return mMaterialManager.GetMaterial(handle) != nullptr;
+    bool Runtime::SetMaterialTint(const MaterialHandle& handle, const Renderer::Colour& colour) {
+        mMaterialManager.SetMaterialColour(handle.handle, colour);
+        return mMaterialManager.GetMaterial(handle.handle) != nullptr;
     }
 
-    bool Runtime::SetMaterialRoughness(uint64_t handle, float roughness) {
-        mMaterialManager.SetMaterialRoughness(handle, roughness);
-        return mMaterialManager.GetMaterial(handle) != nullptr;
+    bool Runtime::SetMaterialRoughness(const MaterialHandle& handle, float roughness) {
+        mMaterialManager.SetMaterialRoughness(handle.handle, roughness);
+        return mMaterialManager.GetMaterial(handle.handle) != nullptr;
     }
 
-    bool Runtime::SetMaterialMetallic(uint64_t handle, float metallic) {
-        mMaterialManager.SetMaterialMetallic(handle, metallic);
-        return mMaterialManager.GetMaterial(handle) != nullptr;
+    bool Runtime::SetMaterialMetallic(const MaterialHandle& handle, float metallic) {
+        mMaterialManager.SetMaterialMetallic(handle.handle, metallic);
+        return mMaterialManager.GetMaterial(handle.handle) != nullptr;
     }
 
-    bool Runtime::HasMaterial(uint64_t handle) const {
-        return mMaterialManager.GetMaterial(handle) != nullptr;
+    bool Runtime::HasMaterial(const MaterialHandle& handle) const {
+        return mMaterialManager.GetMaterial(handle.handle) != nullptr;
     }
     int Runtime::DebugLoadedMaterialsCount() const {
         return static_cast<int>(mMaterialManager.Debug_LoadedMaterialsCount());
     }
-    uint64_t Runtime::CreateMeshHandle(ASMeshData* meshData) {
+    void Runtime::CreateMeshHandle(ASMeshData* meshData, MeshHandle& meshHandle) {
         if (!meshData) {
             CE::Log(CE::LogLevel::Warn, "[AngelScript 3D] CreateMeshHandle called with a null mesh");
-            return 0;
+            meshHandle = MeshHandle{};
+            return;
         }
 
-        return mGPUMeshManager.CreateMeshHandle(meshData->mesh);
+        meshHandle.handle = mGPUMeshManager.CreateMeshHandle(meshData->mesh);
     }
 
-    void Runtime::ChangeMesh(uint64_t handle, ASMeshData* meshData) {
+    void Runtime::ChangeMesh(const MeshHandle& handle, ASMeshData* meshData) {
         if (!meshData) {
             CE::Log(CE::LogLevel::Warn, "[AngelScript 3D] ChangeMesh called with a null mesh");
             return;
         }
 
-        mGPUMeshManager.ChangeMesh(handle, meshData->mesh);
+        mGPUMeshManager.ChangeMesh(handle.handle, meshData->mesh);
     }
 
-    uint64_t Runtime::DestroyMesh(uint64_t handle) {
-        mGPUMeshManager.DestroyMesh(handle);
-        return handle;
+    void Runtime::DestroyMesh(const MeshHandle& handle) {
+        mGPUMeshManager.DestroyMesh(handle.handle);
     }
 
-    bool Runtime::HasMesh(uint64_t handle) const {
-        return mGPUMeshManager.HasMesh(handle);
+    bool Runtime::HasMesh(const MeshHandle& handle) const {
+        return mGPUMeshManager.HasMesh(handle.handle);
     }
 
-    void Runtime::DrawMesh(uint64_t handle, const Transform3DDesc& transform, uint64_t materialHandle, bool errorTexture) {
+    void Runtime::DrawMesh(const MeshHandle& handle, const Transform3DDesc& transform, const MaterialHandle& materialHandle, bool errorTexture) {
         auto engineTransform = ToTransform(transform);
-        mGPUMeshManager.DrawMeshHandle(handle, engineTransform, materialHandle, errorTexture);
+        mGPUMeshManager.DrawMeshHandle(handle.handle, engineTransform, materialHandle.handle, errorTexture);
     }
 }
