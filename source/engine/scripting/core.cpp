@@ -34,7 +34,7 @@ namespace CE::Scripting {
         Assets::Fonts::FontManager& fontManager,
         Renderer::Resources::GPUMeshManager& gpuMeshManager,
         Renderer::Resources::MaterialManager& materialManager,
-        CE::Assets::Animations::AnimationManager* animationManager,
+        CE::Assets::Animations::AnimatedTextureManager* AnimatedTextureManager,
         Input::Keyboard& keyboard,
         Input::Mouse& mouse,
         CE::Assets::Audio::AudioManager* audioManager
@@ -50,7 +50,7 @@ namespace CE::Scripting {
         , mFontManager(fontManager)
         , mGPUMeshManager(gpuMeshManager)
         , mMaterialManager(materialManager)
-        , mAnimationManager(animationManager)
+        , mAnimationManager(AnimatedTextureManager)
         , mKeyboard(keyboard)
         , mMouse(mouse)
         , mAudioManager(audioManager) {

@@ -28,7 +28,7 @@ namespace CE::Assets::Audio {
 }
 
 namespace CE::Assets::Animations {
-    class AnimationManager;
+    class AnimatedTextureManager;
 }
 
 namespace CE::Renderer::Resources {
@@ -127,7 +127,7 @@ namespace CE::Scripting {
                 Assets::Fonts::FontManager& fontManager,
                 Renderer::Resources::GPUMeshManager& gpuMeshManager,
                 Renderer::Resources::MaterialManager& materialManager,
-                CE::Assets::Animations::AnimationManager* animationManager,
+                CE::Assets::Animations::AnimatedTextureManager* AnimatedTextureManager,
                 Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
                 CE::Assets::Audio::AudioManager* audioManager = nullptr
@@ -334,7 +334,7 @@ namespace CE::Scripting {
             Assets::Fonts::FontManager& mFontManager;
             Renderer::Resources::GPUMeshManager& mGPUMeshManager;
             Renderer::Resources::MaterialManager& mMaterialManager;
-            CE::Assets::Animations::AnimationManager* mAnimationManager = nullptr;
+            CE::Assets::Animations::AnimatedTextureManager* mAnimationManager = nullptr;
             Input::Keyboard& mKeyboard;
             Input::Mouse& mMouse;
             CE::Assets::Audio::AudioManager* mAudioManager = nullptr;

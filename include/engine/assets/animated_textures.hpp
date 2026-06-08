@@ -36,9 +36,9 @@ namespace CE::Assets::Animations {
         Renderer::Colour Tint = {255, 255, 255, 255};
     };
     
-    class AnimationManager {
+    class AnimatedTextureManager {
         public:
-        AnimationManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
+        AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
 
         void Load(std::string name, std::string path);
         void Unload(std::string name);

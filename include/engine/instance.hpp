@@ -11,7 +11,7 @@
 #include "engine/rendering/common/gpu_mesh_manager.hpp"
 #include "engine/rendering/common/material_manager.hpp"
 #include "engine/rendering/common/texture_manager.hpp"
-#include "engine/assets/animations.hpp"
+#include "engine/assets/animated_textures.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/bootstrap/instance.hpp"
@@ -69,7 +69,7 @@ namespace CE {
             std::unique_ptr<CE::Renderer::Resources::TextureManager> gTextureManager;
             std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
             std::unique_ptr<CE::Assets::Shaders::ShaderManager> gShaderManager;
-            std::unique_ptr<CE::Assets::Animations::AnimationManager> gAnimatedTextureManager;
+            std::unique_ptr<CE::Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             
             SDL_Window* gWindow = nullptr;

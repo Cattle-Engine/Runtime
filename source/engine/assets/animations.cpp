@@ -1,4 +1,4 @@
-#include "engine/assets/animations.hpp"
+#include "engine/assets/animated_textures.hpp"
 #include "engine/common/fs/tdf.hpp"
 #include "engine/common/tracelog.hpp"
 
@@ -6,13 +6,13 @@
 #include <memory>
 
 namespace CE::Assets::Animations {
-    AnimationManager::AnimationManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
+    AnimatedTextureManager::AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
     : mVFS(vfs), mRenderer(renderer) {
         mInstanceID = instance_id;
         mNextHandleID = 1;
     }
 
-    AnimationInstance* AnimationManager::GetAnimationInfo(uint32_t handle) {
+    AnimationInstance* AnimatedTextureManager::GetAnimationInfo(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
         if (it == mAnimationInstances.end()) {
             CE::Log(LogLevel::Error, "[Animation Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
@@ -22,7 +22,7 @@ namespace CE::Assets::Animations {
         }
     }
 
-    void AnimationManager::Load(std::string name, std::string path) {
+    void AnimatedTextureManager::Load(std::string name, std::string path) {
         CE::Log(LogLevel::Info,
             "[Animation Manager {}] Loading '{}' from '{}'",
             mInstanceID,
@@ -103,7 +103,7 @@ namespace CE::Assets::Animations {
         mAnimations[name] = anim;
     }
 
-    uint32_t AnimationManager::CreateInstance(std::string name) {
+    uint32_t AnimatedTextureManager::CreateInstance(std::string name) {
         CE::Log(LogLevel::Info,
             "[Animation Manager {}] Creating instance for: '{}'",
             mInstanceID,
@@ -130,11 +130,11 @@ namespace CE::Assets::Animations {
         return 0;
     }
 
-    void AnimationManager::Play(uint32_t handle, int x, int y, bool loop, bool auto_render) {
+    void AnimatedTextureManager::Play(uint32_t handle, int x, int y, bool loop, bool auto_render) {
         this->PlayRot(handle, x, y, loop, 0.0f, auto_render);
     }
 
-    void AnimationManager::PlayRot(uint32_t handle, int x, int y, bool loop, float rotation, bool auto_render) {
+    void AnimatedTextureManager::PlayRot(uint32_t handle, int x, int y, bool loop, float rotation, bool auto_render) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
@@ -148,7 +148,7 @@ namespace CE::Assets::Animations {
         info->FrameTimer = 0.0f;
     }
 
-    void AnimationManager::SetPosition(uint32_t handle, int x, int y, float rotation) {
+    void AnimatedTextureManager::SetPosition(uint32_t handle, int x, int y, float rotation) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
@@ -157,7 +157,7 @@ namespace CE::Assets::Animations {
         info->Rotation = rotation;
     }
 
-    void AnimationManager::Seek(uint32_t handle, uint32_t frame) {
+    void AnimatedTextureManager::Seek(uint32_t handle, uint32_t frame) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
@@ -171,28 +171,28 @@ namespace CE::Assets::Animations {
         info->CurrentFrame = frame;
     }
 
-    void AnimationManager::SetLooping(uint32_t handle, bool loop) {
+    void AnimatedTextureManager::SetLooping(uint32_t handle, bool loop) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
         info->Loop = loop;
     }
 
-    void AnimationManager::Pause(uint32_t handle) {
+    void AnimatedTextureManager::Pause(uint32_t handle) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
         
         info->IsPlaying = false;
     }
 
-    void AnimationManager::SetTint(uint32_t handle, Renderer::Colour colour) {
+    void AnimatedTextureManager::SetTint(uint32_t handle, Renderer::Colour colour) {
         auto info = GetAnimationInfo(handle);
         if(info == nullptr) return;
 
         info->Tint = colour;
     }
 
-    void AnimationManager::Stop(uint32_t handle) {
+    void AnimatedTextureManager::Stop(uint32_t handle) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
         
@@ -200,14 +200,14 @@ namespace CE::Assets::Animations {
         info->IsPlaying = false;
     }
 
-    void AnimationManager::SetDrawMode(uint32_t handle, bool auto_render) {
+    void AnimatedTextureManager::SetDrawMode(uint32_t handle, bool auto_render) {
         auto info = GetAnimationInfo(handle);
         if (info == nullptr) return;
 
         info->AutoRender = auto_render;
     }
 
-    void AnimationManager::Update(float dt) {
+    void AnimatedTextureManager::Update(float dt) {
         dt = std::clamp(dt, 0.0f, 0.1f);
         for (auto& [handle, anim] : mAnimationInstances) {
             if (!anim.IsPlaying || !anim.AnimInfo)
@@ -252,7 +252,7 @@ namespace CE::Assets::Animations {
         }
     }
 
-    void AnimationManager::Render() {
+    void AnimatedTextureManager::Render() {
         for (auto& [handle, anim] : mAnimationInstances) {
 
             if (anim.AnimInfo == nullptr)
@@ -301,7 +301,7 @@ namespace CE::Assets::Animations {
         }
     }
 
-    void AnimationManager::DeleteInstance(uint32_t handle) {
+    void AnimatedTextureManager::DeleteInstance(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
 
         if (it == mAnimationInstances.end()) {
@@ -314,7 +314,7 @@ namespace CE::Assets::Animations {
         mAnimationInstances.erase(it);
     }
 
-    void AnimationManager::Unload(std::string name) {
+    void AnimatedTextureManager::Unload(std::string name) {
         auto it = mAnimations.find(name);
 
         if (it == mAnimations.end()) return;
@@ -331,7 +331,7 @@ namespace CE::Assets::Animations {
         mAnimations.erase(it);
     }
 
-    void AnimationManager::DrawFrame(uint32_t handle) {
+    void AnimatedTextureManager::DrawFrame(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
         if (it == mAnimationInstances.end()) return;
 

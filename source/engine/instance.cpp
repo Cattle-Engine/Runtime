@@ -376,10 +376,6 @@ namespace CE {
 
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
-        gAudioManager.reset();
-        gAudioSystem.reset();
-        gShaderManager.reset();
-        gTextureManager.reset();
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);
     }

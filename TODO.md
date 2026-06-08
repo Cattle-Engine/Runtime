@@ -5,5 +5,5 @@
 
 - [ ] 3D model loading
 - [ ] Update docs to show new AngelScript bindings
-- [ ] Refactor AnimationManager to be AnimatedTextureManager
+- [X] Refactor AnimationManager to be AnimatedTextureManager
 - [ ] Normal support & metallic rougness support

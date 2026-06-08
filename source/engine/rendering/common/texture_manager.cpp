@@ -6,7 +6,7 @@ namespace CE::Renderer::Resources {
         : mManager(mgr), mHandle(handle), mTexture(tex) {}
 
     TextureRef::~TextureRef() {
-        if (mManager)
+        if (mManager && mHandle)
             mManager->Return(mHandle);
     }
 
@@ -97,6 +97,8 @@ namespace CE::Renderer::Resources {
 
     Texture* TextureManager::GetTexture(TextureHandle handle) {
         TextureEntry* entry = GetTextureEntry(handle);
+
+        if (!entry) return nullptr;
 
         if (entry->IsPendingUnload) return nullptr;
 

@@ -1,5 +1,5 @@
 #include "engine/scripting/angelscript.hpp"
-#include "engine/assets/animations.hpp"
+#include "engine/assets/animated_textures.hpp"
 #include "engine/rendering/common/texture_manager.hpp"
 #include "engine/rendering/common/primitives_3d.hpp"
 
