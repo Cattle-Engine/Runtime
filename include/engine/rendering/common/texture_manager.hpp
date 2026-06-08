@@ -52,6 +52,15 @@ namespace CE::Renderer::Resources {
         
         // Returns InvalidTextureHandle if failure
         TextureHandle Load(std::string path);
+        TextureHandle CreateTextureFromData(
+                int width,
+                int height,
+                const void* pixels,
+                TextureFormat format,
+                int pitch = 0,
+                TextureFilter filter = TextureFilter::Linear,
+                TextureWrap wrap = TextureWrap::Clamp
+        );
         
         // When RefCount in TextureEntry a texture is fully deleted
         void Unload(TextureHandle handle);

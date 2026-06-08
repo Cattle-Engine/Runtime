@@ -1,5 +1,10 @@
 #include "engine/rendering/common/texture_manager.hpp"
 #include "engine/common/tracelog.hpp"
+#include <format>
+
+namespace {
+    constexpr const char kGeneratedTexturePathName[] = "__ce_internal_texture_generated_path";
+}
 
 namespace CE::Renderer::Resources {
     TextureRef::TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex)
@@ -169,5 +174,42 @@ namespace CE::Renderer::Resources {
         }
 
         return count;
+    }
+
+    TextureHandle TextureManager::CreateTextureFromData(
+                    int width,
+                    int height,
+                    const void* pixels,
+                    TextureFormat format,
+                    int pitch = 0,
+                    TextureFilter filter,
+                    TextureWrap wrap
+    ) {
+        auto tex = mRenderer.CreateTextureFromData(
+            width,
+            height,
+            pixels,
+            format,
+            pitch,
+            filter,
+            wrap
+        );
+        TextureEntry entry = {};
+        
+        if (tex == nullptr) {
+            CE::Log(LogLevel::Error, "[Texture Manager] Failed to create a texture from data!");
+            entry.IsError = true;
+            entry.Resource = mRenderer.GetErrorTexture();
+        } else {
+            entry.IsError = false;
+            entry.Resource = tex;
+        }
+
+        TextureHandle handle = mNextHandleID++;
+        entry.Path = std::format("{}_{}", kGeneratedTexturePathName, handle);
+        entry.IsPendingUnload = false;
+        entry.RefCount = 0;
+        mTextureCache.emplace(handle, std::move(entry));
+        return handle;
     }
 }
