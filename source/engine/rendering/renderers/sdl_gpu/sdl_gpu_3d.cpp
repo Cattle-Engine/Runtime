@@ -805,6 +805,59 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMeshCommands.push_back(command);
     }
 
+    void SDL_GPU_Renderer::DrawMeshMat4(
+        GPUMesh* mesh,
+        Material& material,
+        const glm::mat4& transform,
+        bool error_tex
+    ) {
+        if (!gFrameActive) {
+            if (!mWarnedOutsideFrame) {
+                CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Can't draw mesh outside of BeginFrame/EndFrame");
+                mWarnedOutsideFrame = true;
+            }
+            return;
+        }
+
+        auto* meshData = mesh ? static_cast<SDLGPUMeshData*>(mesh->handle) : nullptr;
+        if (!meshData || !meshData->vertexBuffer || !meshData->indexBuffer || meshData->indexCount == 0) {
+            return;
+        }
+
+        Texture* texture = nullptr;
+
+        if (auto albedo = material.albedo) {
+            texture = albedo;
+        }
+        else if (error_tex) {
+            texture = GetErrorTexture();
+        }
+
+        auto* texData = texture && texture->handle
+            ? static_cast<SDLGPUTexData*>(texture->handle)
+            : nullptr;
+
+        const glm::mat4 modelMatrix = transform;
+        const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);
+
+        MeshDrawCommand command{};
+        command.mesh = meshData;
+        command.texture = texData;
+        command.sampler = texData ? texData->sampler : gWhiteSampler;
+        command.shader = gCurrentShader;
+        command.model = modelMatrix;
+        command.normalMatrix = normalMatrix;
+        command.tint = ToColourVec4(material.tint);
+        command.materialProps = glm::vec4(material.roughness, material.metallic, 0.0f, 0.0f);
+
+        if (command.shader && command.shader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
+            command.shader->Mode = SDL_GPU_Renderer_Shader::PipelineMode::Mode3D;
+            command.shader->Dirty = true;
+        }
+
+        gMeshCommands.push_back(command);
+    }
+
     void SDL_GPU_Renderer::DrawSkybox(SDL_GPURenderPass* renderPass, const Camera3D& camera, float aspectRatio, int width, int height) {
         if (!renderPass || !gSkyboxPipeline || !gSkyboxMesh || !HasSkyboxTextures(GetSkyBoxState())) {
             return;

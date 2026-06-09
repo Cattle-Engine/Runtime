@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <glm/glm.hpp>
+
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/material_manager.hpp"
 
@@ -15,6 +17,7 @@ namespace CE::Renderer::Resources {
 
             MeshHandle CreateMeshHandle(MeshData& data);
             void DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture = false);
+            void DrawMeshHandleMat4(MeshHandle handle, glm::mat4 transform, MaterialHandle matt_handle, bool error_texture = false);
             void ChangeMesh(MeshHandle handle, MeshData& data);
             void DestroyMesh(MeshHandle handle);
             GPUMesh* GetMesh(MeshHandle handle);

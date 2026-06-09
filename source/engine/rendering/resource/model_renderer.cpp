@@ -8,10 +8,13 @@ namespace CE::Renderer::Resources {
         IRenderer& renderer
     ) : mMaterialManager(mat_manager), mGPUMeshManager(gpu_mesh_man), mRenderer(renderer) {}
 
-    void ModelRenderer::RenderModel(const Model& model, const Transform3D& transform) {
+    void ModelRenderer::RenderModel(const Model& model, const Transform3D& transform)
+    {
         if (model.Nodes.empty()) return;
 
-        RenderNode(model, model.RootNode, transform);
+        glm::mat4 rootMatrix = Common::Transform3DToMatrix(transform);
+
+        RenderNode(model, model.RootNode, rootMatrix);
     }
 
     void ModelRenderer::RenderNode(
@@ -21,7 +24,7 @@ namespace CE::Renderer::Resources {
     ) {
         const Model::Node& node = model.Nodes[nodeIndex];
 
-        glm::mat4 localTransform = Common::Transform3DToMatrix(node.Transform);
+        glm::mat4 localTransform = node.Transform;
         glm::mat4 worldTransform = parentTransform * localTransform;
 
         for (uint32_t meshIndex : node.MeshIndices)
@@ -29,7 +32,7 @@ namespace CE::Renderer::Resources {
             const MeshHandle meshHandle = model.Meshes[meshIndex];
             const MaterialHandle materialHandle = model.Materials[meshIndex];
 
-            mGPUMeshManager.DrawMeshHandle(
+            mGPUMeshManager.DrawMeshHandleMat4(
                 meshHandle,
                 worldTransform,
                 materialHandle,
@@ -40,5 +43,20 @@ namespace CE::Renderer::Resources {
         for (uint32_t childIndex : node.Children) {
             RenderNode(model, childIndex, worldTransform);
         }
+    }
+
+    void ModelRenderer::DestroyModel(Model& model) {
+        for (auto meshHandle : model.Meshes) {
+            mGPUMeshManager.DestroyMesh(meshHandle);
+        }
+
+        for (auto materialHandle : model.Materials) {
+            mMaterialManager.DestroyMaterial(materialHandle);
+        }
+
+        model.Meshes.clear();
+        model.Materials.clear();
+        model.Nodes.clear();
+        model.RootNode = 0;
     }
 }

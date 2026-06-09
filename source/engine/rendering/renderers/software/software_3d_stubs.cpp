@@ -30,6 +30,13 @@ namespace CE::Renderer::Software {
         LogAbout3D();
     }
 
+    void Software_Renderer::DrawMeshMat4(
+        GPUMesh* /*mesh*/,
+        Material& /*material*/,
+        const glm::mat4& /*transform*/,
+        bool /*error_tex*/
+    ) { LogAbout3D();}
+
     void Software_Renderer::BeginMode3D() {}
     void Software_Renderer::EndMode3D() {}
 }

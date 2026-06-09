@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/material_manager.hpp"
@@ -10,7 +11,7 @@
 namespace CE::Renderer::Resources {
     struct Model {
         struct Node {
-            Renderer::Transform3D Transform;
+            glm::mat4 Transform;
             std::vector<uint32_t> MeshIndices;
             std::vector<uint32_t> Children;
         };
@@ -30,6 +31,7 @@ namespace CE::Renderer::Resources {
                 IRenderer& renderer
             );
             void RenderModel(const Model& model, const Renderer::Transform3D& transform);
+            void DestroyModel(Model& model);
         private:
             void RenderNode(
                 const Model& model,

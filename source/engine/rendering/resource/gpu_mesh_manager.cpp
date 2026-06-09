@@ -59,6 +59,29 @@ namespace CE::Renderer::Resources {
         );
     }
 
+    void GPUMeshManager::DrawMeshHandleMat4(MeshHandle handle, glm::mat4 transform, MaterialHandle matt_handle, bool error_texture) {
+        auto it = mGPUMeshes.find(handle);
+        if (it == mGPUMeshes.end() || !it->second.Mesh) {
+            CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
+            return;
+        }
+
+        Material material_to_draw = {};
+
+        auto material_from_manager = mMaterialManager.GetMaterial(matt_handle);
+
+        if (material_from_manager) {
+            material_to_draw = *material_from_manager;
+        }
+
+        mRenderer.DrawMeshMat4(
+            it->second.Mesh,
+            material_to_draw,
+            transform,
+            error_texture
+        );  
+    }
+
     void GPUMeshManager::ChangeMesh(MeshHandle handle, MeshData& data) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {

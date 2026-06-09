@@ -112,6 +112,13 @@ namespace CE::Renderer::Software {
             void EndMode3D() override;
             void ChangeCameraPos3D(const Transform3D& transform) override;
 
+            void DrawMeshMat4(
+                GPUMesh* mesh,
+                Material& material,
+                const glm::mat4& transform,
+                bool error_tex
+            ) override;
+
             void BeginMode2D() override;
             void EndMode2D() override;
 
