@@ -8,9 +8,32 @@
 - [X] 3D model drawing
 - [ ] Update docs to show new AngelScript bindings
 - [X] Refactor AnimationManager to be AnimatedTextureManager
-- [ ] Normal support & metallic rougness support
+- [X] Normal support & metallic rougness support (turns out I forgot my own renderer shit and i do have this all supported)
 - [ ] Refactor shader manager to live in engine/rendering/resources and have it handle based
 - [ ] Update AngelScript bindings for the shaders
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
+- [ ] AngelScript imports:
+// Main script
+```angelscript
+import test; // Imports a file called test, adds whatever has "export" inside the file
+import test.foo_func; // Import just 1 function
+```
+
+Script export
+```angelscript
+export int FooInt = 100;
+
+export int foo_func() {
+
+}
+```
+- [ ] AngelScript #define, #ifdef and shish
+- [ ] Make a UI system
+- [ ] Add an ECS
+- [ ] Physics via Jolt
+- [ ] plugins
+
+- [ ] POLISH
+- [ ] 1.0 ?

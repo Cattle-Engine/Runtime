@@ -10,8 +10,8 @@
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/shaders.hpp"
 #include "engine/assets/skybox_manager.hpp"
-#include "engine/rendering/common/texture_manager.hpp"
-#include "engine/rendering/common/gpu_mesh_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
+#include "engine/rendering/resources/gpu_mesh_manager.hpp"
 
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"

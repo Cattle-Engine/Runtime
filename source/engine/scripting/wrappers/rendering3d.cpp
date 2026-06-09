@@ -1,8 +1,8 @@
 #include "engine/scripting/angelscript.hpp"
 
 #include "engine/common/tracelog.hpp"
-#include "engine/rendering/common/gpu_mesh_manager.hpp"
-#include "engine/rendering/common/material_manager.hpp"
+#include "engine/rendering/resources/gpu_mesh_manager.hpp"
+#include "engine/rendering/resources/material_manager.hpp"
 
 #include <new>
 #include <cstdint>

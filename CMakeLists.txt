@@ -218,6 +218,8 @@ endif()
 
 find_package(SDL3_image CONFIG QUIET)
 target_link_libraries(ce_engine PRIVATE assimp::assimp)
+get_target_property(ASSIMP_INCLUDES assimp::assimp INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Assimp includes: ${ASSIMP_INCLUDES}")
 if(SDL3_image_FOUND)
     target_link_libraries(ce_engine PRIVATE SDL3_image::SDL3_image)
 else()

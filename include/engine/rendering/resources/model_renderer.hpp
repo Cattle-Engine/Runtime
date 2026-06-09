@@ -15,7 +15,7 @@ namespace CE::Renderer::Resources {
             std::vector<uint32_t> MeshIndices;
             std::vector<uint32_t> Children;
         };
-
+        std::vector<MeshData> MeshesCPU;
         std::vector<Renderer::Resources::MeshHandle> Meshes;
         std::vector<Renderer::Resources::MaterialHandle> Materials;
         std::vector<Node> Nodes;

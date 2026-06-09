@@ -181,7 +181,7 @@ namespace CE::Renderer::Resources {
                     int height,
                     const void* pixels,
                     TextureFormat format,
-                    int pitch = 0,
+                    int pitch,
                     TextureFilter filter,
                     TextureWrap wrap
     ) {

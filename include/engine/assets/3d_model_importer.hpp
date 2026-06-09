@@ -3,6 +3,9 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
@@ -17,13 +20,17 @@ namespace CE::Assets::Model3DImporter {
             ModelImporter(
                 VFS::VFS& vfs,
                 Renderer::Resources::GPUMeshManager& mesh_manager,
-                Renderer::Resources::MaterialManager& mat_manager
+                Renderer::Resources::MaterialManager& mat_manager,
+                Renderer::Resources::TextureManager& tex_man
             );
 
             Renderer::Resources::Model ImportModel(std::string path);
         private:
+            static CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
+
             VFS::VFS& mVFS;
             Renderer::Resources::GPUMeshManager& mGPUMeshManager;
             Renderer::Resources::MaterialManager& mMaterialManager;
+            Renderer::Resources::TextureManager& mTextureManager;
     };
 }
