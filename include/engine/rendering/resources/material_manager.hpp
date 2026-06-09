@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "engine/rendering/renderer.hpp"
-#include "engine/rendering/common/texture_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::Renderer::Resources {
     using MaterialHandle = uint64_t;

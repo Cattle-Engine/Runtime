@@ -1,4 +1,4 @@
-#include "engine/rendering/common/texture_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/common/tracelog.hpp"
 #include <format>
 

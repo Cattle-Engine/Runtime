@@ -6,7 +6,7 @@
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
-#include "engine/rendering/common/texture_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::Assets::Shaders {
     class ShaderManager {

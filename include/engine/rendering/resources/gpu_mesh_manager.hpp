@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include "engine/rendering/renderer.hpp"
-#include "engine/rendering/common/material_manager.hpp"
+#include "engine/rendering/resources/material_manager.hpp"
 
 namespace CE::Renderer::Resources {
     using MeshHandle = uint64_t;

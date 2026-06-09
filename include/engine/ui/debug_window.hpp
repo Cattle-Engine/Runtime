@@ -4,7 +4,7 @@
 
 #include "engine/rendering/renderer.hpp"
 #include "engine/audio/audio.hpp"
-#include "engine/rendering/common/texture_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/settings.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
