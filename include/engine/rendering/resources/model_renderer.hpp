@@ -34,7 +34,7 @@ namespace CE::Renderer::Resources {
             void RenderNode(
                 const Model& model,
                 uint32_t nodeIndex,
-                const Renderer::Transform3D& parentTransform
+                const glm::mat4& parentTransform
             );
 
             MaterialManager& mMaterialManager;

@@ -1,4 +1,5 @@
 #include "engine/rendering/resources/model_renderer.hpp"
+#include "engine/rendering/common/transform3d_to_matrix.hpp"
 
 namespace CE::Renderer::Resources {
     ModelRenderer::ModelRenderer(
@@ -16,17 +17,17 @@ namespace CE::Renderer::Resources {
     void ModelRenderer::RenderNode(
         const Model& model,
         uint32_t nodeIndex,
-        const Transform3D& parentTransform
-    ) { 
-        Transform3D parent_transform = parentTransform;
+        const glm::mat4& parentTransform
+    ) {
         const Model::Node& node = model.Nodes[nodeIndex];
-        Transform3D worldTransform = parent_transform * node.Transform; // Ik I need to fix... 1am coding strikes
-        for (uint32_t meshIndex : node.MeshIndices) {
+
+        glm::mat4 localTransform = Common::Transform3DToMatrix(node.Transform);
+        glm::mat4 worldTransform = parentTransform * localTransform;
+
+        for (uint32_t meshIndex : node.MeshIndices)
+        {
             const MeshHandle meshHandle = model.Meshes[meshIndex];
-
             const MaterialHandle materialHandle = model.Materials[meshIndex];
-
-            Material* material = mMaterialManager.GetMaterial(materialHandle);
 
             mGPUMeshManager.DrawMeshHandle(
                 meshHandle,

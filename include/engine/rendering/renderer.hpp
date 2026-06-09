@@ -314,7 +314,13 @@ namespace CE::Renderer {
             virtual GPUMesh* CreateGPUMesh(MeshData& mesh) = 0;
             virtual void DestroyGPUMesh(GPUMesh* mesh) = 0;
             virtual void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) = 0;
-
+            virtual void DrawMeshMat4(
+                GPUMesh* mesh,
+                Material& material,
+                const glm::mat4& transform,
+                bool error_tex
+            ) = 0;
+            
             void SetLightingState(const LightingState& lighting) {
                 mLightingState = lighting;
             }
