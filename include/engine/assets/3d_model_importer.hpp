@@ -26,7 +26,12 @@ namespace CE::Assets::Model3DImporter {
 
             Renderer::Resources::Model ImportModel(std::string path);
         private:
-            static CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
+            CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
+            Renderer::Resources::TextureHandle LoadAssimpMaterial(
+                const aiScene* scene,
+                const aiMaterial* mat,
+                Renderer::Resources::Model& model
+            );
 
             VFS::VFS& mVFS;
             Renderer::Resources::GPUMeshManager& mGPUMeshManager;

@@ -1,3 +1,6 @@
+#include <string>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL.h>
 #include <assimp/Importer.hpp>
 
 #include "engine/assets/3d_model_importer.hpp"
@@ -15,7 +18,7 @@ namespace CE::Assets::Model3DImporter {
         Renderer::Resources::TextureManager& tex_man
     ) : mVFS(vfs), mGPUMeshManager(mesh_manager), mMaterialManager(mat_manager), mTextureManager(tex_man) {}
 
-    static CE::Renderer::MeshData ConvertMesh(aiMesh* mesh) {
+    CE::Renderer::MeshData ModelImporter::ConvertMesh(aiMesh* mesh) {
         CE::Renderer::MeshData out;
 
         out.vertices.reserve(mesh->mNumVertices);
@@ -130,6 +133,67 @@ namespace CE::Assets::Model3DImporter {
         return nodeIndex;
     }
 
+    Renderer::Resources::TextureHandle ModelImporter::LoadAssimpMaterial(
+        const aiScene* scene,
+        const aiMaterial* mat,
+        Renderer::Resources::Model& model
+    ) { 
+        aiString tex_path;
+
+        if(mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path) == AI_SUCCESS) {
+            std::string path = tex_path.C_Str();
+            size_t path_string_pos;
+
+            if (!path.empty() && path[0] == '*') {
+                try {   
+                    int index = std::stoi(path.substr(1), &path_string_pos);
+                    const aiTexture* tex = scene->mTextures[index];
+
+                    if (tex->mHeight == 0) {
+                        const unsigned char* data = reinterpret_cast<const unsigned char*>(tex->pcData);
+                        int size = static_cast<int>(tex->mWidth);
+                        SDL_IOStream* rw = SDL_IOFromConstMem(data, size);
+                        if (!rw) return 0;
+
+                        SDL_Surface* surface = IMG_Load_IO(rw, 1);
+                        SDL_Surface* formated_texture;
+                        if (!surface) return 0;
+
+                        formated_texture = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+
+                        auto handle = mTextureManager.CreateTextureFromData(
+                            formated_texture->w,
+                            formated_texture->h,
+                            formated_texture->pixels,
+                            Renderer::TextureFormat::RGBA8,
+                            formated_texture->pitch
+                        );
+                        SDL_DestroySurface(surface);
+                        SDL_DestroySurface(formated_texture);
+
+                        return handle;
+                    } else {
+                        return mTextureManager.CreateTextureFromData(
+                            tex->mWidth,
+                            tex->mHeight,
+                            tex->pcData,
+                            Renderer::TextureFormat::RGBA8
+                        );
+                    }
+
+                } catch (const std::invalid_argument&) {
+                    CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi threw invalid argument at position: {}", path_string_pos);
+                    return 0;
+                } catch (const std::out_of_range&) {
+                    CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi throw out of range");
+                    return 0;
+                }
+            } else {
+
+            }
+        }
+    }
+
     Renderer::Resources::Model ModelImporter::ImportModel(std::string path) {
         kModel model;
         if (!mVFS.FileExists(path.c_str())) {
@@ -158,10 +222,23 @@ namespace CE::Assets::Model3DImporter {
             return model;
         }
 
+        model.Materials.reserve(scene->mNumMaterials);
         model.MeshesCPU.reserve(scene->mNumMeshes);
+        model.MeshMaterialIndices.reserve(scene->mNumMeshes);
+        
         for (uint32_t i = 0; i < scene->mNumMeshes; ++i) {
-            model.MeshesCPU.push_back(
-                ConvertMesh(scene->mMeshes[i])
+            aiMesh* mesh = scene->mMeshes[i];
+
+            model.MeshesCPU.push_back(ConvertMesh(mesh));
+
+            model.MeshMaterialIndices.push_back(mesh->mMaterialIndex);
+        }
+
+        for (uint32_t i = 0; i < scene->mNumMaterials; ++i) {
+            const aiMaterial* mat = scene->mMaterials[i];
+
+            model.Materials.push_back(
+                LoadAssimpMaterial(scene, mat, model)
             );
         }
 
@@ -176,5 +253,7 @@ namespace CE::Assets::Model3DImporter {
             scene->mRootNode,
             model
         );
+
+        return model;
     }
 }
