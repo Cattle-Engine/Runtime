@@ -4,11 +4,12 @@
 - [X] Refactor to new texture manager
 
 - [X] Add DrawMeshMat4 implimentation to SDL_GPU_Renderer, and a stub for software renderer
-- [ ] 3D model loading
+- [X] 3D model loading
 - [X] 3D model drawing
+- [ ] Add support for metallic, roughness and normals as textures
 - [ ] Update docs to show new AngelScript bindings
 - [X] Refactor AnimationManager to be AnimatedTextureManager
-- [X] Normal support & metallic rougness support (turns out I forgot my own renderer shit and i do have this all supported)
+- [ ] Add AngelScript bindings for the new stuff
 - [ ] Refactor shader manager to live in engine/rendering/resources and have it handle based
 - [ ] Update AngelScript bindings for the shaders
 - [ ] Basic 3D model bone support

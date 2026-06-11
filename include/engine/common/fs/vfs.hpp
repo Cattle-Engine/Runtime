@@ -113,13 +113,14 @@ namespace CE::VFS {
         void V_rewind(VirtualFile* stream);
         int V_fgetc(VirtualFile* stream);
         char* V_fgets(char* s, int n, VirtualFile* stream);
-
+        std::string NormalizeVirtualPath(const std::string& path);
     private:
         std::vector<std::unique_ptr<MountPoint>> mounts;
         uint64_t next_mount_order = 1;
 
         std::string NormalizePath(const std::string& path);
-
+        std::string ResolveVirtualPath(const std::string& path);
+        
         std::string GetRelativePath(const std::string& virtual_path, 
                                     const std::string& mount_path);
 

@@ -297,6 +297,11 @@ namespace CE::VFS::Returns {
 
 namespace CE::VFS {
 
+std::string VFS::NormalizeVirtualPath(const std::string& path) {
+    std::string p = VFS::NormalizePath(path);
+    return VFS::ResolveVirtualPath(p);
+}
+
 static bool mount_has_file(MountPoint* mount, const std::string& rel_path)
 {
     if (!mount)
@@ -404,13 +409,15 @@ bool VFS::Unmount(const char* v_mount_path)
     return true;
 }
 
-bool VFS::FileExists(const char* virtual_path)
-{
+bool VFS::FileExists(const char* virtual_path) {
     if (!virtual_path)
         return false;
 
+    std::string path = NormalizePath(virtual_path);
+    path = ResolveVirtualPath(path);
+
     std::string rel_path;
-    MountPoint* mount = FindMount(virtual_path, rel_path);
+    MountPoint* mount = FindMount(path, rel_path);
     if (!mount)
         return false;
 
@@ -423,8 +430,10 @@ bool VFS::GetFileSize(const char* virtual_path, uint64_t& out_size)
     if (!virtual_path)
         return false;
 
+    std::string norm_path = NormalizeVirtualPath(virtual_path);
+
     std::string rel_path;
-    MountPoint* mount = FindMount(virtual_path, rel_path);
+    MountPoint* mount = FindMount(norm_path, rel_path);
     if (!mount)
         return false;
 
@@ -486,22 +495,25 @@ bool VFS::CreateFile(const char* virtual_path)
     return true;
 }
 
-VirtualFile* VFS::OpenFile(const char* virtual_path)
-{
+VirtualFile* VFS::OpenFile(const char* virtual_path) {
     return OpenFile(virtual_path, "rb");
 }
 
-VirtualFile* VFS::OpenFile(const char* virtual_path, const char* mode)
-{
+VirtualFile* VFS::OpenFile(const char* virtual_path, const char* mode) {
     if (!virtual_path)
         return nullptr;
     if (!mode || mode[0] == '\0')
         return nullptr;
 
+    std::string norm_path = NormalizeVirtualPath(virtual_path);
+
     const bool wants_write = mode_wants_write(mode);
 
     std::string rel_path;
-    MountPoint* mount = wants_write ? FindWritableMount(virtual_path, rel_path) : FindMount(virtual_path, rel_path);
+    MountPoint* mount =
+        wants_write ? FindWritableMount(norm_path, rel_path)
+                    : FindMount(norm_path, rel_path);
+
     if (!mount)
         return nullptr;
 
@@ -882,9 +894,9 @@ char* VFS::V_fgets(char* s, int n, VirtualFile* stream)
     return s;
 }
 
-MountPoint* VFS::FindWritableMount(const std::string& virtual_path, std::string& relative_path)
-{
+MountPoint* VFS::FindWritableMount(const std::string& virtual_path, std::string& relative_path) {
     std::string norm_path = NormalizePath(virtual_path);
+    norm_path = ResolveVirtualPath(norm_path);
 
     struct Candidate {
         MountPoint* mount;
@@ -964,6 +976,32 @@ std::string VFS::NormalizePath(const std::string& path)
     return result;
 }
 
+std::string VFS::ResolveVirtualPath(const std::string& path) {
+    std::filesystem::path p(path);
+
+    std::vector<std::string> parts;
+
+    for (const auto& part : p) {
+        if (part == "." || part.empty())
+            continue;
+        if (part == "..") {
+            if (!parts.empty())
+                parts.pop_back();
+            continue;
+        }
+        parts.push_back(part.string());
+    }
+
+    std::string result = "/";
+    for (size_t i = 0; i < parts.size(); i++) {
+        result += parts[i];
+        if (i + 1 < parts.size())
+            result += "/";
+    }
+
+    return result;
+}
+
 std::string VFS::GetRelativePath(const std::string& virtual_path, const std::string& mount_path)
 {
     if (mount_path.length() >= virtual_path.length())
@@ -976,9 +1014,9 @@ std::string VFS::GetRelativePath(const std::string& virtual_path, const std::str
     return rel;
 }
 
-MountPoint* VFS::FindMount(const std::string& virtual_path, std::string& relative_path)
-{
+MountPoint* VFS::FindMount(const std::string& virtual_path, std::string& relative_path) {
     std::string norm_path = NormalizePath(virtual_path);
+    norm_path = ResolveVirtualPath(norm_path);
 
     struct Candidate {
         MountPoint* mount;

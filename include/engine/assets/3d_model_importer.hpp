@@ -24,13 +24,26 @@ namespace CE::Assets::Model3DImporter {
                 Renderer::Resources::TextureManager& tex_man
             );
 
+            /*
+            * @brief Loads a model from the VFS
+            * @param path Path to the model
+            * @return Returns an empty Model on failure  
+            */
             Renderer::Resources::Model ImportModel(std::string path);
         private:
             CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
-            Renderer::Resources::TextureHandle LoadAssimpMaterial(
+            Renderer::Resources::TextureHandle LoadAssimpTexture(
                 const aiScene* scene,
                 const aiMaterial* mat,
-                Renderer::Resources::Model& model
+                Renderer::Resources::Model& model,
+                std::string model_path
+            );
+
+            Renderer::Resources::MaterialHandle LoadAssimpMaterial(
+                const aiScene* scene,
+                const aiMaterial* mat,
+                Renderer::Resources::Model& model,
+                std::string model_path        
             );
 
             VFS::VFS& mVFS;

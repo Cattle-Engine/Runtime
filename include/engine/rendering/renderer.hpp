@@ -142,6 +142,8 @@ namespace CE::Renderer {
 
     struct Material {
         Texture* albedo;
+        Texture* normal;
+        Texture* MetallicRoughnessTex;
         Colour tint;
         float roughness = 1.0f;
         float metallic = 0.0f;
