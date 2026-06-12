@@ -775,22 +775,28 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         if (auto albedo = material.albedo) {
             texture = albedo;
-        }
-        else if (error_tex) {
+        } else if (error_tex) {
             texture = GetErrorTexture();
         }
 
-        auto* texData = texture && texture->handle
-            ? static_cast<SDLGPUTexData*>(texture->handle)
-            : nullptr;
+        auto* albedoData = material.albedo && material.albedo->handle
+            ? static_cast<SDLGPUTexData*>(material.albedo->handle) : nullptr;
+        
+        auto* normalData = material.normal && material.normal->handle
+            ? static_cast<SDLGPUTexData*>(material.normal->handle) : nullptr;
+        
+        auto* mrData = material.metallicRoughnessTex && material.metallicRoughnessTex->handle
+            ? static_cast<SDLGPUTexData*>(material.metallicRoughnessTex->handle) : nullptr;
 
         const glm::mat4 modelMatrix = BuildTransformMatrix(transform);
         const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);
 
         MeshDrawCommand command{};
         command.mesh = meshData;
-        command.texture = texData;
-        command.sampler = texData ? texData->sampler : gWhiteSampler;
+        command.texture = albedoData;  // Slot 0: Albedo
+        command.normaltex= normalData; // Slot 1: Normal
+        command.mrtex = mrData;        // Slot 2: Metallic-Roughness
+        command.sampler = albedoData ? albedoData->sampler : gWhiteSampler;
         command.shader = gCurrentShader;
         command.model = modelMatrix;
         command.normalMatrix = normalMatrix;
@@ -833,17 +839,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             texture = GetErrorTexture();
         }
 
-        auto* texData = texture && texture->handle
-            ? static_cast<SDLGPUTexData*>(texture->handle)
-            : nullptr;
+        auto* albedoData = material.albedo && material.albedo->handle
+            ? static_cast<SDLGPUTexData*>(material.albedo->handle) : nullptr;
+        
+        auto* normalData = material.normal && material.normal->handle
+            ? static_cast<SDLGPUTexData*>(material.normal->handle) : nullptr;
+        
+        auto* mrData = material.metallicRoughnessTex && material.metallicRoughnessTex->handle
+            ? static_cast<SDLGPUTexData*>(material.metallicRoughnessTex->handle) : nullptr;
 
         const glm::mat4 modelMatrix = transform;
         const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);
 
         MeshDrawCommand command{};
         command.mesh = meshData;
-        command.texture = texData;
-        command.sampler = texData ? texData->sampler : gWhiteSampler;
+        command.texture = albedoData;  // Slot 0: Albedo
+        command.normaltex= normalData; // Slot 1: Normal
+        command.mrtex = mrData;        // Slot 2: Metallic-Roughness
+        command.sampler = albedoData ? albedoData->sampler : gWhiteSampler;
         command.shader = gCurrentShader;
         command.model = modelMatrix;
         command.normalMatrix = normalMatrix;
@@ -1059,10 +1072,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             fragmentUniform.materialProps = glm::vec4(
                 std::clamp(command.materialProps.x, 0.0f, 1.0f),
                 std::clamp(command.materialProps.y, 0.0f, 1.0f),
-                RoughnessToShininess(command.materialProps.x),
+                0.0f, // No longer using shininess in PBR
                 0.0f
             );
-            fragmentUniform.cameraPositionShininess = glm::vec4(mCamera3DState.position, fragmentUniform.materialProps.z);
+            fragmentUniform.cameraPositionShininess = glm::vec4(mCamera3DState.position, 0.0f);
             fragmentUniform.resolution = glm::vec4(static_cast<float>(width), static_cast<float>(height), aspectRatio, 0.0f);
             if (activeShader) {
                 fragmentUniform.misc = activeShader->Misc;
@@ -1075,31 +1088,38 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUniform, sizeof(fragmentUniform));
 
-            const size_t samplerCount =
-                activeShader ? std::max<size_t>(1, activeShader->FragmentSamplerCount) : 1;
+            const size_t baseSamplerCount = 3; // albedo(0), normal(1), metallic-roughness(2)
+            const size_t samplerCount = activeShader 
+                ? std::max<size_t>(baseSamplerCount, activeShader->FragmentSamplerCount) 
+                : baseSamplerCount;
+                
             std::vector<SDL_GPUTextureSamplerBinding> bindings(samplerCount);
+
             for (size_t slot = 0; slot < samplerCount; ++slot) {
                 bindings[slot].texture = gWhiteTex;
                 bindings[slot].sampler = gWhiteSampler;
             }
 
-            bindings[0].texture =
-                (command.texture && command.texture->gpuTex) ? command.texture->gpuTex :
-                gWhiteTex;
-            bindings[0].sampler =
-                command.sampler ? command.sampler :
-                gWhiteSampler;
+            bindings[0].texture = (command.texture && command.texture->gpuTex) 
+                ? command.texture->gpuTex : gWhiteTex;
+            bindings[0].sampler = command.sampler ? command.sampler : gWhiteSampler;
+
+            bindings[1].texture = (command.normaltex && command.normaltex->gpuTex)
+                ? command.normaltex->gpuTex : gDefaultNormalTex;
+            bindings[1].sampler = command.sampler ? command.sampler : gWhiteSampler;
+
+            bindings[2].texture = (command.mrtex && command.mrtex->gpuTex)
+                ? command.mrtex->gpuTex : gWhiteTex;
+            bindings[2].sampler = command.sampler ? command.sampler : gWhiteSampler;
 
             if (activeShader) {
-                for (size_t slot = 0; slot < samplerCount; ++slot) {
-                    if (slot < activeShader->BoundTextures.size()) {
-                        Texture* texture = activeShader->BoundTextures[slot];
-                        if (texture && texture->handle) {
-                            auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
-                            if (texData && texData->gpuTex) {
-                                bindings[slot].texture = texData->gpuTex;
-                                bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;
-                            }
+                for (size_t slot = 0; slot < samplerCount && slot < activeShader->BoundTextures.size(); ++slot) {
+                    Texture* texture = activeShader->BoundTextures[slot];
+                    if (texture && texture->handle) {
+                        auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
+                        if (texData && texData->gpuTex) {
+                            bindings[slot].texture = texData->gpuTex;
+                            bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;
                         }
                     }
                 }

@@ -102,6 +102,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     struct MeshDrawCommand {
         SDLGPUMeshData* mesh = nullptr;
         SDLGPUTexData* texture = nullptr;
+        SDLGPUTexData* normaltex = nullptr;
+        SDLGPUTexData* mrtex = nullptr; // Metallic roughness tex
         SDL_GPUSampler* sampler = nullptr;
         SDL_GPU_Renderer_Shader* shader = nullptr;
         glm::mat4 model { 1.0f };
@@ -287,6 +289,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_FColor gClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
             SDL_GPUTexture*  gWhiteTex     = nullptr;
             SDL_GPUSampler*  gWhiteSampler = nullptr;
+            SDL_GPUTexture* gDefaultNormalTex = nullptr;
+            SDL_GPUSampler* gNormalSampler = nullptr;
             CE::Renderer::Vertex* gMappedTexVerts   = nullptr;
             uint16_t* gMappedTexIndices = nullptr;
             uint32_t              gTexIndexCount    = 0;

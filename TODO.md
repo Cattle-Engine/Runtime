@@ -30,10 +30,20 @@ export int foo_func() {
 
 }
 ```
+
+- [ ] AngelScript attributes:
+Basically a thing you can put on classes, structs and variables. Will look like this:
+```angelscript
+[foo_attribute]
+struct foo {
+    
+}
+```
 - [ ] AngelScript #define, #ifdef and shish
 - [ ] Make a UI system
 - [ ] Add an ECS
 - [ ] Physics via Jolt
+- [ ] Save system
 - [ ] plugins
 
 - [ ] POLISH

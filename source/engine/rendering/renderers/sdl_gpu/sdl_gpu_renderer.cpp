@@ -272,6 +272,59 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gWhiteSampler = SDL_CreateGPUSampler(gDevice, &wSampInfo);
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
+
+        // Add after the white texture creation block, before ImGuiInit
+
+        uint8_t defaultNormal[4] = { 128, 128, 255, 255 };
+
+        SDL_GPUTextureCreateInfo nTexInfo{};
+        nTexInfo.type                 = SDL_GPU_TEXTURETYPE_2D;
+        nTexInfo.format               = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        nTexInfo.usage                = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        nTexInfo.width                = 1;
+        nTexInfo.height               = 1;
+        nTexInfo.layer_count_or_depth = 1;
+        nTexInfo.num_levels           = 1;
+        gDefaultNormalTex = SDL_CreateGPUTexture(gDevice, &nTexInfo);
+
+        SDL_GPUTransferBufferCreateInfo nTbInfo{};
+        nTbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        nTbInfo.size  = 4;
+        SDL_GPUTransferBuffer* nTb     = SDL_CreateGPUTransferBuffer(gDevice, &nTbInfo);
+        void*                  nMapped = SDL_MapGPUTransferBuffer(gDevice, nTb, false);
+        SDL_memcpy(nMapped, defaultNormal, 4);
+        SDL_UnmapGPUTransferBuffer(gDevice, nTb);
+
+        SDL_GPUCommandBuffer* nCmd  = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass*      nCopy = SDL_BeginGPUCopyPass(nCmd);
+
+        SDL_GPUTextureTransferInfo nSrc{};
+        nSrc.transfer_buffer = nTb;
+        nSrc.offset          = 0;
+        nSrc.pixels_per_row  = 1;
+        nSrc.rows_per_layer  = 1;
+
+        SDL_GPUTextureRegion nDst{};
+        nDst.texture = gDefaultNormalTex;
+        nDst.w       = 1;
+        nDst.h       = 1;
+        nDst.d       = 1;
+
+        SDL_UploadToGPUTexture(nCopy, &nSrc, &nDst, false);
+        SDL_EndGPUCopyPass(nCopy);
+        SDL_SubmitGPUCommandBuffer(nCmd);
+        SDL_ReleaseGPUTransferBuffer(gDevice, nTb);
+
+        SDL_GPUSamplerCreateInfo nSampInfo{};
+        nSampInfo.min_filter     = SDL_GPU_FILTER_LINEAR;
+        nSampInfo.mag_filter     = SDL_GPU_FILTER_LINEAR;
+        nSampInfo.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+        nSampInfo.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+        nSampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+        gNormalSampler = SDL_CreateGPUSampler(gDevice, &nSampInfo);
+
+        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Default normal map texture created");
+
         ImGuiInit(window, gDevice);
         return 0;
     }
@@ -321,6 +374,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gWhiteTex) {
             SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
             gWhiteTex = nullptr;
+        }
+
+        if (gDefaultNormalTex) {
+            SDL_ReleaseGPUTexture(gDevice, gDefaultNormalTex);
+            gDefaultNormalTex = nullptr;
+        }
+        if (gNormalSampler) {
+            SDL_ReleaseGPUSampler(gDevice, gNormalSampler);
+            gNormalSampler = nullptr;
         }
 
         if (gErrorSampler) {

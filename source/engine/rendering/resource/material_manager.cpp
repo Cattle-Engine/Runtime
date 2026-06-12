@@ -14,15 +14,15 @@ namespace CE::Renderer::Resources {
 
     MaterialHandle MaterialManager::CreateMaterial(TextureHandle tex_handle) {
         MaterialEntry entry; 
-        entry.TextureRef = mTextureManager.Acquire(tex_handle);
+        entry.AlbedoTex = mTextureManager.Acquire(tex_handle);
 
-        if (!entry.TextureRef.IsValid()) {
+        if (!entry.AlbedoTex.IsValid()) {
             entry.IsError = true;
             CE::Log(LogLevel::Error, "[Material Manager] Invalid texture handle!");
             entry.Resource.albedo = mRenderer.GetErrorTexture();
         } else {
             entry.IsError = false;
-            entry.Resource.albedo = entry.TextureRef.Get();
+            entry.Resource.albedo = entry.AlbedoTex.Get();
         }
     
         MaterialHandle handle = mNextHandleID++;
@@ -55,14 +55,27 @@ namespace CE::Renderer::Resources {
     void MaterialManager::SetMaterialAlbedo(MaterialHandle matt_handle, TextureHandle tex_handle) {
         auto entry = GetMaterialEntry(matt_handle);
         if (entry) {
-            entry->TextureRef = mTextureManager.Acquire(tex_handle);
+            entry->AlbedoTex = mTextureManager.Acquire(tex_handle);
 
-            if (entry->TextureRef.IsValid()) {
-                entry->Resource.albedo = entry->TextureRef.Get();
+            if (entry->AlbedoTex.IsValid()) {
+                entry->Resource.albedo = entry->AlbedoTex.Get();
             } else {
                 entry->Resource.albedo = mRenderer.GetErrorTexture();
             }
         }
+    }
+
+    void MaterialManager::SetMetallicRoughnessTexture(MaterialHandle matt_handle, TextureHandle tex_handle) {
+        auto entry = GetMaterialEntry(matt_handle);
+        if (entry) {
+            entry->MetallicRoughnessTex = mTextureManager.Acquire(tex_handle);
+
+            if (entry->MetallicRoughnessTex.IsValid()) {
+                entry->Resource.metallicRoughnessTex = entry->MetallicRoughnessTex.Get();
+            } else {
+                entry->Resource.metallicRoughnessTex = nullptr;
+            }
+        } 
     }
 
     void MaterialManager::DestroyMaterial(MaterialHandle handle) {
