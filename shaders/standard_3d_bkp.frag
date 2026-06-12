@@ -4,6 +4,8 @@ layout(location = 0) in vec3 fragWorldPos;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec4 fragColor;
 layout(location = 3) in vec2 fragUV;
+layout(location = 4) in vec3 fragTangent;
+layout(location = 5) in vec3 fragBitangent;
 
 layout(set = 2, binding = 0) uniform sampler2D albedoSampler;
 layout(set = 2, binding = 1) uniform sampler2D normalSampler;
@@ -54,54 +56,47 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-vec4 albedoSample = texture(albedoSampler, fragUV) * fragColor * materialTint;
-vec3 albedo = albedoSample.rgb;
-
-vec3 N = normalize(fragNormal);
-vec3 up = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
-vec3 T = normalize(cross(up, N));
-vec3 B = cross(N, T);
-mat3 TBN = mat3(T, B, N);
-
-vec3 tangentNormal = texture(normalSampler, fragUV).rgb * 2.0 - 1.0;
-vec3 normal = normalize(TBN * tangentNormal);
+    vec4 albedoSample = texture(albedoSampler, fragUV) * fragColor * materialTint;
+    vec3 albedo = albedoSample.rgb;
+    
+    vec3 tangentNormal = texture(normalSampler, fragUV).rgb * 2.0 - 1.0;
+    vec3 N = normalize(fragNormal);
+    vec3 T = normalize(fragTangent);
+    vec3 B = normalize(fragBitangent);
+    mat3 TBN = mat3(T, B, N);
+    vec3 normal = normalize(TBN * tangentNormal);
     
     vec2 metallicRoughness = texture(metallicRoughnessSampler, fragUV).bg;
     float roughness = metallicRoughness.g * materialProps.x;
     float metallic = metallicRoughness.r * materialProps.y;
-    roughness = clamp(roughness, 0.04, 0.85);
+    roughness = clamp(roughness, 0.04, 1.0);
     metallic = clamp(metallic, 0.0, 1.0);
     
     vec3 viewDir = normalize(cameraPositionShininess.xyz - fragWorldPos);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
     
-    vec3 ambient = ambientColourIntensity.rgb * ambientColourIntensity.a * albedo * 0.7;
+    vec3 ambient = ambientColourIntensity.rgb * ambientColourIntensity.a * albedo;
     vec3 lighting = ambient;
     
     if (sunDirectionEnabled.w > 0.5) {
         vec3 lightDir = normalize(-sunDirectionEnabled.xyz);
         vec3 halfwayDir = normalize(lightDir + viewDir);
         
-        vec3 radiance = sunColourIntensity.rgb * sunColourIntensity.a * 1.5;
+        vec3 radiance = sunColourIntensity.rgb * sunColourIntensity.a;
         
-        float NdotL = max(dot(normal, lightDir), 0.0);
-        float NdotV = max(dot(normal, viewDir), 0.0);
         float NDF = DistributionGGX(normal, halfwayDir, roughness);
         float G = GeometrySmith(normal, viewDir, lightDir, roughness);
         vec3 F = FresnelSchlick(max(dot(halfwayDir, viewDir), 0.0), F0);
         
         vec3 numerator = NDF * G * F;
-        float denominator = 4.0 * NdotV * NdotL + 0.0001;
+        float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.0001;
         vec3 specular = numerator / denominator;
         
         vec3 kD = (1.0 - F) * (1.0 - metallic);
-        vec3 diffuse = kD * albedo / PI;
+        float NdotL = max(dot(normal, lightDir), 0.0);
         
-        lighting += (diffuse + specular) * radiance * NdotL;
+        lighting += (kD * albedo / PI + specular) * radiance * NdotL;
     }
-    
-    lighting = lighting / (lighting + vec3(1.0));
-    lighting = pow(lighting, vec3(1.0 / 2.2));
     
     outColor = vec4(lighting, albedoSample.a);
 }

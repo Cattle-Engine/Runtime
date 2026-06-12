@@ -6,7 +6,7 @@
 - [X] Add DrawMeshMat4 implimentation to SDL_GPU_Renderer, and a stub for software renderer
 - [X] 3D model loading
 - [X] 3D model drawing
-- [ ] Add support for metallic, roughness and normals as textures
+- [X] Add support for metallic, roughness and normals as textures
 - [ ] Update docs to show new AngelScript bindings
 - [X] Refactor AnimationManager to be AnimatedTextureManager
 - [ ] Add AngelScript bindings for the new stuff

@@ -25,12 +25,15 @@ namespace CE::Renderer::Resources {
             void SetMaterialColour(MaterialHandle matt_handle, Colour colour);
             void SetMaterialRoughness(MaterialHandle matt_handle, float roughness);
             void SetMaterialMetallic(MaterialHandle matt_handle, float metallic);
-            void SetMetallicRoughnessTexture(MaterialHandle, TextureHandle tex_handle);
+
+            void SetMetallicRoughnessTexture(MaterialHandle handle, TextureHandle tex_handle);
+            void SetNormalTexture(MaterialHandle handle, TextureHandle tex_handle);
         private:
             struct MaterialEntry {
                 Material Resource;
                 TextureRef AlbedoTex;
                 TextureRef MetallicRoughnessTex;
+                TextureRef NormalTex;
                 bool IsError;
             };
 

@@ -6,6 +6,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <SDL3/SDL_surface.h>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
@@ -32,9 +33,11 @@ namespace CE::Assets::Model3DImporter {
             Renderer::Resources::Model ImportModel(std::string path);
         private:
             CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
-            Renderer::Resources::TextureHandle LoadAssimpTexture(
+            SDL_Surface* BuildMR(SDL_Surface* metallic, SDL_Surface* roughness);
+            SDL_Surface* LoadAssimpTexture(
                 const aiScene* scene,
                 const aiMaterial* mat,
+                aiTextureType type,
                 Renderer::Resources::Model& model,
                 std::string model_path
             );

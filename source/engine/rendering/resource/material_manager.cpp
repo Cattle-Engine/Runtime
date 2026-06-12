@@ -78,6 +78,19 @@ namespace CE::Renderer::Resources {
         } 
     }
 
+    void MaterialManager::SetNormalTexture(MaterialHandle matt_handle, TextureHandle tex_handle) {
+        auto entry = GetMaterialEntry(matt_handle);
+        if (entry) {
+            entry->NormalTex = mTextureManager.Acquire(tex_handle);
+
+            if (entry->NormalTex.IsValid()) {
+                entry->Resource.normal = entry->NormalTex.Get();
+            } else {
+                entry->Resource.normal = nullptr;
+            }
+        } 
+    }
+
     void MaterialManager::DestroyMaterial(MaterialHandle handle) {
         auto it = mMaterials.find(handle);
         if (it == mMaterials.end())

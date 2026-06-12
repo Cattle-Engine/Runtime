@@ -50,6 +50,7 @@ namespace CE {
 
             // Only to be called at startup!
             int Bootstrap_RendererResourceManagers();
+            int Bootstrap_AssetImportersAndManagers();
 
             std::unique_ptr<CE::VFS::VFS> gVFS;
             std::unique_ptr<CE::GameInfo> gGameInfo;

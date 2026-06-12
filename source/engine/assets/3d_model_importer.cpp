@@ -10,6 +10,18 @@
 
 namespace {
     using kModel = CE::Renderer::Resources::Model;
+
+    static SDL_Surface* CreateWhiteSurface() {
+        SDL_Surface* surface = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_RGBA32);
+        if (!surface) {
+            return 0;
+        }
+
+        Uint32* pixels = static_cast<Uint32*>(surface->pixels);
+        pixels[0] = 0xFFFFFFFF;
+
+        return surface;
+    }
 }
 namespace CE::Assets::Model3DImporter {
     ModelImporter::ModelImporter(
@@ -66,6 +78,42 @@ namespace CE::Assets::Model3DImporter {
         out.vertex_count = (uint32_t)out.vertices.size();
         out.indice_count = (uint32_t)out.indices.size();
 
+        return out;
+    }
+
+    SDL_Surface* ModelImporter::BuildMR(SDL_Surface* metallic, SDL_Surface* roughness) {
+        int w = metallic ? metallic->w : roughness->w;
+        int h = metallic ? metallic->h : roughness->h;
+
+        SDL_Surface* out = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, 0, 32);
+
+        SDL_LockSurface(out);
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                float m = 0.0f;
+                float r = 1.0f;
+
+                if (metallic) {
+                    Uint8* mp = (Uint8*)((Uint8*)metallic->pixels + y * metallic->pitch + x * 4);
+                    m = mp[0] / 255.0f;
+                }
+
+                if (roughness) {
+                    Uint8* rp = (Uint8*)((Uint8*)roughness->pixels + y * roughness->pitch + x * 4);
+                    r = rp[0] / 255.0f;
+                }
+
+                Uint8* op = (Uint8*)((Uint8*)out->pixels + y * out->pitch + x * 4);
+
+                op[0] = 0;
+                op[1] = (Uint8)(r * 255.0f);
+                op[2] = (Uint8)(m * 255.0f);
+                op[3] = 255;
+            }
+        }
+
+        SDL_UnlockSurface(out);
         return out;
     }
 
@@ -134,20 +182,21 @@ namespace CE::Assets::Model3DImporter {
         return nodeIndex;
     }
 
-    Renderer::Resources::TextureHandle ModelImporter::LoadAssimpTexture(
+    SDL_Surface* ModelImporter::LoadAssimpTexture(
         const aiScene* scene,
         const aiMaterial* mat,
+        aiTextureType type,
         Renderer::Resources::Model& model,
         std::string mdl_path
-    ) { 
+    ) {
         aiString tex_path;
 
-        if(mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path) == AI_SUCCESS) {
+        if (mat->GetTexture(type, 0, &tex_path) == AI_SUCCESS) {
             std::string path = tex_path.C_Str();
             size_t path_string_pos;
 
             if (!path.empty() && path[0] == '*') {
-                try {   
+                try {
                     int index = std::stoi(path.substr(1), &path_string_pos);
                     const aiTexture* tex = scene->mTextures[index];
 
@@ -155,15 +204,15 @@ namespace CE::Assets::Model3DImporter {
                         const unsigned char* data = reinterpret_cast<const unsigned char*>(tex->pcData);
                         int size = static_cast<int>(tex->mWidth);
                         SDL_IOStream* rw = SDL_IOFromConstMem(data, size);
-                        if (!rw) return 0;
+                        if (!rw) return CreateWhiteSurface();
 
                         SDL_Surface* surface = IMG_Load_IO(rw, 1);
                         SDL_Surface* formated_texture;
-                        
+
                         if (!surface) {
                             CE::Log(LogLevel::Error, "[3D Model Importer] Failed to create SDL_Surface");
                             SDL_DestroySurface(surface);
-                            return 0;
+                            return CreateWhiteSurface();
                         }
 
                         formated_texture = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
@@ -172,22 +221,14 @@ namespace CE::Assets::Model3DImporter {
                             CE::Log(LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
                             SDL_DestroySurface(surface);
                             SDL_DestroySurface(formated_texture);
-                            return 0;
+                            return CreateWhiteSurface();
                         }
 
-                        auto handle = mTextureManager.CreateTextureFromData(
-                            formated_texture->w,
-                            formated_texture->h,
-                            formated_texture->pixels,
-                            Renderer::TextureFormat::RGBA8,
-                            formated_texture->pitch
-                        );
                         SDL_DestroySurface(surface);
-                        SDL_DestroySurface(formated_texture);
 
-                        return handle;
+                        return formated_texture;
                     } else {
-                        SDL_Surface* formated_surface; 
+                        SDL_Surface* formated_surface;
                         SDL_Surface* surface = SDL_CreateSurfaceFrom(
                             tex->mWidth,
                             tex->mHeight,
@@ -195,11 +236,11 @@ namespace CE::Assets::Model3DImporter {
                             tex->pcData,
                             tex->mWidth * 4
                         );
-                        
+
                         if (!surface) {
                             CE::Log(LogLevel::Error, "[3D Model Importer] Failed to create SDL_Surface");
                             SDL_DestroySurface(surface);
-                            return 0;
+                            return CreateWhiteSurface();
                         }
 
                         formated_surface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
@@ -208,27 +249,19 @@ namespace CE::Assets::Model3DImporter {
                             CE::Log(LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
                             SDL_DestroySurface(surface);
                             SDL_DestroySurface(formated_surface);
-                            return 0;
+                            return CreateWhiteSurface();
                         }
 
-                        auto handle = mTextureManager.CreateTextureFromData(
-                            formated_surface->w,
-                            formated_surface->h,
-                            formated_surface->pixels,
-                            Renderer::TextureFormat::RGBA8,
-                            formated_surface->pitch
-                        );
-
                         SDL_DestroySurface(surface);
-                        SDL_DestroySurface(formated_surface);
-                        return handle;
+
+                        return formated_surface;
                     }
                 } catch (const std::invalid_argument&) {
                     CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi threw invalid argument at position: {}", path_string_pos);
-                    return 0;
+                    return CreateWhiteSurface();
                 } catch (const std::out_of_range&) {
                     CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi throw out of range");
-                    return 0;
+                    return CreateWhiteSurface();
                 }
             } else {
                 std::filesystem::path base(mdl_path);
@@ -237,9 +270,33 @@ namespace CE::Assets::Model3DImporter {
                 std::string virtual_path = combined.generic_string();
                 virtual_path = mVFS.NormalizeVirtualPath(virtual_path);
 
-                return mTextureManager.Load(virtual_path);
+                if (!mVFS.FileExists(virtual_path.c_str())) {
+                    CE::Log(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
+                    return CreateWhiteSurface();
+                }
+
+                VirtualFile* file = mVFS.OpenFile(virtual_path.c_str());
+
+                SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
+
+                if (!surface) {
+                    CE::Log(LogLevel::Error, "[3D Model Importer] Failed to load texture: {}, Error is: {}", virtual_path, SDL_GetError());
+                }
+
+                if (surface->format != SDL_PIXELFORMAT_RGBA32) {
+                    SDL_Surface* formated_surface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+                    if (!formated_surface) {
+                        CE::Log(LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
+                        return CreateWhiteSurface();
+                    } else {
+                        return formated_surface;
+                    }
+                } else {
+                    return surface;
+                }
             }
         }
+        return CreateWhiteSurface();
     }
 
 
@@ -249,9 +306,45 @@ namespace CE::Assets::Model3DImporter {
         Renderer::Resources::Model& model,
         std::string model_path
     ) {
-        auto tex = LoadAssimpTexture(scene, mat, model, model_path);
+        SDL_Surface* albedo = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE, model, model_path);
+        SDL_Surface* normal = LoadAssimpTexture(scene, mat, aiTextureType_NORMALS, model, model_path);
+        SDL_Surface* roughness_tex = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS, model, model_path);
+        SDL_Surface* metallic_tex = LoadAssimpTexture(scene, mat, aiTextureType_METALNESS, model, model_path);
 
-        Renderer::Resources::MaterialHandle material = mMaterialManager.CreateMaterial(tex);
+        auto albedo_handle = mTextureManager.CreateTextureFromData(
+            albedo->w,
+            albedo->h,
+            albedo->pixels,
+            Renderer::TextureFormat::RGBA8,
+            albedo->pitch
+        );
+
+        auto normal_handle = mTextureManager.CreateTextureFromData(
+            normal->w,
+            normal->h,
+            normal->pixels,
+            Renderer::TextureFormat::RGBA8,
+            normal->pitch
+        );
+                        /* No idea if this is just my ide but for some reason BuildMR had too many paramters, doing this-> fixed it */
+        SDL_Surface* mr_texture = this->BuildMR(metallic_tex, roughness_tex);
+
+        auto mr_handle = mTextureManager.CreateTextureFromData(
+            mr_texture->w,
+            mr_texture->h,
+            mr_texture->pixels,
+            Renderer::TextureFormat::RGBA8,
+            mr_texture->pitch
+        );
+
+        SDL_DestroySurface(albedo);
+        SDL_DestroySurface(normal);
+        SDL_DestroySurface(roughness_tex);
+        SDL_DestroySurface(metallic_tex);
+
+        Renderer::Resources::MaterialHandle material = mMaterialManager.CreateMaterial(albedo_handle);
+        mMaterialManager.SetNormalTexture(material, normal_handle);
+        mMaterialManager.SetMetallicRoughnessTexture(material, mr_handle);
 
         float metallic;
         float roughness;
@@ -259,8 +352,8 @@ namespace CE::Assets::Model3DImporter {
         mat->Get(AI_MATKEY_METALLIC_FACTOR, metallic);
         mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness);
     
-        mMaterialManager.SetMaterialMetallic(material ,metallic);
-        mMaterialManager.SetMaterialRoughness(material ,roughness);
+        mMaterialManager.SetMaterialMetallic(material, metallic);
+        mMaterialManager.SetMaterialRoughness(material, roughness);
         return material;
     }
 
