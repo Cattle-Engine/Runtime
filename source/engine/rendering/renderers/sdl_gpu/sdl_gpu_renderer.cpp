@@ -273,8 +273,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
 
-        // Add after the white texture creation block, before ImGuiInit
-
+        // Default normal
         uint8_t defaultNormal[4] = { 128, 128, 255, 255 };
 
         SDL_GPUTextureCreateInfo nTexInfo{};

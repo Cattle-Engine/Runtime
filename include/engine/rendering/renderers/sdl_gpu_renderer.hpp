@@ -90,6 +90,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint8_t b = 255;
         uint8_t a = 255;
         glm::vec2 uv { 0.0f };
+        glm::vec3 tangent { 0.0f };
+        float tangentSign = 1.0f;
     };
 
     struct SDLGPUMeshData {

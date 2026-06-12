@@ -39,6 +39,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             glm::vec4 materialTint { 1.0f };
             glm::vec4 materialProps { 1.0f, 0.0f, 32.0f, 0.0f };
             glm::vec4 cameraPositionShininess { 0.0f, 0.0f, 0.0f, 32.0f };
+            glm::vec4 normalExists { 0.0f }; // .x == 1.0 -> normal map present
             glm::vec4 resolution { 0.0f };
             glm::vec4 misc { 0.0f };
             glm::vec4 customVec4[8] {};
@@ -153,7 +154,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         vbDesc.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
         vbDesc.pitch = sizeof(GPUVertex3D);
 
-        SDL_GPUVertexAttribute attrs[4]{};
+        SDL_GPUVertexAttribute attrs[6]{};
 
         attrs[0].buffer_slot = 0;
         attrs[0].location = 0;
@@ -175,12 +176,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[3].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
         attrs[3].offset = static_cast<Uint32>(offsetof(GPUVertex3D, uv));
 
+        attrs[4].buffer_slot = 0;
+        attrs[4].location = 4;
+        attrs[4].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+        attrs[4].offset = static_cast<Uint32>(offsetof(GPUVertex3D, tangent));
+
+        attrs[5].buffer_slot = 0;
+        attrs[5].location = 5;
+        attrs[5].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT;
+        attrs[5].offset = static_cast<Uint32>(offsetof(GPUVertex3D, tangentSign));
+
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.vertex_shader = vertexShader;
         pipelineCreateInfo.fragment_shader = fragmentShader;
         pipelineCreateInfo.vertex_input_state.num_vertex_buffers = 1;
         pipelineCreateInfo.vertex_input_state.vertex_buffer_descriptions = &vbDesc;
-        pipelineCreateInfo.vertex_input_state.num_vertex_attributes = 4;
+        pipelineCreateInfo.vertex_input_state.num_vertex_attributes = 6;
         pipelineCreateInfo.vertex_input_state.vertex_attributes = attrs;
         pipelineCreateInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
@@ -218,10 +229,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         meshData->indexCount = 6;
 
         const std::array<GPUVertex3D, 4> vertices = {{
-            { glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 1.0f) },
-            { glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 1.0f) },
-            { glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 0.0f) },
-            { glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 0.0f) },
+            { glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
         }};
 
         const std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
@@ -661,7 +672,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 src.color.g,
                 src.color.b,
                 src.color.a,
-                src.uv
+                src.uv,
+                src.tangent,
+                src.tangentSign
             };
         }
 
@@ -932,6 +945,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             fragmentUniform.materialTint = glm::vec4(1.0f);
             fragmentUniform.materialProps = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
             fragmentUniform.cameraPositionShininess = glm::vec4(camera.position, 0.0f);
+            fragmentUniform.normalExists = glm::vec4(0.0f);
             fragmentUniform.resolution = glm::vec4(static_cast<float>(width), static_cast<float>(height), aspectRatio, 0.0f);
             SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUniform, sizeof(fragmentUniform));
 
@@ -1076,6 +1090,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 0.0f
             );
             fragmentUniform.cameraPositionShininess = glm::vec4(mCamera3DState.position, 0.0f);
+            fragmentUniform.normalExists = glm::vec4((command.normaltex && command.normaltex->gpuTex) ? 1.0f : 0.0f);
             fragmentUniform.resolution = glm::vec4(static_cast<float>(width), static_cast<float>(height), aspectRatio, 0.0f);
             if (activeShader) {
                 fragmentUniform.misc = activeShader->Misc;
@@ -1103,7 +1118,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             bindings[0].texture = (command.texture && command.texture->gpuTex) 
                 ? command.texture->gpuTex : gWhiteTex;
             bindings[0].sampler = command.sampler ? command.sampler : gWhiteSampler;
-
+            
             bindings[1].texture = (command.normaltex && command.normaltex->gpuTex)
                 ? command.normaltex->gpuTex : gDefaultNormalTex;
             bindings[1].sampler = command.sampler ? command.sampler : gWhiteSampler;

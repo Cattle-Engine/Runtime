@@ -98,6 +98,8 @@ namespace CE::Renderer {
         glm::vec3 normal;
         Colour color;
         glm::vec2 uv;
+        glm::vec3 tangent{0.0f, 0.0f, 0.0f};
+        float tangentSign = 1.0f;
     };
 
     struct Transform3D {
