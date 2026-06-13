@@ -1,4 +1,5 @@
 #include "engine/assets/assimp_vfs_io.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::Assets {
     VFSIOStream::VFSIOStream(VirtualFile* file, CE::VFS::VFS* vfs)
@@ -27,19 +28,20 @@ namespace CE::Assets {
     }
 
     aiReturn VFSIOStream::Seek(size_t pOffset, aiOrigin pOrigin) {
-        if (!mFile || !mVFS)
-            return aiReturn_FAILURE;
+        if (!mFile || !mVFS) return aiReturn_FAILURE;
+
+        int64_t offset = static_cast<int64_t>(pOffset); 
 
         int whence = SEEK_SET;
+        if (pOrigin == aiOrigin_CUR) whence = SEEK_CUR;
+        else if (pOrigin == aiOrigin_END) whence = SEEK_END;
 
-        if (pOrigin == aiOrigin_CUR)
-            whence = SEEK_CUR;
-        else if (pOrigin == aiOrigin_END)
-            whence = SEEK_END;
-
-        return mVFS->SeekFile(mFile, (int64_t)pOffset, whence)
-            ? aiReturn_SUCCESS
-            : aiReturn_FAILURE;
+        bool success = mVFS->SeekFile(mFile, offset, whence);
+        if (!success) {
+            CE::Log(LogLevel::Error, "[VFS] Seek failure at offset {}", offset);
+        }
+        
+        return success ? aiReturn_SUCCESS : aiReturn_FAILURE;
     }
 
     size_t VFSIOStream::Tell() const {

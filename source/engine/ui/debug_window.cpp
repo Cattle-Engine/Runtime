@@ -38,7 +38,7 @@ namespace CE::UI {
         float deltaTime
     ) {
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_CONTROL) &&
-            keyboard.IsKeyDown(Input::KeyboardKeys::KEY_ESCAPE)) {
+            keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT)) {
             gFreeCam.enabled = false;
             mouse.LockCursor(false);
             mouse.SetCursorVisibility(Input::MouseVisibility::Shown);
@@ -281,7 +281,7 @@ namespace CE::UI {
         Utils::SpaceSep();
         
         ImGui::Checkbox("Enable FreeCam", &gFreeCam.enabled);
-        ImGui::Text("To exit freecam press: CTR + Escape ");
+        ImGui::Text("To exit freecam press: CTR + Shift ");
         ImGui::SliderFloat("Move Speed", &gFreeCam.speed, 0.1f, 50.0f);
         ImGui::SliderFloat(
             "Mouse Sensitivity",

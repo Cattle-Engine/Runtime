@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
-option(USE_CLANG "Use Clang compiler" ON)
+option(USE_CLANG "Use Clang compiler" OFF)
 option(ENABLE_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 set(CE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CE_BUILD_SCRIPT "${CE_ROOT_DIR}/tools/build/build.py")
 set(CE_BOOTSTRAP_SH "${CE_ROOT_DIR}/tools/bootstrap/bootstrap.sh")
@@ -198,10 +199,17 @@ target_compile_definitions(ce_engine PRIVATE
     TDF_MODE_CE
 )
 
-if (ENABLE_SANITIZERS)
-    target_compile_options(ce_engine PRIVATE -O1 -g -fno-omit-frame-pointer)
+if(MSVC)
+    target_compile_options(ce_engine PRIVATE
+        /W4
+        /arch:AVX2
+    )
 else()
-    target_compile_options(ce_engine PRIVATE -Wall -Wextra -mavx2)
+    target_compile_options(ce_engine PRIVATE
+        -Wall
+        -Wextra
+        -mavx2
+    )
 endif()
 
 if (NOT MSVC AND CMAKE_BUILD_TYPE STREQUAL "Debug")
