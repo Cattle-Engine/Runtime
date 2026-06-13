@@ -331,6 +331,7 @@ namespace CE::Assets::Animations {
         mAnimations.erase(it);
     }
 
+
     void AnimatedTextureManager::DrawFrame(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
         if (it == mAnimationInstances.end()) return;

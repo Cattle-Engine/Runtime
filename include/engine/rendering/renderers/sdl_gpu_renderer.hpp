@@ -85,10 +85,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     struct GPUVertex3D {
         glm::vec3 position { 0.0f };
         glm::vec3 normal { 0.0f, 1.0f, 0.0f };
-        uint8_t r = 255;
-        uint8_t g = 255;
-        uint8_t b = 255;
-        uint8_t a = 255;
+        uint32_t color = 0xFFFFFFFF; 
         glm::vec2 uv { 0.0f };
         glm::vec3 tangent { 0.0f };
         float tangentSign = 1.0f;

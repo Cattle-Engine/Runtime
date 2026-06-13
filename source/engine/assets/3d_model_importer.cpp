@@ -185,7 +185,7 @@ namespace CE::Assets::Model3DImporter {
         int w = metallic ? metallic->w : roughness->w;
         int h = metallic ? metallic->h : roughness->h;
 
-        SDL_Surface* out = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, 0, 32);
+        SDL_Surface* out = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
 
         SDL_LockSurface(out);
 
@@ -459,6 +459,7 @@ namespace CE::Assets::Model3DImporter {
 
     Renderer::Resources::Model ModelImporter::ImportModel(std::string path) {
         kModel model;
+        CE::Log(LogLevel::Debug, "[3D Model Importer] Attempting to load: {}", path);
         if (!mVFS.FileExists(path.c_str())) {
             CE::Log(LogLevel::Error, "[3D Model Importer] File: {}, doesn't exist", path);
             return model;
@@ -487,6 +488,7 @@ namespace CE::Assets::Model3DImporter {
 
         model.Materials.reserve(scene->mNumMaterials);
         model.MeshesCPU.reserve(scene->mNumMeshes);
+        model.Nodes.reserve(scene->mRootNode->mNumChildren * 8);
         model.MeshMaterialIndices.reserve(scene->mNumMeshes);
         
         for (uint32_t i = 0; i < scene->mNumMeshes; ++i) {

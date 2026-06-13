@@ -56,6 +56,7 @@ namespace CE {
             gVFS,
             gpudevice
         );
+
         if(vis != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
@@ -66,11 +67,19 @@ namespace CE {
         if (!gGameInfo->windowIcon.empty()) {
             SetWindowIcon(gGameInfo->windowIcon);
         }
+
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", gInstanceID);
         int brrms = this->Bootstrap_RendererResourceManagers();
         if (brrms != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to init renderer resource managers: {}", gInstanceID, brrms));
+        }
+
+        int aiam = this->Bootstrap_AssetImportersAndManagers();
+        if (aiam != 0) {
+            throw std::runtime_error(
+                std::format("[Instance {}] Failed to init asset importers and managers {}", gInstanceID, aiam)
+            );
         }
 
         CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
@@ -125,6 +134,8 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
+
+        GREMOVEMETESTTHING = g3DModelImporter->ImportModel("/GlassHurricaneCandleHolder.glb");
     }
 
     bool Instance::ShouldExit() {
@@ -201,6 +212,7 @@ namespace CE {
         } 
         gRenderer->BeginMode3D();
         gGameStateManager.Emit("Draw3D");
+        gModelRenderer->RenderModel(GREMOVEMETESTTHING, GREMOVEMETESTHING_TRANSFORM);
         gRenderer->EndMode3D();
 
         gRenderer->BeginMode2D();

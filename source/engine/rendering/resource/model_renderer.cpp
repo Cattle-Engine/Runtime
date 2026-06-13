@@ -25,8 +25,7 @@ namespace CE::Renderer::Resources {
         const Model::Node& node = model.Nodes[nodeIndex];
 
         glm::mat4 localTransform = node.Transform;
-        glm::mat4 worldTransform = parentTransform * localTransform;
-
+        glm::mat4 worldTransform = parentTransform * localTransform;;
         for (uint32_t meshIndex : node.MeshIndices)
         {
             const MeshHandle meshHandle = model.Meshes[meshIndex];

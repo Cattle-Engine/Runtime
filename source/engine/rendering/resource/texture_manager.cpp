@@ -136,8 +136,22 @@ namespace CE::Renderer::Resources {
         }
     }
 
+    void TextureManager::UnloadAll() {
+        for (auto& [name, texinfo] : mTextureCache) {
+            if (!texinfo.IsError) {
+                mRenderer.UnloadTex(texinfo.Resource);
+            }
+        }
+        mTextureCache.clear();
+        CE::Log(LogLevel::Info, "[Texture Manager] Unloaded all textures");
+    }
+
     size_t TextureManager::GetLoadedTextureCount() const {
         return mTextureCache.size();
+    }
+
+    TextureManager::~TextureManager() {
+        this->UnloadAll();
     }
 
     size_t TextureManager::GetValidTextureCount() const {

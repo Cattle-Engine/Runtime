@@ -42,7 +42,7 @@ namespace CE::Renderer::Resources {
     class TextureManager {
     public:
         TextureManager(VFS::VFS& vfs, IRenderer& renderer);
-        
+        ~TextureManager();
         // Internal use for other systems only!
         TextureRef Acquire(TextureHandle handle);
         Texture* GetTexture(TextureHandle handle);
@@ -64,6 +64,7 @@ namespace CE::Renderer::Resources {
         
         // When RefCount in TextureEntry a texture is fully deleted
         void Unload(TextureHandle handle);
+        void UnloadAll();
         
         size_t GetLoadedTextureCount() const;
         size_t GetValidTextureCount() const;

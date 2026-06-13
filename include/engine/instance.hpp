@@ -11,6 +11,8 @@
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
 #include "engine/rendering/resources/material_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
+#include "engine/rendering/resources/model_renderer.hpp"
+#include "engine/assets/3d_model_importer.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/scripting/angelscript.hpp"
@@ -68,9 +70,11 @@ namespace CE {
             std::unique_ptr<CE::Renderer::Resources::GPUMeshManager> gGPUMeshManager;
             std::unique_ptr<CE::Renderer::Resources::MaterialManager> gMaterialManager;
             std::unique_ptr<CE::Renderer::Resources::TextureManager> gTextureManager;
+            std::unique_ptr<CE::Renderer::Resources::ModelRenderer> gModelRenderer;
             std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
             std::unique_ptr<CE::Assets::Shaders::ShaderManager> gShaderManager;
             std::unique_ptr<CE::Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
+            std::unique_ptr<CE::Assets::Model3DImporter::ModelImporter> g3DModelImporter;
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
             
             SDL_Window* gWindow = nullptr;
@@ -93,6 +97,9 @@ namespace CE {
             CE::Core::EventBus gEventBus;
             CE::Core::GameState::GameStateManager gGameStateManager;
             CE::UI::DebugWindow gDebugWindow;
+
+            Renderer::Resources::Model GREMOVEMETESTTHING;
+            Renderer::Transform3D GREMOVEMETESTHING_TRANSFORM{};
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;

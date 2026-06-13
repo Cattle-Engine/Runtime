@@ -169,7 +169,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[2].buffer_slot = 0;
         attrs[2].location = 2;
         attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
-        attrs[2].offset = static_cast<Uint32>(offsetof(GPUVertex3D, r));
+        attrs[2].offset = static_cast<Uint32>(offsetof(GPUVertex3D, color));
 
         attrs[3].buffer_slot = 0;
         attrs[3].location = 3;
@@ -229,10 +229,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         meshData->indexCount = 6;
 
         const std::array<GPUVertex3D, 4> vertices = {{
-            { glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
-            { glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
-            { glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(0.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
-            { glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 255, 255, 255, 255, glm::vec2(1.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0xFFFFFFFF, glm::vec2(1.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0xFFFFFFFF, glm::vec2(0.0f, 1.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0xFFFFFFFF, glm::vec2(0.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
+            { glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 0xFFFFFFFF, glm::vec2(1.0f, 0.0f), glm::vec3(1.0f,0.0f,0.0f), 1.0f },
         }};
 
         const std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
@@ -668,10 +668,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             gpuVertices[i] = GPUVertex3D {
                 src.position,
                 glm::length(src.normal) > 0.0001f ? glm::normalize(src.normal) : glm::vec3(0.0f, 1.0f, 0.0f),
-                src.color.r,
-                src.color.g,
-                src.color.b,
-                src.color.a,
+                // Pack RGBA into a single uint32_t
+                (static_cast<uint32_t>(src.color.r)) |
+                (static_cast<uint32_t>(src.color.g) << 8) |
+                (static_cast<uint32_t>(src.color.b) << 16) |
+                (static_cast<uint32_t>(src.color.a) << 24),
                 src.uv,
                 src.tangent,
                 src.tangentSign
