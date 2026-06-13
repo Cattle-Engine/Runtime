@@ -82,6 +82,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint32_t idxCount = 0;
     };
 
+    #pragma pack(push, 1) 
     struct GPUVertex3D {
         glm::vec3 position { 0.0f };
         glm::vec3 normal { 0.0f, 1.0f, 0.0f };
@@ -90,6 +91,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         glm::vec3 tangent { 0.0f };
         float tangentSign = 1.0f;
     };
+    #pragma pack(pop)
 
     struct SDLGPUMeshData {
         SDL_GPUBuffer* vertexBuffer = nullptr;
@@ -109,6 +111,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         glm::mat4 normalMatrix { 1.0f };
         glm::vec4 tint { 1.0f };
         glm::vec4 materialProps { 1.0f, 0.0f, 0.0f, 0.0f };
+        bool isTransparent = false;
+        float distanceToCamera = 0.0f;
     };
 
     class SDL_GPU_Renderer : public Renderer::IRenderer {
@@ -242,7 +246,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 SDL_Window* window,
                 SDL_GPUShader* vertexShader,
                 SDL_GPUShader* fragmentShader,
-                bool isSkybox = false
+                bool isSkybox = false,
+                bool isTransparent = false
             ) const;
             bool EnsureDepthTexture(SDL_Window* window);
             bool EnsureSkyboxMesh();
@@ -318,6 +323,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
             SDL_GPUGraphicsPipeline* g3DPipeline = nullptr;
+            SDL_GPUGraphicsPipeline* gTransparent3DPipeline = nullptr;
             SDL_GPUGraphicsPipeline* gSkyboxPipeline = nullptr;
             SDL_GPUShader* gDefault3DVertexShader = nullptr;
             SDL_GPUShader* gDefault3DFragmentShader = nullptr;

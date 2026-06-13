@@ -124,7 +124,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_Window* window,
         SDL_GPUShader* vertexShader,
         SDL_GPUShader* fragmentShader,
-        bool isSkybox
+        bool isSkybox,
+        bool isTransparent
     ) const {
         if (!gDevice || !window || !vertexShader || !fragmentShader || gDepthFormat == SDL_GPU_TEXTUREFORMAT_INVALID) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Create3DGraphicsPipeline received invalid input");
@@ -200,8 +201,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         pipelineCreateInfo.rasterizer_state.enable_depth_clip = true;
         pipelineCreateInfo.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
         pipelineCreateInfo.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
-        pipelineCreateInfo.depth_stencil_state.enable_depth_test = !isSkybox;
-        pipelineCreateInfo.depth_stencil_state.enable_depth_write = !isSkybox;
+        pipelineCreateInfo.depth_stencil_state.enable_depth_test = true;
+        pipelineCreateInfo.depth_stencil_state.enable_depth_write = !(isSkybox || isTransparent);
         pipelineCreateInfo.target_info.color_target_descriptions = &colorDesc;
         pipelineCreateInfo.target_info.num_color_targets = 1;
         pipelineCreateInfo.target_info.depth_stencil_format = gDepthFormat;
@@ -497,8 +498,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 9;
         }
 
-        g3DPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gDefault3DFragmentShader, false);
+        g3DPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gDefault3DFragmentShader, false, false);
         if (!g3DPipeline) {
+            DestroyDefault3DPipeline();
+            return 10;
+        }
+
+        gTransparent3DPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gDefault3DFragmentShader, false, true);
+        if (!gTransparent3DPipeline) {
             DestroyDefault3DPipeline();
             return 10;
         }
@@ -510,7 +517,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 11;
         }
 
-        gSkyboxPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gSkyboxFragmentShader, true);
+        gSkyboxPipeline = Create3DGraphicsPipeline(window, gDefault3DVertexShader, gSkyboxFragmentShader, true, false);
         if (!gSkyboxPipeline) {
             DestroyDefault3DPipeline();
             return 12;
@@ -540,6 +547,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (g3DPipeline) {
             SDL_ReleaseGPUGraphicsPipeline(gDevice, g3DPipeline);
             g3DPipeline = nullptr;
+        }
+
+        if (gTransparent3DPipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(gDevice, gTransparent3DPipeline);
+            gTransparent3DPipeline = nullptr;
         }
 
         if (gSkyboxPipeline) {
@@ -785,14 +797,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        Texture* texture = nullptr;
-
-        if (auto albedo = material.albedo) {
-            texture = albedo;
-        } else if (error_tex) {
-            texture = GetErrorTexture();
-        }
-
         auto* albedoData = material.albedo && material.albedo->handle
             ? static_cast<SDLGPUTexData*>(material.albedo->handle) : nullptr;
         
@@ -816,6 +820,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         command.normalMatrix = normalMatrix;
         command.tint = ToColourVec4(material.tint);
         command.materialProps = glm::vec4(material.roughness, material.metallic, 0.0f, 0.0f);
+        command.isTransparent = material.isTransparent;
+        command.distanceToCamera = glm::distance(mCamera3DState.position, transform.position);
 
         if (command.shader && command.shader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
             command.shader->Mode = SDL_GPU_Renderer_Shader::PipelineMode::Mode3D;
@@ -844,15 +850,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        Texture* texture = nullptr;
-
-        if (auto albedo = material.albedo) {
-            texture = albedo;
-        }
-        else if (error_tex) {
-            texture = GetErrorTexture();
-        }
-
         auto* albedoData = material.albedo && material.albedo->handle
             ? static_cast<SDLGPUTexData*>(material.albedo->handle) : nullptr;
         
@@ -876,6 +873,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         command.normalMatrix = normalMatrix;
         command.tint = ToColourVec4(material.tint);
         command.materialProps = glm::vec4(material.roughness, material.metallic, 0.0f, 0.0f);
+        command.isTransparent = material.isTransparent;
+        command.distanceToCamera = glm::distance(mCamera3DState.position, glm::vec3(transform[3]));
 
         if (command.shader && command.shader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
             command.shader->Mode = SDL_GPU_Renderer_Shader::PipelineMode::Mode3D;
@@ -901,12 +900,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_BindGPUGraphicsPipeline(renderPass, gSkyboxPipeline);
 
         const std::array<SkyboxFace, 6> faces = {{
-            { &skybox.front,  { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f, 0.0f } },
-            { &skybox.back,   { 0.0f, 0.0f, -1.0f }, { 0.0f, glm::radians(180.0f), 0.0f } },
-            { &skybox.left,   { -1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(-90.0f), 0.0f } },
-            { &skybox.right,  {  1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(90.0f), 0.0f } },
-            { &skybox.top,    { 0.0f,  1.0f, 0.0f }, { glm::radians(-90.0f), glm::radians(90.0f), 0.0f } },  // Pitch -90°, Yaw +90°
-            { &skybox.bottom, { 0.0f, -1.0f, 0.0f }, { glm::radians(90.0f), glm::radians(90.0f), 0.0f } },   // Pitch +90°, Yaw +90°
+            { &skybox.front,  { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f, 0.0f }, 0.0f },
+            { &skybox.back,   { 0.0f, 0.0f, -1.0f }, { 0.0f, glm::radians(180.0f), 0.0f }, 0.0f },
+            { &skybox.left,   { -1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(-90.0f), 0.0f }, 0.0f },
+            { &skybox.right,  {  1.0f, 0.0f, 0.0f }, { 0.0f, glm::radians(90.0f), 0.0f }, 0.0f },
+            { &skybox.top,    { 0.0f,  1.0f, 0.0f }, { glm::radians(-90.0f), glm::radians(90.0f), 0.0f }, 0.0f },  // Pitch -90°, Yaw +90°
+            { &skybox.bottom, { 0.0f, -1.0f, 0.0f }, { glm::radians(90.0f), glm::radians(90.0f), 0.0f }, 0.0f },   // Pitch +90°, Yaw +90°
         }};
 
         SDL_GPUBufferBinding vertexBinding{ gSkyboxMesh->vertexBuffer, 0 };
@@ -1033,17 +1032,33 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             DrawSkybox(renderPass, mCamera3DState, aspectRatio, width, height);
         }
 
-        SDL_BindGPUGraphicsPipeline(renderPass, g3DPipeline);
-        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &cameraUniform, sizeof(cameraUniform));
-
         const LightingState& lighting = GetLightingState();
-        for (const MeshDrawCommand& command : gMeshCommands) {
-            if (!command.mesh) {
-                continue;
-            }
+        
+        // Split opaque and transparent
+        std::vector<const MeshDrawCommand*> opaqueCommands;
+        std::vector<const MeshDrawCommand*> transparentCommands;
+        opaqueCommands.reserve(gMeshCommands.size());
+        transparentCommands.reserve(gMeshCommands.size());
 
-            SDL_GPUGraphicsPipeline* activePipeline = g3DPipeline;
+        for (const auto& cmd : gMeshCommands) {
+            if (cmd.isTransparent) {
+                transparentCommands.push_back(&cmd);
+            } else {
+                opaqueCommands.push_back(&cmd);
+            }
+        }
+
+        // Sort transparent: Back-to-Front
+        std::sort(transparentCommands.begin(), transparentCommands.end(), [](const MeshDrawCommand* a, const MeshDrawCommand* b) {
+            return a->distanceToCamera > b->distanceToCamera;
+        });
+
+        auto DrawCommand = [&](const MeshDrawCommand& command, bool isTransparentMode) {
+            if (!command.mesh) return;
+
+            SDL_GPUGraphicsPipeline* activePipeline = isTransparentMode ? gTransparent3DPipeline : g3DPipeline;
             SDL_GPU_Renderer_Shader* activeShader = command.shader;
+            
             if (activeShader) {
                 if (activeShader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
                     activeShader->Mode = SDL_GPU_Renderer_Shader::PipelineMode::Mode3D;
@@ -1053,7 +1068,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 if (activeShader->Dirty || !activeShader->Pipeline) {
                     auto shaderWrapper = Shader { activeShader, gBackend };
                     if (!CompileShaderProgram(&shaderWrapper)) {
-                        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Falling back to default 3D shader after failing to compile custom 3D shader");
+                        CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Falling back to default 3D shader");
                         activeShader = nullptr;
                     }
                 }
@@ -1087,8 +1102,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             fragmentUniform.materialProps = glm::vec4(
                 std::clamp(command.materialProps.x, 0.0f, 1.0f),
                 std::clamp(command.materialProps.y, 0.0f, 1.0f),
-                0.0f, // No longer using shininess in PBR
-                0.0f
+                0.0f, 0.0f
             );
             fragmentUniform.cameraPositionShininess = glm::vec4(mCamera3DState.position, 0.0f);
             fragmentUniform.normalExists = glm::vec4((command.normaltex && command.normaltex->gpuTex) ? 1.0f : 0.0f);
@@ -1104,11 +1118,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUniform, sizeof(fragmentUniform));
 
-            const size_t baseSamplerCount = 3; // albedo(0), normal(1), metallic-roughness(2)
-            const size_t samplerCount = activeShader 
-                ? std::max<size_t>(baseSamplerCount, activeShader->FragmentSamplerCount) 
-                : baseSamplerCount;
-                
+            const size_t baseSamplerCount = 3;
+            const size_t samplerCount = activeShader ? std::max<size_t>(baseSamplerCount, activeShader->FragmentSamplerCount) : baseSamplerCount;
             std::vector<SDL_GPUTextureSamplerBinding> bindings(samplerCount);
 
             for (size_t slot = 0; slot < samplerCount; ++slot) {
@@ -1116,16 +1127,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 bindings[slot].sampler = gWhiteSampler;
             }
 
-            bindings[0].texture = (command.texture && command.texture->gpuTex) 
-                ? command.texture->gpuTex : gWhiteTex;
+            bindings[0].texture = (command.texture && command.texture->gpuTex) ? command.texture->gpuTex : gWhiteTex;
             bindings[0].sampler = command.sampler ? command.sampler : gWhiteSampler;
-            
-            bindings[1].texture = (command.normaltex && command.normaltex->gpuTex)
-                ? command.normaltex->gpuTex : gDefaultNormalTex;
+            bindings[1].texture = (command.normaltex && command.normaltex->gpuTex) ? command.normaltex->gpuTex : gDefaultNormalTex;
             bindings[1].sampler = command.sampler ? command.sampler : gWhiteSampler;
-
-            bindings[2].texture = (command.mrtex && command.mrtex->gpuTex)
-                ? command.mrtex->gpuTex : gWhiteTex;
+            bindings[2].texture = (command.mrtex && command.mrtex->gpuTex) ? command.mrtex->gpuTex : gWhiteTex;
             bindings[2].sampler = command.sampler ? command.sampler : gWhiteSampler;
 
             if (activeShader) {
@@ -1142,12 +1148,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
 
             SDL_BindGPUFragmentSamplers(renderPass, 0, bindings.data(), static_cast<Uint32>(samplerCount));
-
             SDL_GPUBufferBinding vertexBinding{ command.mesh->vertexBuffer, 0 };
             SDL_GPUBufferBinding indexBinding{ command.mesh->indexBuffer, 0 };
             SDL_BindGPUVertexBuffers(renderPass, 0, &vertexBinding, 1);
             SDL_BindGPUIndexBuffer(renderPass, &indexBinding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             SDL_DrawGPUIndexedPrimitives(renderPass, command.mesh->indexCount, 1, 0, 0, 0);
+        };
+
+        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &cameraUniform, sizeof(cameraUniform));
+
+        // 1. Draw Opaque
+        for (const auto* cmd : opaqueCommands) {
+            DrawCommand(*cmd, false);
+        }
+
+        // 2. Draw Transparent
+        for (const auto* cmd : transparentCommands) {
+            DrawCommand(*cmd, true);
         }
 
         SDL_EndGPURenderPass(renderPass);

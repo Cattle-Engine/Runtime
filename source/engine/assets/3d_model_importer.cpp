@@ -416,7 +416,9 @@ namespace CE::Assets::Model3DImporter {
             albedo->h,
             albedo->pixels,
             Renderer::TextureFormat::RGBA8,
-            albedo->pitch
+            albedo->pitch,
+            Renderer::TextureFilter::Linear,
+            Renderer::TextureWrap::Repeat
         );
 
         auto normal_handle = mTextureManager.CreateTextureFromData(
@@ -424,7 +426,9 @@ namespace CE::Assets::Model3DImporter {
             normal->h,
             normal->pixels,
             Renderer::TextureFormat::RGBA8,
-            normal->pitch
+            normal->pitch,
+            Renderer::TextureFilter::Linear,
+            Renderer::TextureWrap::Repeat
         );
                         /* No idea if this is just my ide but for some reason BuildMR had too many paramters, doing this-> fixed it */
         SDL_Surface* mr_texture = this->BuildMR(metallic_tex, roughness_tex);
@@ -434,7 +438,9 @@ namespace CE::Assets::Model3DImporter {
             mr_texture->h,
             mr_texture->pixels,
             Renderer::TextureFormat::RGBA8,
-            mr_texture->pitch
+            mr_texture->pitch,
+            Renderer::TextureFilter::Linear,
+            Renderer::TextureWrap::Repeat
         );
 
         SDL_DestroySurface(albedo);
@@ -473,7 +479,12 @@ namespace CE::Assets::Model3DImporter {
 
         const aiScene* scene = importer.ReadFile(
             path,
-            aiProcess_Triangulate | aiProcess_GenNormals
+            aiProcess_Triangulate | 
+            aiProcess_GenNormals |
+            aiProcess_CalcTangentSpace |
+            aiProcess_FlipUVs |
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_SortByPType
         );
 
         if (!scene || !scene->mRootNode) {

@@ -103,9 +103,9 @@ namespace CE::Renderer {
     };
 
     struct Transform3D {
-        glm::vec3 position;
-        glm::vec3 rotation;
-        glm::vec3 scale;
+        glm::vec3 position{0.0f, 0.0f, 0.0f};
+        glm::vec3 rotation{0.0f, 0.0f, 0.0f};
+        glm::vec3 scale{1.0f, 1.0f, 1.0f};
     };
 
     struct MeshData {
@@ -149,6 +149,7 @@ namespace CE::Renderer {
         Colour tint;
         float roughness = 1.0f;
         float metallic = 0.0f;
+        bool isTransparent = false;
     };
 
     struct DirectionalLight {

@@ -4,6 +4,8 @@ layout(location = 0) in vec3 fragWorldPos;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec4 fragColor;
 layout(location = 3) in vec2 fragUV;
+layout(location = 4) in vec3 fragTangent;
+layout(location = 5) in float fragTangentSign;
 
 layout(set = 2, binding = 0) uniform sampler2D albedoSampler;
 layout(set = 2, binding = 1) uniform sampler2D normalSampler;
@@ -31,7 +33,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float num = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
-    return num / denom;
+    return num / max(denom, 0.000001);
 }
 
 float GeometrySchlickGGX(float NdotV, float roughness) {
@@ -39,7 +41,7 @@ float GeometrySchlickGGX(float NdotV, float roughness) {
     float k = (r * r) / 8.0;
     float num = NdotV;
     float denom = NdotV * (1.0 - k) + k;
-    return num / denom;
+    return num / max(denom, 0.000001);
 }
 
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
@@ -55,25 +57,25 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0) {
 }
 
 void main() {
-vec4 albedoSample = texture(albedoSampler, fragUV) * fragColor * materialTint;
-vec3 albedo = albedoSample.rgb;
+    vec4 albedoSample = texture(albedoSampler, fragUV) * fragColor * materialTint;
+    vec3 albedo = albedoSample.rgb;
+    float alpha = albedoSample.a;
 
-vec3 N = normalize(fragNormal);
-vec3 normal = N;
-// If a normal map is provided, reconstruct normal from tangent-space normal
-if (normalExists.x > 0.5) {
-    vec3 up = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
-    vec3 T = normalize(cross(up, N));
-    vec3 B = cross(N, T);
-    mat3 TBN = mat3(T, B, N);
-    vec3 tangentNormal = texture(normalSampler, fragUV).rgb * 2.0 - 1.0;
-    normal = normalize(TBN * tangentNormal);
-}
+    vec3 N = normalize(fragNormal);
+    vec3 normal = N;
+    // If a normal map is provided, reconstruct normal from tangent-space normal
+    if (normalExists.x > 0.5) {
+        vec3 T = normalize(fragTangent);
+        vec3 B = cross(N, T) * fragTangentSign;
+        mat3 TBN = mat3(T, B, N);
+        vec3 tangentNormal = texture(normalSampler, fragUV).rgb * 2.0 - 1.0;
+        normal = normalize(TBN * tangentNormal);
+    }
     
     vec2 metallicRoughness = texture(metallicRoughnessSampler, fragUV).bg;
     float roughness = metallicRoughness.g * materialProps.x;
     float metallic = metallicRoughness.r * materialProps.y;
-    roughness = clamp(roughness, 0.04, 1.0);
+    roughness = clamp(roughness, 0.05, 1.0);
     metallic = clamp(metallic, 0.0, 1.0);
     
     vec3 viewDir = normalize(cameraPositionShininess.xyz - fragWorldPos);
@@ -96,11 +98,12 @@ if (normalExists.x > 0.5) {
         float denominator = 4.0 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.0001;
         vec3 specular = numerator / denominator;
         
-        vec3 kD = (1.0 - F) * (1.0 - metallic);
+        vec3 kS = F;
+        vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
         float NdotL = max(dot(normal, lightDir), 0.0);
         
         lighting += (kD * albedo / PI + specular) * radiance * NdotL;
     }
     
-    outColor = vec4(lighting, albedoSample.a);
+    outColor = vec4(lighting, alpha);
 }

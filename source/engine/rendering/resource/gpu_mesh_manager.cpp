@@ -4,7 +4,7 @@
 
 namespace CE::Renderer::Resources {
     GPUMeshManager::GPUMeshManager(IRenderer& renderer, MaterialManager& mat_manager) :
-        mRenderer(renderer), mMaterialManager(mat_manager) {
+        mMaterialManager(mat_manager), mRenderer(renderer) {
     }
 
     GPUMeshManager::~GPUMeshManager() {

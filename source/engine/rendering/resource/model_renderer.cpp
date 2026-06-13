@@ -1,5 +1,6 @@
 #include "engine/rendering/resources/model_renderer.hpp"
 #include "engine/rendering/common/transform3d_to_matrix.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
     ModelRenderer::ModelRenderer(
@@ -18,30 +19,35 @@ namespace CE::Renderer::Resources {
     }
 
     void ModelRenderer::RenderNode(
-        const Model& model,
-        uint32_t nodeIndex,
-        const glm::mat4& parentTransform
-    ) {
-        const Model::Node& node = model.Nodes[nodeIndex];
+            const Model& model,
+            uint32_t nodeIndex,
+            const glm::mat4& parentTransform
+        ) {
+            if (nodeIndex >= model.Nodes.size()) return; 
+            const Model::Node& node = model.Nodes[nodeIndex];
 
-        glm::mat4 localTransform = node.Transform;
-        glm::mat4 worldTransform = parentTransform * localTransform;;
-        for (uint32_t meshIndex : node.MeshIndices)
-        {
-            const MeshHandle meshHandle = model.Meshes[meshIndex];
-            const MaterialHandle materialHandle = model.Materials[meshIndex];
+            glm::mat4 localTransform = node.Transform;
 
-            mGPUMeshManager.DrawMeshHandleMat4(
-                meshHandle,
-                worldTransform,
-                materialHandle,
-                false
-            );
-        }
+            glm::mat4 worldTransform = parentTransform * localTransform;
 
-        for (uint32_t childIndex : node.Children) {
-            RenderNode(model, childIndex, worldTransform);
-        }
+            for (uint32_t meshIndex : node.MeshIndices)
+            {
+                const MeshHandle meshHandle = model.Meshes[meshIndex];
+                
+                uint32_t materialIndex = model.MeshMaterialIndices[meshIndex];
+                const MaterialHandle materialHandle = model.Materials[materialIndex];
+
+                mGPUMeshManager.DrawMeshHandleMat4(
+                    meshHandle,
+                    worldTransform,
+                    materialHandle,
+                    false
+                );
+            }
+
+            for (uint32_t childIndex : node.Children) {
+                RenderNode(model, childIndex, worldTransform);
+            }
     }
 
     void ModelRenderer::DestroyModel(Model& model) {
