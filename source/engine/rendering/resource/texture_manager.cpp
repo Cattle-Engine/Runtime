@@ -65,20 +65,35 @@ namespace CE::Renderer::Resources {
     }
 
     TextureHandle TextureManager::Load(std::string path) {
+        if (auto it = mPathCache.find(path); it != mPathCache.end())
+        {
+            TextureEntry* entry = GetTextureEntry(it->second);
+            if (entry && !entry->IsPendingUnload)
+            {
+                return it->second;
+            }
+        }
+
         TextureEntry texentry = {};
 
-        if (!mVFS.FileExists(path.c_str())) {
+        if (!mVFS.FileExists(path.c_str()))
+        {
             CE::Log(LogLevel::Error, "[Texture Manager] File doesn't exist: {}", path);
             texentry.Resource = mRenderer.GetErrorTexture();
             texentry.IsError = true;
-        } else {
+        }
+        else
+        {
             Texture* tex = mRenderer.LoadTex(path.c_str());
 
-            if (tex == nullptr) {
+            if (tex == nullptr)
+            {
                 CE::Log(LogLevel::Error, "[Texture Manager] Failed to load texture: {}", path);
                 texentry.Resource = mRenderer.GetErrorTexture();
                 texentry.IsError = true;
-            } else {
+            }
+            else
+            {
                 texentry.Resource = tex;
                 texentry.IsError = false;
             }
@@ -87,7 +102,10 @@ namespace CE::Renderer::Resources {
         TextureHandle handle = mNextHandleID++;
         texentry.Path = path;
         texentry.RefCount = 0;
+
         mTextureCache.emplace(handle, std::move(texentry));
+        mPathCache[path] = handle;
+
         return handle;
     }
 
@@ -191,14 +209,27 @@ namespace CE::Renderer::Resources {
     }
 
     TextureHandle TextureManager::CreateTextureFromData(
-                    int width,
-                    int height,
-                    const void* pixels,
-                    TextureFormat format,
-                    int pitch,
-                    TextureFilter filter,
-                    TextureWrap wrap
+            int width,
+            int height,
+            const void* pixels,
+            TextureFormat format,
+            int pitch,
+            TextureFilter filter,
+            TextureWrap wrap,
+            std::string cache_key
     ) {
+        if (!cache_key.empty()) {
+            auto it = mPathCache.find(cache_key);
+
+            if (it != mPathCache.end()) {
+                TextureEntry* entry = GetTextureEntry(it->second);
+
+                if (entry && !entry->IsPendingUnload) {
+                    return it->second;
+                }
+            }
+        }
+
         auto tex = mRenderer.CreateTextureFromData(
             width,
             height,
@@ -220,10 +251,26 @@ namespace CE::Renderer::Resources {
         }
 
         TextureHandle handle = mNextHandleID++;
-        entry.Path = std::format("{}_{}", kGeneratedTexturePathName, handle);
+        if (!cache_key.empty()) {
+            entry.Path = cache_key;
+        } else {
+            entry.Path = std::format("{}_{}", kGeneratedTexturePathName, handle);
+        }
+
         entry.IsPendingUnload = false;
         entry.RefCount = 0;
         mTextureCache.emplace(handle, std::move(entry));
+        mPathCache.emplace(cache_key, handle);
         return handle;
+    }
+
+    bool TextureManager::IsPathCached(std::string path) {
+        auto list = mPathCache.find(path);
+
+        if (list == mPathCache.end()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }

@@ -50,8 +50,22 @@ namespace CE::Renderer::Resources {
         // Used to decrease RefCount in TextureEntry
         void Return(TextureHandle handle);
         
-        // Returns InvalidTextureHandle if failure
+        /*
+        * @brief Loads a texture from the VFS and returns a TextureHandle
+        * @param path The path to the texture
+        */
         TextureHandle Load(std::string path);
+        
+        /*
+        * @brief Upload raw pixels to the GPU and get a texture
+        * @param width The width of the texture
+        * @param height The height of the texture
+        * @param pixels Raw pixel data
+        * @param pitch How many bytes between one row and another
+        * @param filter There is: Nearest and Linear, Nearest keeps pixels sharp, Linear blurs them a tiny bit 
+        * @param wrap There is: Clamp, Repeat and Mirror, Clamp stretchs edge pixels, Repeat tiles the texture, MirroredRepeat tiles but mirrors each time
+        * @param cache_key Used to optimize, if a texture is already loaded with the same cache key, it returns that instead of creating an entirely new texture
+        */
         TextureHandle CreateTextureFromData(
                 int width,
                 int height,
@@ -59,13 +73,21 @@ namespace CE::Renderer::Resources {
                 TextureFormat format,
                 int pitch = 0,
                 TextureFilter filter = TextureFilter::Linear,
-                TextureWrap wrap = TextureWrap::Clamp
+                TextureWrap wrap = TextureWrap::Clamp,
+                std::string cache_key = ""
         );
         
-        // When RefCount in TextureEntry a texture is fully deleted
+        /*
+        * @brief This marks a texture for deletion and doesn't allow you to get the texture anymore, a texture is only deleted when its RefCount is 0
+        */
         void Unload(TextureHandle handle);
         void UnloadAll();
         
+        /*
+        * @brief Find if a path has been cached
+        */
+        bool IsPathCached(std::string path);
+
         size_t GetLoadedTextureCount() const;
         size_t GetValidTextureCount() const;
         size_t GetErrorTextureCount() const;
@@ -82,7 +104,6 @@ namespace CE::Renderer::Resources {
             bool IsError;
             bool IsPendingUnload;
         };
-        
         // int because so I can check if it's valid
         TextureEntry* GetTextureEntry(TextureHandle handle);
         
@@ -90,5 +111,6 @@ namespace CE::Renderer::Resources {
         VFS::VFS& mVFS;
         uint64_t mNextHandleID = 0;
         std::unordered_map<TextureHandle, TextureEntry> mTextureCache;
+        std::unordered_map<std::string, TextureHandle> mPathCache;
     };
 }
