@@ -289,17 +289,28 @@ namespace CE::Assets::Model3DImporter {
         const aiMaterial* mat,
         aiTextureType type,
         Renderer::Resources::Model& model,
-        std::string mdl_path
+        std::string mdl_path,
+        std::vector<TextureInfo>& mat_io_vector
     ) {
         aiString tex_path;
         LoadedAssimpTextureInfo info {};
+        TextureInfo tex_info;
 
         if (mat->GetTexture(type, 0, &tex_path) == AI_SUCCESS) {
             std::string path = tex_path.C_Str();
             size_t path_string_pos;
 
+            for (auto& mat_io : mat_io_vector) {
+                if (path == mat_io.path) {
+                    info.tex_info = mat_io;
+                    info.texture = nullptr;
+                    info.cache_key = mat_io.path;
+                    return info;
+                }
+            }
+
             if (!path.empty() && path[0] == '*') {
-                info.cache_key = std::format("__ce_model_importer_embeded_texture_{}_{}", mdl_path, path);
+                info.cache_key = path;
                 try {
                     int index = std::stoi(path.substr(1), &path_string_pos);
                     const aiTexture* tex = scene->mTextures[index];
@@ -384,8 +395,7 @@ namespace CE::Assets::Model3DImporter {
                 std::string virtual_path = combined.generic_string();
                 virtual_path = mVFS.NormalizeVirtualPath(virtual_path);
 
-                info.cache_key = std::format("__ce_model_importer_external_texture_{}_{}", mdl_path, virtual_path);
-
+                info.cache_key = virtual_path;
                 if (!mVFS.FileExists(virtual_path.c_str())) {
                     CE::Log(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
                     info.texture = CreateWhiteSurface();
@@ -426,7 +436,8 @@ namespace CE::Assets::Model3DImporter {
         const aiMaterial* mat,
         Renderer::Resources::Model& model,
         std::string model_path,
-        uint32_t index     
+        uint32_t index,
+        std::vector<TextureInfo>& mat_io_vector
     ) {
         
         LoadedAssimpTextureInfo albedo;
@@ -434,59 +445,84 @@ namespace CE::Assets::Model3DImporter {
         LoadedAssimpTextureInfo roughness_tex;
         LoadedAssimpTextureInfo metallic_tex;
 
-        Renderer::Resources::TextureHandle albedo_handle;
-        Renderer::Resources::TextureHandle normal_handle;
-        Renderer::Resources::TextureHandle mr_handle;
+        Renderer::Resources::TextureHandle albedo_handle = 0;
+        Renderer::Resources::TextureHandle normal_handle = 0;
+        Renderer::Resources::TextureHandle mr_handle = 0;
 
         {
             Utils::ScopedTimer("[3D Model Loader] Material texture loading took");
-            albedo = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE, model, model_path);
-            normal = LoadAssimpTexture(scene, mat, aiTextureType_NORMALS, model, model_path);
-            roughness_tex = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS, model, model_path);
-            metallic_tex = LoadAssimpTexture(scene, mat, aiTextureType_METALNESS, model, model_path);
+            albedo = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE, model, model_path, mat_io_vector);
+            normal = LoadAssimpTexture(scene, mat, aiTextureType_NORMALS, model, model_path, mat_io_vector);
+            roughness_tex = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS, model, model_path, mat_io_vector);
+            metallic_tex = LoadAssimpTexture(scene, mat, aiTextureType_METALNESS, model, model_path, mat_io_vector);
         }
         {   
             Utils::ScopedTimer("[3D Model Loader] Material texture GPU upload ");
-            albedo_handle = mTextureManager.CreateTextureFromData(
-                albedo.texture->w,
-                albedo.texture->h,
-                albedo.texture->pixels,
-                Renderer::TextureFormat::RGBA8,
-                albedo.texture->pitch,
-                Renderer::TextureFilter::Linear,
-                Renderer::TextureWrap::Repeat,
-                albedo.cache_key
-            );
+            if (albedo.texture) {
+                albedo_handle = mTextureManager.CreateTextureFromData(
+                    albedo.texture->w,
+                    albedo.texture->h,
+                    albedo.texture->pixels,
+                    Renderer::TextureFormat::RGBA8,
+                    albedo.texture->pitch,
+                    Renderer::TextureFilter::Linear,
+                    Renderer::TextureWrap::Repeat,
+                    albedo.cache_key
+                );
+                mat_io_vector.push_back({albedo.cache_key, albedo_handle});
+            } else {
+                albedo_handle = albedo.tex_info.handle;
+            }
 
-            normal_handle = mTextureManager.CreateTextureFromData(
-                normal.texture->w,
-                normal.texture->h,
-                normal.texture->pixels,
-                Renderer::TextureFormat::RGBA8,
-                normal.texture->pitch,
-                Renderer::TextureFilter::Linear,
-                Renderer::TextureWrap::Repeat,
-                normal.cache_key
-            );
-                            /* No idea if this is just my ide but for some reason BuildMR had too many paramters, doing this-> fixed it */
-            SDL_Surface* mr_texture = this->BuildMR(metallic_tex.texture, roughness_tex.texture);
+            if (normal.texture) {
+                normal_handle = mTextureManager.CreateTextureFromData(
+                    normal.texture->w,
+                    normal.texture->h,
+                    normal.texture->pixels,
+                    Renderer::TextureFormat::RGBA8,
+                    normal.texture->pitch,
+                    Renderer::TextureFilter::Linear,
+                    Renderer::TextureWrap::Repeat,
+                    normal.cache_key
+                );
+                mat_io_vector.push_back({normal.cache_key, normal_handle});  
+            } else {
+                normal_handle = normal.tex_info.handle;
+            }
+            std::string mr_key = std::format("__mr_{}_{}", metallic_tex.cache_key, roughness_tex.cache_key);
 
-            mr_handle = mTextureManager.CreateTextureFromData(
-                mr_texture->w,
-                mr_texture->h,
-                mr_texture->pixels,
-                Renderer::TextureFormat::RGBA8,
-                mr_texture->pitch,
-                Renderer::TextureFilter::Linear,
-                Renderer::TextureWrap::Repeat,
-                std::format("__ce_model_importer_generated_mr_{}_{}", model_path, index)
-            );
+            bool found = false;
+
+            for (const auto& mat_io : mat_io_vector) {
+                if (mr_key == mat_io.path) {
+                    mr_handle = mat_io.handle;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                SDL_Surface* mr_texture = BuildMR(metallic_tex.texture, roughness_tex.texture);
+
+                mr_handle = mTextureManager.CreateTextureFromData(
+                    mr_texture->w,
+                    mr_texture->h,
+                    mr_texture->pixels,
+                    Renderer::TextureFormat::RGBA8,
+                    mr_texture->pitch,
+                    Renderer::TextureFilter::Linear,
+                    Renderer::TextureWrap::Repeat,
+                    mr_key
+                );
+
+                SDL_DestroySurface(mr_texture);
+                mat_io_vector.push_back({mr_key, mr_handle});
+            }
 
             SDL_DestroySurface(albedo.texture);
             SDL_DestroySurface(normal.texture);
             SDL_DestroySurface(roughness_tex.texture);
             SDL_DestroySurface(metallic_tex.texture);
-            SDL_DestroySurface(mr_texture);
         }
         {
             Utils::ScopedTimer("[3D Model Importer] Total time to create material and set fields");
@@ -559,9 +595,10 @@ namespace CE::Assets::Model3DImporter {
 
         {
             Utils::ScopedTimer timer("[3D Model Importer] Material loading");
+            std::vector<TextureInfo> loaded_texture_paths;
             for (uint32_t i = 0; i < scene->mNumMaterials; ++i) {
                 const aiMaterial* mat = scene->mMaterials[i];
-                model.Materials.push_back(LoadAssimpMaterial(scene, mat, model, path, i));
+                model.Materials.push_back(LoadAssimpMaterial(scene, mat, model, path, i, loaded_texture_paths));
             }
         }
 

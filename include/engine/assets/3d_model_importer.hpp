@@ -32,9 +32,15 @@ namespace CE::Assets::Model3DImporter {
             */
             Renderer::Resources::Model ImportModel(std::string path);
         private:
+            struct TextureInfo {
+                std::string path = "";
+                Renderer::Resources::TextureHandle handle = 0;
+            };
+
             struct LoadedAssimpTextureInfo {
-                SDL_Surface* texture;
-                std::string cache_key;
+                SDL_Surface* texture = nullptr;
+                TextureInfo tex_info; // Used when a texture is already loaded
+                std::string cache_key = "";
             };
 
             CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
@@ -44,7 +50,8 @@ namespace CE::Assets::Model3DImporter {
                 const aiMaterial* mat,
                 aiTextureType type,
                 Renderer::Resources::Model& model,
-                std::string model_path
+                std::string model_path,
+                std::vector<TextureInfo>& mat_io_vector
             );
 
             Renderer::Resources::MaterialHandle LoadAssimpMaterial(
@@ -52,7 +59,8 @@ namespace CE::Assets::Model3DImporter {
                 const aiMaterial* mat,
                 Renderer::Resources::Model& model,
                 std::string model_path,
-                uint32_t index     
+                uint32_t index,
+                std::vector<TextureInfo>& mat_io_vector
             );
 
             VFS::VFS& mVFS;
