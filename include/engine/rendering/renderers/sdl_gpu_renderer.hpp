@@ -100,6 +100,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint32_t indexCount = 0;
     };
 
+    struct SDLTextureUploadBatchData {
+        SDL_GPUCommandBuffer* cmd = nullptr;
+        std::vector<SDL_GPUTransferBuffer*> pendingTBs;
+    };
+
     struct MeshDrawCommand {
         SDLGPUMeshData* mesh = nullptr;
         SDLGPUTexData* texture = nullptr;
@@ -153,7 +158,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                 TextureFormat format,
                                 int pitch = 0,
                                 TextureFilter filter = TextureFilter::Linear,
-                                TextureWrap wrap = TextureWrap::Clamp
+                                TextureWrap wrap = TextureWrap::Clamp,
+                                TextureUploadBatch* batch = nullptr
                             ) override;
             void DrawTex(Texture* texture, float x, float y,
                                     float w, float h, Colour colour,
@@ -228,6 +234,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void EndMode2D() override;
 
             void ProcessDeferredDeletions();
+
+            TextureUploadBatch* BeginBatchTextureUpload() override;
+            void EndBatchTextureUpload(TextureUploadBatch* batch) override;
 
         private:
             SDL_GPUGraphicsPipeline* CreateGraphicsPipeline(

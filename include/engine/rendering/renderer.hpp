@@ -123,6 +123,10 @@ namespace CE::Renderer {
         uint32_t indice_count;
     };
 
+    struct TextureUploadBatch {
+        void* handle = nullptr;
+    };
+
     struct Vertex {
         float x, y, z;
         uint8_t r, g, b, a;
@@ -256,7 +260,8 @@ namespace CE::Renderer {
                 TextureFormat format,
                 int pitch = 0,
                 TextureFilter filter = TextureFilter::Linear,
-                TextureWrap wrap = TextureWrap::Clamp
+                TextureWrap wrap = TextureWrap::Clamp,
+                TextureUploadBatch* batch = nullptr
             ) = 0;
             virtual void DrawTex(Texture* texture, float x, float y,
                                 float w, float h, Colour colour,
@@ -325,6 +330,8 @@ namespace CE::Renderer {
                 const glm::mat4& transform,
                 bool error_tex
             ) = 0;
+            virtual TextureUploadBatch* BeginBatchTextureUpload() { return nullptr; }
+            virtual void EndBatchTextureUpload(TextureUploadBatch* batch) {}
             
             void SetLightingState(const LightingState& lighting) {
                 mLightingState = lighting;

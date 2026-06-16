@@ -46,7 +46,8 @@ namespace CE::Renderer::Software {
                 TextureFormat format,
                 int pitch = 0,
                 TextureFilter filter = TextureFilter::Linear,
-                TextureWrap wrap = TextureWrap::Clamp
+                TextureWrap wrap = TextureWrap::Clamp,
+                TextureUploadBatch* batch = nullptr
             ) override;
             void DrawTex(Texture* texture, float x, float y,
                          float w, float h, Colour colour,

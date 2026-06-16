@@ -216,7 +216,8 @@ namespace CE::Renderer::Resources {
             int pitch,
             TextureFilter filter,
             TextureWrap wrap,
-            std::string cache_key
+            std::string cache_key,
+            TextureUploadBatch* batch
     ) {
         if (!cache_key.empty()) {
             auto it = mPathCache.find(cache_key);
@@ -237,7 +238,8 @@ namespace CE::Renderer::Resources {
             format,
             pitch,
             filter,
-            wrap
+            wrap,
+            batch
         );
         TextureEntry entry = {};
         

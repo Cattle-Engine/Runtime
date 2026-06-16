@@ -385,7 +385,8 @@ namespace CE::Renderer::Software {
                                                       TextureFormat format,
                                                       int pitch,
                                                       TextureFilter,
-                                                      TextureWrap) {
+                                                      TextureWrap,
+                                                      TextureUploadBatch* batch) {
         if (mRenderer == nullptr || pixels == nullptr || width <= 0 || height <= 0) {
             return nullptr;
         }

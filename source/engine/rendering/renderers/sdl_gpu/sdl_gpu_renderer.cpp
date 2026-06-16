@@ -925,6 +925,27 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return tex;
     }
 
+    TextureUploadBatch* SDL_GPU_Renderer::BeginBatchTextureUpload() {
+        auto* batchData = new SDLTextureUploadBatchData();
+        batchData->cmd = SDL_AcquireGPUCommandBuffer(gDevice);
+
+        auto* batch = new TextureUploadBatch();
+        batch->handle = batchData;
+        return batch;
+    }
+
+    void SDL_GPU_Renderer::EndBatchTextureUpload(TextureUploadBatch* batch) {
+        if (!batch || !batch->handle) return;
+        auto* data = static_cast<SDLTextureUploadBatchData*>(batch->handle);
+
+        SDL_SubmitGPUCommandBuffer(data->cmd);
+        for (auto* tb : data->pendingTBs)
+            SDL_ReleaseGPUTransferBuffer(gDevice, tb);
+
+        delete data;
+        delete batch;
+    }
+
     Texture* SDL_GPU_Renderer::CreateTextureFromData(
         int width,
         int height,
@@ -932,7 +953,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         TextureFormat format,
         int pitch,
         TextureFilter filter,
-        TextureWrap wrap
+        TextureWrap wrap,
+        TextureUploadBatch* batch
     ) {
         if (!gDevice) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData called before Init()");
@@ -978,8 +1000,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         const Uint32 srcPixelsPerRow = (Uint32)(srcPitchBytes / srcBpp);
 
-        // This renderer/shader path assumes an RGBA sampler2D.
-        // Convert RGB8/R8 uploads to RGBA8 on the CPU for predictable sampling.
         std::vector<uint8_t> converted;
         const uint8_t* uploadPtr = static_cast<const uint8_t*>(pixels);
         Uint32 uploadPixelsPerRow = srcPixelsPerRow;
@@ -1000,19 +1020,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                     for (int col = 0; col < width; ++col) {
                         const uint8_t* s = srcRow + (size_t)col * 3;
                         uint8_t* d = dstRow + (size_t)col * 4;
-                        d[0] = s[0];
-                        d[1] = s[1];
-                        d[2] = s[2];
-                        d[3] = 255;
+                        d[0] = s[0]; d[1] = s[1]; d[2] = s[2]; d[3] = 255;
                     }
-                } else { // R8
+                } else {
                     for (int col = 0; col < width; ++col) {
                         const uint8_t v = srcRow[col];
                         uint8_t* d = dstRow + (size_t)col * 4;
-                        d[0] = v;
-                        d[1] = v;
-                        d[2] = v;
-                        d[3] = 255;
+                        d[0] = v; d[1] = v; d[2] = v; d[3] = 255;
                     }
                 }
             }
@@ -1061,7 +1075,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_memcpy(mapped, uploadPtr, uploadSize);
         SDL_UnmapGPUTransferBuffer(gDevice, tb);
 
-        SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDLTextureUploadBatchData* batchData = batch
+            ? static_cast<SDLTextureUploadBatchData*>(batch->handle)
+            : nullptr;
+
+        SDL_GPUCommandBuffer* cmd = batchData ? batchData->cmd : SDL_AcquireGPUCommandBuffer(gDevice);
+
         SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
 
         SDL_GPUTextureTransferInfo src{};
@@ -1078,8 +1097,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_UploadToGPUTexture(copy, &src, &dst, false);
         SDL_EndGPUCopyPass(copy);
-        SDL_SubmitGPUCommandBuffer(cmd);
-        SDL_ReleaseGPUTransferBuffer(gDevice, tb);
+
+        if (batchData) {
+            batchData->pendingTBs.push_back(tb);
+        } else {
+            SDL_SubmitGPUCommandBuffer(cmd);
+            SDL_ReleaseGPUTransferBuffer(gDevice, tb);
+        }
 
         const SDL_GPUFilter gpuFilter =
             (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
@@ -1097,17 +1121,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDLGPUTexData* data = new SDLGPUTexData();
-        data->gpuTex = gpuTex;
-        data->sampler = CreateSampler(gDevice, gpuFilter, addressMode);
+        data->gpuTex        = gpuTex;
+        data->sampler       = CreateSampler(gDevice, gpuFilter, addressMode);
         data->repeatSampler = CreateSampler(gDevice, gpuFilter, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+
         if (!data->sampler || !data->repeatSampler) {
             CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
-            if (data->sampler) {
-                SDL_ReleaseGPUSampler(gDevice, data->sampler);
-            }
-            if (data->repeatSampler) {
-                SDL_ReleaseGPUSampler(gDevice, data->repeatSampler);
-            }
+            if (data->sampler)       SDL_ReleaseGPUSampler(gDevice, data->sampler);
+            if (data->repeatSampler) SDL_ReleaseGPUSampler(gDevice, data->repeatSampler);
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             delete data;
             return nullptr;

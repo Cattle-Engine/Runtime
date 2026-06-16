@@ -74,7 +74,8 @@ namespace CE::Renderer::Resources {
                 int pitch = 0,
                 TextureFilter filter = TextureFilter::Linear,
                 TextureWrap wrap = TextureWrap::Clamp,
-                std::string cache_key = ""
+                std::string cache_key = "",
+                TextureUploadBatch* batch = nullptr
         );
         
         /*
