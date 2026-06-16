@@ -439,7 +439,6 @@ namespace CE::Assets::Model3DImporter {
         uint32_t index,
         std::vector<TextureInfo>& mat_io_vector
     ) {
-        
         LoadedAssimpTextureInfo albedo;
         LoadedAssimpTextureInfo normal;
         LoadedAssimpTextureInfo roughness_tex;
@@ -451,10 +450,22 @@ namespace CE::Assets::Model3DImporter {
 
         {
             Utils::ScopedTimer("[3D Model Loader] Material texture loading took");
-            albedo = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE, model, model_path, mat_io_vector);
-            normal = LoadAssimpTexture(scene, mat, aiTextureType_NORMALS, model, model_path, mat_io_vector);
-            roughness_tex = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS, model, model_path, mat_io_vector);
-            metallic_tex = LoadAssimpTexture(scene, mat, aiTextureType_METALNESS, model, model_path, mat_io_vector);
+            {
+                Utils::ScopedTimer("[3D Model Loader] Material albedo loading took");
+                albedo = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE, model, model_path, mat_io_vector);
+            }
+            {   
+                Utils::ScopedTimer("[3D Model Loader] Material normal loading took");
+                normal = LoadAssimpTexture(scene, mat, aiTextureType_NORMALS, model, model_path, mat_io_vector);
+            }
+            {
+                Utils::ScopedTimer("[3D Model Loader] Material roughness texture loading took");
+                roughness_tex = LoadAssimpTexture(scene, mat, aiTextureType_DIFFUSE_ROUGHNESS, model, model_path, mat_io_vector);
+            }
+            {
+                Utils::ScopedTimer("[3D Model Loader] Material metallic texture loading took");
+                metallic_tex = LoadAssimpTexture(scene, mat, aiTextureType_METALNESS, model, model_path, mat_io_vector);
+            }
         }
         {   
             Utils::ScopedTimer("[3D Model Loader] Material texture GPU upload ");
@@ -502,7 +513,14 @@ namespace CE::Assets::Model3DImporter {
             }
 
             if (!found) {
-                SDL_Surface* mr_texture = BuildMR(metallic_tex.texture, roughness_tex.texture);
+                SDL_Surface* mr_texture;
+                {
+                    Utils::ScopedTimer("[3D Model Importer] BuildMR");
+                    mr_texture = BuildMR(
+                        metallic_tex.texture,
+                        roughness_tex.texture
+                    );
+                }
 
                 mr_handle = mTextureManager.CreateTextureFromData(
                     mr_texture->w,
@@ -519,10 +537,14 @@ namespace CE::Assets::Model3DImporter {
                 mat_io_vector.push_back({mr_key, mr_handle});
             }
 
-            SDL_DestroySurface(albedo.texture);
-            SDL_DestroySurface(normal.texture);
-            SDL_DestroySurface(roughness_tex.texture);
-            SDL_DestroySurface(metallic_tex.texture);
+            {
+                Utils::ScopedTimer("[3D Model Importer] Surface destruction");
+
+                SDL_DestroySurface(albedo.texture);
+                SDL_DestroySurface(normal.texture);
+                SDL_DestroySurface(roughness_tex.texture);
+                SDL_DestroySurface(metallic_tex.texture);
+            }
         }
         {
             Utils::ScopedTimer("[3D Model Importer] Total time to create material and set fields");
