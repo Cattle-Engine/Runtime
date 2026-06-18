@@ -490,7 +490,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 8;
         }
 
-        gDefault3DFragmentShader = Utils::LoadShader(gDevice, "standard_3d.frag", 1, 1, 0, 0, gVFS);
+        gDefault3DFragmentShader = Utils::LoadShader(gDevice, "standard_3d.frag", 3, 1, 0, 0, gVFS);
         if (!gDefault3DFragmentShader) {
             SDL_ReleaseGPUShader(gDevice, gDefault3DVertexShader);
             gDefault3DVertexShader = nullptr;

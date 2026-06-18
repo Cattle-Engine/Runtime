@@ -338,15 +338,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         
         if (gDevice) {
             SDL_WaitForGPUIdle(gDevice);
-            for (auto& entry : gDeferredDeletes) {
-                if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
-                if (entry.data->repeatSampler && entry.data->repeatSampler != entry.data->sampler) {
-                    SDL_ReleaseGPUSampler(gDevice, entry.data->repeatSampler);
-                }
-                if (entry.data->gpuTex)  SDL_ReleaseGPUTexture(gDevice, entry.data->gpuTex);
-                delete entry.data;
-            }
-            gDeferredDeletes.clear();
         }
 
         SDL_ReleaseWindowFromGPUDevice(gDevice, window);
@@ -394,6 +385,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             gErrorTex = nullptr;
         }
 
+        ProcessDeferredDeletions(true);
         ImGuiShutdown();
 
         return 0;
@@ -1273,12 +1265,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         UpdateTexBatchCounts(gTexBatches, gTexVertCount, gTexIndexCount);
     }
 
-    void SDL_GPU_Renderer::ProcessDeferredDeletions() {
+    void SDL_GPU_Renderer::ProcessDeferredDeletions(bool force) {
         if (gDeferredDeletes.empty()) return;
         std::vector<DeferredDeleteEntry> entriesToDelete;
 
         for (auto& entry : gDeferredDeletes) {
-            entry.framesUntilDelete--;
+            if (force) {
+                entry.framesUntilDelete = 0;
+            } else {
+                entry.framesUntilDelete--;
+            }
+
             if (entry.framesUntilDelete <= 0) {
                 if (entry.data->sampler) SDL_ReleaseGPUSampler(gDevice, entry.data->sampler);
                 if (entry.data->repeatSampler && entry.data->repeatSampler != entry.data->sampler) {

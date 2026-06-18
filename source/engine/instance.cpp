@@ -388,6 +388,18 @@ namespace CE {
 
     Instance::~Instance() {
         GLOBALINSTANCESCOUNTER--;
+        gScriptingManager.reset();
+        gAudioManager.reset();
+        gAudioSystem.reset();
+        g3DModelImporter.reset();
+        gFontManager.reset();
+        gAnimatedTextureManager.reset();
+        gSkyBoxManager.reset();
+        gShaderManager.reset();
+        gModelRenderer.reset();
+        gGPUMeshManager.reset();
+        gMaterialManager.reset();
+        gTextureManager.reset();
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);
     }

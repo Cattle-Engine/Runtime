@@ -135,7 +135,7 @@ namespace CE::Scripting {
             ~Runtime();
 
             bool RunStartup();
-            bool RunUpdate(); // TODO ADD AN ACTUAL CALLBACK SYSTEM
+            bool RunUpdate();
             bool Initialize();
             const std::string& GetLastError() const;
 
@@ -143,6 +143,12 @@ namespace CE::Scripting {
             static void MessageCallback(const asSMessageInfo* msg, void* param);
 
             bool RegisterAssetsBindings();
+            bool RegisterAssetCoreBindings();
+            bool RegisterAssetMeshBindings();
+            bool RegisterAssetTextureBindings();
+            bool RegisterAssetShaderBindings();
+            bool RegisterAssetPrimitiveBindings();
+            bool RegisterAssetAnimationBindings();
             bool Register3DBindings();
             bool RegisterInputBindings();
             bool RegisterInstanceBindings();

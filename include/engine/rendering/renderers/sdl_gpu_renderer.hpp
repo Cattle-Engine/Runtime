@@ -233,7 +233,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             void BeginMode2D() override;
             void EndMode2D() override;
 
-            void ProcessDeferredDeletions();
+            void ProcessDeferredDeletions(bool force = false);
 
             TextureUploadBatch* BeginBatchTextureUpload() override;
             void EndBatchTextureUpload(TextureUploadBatch* batch) override;
