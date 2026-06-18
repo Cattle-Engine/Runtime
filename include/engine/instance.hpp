@@ -13,6 +13,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/rendering/resources/model_renderer.hpp"
 #include "engine/assets/3d_model_importer.hpp"
+#include "engine/common/misc/arguments.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/scripting/angelscript.hpp"
@@ -32,7 +33,7 @@ namespace CE {
     class Instance {
         public:
             Instance(const char* data_file_path, bool debugmode, 
-                Renderer::GPUDeviceHandle& gpudevice);
+                Renderer::GPUDeviceHandle& gpudevice, ProgramArguements args);
             int Update();
             bool ShouldExit();
             void Exit();
@@ -97,6 +98,7 @@ namespace CE {
             CE::Core::EventBus gEventBus;
             CE::Core::GameState::GameStateManager gGameStateManager;
             CE::UI::DebugWindow gDebugWindow;
+            ProgramArguements gProgramArguments;
 
             Renderer::Resources::Model GREMOVEMETESTTHING;
             Renderer::Transform3D GREMOVEMETESTHING_TRANSFORM{};

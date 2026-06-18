@@ -37,6 +37,7 @@ namespace CE::Scripting {
         CE::Assets::Animations::AnimatedTextureManager* AnimatedTextureManager,
         Input::Keyboard& keyboard,
         Input::Mouse& mouse,
+        bool output_debug_info,
         CE::Assets::Audio::AudioManager* audioManager
     )
         : mVFS(vfs)
@@ -54,6 +55,7 @@ namespace CE::Scripting {
         , mKeyboard(keyboard)
         , mMouse(mouse)
         , mAudioManager(audioManager) {
+        mOutputDebugInfo = output_debug_info;
     }
 
     Runtime::~Runtime() {

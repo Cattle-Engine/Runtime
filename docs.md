@@ -1,3 +1,12 @@
+# Program args
+
+They data is set like this ./ce_runtime output_debug_as_info=true
+or ./ce_runtime output_debug_as_info=false
+
+## output_debug_as_info
+Type: Boolean
+Use: Output debug info for as, going to mostly be used for the module and preproccesor
+
 # API Documentation
 
 You can use Color like this:

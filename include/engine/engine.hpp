@@ -1,10 +1,12 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <optional>
 #include <unordered_map>
 
 #include "engine/rendering/renderer.hpp"
+#include "engine/common/misc/arguments.hpp"
 #include "engine/instance.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 
@@ -19,6 +21,10 @@ namespace CE {
             int UpdateInstance(std::string name);
             int Run();    
         private:
+
+            void ParseProgramArguments(std::vector<std::string> args);
+
+            ProgramArguements mProgramArgs;
             Renderer::GPUDeviceHandle mGPUHandle;
             RendererBackend mBackend;
             bool mRunning = true;

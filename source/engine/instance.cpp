@@ -16,8 +16,9 @@
 #include "engine/common/sdl_events.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice)
+    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice, ProgramArguements args)
         : gGameStateManager(gEventBus) {
+        gProgramArguments = args;
         GLOBALINSTANCESCOUNTER ++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
         gDebug = debugmode;
@@ -120,7 +121,8 @@ namespace CE {
             gAnimatedTextureManager.get() /*TODO: Make this use & not a fucking pointer*/,
             *gKeyboardManger,
             *gMouseManger,
-            gAudioManager.get() // Also make this use refrence not a fucking pointer
+            gProgramArguments.OutputDebugASInfo,
+            gAudioManager.get()
         );
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());

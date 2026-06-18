@@ -130,6 +130,7 @@ namespace CE::Scripting {
                 CE::Assets::Animations::AnimatedTextureManager* AnimatedTextureManager,
                 Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
+                bool output_debug_info,
                 CE::Assets::Audio::AudioManager* audioManager = nullptr
             );
             ~Runtime();
@@ -323,6 +324,8 @@ namespace CE::Scripting {
             asIScriptEngine* mScriptEngine = nullptr;
             asIScriptContext* mContext = nullptr;
             asIScriptModule* mScriptModule = nullptr;
+
+            bool mOutputDebugInfo;
 
             asIScriptFunction* mUpdateFunc = nullptr;
             asIScriptContext*  mUpdateCtx  = nullptr;   
