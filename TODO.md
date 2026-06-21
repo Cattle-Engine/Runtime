@@ -8,6 +8,8 @@
 - [X] 3D model drawing
 - [X] Add support for metallic, roughness and normals as textures
 - [ ] Update docs to show new AngelScript bindings
+- [ ] Make glass materials actually work
+- [ ] Multiple light support
 - [X] Refactor AnimationManager to be AnimatedTextureManager
 - [ ] Add AngelScript bindings for the new stuff
 - [ ] Refactor shader manager to live in engine/rendering/resources and have it handle based

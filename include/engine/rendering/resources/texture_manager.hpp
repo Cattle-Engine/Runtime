@@ -50,13 +50,13 @@ namespace CE::Renderer::Resources {
         // Used to decrease RefCount in TextureEntry
         void Return(TextureHandle handle);
         
-        /*
+        /** 
         * @brief Loads a texture from the VFS and returns a TextureHandle
         * @param path The path to the texture
         */
         TextureHandle Load(std::string path);
         
-        /*
+        /** 
         * @brief Upload raw pixels to the GPU and get a texture
         * @param width The width of the texture
         * @param height The height of the texture
@@ -78,13 +78,13 @@ namespace CE::Renderer::Resources {
                 TextureUploadBatch* batch = nullptr
         );
         
-        /*
+        /**
         * @brief This marks a texture for deletion and doesn't allow you to get the texture anymore, a texture is only deleted when its RefCount is 0
         */
         void Unload(TextureHandle handle);
         void UnloadAll();
         
-        /*
+        /**
         * @brief Find if a path has been cached
         */
         bool IsPathCached(std::string path);

@@ -350,8 +350,7 @@ namespace CE::Assets::Model3DImporter {
             SDL_DestroySurface(mr_surf);
             gpuHandleCache.push_back({mr_key, mr_handle});
         }
-
-        if (albedo_path.empty())    SDL_DestroySurface(albedo_surf);
+        
         if (normal_path.empty())    SDL_DestroySurface(normal_surf);
         if (roughness_path.empty()) SDL_DestroySurface(roughness_surf);
         if (metallic_path.empty())  SDL_DestroySurface(metallic_surf);
@@ -360,12 +359,44 @@ namespace CE::Assets::Model3DImporter {
         mMaterialManager.SetNormalTexture(material, normal_handle);
         mMaterialManager.SetMetallicRoughnessTexture(material, mr_handle);
 
+
+        float opacity = 1.0f;
+        mat->Get(AI_MATKEY_OPACITY, opacity);
+
+        bool transparent = opacity < 1.0f;
+
+        if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+            SDL_Surface* surf = albedo_surf;
+
+            if (surf) {
+                const Uint8* pixels = static_cast<const Uint8*>(surf->pixels);
+
+                bool hasAlpha = false;
+
+                for (int y = 0; y < surf->h && !hasAlpha; ++y) {
+                    for (int x = 0; x < surf->w; ++x) {
+                        const Uint8* pixel =
+                            pixels + y * surf->pitch + x * 4;
+
+                        if (pixel[3] < 255) {
+                            hasAlpha = true;
+                            break;
+                        }
+                    }
+                }
+
+                transparent |= hasAlpha;
+            }
+        }
+
+        mMaterialManager.SetTransparent(material, transparent);
+
         float metallic_factor = 0.0f, roughness_factor = 1.0f;
         mat->Get(AI_MATKEY_METALLIC_FACTOR,  metallic_factor);
         mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness_factor);
         mMaterialManager.SetMaterialMetallic(material,  metallic_factor);
         mMaterialManager.SetMaterialRoughness(material, roughness_factor);
-
+        if (albedo_path.empty())    SDL_DestroySurface(albedo_surf);
         return material;
     }
 

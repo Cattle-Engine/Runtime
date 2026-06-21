@@ -85,7 +85,7 @@ namespace CE {
         }
 
         try {
-            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle);
+            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle, mProgramArgs);
             mInstances[name] = std::move(handle);
         } catch (std::runtime_error& e) {
             CE::Log(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());

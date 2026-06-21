@@ -44,6 +44,13 @@ namespace CE::Renderer::Resources {
         }
     }
 
+    void MaterialManager::SetTransparent(MaterialHandle handle, bool transparent) {
+        auto entry = GetMaterialEntry(handle);
+        if (entry) {
+            entry->Resource.isTransparent = transparent;
+        }
+    }
+
 
     void MaterialManager::SetMaterialMetallic(MaterialHandle matt_handle, float metallic) {
         auto entry = GetMaterialEntry(matt_handle);

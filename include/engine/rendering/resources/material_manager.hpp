@@ -28,6 +28,7 @@ namespace CE::Renderer::Resources {
 
             void SetMetallicRoughnessTexture(MaterialHandle handle, TextureHandle tex_handle);
             void SetNormalTexture(MaterialHandle handle, TextureHandle tex_handle);
+            void SetTransparent(MaterialHandle handle, bool transparent);
         private:
             struct MaterialEntry {
                 Material Resource;
