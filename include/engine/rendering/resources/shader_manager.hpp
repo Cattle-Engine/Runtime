@@ -36,7 +36,7 @@ namespace CE::Renderer::Resources {
         
             ShaderHandle CreateProgram();
             ShaderHandle Load(const std::string& filepath, int fragmentSamplerCount = 4);
-            bool LoadStage(const std::string& filepath, CE::Renderer::ShaderStage stage, int samplerCount = 1);
+            bool LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage, int sampler_count = 1);
             bool UseDefaultStage(ShaderHandle handle, CE::Renderer::ShaderStage stage);
             bool Compile(ShaderHandle handle);
             bool Bind(ShaderHandle handle);

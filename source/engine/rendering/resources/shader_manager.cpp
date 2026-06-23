@@ -32,6 +32,7 @@ namespace CE::Renderer::Resources {
         }
 
         handle.id = mNextShaderHandleID++;
+        mShaders.emplace(handle, info);
         return handle;
     }
 
@@ -55,6 +56,63 @@ namespace CE::Renderer::Resources {
         entry.UsesDefaultFragment = false;
         entry.FragmentSamplerCount = std::max(1, fragment_sampler_count);
 
+        if (!entry.Shader) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Failed to load shader: {}", filepath);
+        } else {
+            CE::Log(LogLevel::Debug, "[Shader Manager] Loaded shader: {}", filepath);
+        }
+
+        mShaders.emplace(handle, entry);
+        return handle;
+    }
+
+    bool ShaderManager::LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage, int sampler_count) {
+        ShaderEntry* entry = GetShaderEntry(handle);
+
+        if (!entry) {
+            CE::Log(LogLevel::Error, "[Shader Manager] LoadStage Invalid handle!");
+            return false;
+        }
+
+        if (!entry->Shader) return false;
+
+        if (filepath.empty()) {
+            CE::Log(LogLevel::Error, "[Shader manager] LoadStage filepath was empty!");
+            return false;
+        }
+
+        if (!mRenderer.LoadShaderStage(entry->Shader, filepath.c_str(), stage, sampler_count)) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Failed to load shader stage");
+            entry->IsErrorShader = true;
+            return false;
+        }
+
+        entry->IsErrorShader = false;
+        entry->IsCompiled = false;
+
+        if (stage == CE::Renderer::ShaderStage::Vertex) {
+            entry->VertexPath = filepath;
+            entry->UsesDefaultVertex = false;
+        } else {
+            entry->FragmentPath = filepath;
+            entry->UsesDefaultFragment = false;
+            entry->FragmentSamplerCount = sampler_count;
+        }
+        CE::Log(LogLevel::Debug, "[Shader Manager] Loaded shader stage: {}", filepath);
+        return true;
+    }
+
+    bool ShaderManager::UseDefaultStage(ShaderHandle handle, CE::Renderer::ShaderStage stage) {
+        ShaderEntry* entry = GetShaderEntry(handle);
+
+        if (!entry, entry->Shader) {
+            CE::Log(LogLevel::Error, "[Shader Manager] UseDefaultStage called for a missing shader: {}", handle.id);
+            return false;
+        }
+
+        if (!mRenderer.UseDefaultShaderStage(entry->Shader, stage)) {
+            
+        }
     }
 
     void ShaderManager::Unload(ShaderHandle handle) {
