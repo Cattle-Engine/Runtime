@@ -7,6 +7,7 @@
 - [X] 3D model loading
 - [X] 3D model drawing
 - [X] Add support for metallic, roughness and normals as textures
+- [ ]
 - [ ] Update docs to show new AngelScript bindings
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
