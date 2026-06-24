@@ -34,6 +34,14 @@ namespace CE::Renderer::Resources {
         }
         return *this;
     }
+    void TextureRef::Reset() {
+        if (mManager && mHandle)
+            mManager->Return(mHandle);
+
+        mManager = nullptr;
+        mHandle = 0;
+        mTexture = nullptr;
+    }
 }
 
 namespace CE::Renderer::Resources {

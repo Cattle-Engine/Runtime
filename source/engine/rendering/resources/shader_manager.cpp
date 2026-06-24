@@ -3,6 +3,11 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/common/tracelog.hpp"
 
+namespace {
+    constexpr const char kDefaultVertexPath[] = "__ce_shader_manager_default_vertex";
+    constexpr const char kDefaultFragmentPath[] = "__ce_shader_manager_default_fragment";
+}
+
 namespace CE::Renderer::Resources {
     ShaderManager::ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man) : mVFS(vfs), mRenderer(renderer), mTextureManager(tex_man) {}
 
@@ -111,8 +116,93 @@ namespace CE::Renderer::Resources {
         }
 
         if (!mRenderer.UseDefaultShaderStage(entry->Shader, stage)) {
-            
+            CE::Log(LogLevel::Error, "[Shader Manager] Failed to set default stage for shader: {}", handle.id);
+            return false;
         }
+
+        entry->IsCompiled = false;
+
+        if (stage == CE::Renderer::ShaderStage::Vertex) {
+            entry->UsesDefaultVertex = true;
+            entry->VertexPath = kDefaultVertexPath;
+        } else {
+            entry->UsesDefaultFragment = true;
+            entry->FragmentPath = kDefaultFragmentPath;
+        }
+
+        return true;
+    }
+
+    bool ShaderManager::Compile(ShaderHandle handle) {
+        ShaderEntry* entry = GetShaderEntry(handle);
+
+        if (!entry || !entry->Shader) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Compile called for a missing shader: {}", handle.id);
+        }
+
+        entry->IsCompiled = mRenderer.CompileShaderProgram(entry->Shader);
+        entry->IsErrorShader = !entry->IsCompiled;
+
+        return entry->IsCompiled;
+    }
+
+    bool ShaderManager::Compile(ShaderHandle handle) {
+        ShaderEntry* entry = GetShaderEntry(handle);
+
+        if (!entry || !entry->Shader) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Bind called for a missing shader: {}", handle.id);
+            return false;
+        }
+
+        if (!entry->IsCompiled) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Bind called for an unbound shader: {}", handle.id);
+            return false;
+        }
+
+        mRenderer.BindShader(entry->Shader);
+
+        mBoundShaderID = handle;
+        return true;
+    }
+
+    void ShaderManager::Unbind() {
+        auto entry = GetShaderEntry(mBoundShaderID);
+        entry->Texture.Reset();
+        mRenderer.UnbindShader();
+        mBoundShaderID = ShaderHandle{};
+    }
+
+    void ShaderManager::Unload(ShaderHandle handle) {
+        auto it = mShaders.find(handle);
+
+        if (it == mShaders.end()) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Unload called for a stale or missing shader: {}", handle.id);
+            return;
+        }
+
+        if (it->first.id == mBoundShaderID.id) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Unload called for a bound shader, PLEASE UNBIND IT BEFORE UNLOADING. ID: {}", it->first.id);
+            return;
+        }
+
+        if (it->second.Shader) {
+            mRenderer.UnloadShader(it->second.Shader);
+            it->second.Shader = nullptr;
+        }
+
+        mShaders.erase(handle);
+        CE::Log(LogLevel::Debug, "[Shader Manager] Unloaded shader: {}", handle.id);
+    }
+
+    void ShaderManager::UnloadAll() {
+        Unbind();
+        for (auto& [name, entry] : mShaders) {
+            if (entry.Shader) {
+                mRenderer.UnloadShader(entry.Shader);
+                entry.Shader = nullptr;
+            }
+        }
+        mShaders.clear();
     }
 
     void ShaderManager::Unload(ShaderHandle handle) {
@@ -130,5 +220,46 @@ namespace CE::Renderer::Resources {
         }
 
         mShaders.erase(handle);
+    }
+
+    void ShaderManager::SetFloat(const std::string& uniformName, float value) {
+        mRenderer.SetShaderFloat(uniformName.c_str(), value);
+    }
+
+    void ShaderManager::SetVec2(const std::string& uniformName, float x, float y) {
+        mRenderer.SetShaderVec2(uniformName.c_str(), x, y);
+    }
+
+    void ShaderManager::SetVec3(const std::string& uniformName, float x, float y, float z) {
+        mRenderer.SetShaderVec3(uniformName.c_str(), x, y, z);
+    }
+
+    void ShaderManager::SetVec4(const std::string& uniformName, float x, float y, float z, float w) {
+        mRenderer.SetShaderVec4(uniformName.c_str(), x, y, z, w); 
+    }
+
+    void ShaderManager::SetMat4(const std::string& uniformName, const float* value) {
+        mRenderer.SetShaderMat4(uniformName.c_str(), value);
+    }
+
+    void ShaderManager::SetInt(const std::string& uniformName, int value) {
+        mRenderer.SetShaderInt(uniformName.c_str(), value);
+    }
+
+    bool ShaderManager::SetTexture(const std::string& uniformName, const Renderer::Resources::TextureHandle texturehandle, int slot) {
+        auto entry = GetShaderEntry(mBoundShaderID);
+
+        Texture* tex = nullptr;
+
+        entry->Texture = mTextureManager.Acquire(texturehandle);
+
+        tex = entry->Texture.Get();
+
+        if (!tex) {
+            CE::Log(LogLevel::Error, "[Shader Manager] SetTexture texture handle was invalid");
+            return false;
+        }
+
+        mRenderer.SetShaderTexture(uniformName.c_str(), tex, slot);
     }
 }

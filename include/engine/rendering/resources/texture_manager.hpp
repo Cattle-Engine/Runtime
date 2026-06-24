@@ -20,7 +20,7 @@ namespace CE::Renderer::Resources {
         TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex);
         
         ~TextureRef(); // Not inline anymore
-        
+        void Reset();
         Texture* Get() const { return mTexture; }
         
         bool IsValid() const {

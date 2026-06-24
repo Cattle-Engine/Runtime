@@ -62,6 +62,7 @@ namespace CE::Renderer::Resources {
         private:
             struct ShaderEntry {
                 bool IsErrorShader = false;
+                TextureRef Texture;
                 bool ShownMissingError = false;
                 bool IsCompiled = false;
                 bool UsesDefaultVertex = true;
