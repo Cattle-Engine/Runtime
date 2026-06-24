@@ -8,18 +8,19 @@
 - [X] 3D model drawing
 - [X] Add support for metallic, roughness and normals as textures
 - [X] Small alias thing for resource handles
-- [X] Hook up the alias thing to instance and scripting
-- [ ] Update docs to show new AngelScript bindings
+- [X] Refactor AnimationManager to be AnimatedTextureManager
+- [X] Refactor shader manager to live in engine/rendering/resources and have it handle based
+
+- [ ] Hook up the alias thing to instance
+- [ ] Add support for setting shader/s on a material
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
-- [X] Refactor AnimationManager to be AnimatedTextureManager
-- [ ] Add AngelScript bindings for the new stuff
-- [ ] Refactor shader manager to live in engine/rendering/resources and have it handle based
 - [ ] Update AngelScript bindings for the shaders
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
 - [ ] AngelScript imports:
+- [ ] Update docs to show new AngelScript bindings
 // Main script
 ```angelscript
 import test; // Imports a file called test, adds whatever has "export" inside the file

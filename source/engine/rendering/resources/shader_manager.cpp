@@ -19,11 +19,6 @@ namespace CE::Renderer::Resources {
             return nullptr;
         }
     }
-    
-    void ShaderManager::Unbind() {
-        mRenderer.UnbindShader();
-        mBoundShaderID.id = 0;
-    }
 
     ShaderHandle ShaderManager::CreateProgram() {
         ShaderEntry info;
@@ -46,10 +41,12 @@ namespace CE::Renderer::Resources {
         
         if (filepath.empty()) {
             CE::Log(LogLevel::Error, "[Shader Manager] Load file path was empty!");
-            handle;
+            return handle;
         }
 
         ShaderEntry entry;
+
+        handle.id = mNextShaderHandleID++;
 
         entry.ProgramPath = filepath;
         entry.VertexPath = filepath + ".vert";
@@ -110,7 +107,7 @@ namespace CE::Renderer::Resources {
     bool ShaderManager::UseDefaultStage(ShaderHandle handle, CE::Renderer::ShaderStage stage) {
         ShaderEntry* entry = GetShaderEntry(handle);
 
-        if (!entry, entry->Shader) {
+        if (!entry || !entry->Shader) {
             CE::Log(LogLevel::Error, "[Shader Manager] UseDefaultStage called for a missing shader: {}", handle.id);
             return false;
         }
@@ -138,6 +135,7 @@ namespace CE::Renderer::Resources {
 
         if (!entry || !entry->Shader) {
             CE::Log(LogLevel::Error, "[Shader Manager] Compile called for a missing shader: {}", handle.id);
+            return false;
         }
 
         entry->IsCompiled = mRenderer.CompileShaderProgram(entry->Shader);
@@ -146,7 +144,7 @@ namespace CE::Renderer::Resources {
         return entry->IsCompiled;
     }
 
-    bool ShaderManager::Compile(ShaderHandle handle) {
+    bool ShaderManager::Bind(ShaderHandle handle) {
         ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
@@ -167,7 +165,9 @@ namespace CE::Renderer::Resources {
 
     void ShaderManager::Unbind() {
         auto entry = GetShaderEntry(mBoundShaderID);
-        entry->Texture.Reset();
+        if (entry) {
+            entry->Texture.Reset();
+        }
         mRenderer.UnbindShader();
         mBoundShaderID = ShaderHandle{};
     }
@@ -205,23 +205,6 @@ namespace CE::Renderer::Resources {
         mShaders.clear();
     }
 
-    void ShaderManager::Unload(ShaderHandle handle) {
-        auto it = mShaders.find(handle);
-
-        if (it == mShaders.end()) return;
-
-        if (mBoundShaderID.id == it->first.id) {
-            Unbind();
-        }
-
-        if (it->second.Shader) {
-            mRenderer.UnloadShader(it->second.Shader);
-            it->second.Shader = nullptr;
-        }
-
-        mShaders.erase(handle);
-    }
-
     void ShaderManager::SetFloat(const std::string& uniformName, float value) {
         mRenderer.SetShaderFloat(uniformName.c_str(), value);
     }
@@ -248,11 +231,14 @@ namespace CE::Renderer::Resources {
 
     bool ShaderManager::SetTexture(const std::string& uniformName, const Renderer::Resources::TextureHandle texturehandle, int slot) {
         auto entry = GetShaderEntry(mBoundShaderID);
-
         Texture* tex = nullptr;
 
-        entry->Texture = mTextureManager.Acquire(texturehandle);
+        if (!entry) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Tried to call SetTexture with no shader bound!");
+            return false;
+        }
 
+        entry->Texture = mTextureManager.Acquire(texturehandle);
         tex = entry->Texture.Get();
 
         if (!tex) {
@@ -261,5 +247,57 @@ namespace CE::Renderer::Resources {
         }
 
         mRenderer.SetShaderTexture(uniformName.c_str(), tex, slot);
+        return true;
+    }
+
+    size_t ShaderManager::Debug_LoadedShadersCount() const {
+        return mShaders.size();
+    }
+
+    int ShaderManager::Debug_LoadedShadersNoError() const {
+        int count = 0;
+        for (const auto& [id, entry] : mShaders) {
+            (void)id;
+            if (!entry.IsErrorShader) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+
+    int ShaderManager::Debug_LoadedShadersError() const {
+        int count = 0;
+        for (const auto& [id, entry] : mShaders) {
+            (void)id;
+            if (entry.IsErrorShader) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    ShaderHandle ShaderManager::Debug_GetBoundShaderID() const {
+        return mBoundShaderID;
+    }
+
+    std::vector<ShaderManager::DebugShaderInfo> ShaderManager::Debug_GetShaders() const {
+        std::vector<DebugShaderInfo> debugShaders;
+        debugShaders.reserve(this->mShaders.size());
+
+        for (const auto& [id, shaderInfo] : this->mShaders) {
+            DebugShaderInfo debugInfo{};
+            debugInfo.id = id.id;
+            debugInfo.vertexPath = shaderInfo.VertexPath;
+            debugInfo.fragmentPath = shaderInfo.FragmentPath;
+            debugInfo.usesDefaultVertex = shaderInfo.UsesDefaultVertex;
+            debugInfo.usesDefaultFragment = shaderInfo.UsesDefaultFragment;
+            debugInfo.isCompiled = shaderInfo.IsCompiled;
+            debugInfo.isErrorShader = shaderInfo.IsErrorShader;
+            debugInfo.isBound = (mBoundShaderID.id == id.id);
+            debugShaders.push_back(debugInfo);
+        }
+
+        return debugShaders;
     }
 }

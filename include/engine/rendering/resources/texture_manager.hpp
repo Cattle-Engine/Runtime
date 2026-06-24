@@ -113,5 +113,6 @@ namespace CE::Renderer::Resources {
         uint64_t mNextHandleID = 0;
         std::unordered_map<TextureHandle, TextureEntry> mTextureCache;
         std::unordered_map<std::string, TextureHandle> mPathCache;
+        std::vector<TextureHandle> mPendingUnload;
     };
 }

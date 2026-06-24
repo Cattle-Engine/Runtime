@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 #include "engine/common/fs/vfs.hpp"
@@ -10,7 +11,11 @@
 
 namespace CE::Renderer::Resources {
     struct ShaderHandle {
-        uint64_t id= 0;
+        uint64_t id = 0;
+
+        explicit operator bool() const {
+            return id != 0;
+        }
     };
 
     struct ShaderHandleHash {
@@ -22,7 +27,7 @@ namespace CE::Renderer::Resources {
     class ShaderManager {
         public:
             struct DebugShaderInfo {
-                std::string name;
+                uint64_t id;
                 std::string vertexPath;
                 std::string fragmentPath;
                 bool usesDefaultVertex = true;
@@ -52,10 +57,10 @@ namespace CE::Renderer::Resources {
             void SetInt(const std::string& uniformName, int value);
             bool SetTexture(const std::string& uniformName, const Renderer::Resources::TextureHandle texturehandle, int slot = 0);
 
-            int Debug_LoadedShadersCount() const;
+            size_t Debug_LoadedShadersCount() const;
             int Debug_LoadedShadersNoError() const;
             int Debug_LoadedShadersError() const;
-            std::string Debug_GetBoundShaderName() const;
+            ShaderHandle Debug_GetBoundShaderID() const;
             std::vector<DebugShaderInfo> Debug_GetShaders() const;
 
             ~ShaderManager();
@@ -79,7 +84,7 @@ namespace CE::Renderer::Resources {
             VFS::VFS& mVFS;
             IRenderer& mRenderer;
             TextureManager& mTextureManager;
-            uint64_t mNextShaderHandleID;
+            uint64_t mNextShaderHandleID = 0;
             ShaderHandle mBoundShaderID;
             std::unordered_map<ShaderHandle, ShaderEntry, ShaderHandleHash> mShaders;
     };

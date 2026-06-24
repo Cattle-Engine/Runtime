@@ -119,11 +119,16 @@ namespace CE::Renderer::Resources {
 
     void TextureManager::Unload(TextureHandle handle) {
         auto it = mTextureCache.find(handle);
+
         if (it == mTextureCache.end()) {
-            CE::Log(LogLevel::Error, "[Texture Manager] Tried to unload an already unloaded texture: {}", handle);
+            CE::Log(LogLevel::Error, "[Texture Manager] Tried to unload missing texture: {}", handle);
             return;
         }
-        it->second.IsPendingUnload = true;
+
+        if (!it->second.IsPendingUnload) {
+            it->second.IsPendingUnload = true;
+            mPendingUnload.push_back(handle);
+        }
     }
 
     Texture* TextureManager::GetTexture(TextureHandle handle) {
@@ -139,27 +144,27 @@ namespace CE::Renderer::Resources {
             return nullptr;
         }
     }
-
+    
     void TextureManager::UnloadPendingDeletions() {
-        for (auto it = mTextureCache.begin(); it != mTextureCache.end(); ) {
+        for (TextureHandle handle : mPendingUnload) {
+            auto it = mTextureCache.find(handle);
+
+            if (it == mTextureCache.end())
+                continue;
+
             TextureEntry& entry = it->second;
 
-            if (entry.IsError) {
-                it = mTextureCache.erase(it);
-                continue;
-            }
-
-            if (entry.IsPendingUnload && entry.RefCount == 0) {
+            if (entry.RefCount == 0) {
                 if (entry.Resource) {
                     mRenderer.UnloadTex(entry.Resource);
-                    entry.Resource = nullptr;
                 }
 
-                it = mTextureCache.erase(it);
-            } else {
-                ++it;
+                mPathCache.erase(entry.Path);
+                mTextureCache.erase(it);
             }
         }
+
+        mPendingUnload.clear();
     }
 
     void TextureManager::UnloadAll() {
