@@ -8,7 +8,7 @@
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/settings.hpp"
 #include "engine/assets/fonts.hpp"
-#include "engine/assets/shaders.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
@@ -122,7 +122,7 @@ namespace CE::Scripting {
                 Instance& instance,
                 Renderer::IRenderer& renderer,
                 Renderer::Resources::TextureManager& textureManager,
-                Assets::Shaders::ShaderManager& shaderManager,
+                Renderer::Resources::ShaderManager& shaderManager,
                 Assets::Skyboxes::SkyBoxManager& skyboxManager,
                 Assets::Fonts::FontManager& fontManager,
                 Renderer::Resources::GPUMeshManager& gpuMeshManager,
@@ -192,14 +192,14 @@ namespace CE::Scripting {
             void DrawRectangleLines(float x, float y, float w, float h, float thickness, const Renderer::Colour& colour);
             void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Renderer::Colour& colour);
 
-            bool CreateShaderProgram(const std::string& name);
-            bool LoadShader(const std::string& path, const std::string& name, int fragmentSamplerCount = 4);
-            bool LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage, int samplerCount = 1);
-            bool UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage);
-            bool CompileShaderProgram(const std::string& name);
-            bool BindShaderProgram(const std::string& name);
+            Renderer::Resources::ShaderHandle CreateShaderProgram();
+            Renderer::Resources::ShaderHandle LoadShader(const std::string& path, int fragmentSamplerCount = 4);
+            bool LoadShaderStage(Renderer::Resources::ShaderHandle handle, const std::string& path, Renderer::ShaderStage stage, int samplerCount = 1);
+            bool UseDefaultShaderStage(Renderer::Resources::ShaderHandle handle, Renderer::ShaderStage stage);
+            bool CompileShaderProgram(Renderer::Resources::ShaderHandle handle);
+            bool BindShaderProgram(Renderer::Resources::ShaderHandle handle);
             void UnbindShaderProgram();
-            void UnloadShader(const std::string& name);
+            void UnloadShader(Renderer::Resources::ShaderHandle handle);
             void SetShaderFloat(const std::string& uniformName, float value);
             void SetShaderVec2(const std::string& uniformName, float x, float y);
             void SetShaderVec3(const std::string& uniformName, float x, float y, float z);
@@ -338,7 +338,7 @@ namespace CE::Scripting {
             Instance& mInstance;
             Renderer::IRenderer& mRenderer;
             Renderer::Resources::TextureManager& mTextureManager;
-            Assets::Shaders::ShaderManager& mShaderManager;
+            Renderer::Resources::ShaderManager& mShaderManager;
             Assets::Skyboxes::SkyBoxManager& mSkyboxManager;
             Assets::Fonts::FontManager& mFontManager;
             Renderer::Resources::GPUMeshManager& mGPUMeshManager;

@@ -8,7 +8,7 @@
 #include "engine/settings.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
-#include "engine/assets/shaders.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/audio.hpp"

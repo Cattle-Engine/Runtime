@@ -5,7 +5,7 @@
 
 #include "engine/assets/fonts.hpp"
 #include "engine/common/fs/vfs.hpp"
-#include "engine/assets/shaders.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/assets/audio.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
@@ -72,8 +72,9 @@ namespace CE {
             std::unique_ptr<CE::Renderer::Resources::MaterialManager> gMaterialManager;
             std::unique_ptr<CE::Renderer::Resources::TextureManager> gTextureManager;
             std::unique_ptr<CE::Renderer::Resources::ModelRenderer> gModelRenderer;
+            std::unique_ptr<CE::Renderer::Resources::ShaderManager> gShaderManager;
+            
             std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
-            std::unique_ptr<CE::Assets::Shaders::ShaderManager> gShaderManager;
             std::unique_ptr<CE::Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
             std::unique_ptr<CE::Assets::Model3DImporter::ModelImporter> g3DModelImporter;
             std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;

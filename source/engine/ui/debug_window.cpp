@@ -13,7 +13,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/assets/skybox_manager.hpp"
-#include "engine/assets/shaders.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 
 #include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"

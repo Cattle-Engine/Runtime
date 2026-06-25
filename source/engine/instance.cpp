@@ -274,6 +274,7 @@ namespace CE {
 
         gLastFrameCounter = frame_end_counter;
         gAnimatedTextureManager->Update(gDeltaTime);
+        gTextureManager->UnloadPendingDeletions();
         return 0;
     }
 

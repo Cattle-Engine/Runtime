@@ -11,6 +11,9 @@
 
 namespace CE::Renderer::Resources {
     struct ShaderHandle {
+        ShaderHandle() : id(0) {}
+        ShaderHandle(const ShaderHandle& other) : id(other.id) {}
+        
         uint64_t id = 0;
 
         explicit operator bool() const {

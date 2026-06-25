@@ -1,7 +1,21 @@
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/scripting_macros.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 
 #include <scriptarray/scriptarray.h>
+
+static void ConstructShaderHandle(Renderer::Resources::ShaderHandle* memory) {
+    new(memory) Renderer::Resources::ShaderHandle();
+}
+
+static void ConstructShaderHandleCopy(const Renderer::Resources::ShaderHandle& other, 
+                                      Renderer::Resources::ShaderHandle* memory) {
+    new(memory) Renderer::Resources::ShaderHandle(other);
+}
+
+static void DestructShaderHandle(Renderer::Resources::ShaderHandle* memory) {
+    memory->~ShaderHandle();
+}
 
 namespace CE::Scripting {
     bool Runtime::RegisterAssetShaderBindings() {
@@ -9,69 +23,218 @@ namespace CE::Scripting {
             return false;
         }
 
+        mScriptEngine->SetDefaultNamespace("CE");
+
+        // Register uint64 if not already registered
+        if (mScriptEngine->RegisterTypedef("uint64", "uint64") < 0) {
+            // uint64 might already be registered, ignore error
+        }
+
+        // Register the ShaderHandle struct
+        int r = mScriptEngine->RegisterObjectType("ShaderHandle", 
+            sizeof(Renderer::Resources::ShaderHandle), 
+            asOBJ_VALUE | asOBJ_APP_CLASS_CDA);
+        if (r < 0) {
+            return false;
+        }
+
+        // Default constructor
+        r = mScriptEngine->RegisterObjectBehaviour("ShaderHandle", asBEHAVE_CONSTRUCT, 
+            "void f()", 
+            asFUNCTION(ConstructShaderHandle), 
+            asCALL_CDECL_OBJLAST);
+        if (r < 0) {
+            return false;
+        }
+
+        // Copy constructor
+        r = mScriptEngine->RegisterObjectBehaviour("ShaderHandle", asBEHAVE_CONSTRUCT, 
+            "void f(const ShaderHandle &in)", 
+            asFUNCTION(ConstructShaderHandleCopy), 
+            asCALL_CDECL_OBJLAST);
+        if (r < 0) {
+            return false;
+        }
+
+        // Destructor
+        r = mScriptEngine->RegisterObjectBehaviour("ShaderHandle", asBEHAVE_DESTRUCT, 
+            "void f()", 
+            asFUNCTION(DestructShaderHandle), 
+            asCALL_CDECL_OBJLAST);
+        if (r < 0) {
+            return false;
+        }
+
+        // Property
+        r = mScriptEngine->RegisterObjectProperty("ShaderHandle", "uint64 id", 
+            asOFFSET(Renderer::Resources::ShaderHandle, id));
+        if (r < 0) {
+            return false;
+        }
+
+        // Boolean conversion operator (opImplCast for implicit cast to bool)
+        r = mScriptEngine->RegisterObjectMethod("ShaderHandle", "bool opImplCast() const", 
+            asMETHOD(Renderer::Resources::ShaderHandle, operator bool), 
+            asCALL_THISCALL);
+        if (r < 0) {
+            return false;
+        }
+
+        // Equality operator
+        r = mScriptEngine->RegisterObjectMethod("ShaderHandle", 
+            "bool opEquals(const ShaderHandle &in) const", 
+            asMETHODPR(Renderer::Resources::ShaderHandle, operator==, (const Renderer::Resources::ShaderHandle&) const, bool), 
+            asCALL_THISCALL);
+        if (r < 0) {
+            return false;
+        }
+
         mScriptEngine->SetDefaultNamespace("CE::Graphics::Shaders");
 
-        if (mScriptEngine->RegisterEnum("ShaderStage") < 0) {
+        // Register enum
+        r = mScriptEngine->RegisterEnum("ShaderStage");
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
             return false;
         }
 
-        if (mScriptEngine->RegisterEnumValue("ShaderStage", "Vertex", static_cast<int>(Renderer::ShaderStage::Vertex)) < 0) {
+        r = mScriptEngine->RegisterEnumValue("ShaderStage", "Vertex", static_cast<int>(Renderer::ShaderStage::Vertex));
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
             return false;
         }
-        if (mScriptEngine->RegisterEnumValue("ShaderStage", "Fragment", static_cast<int>(Renderer::ShaderStage::Fragment)) < 0) {
+        
+        r = mScriptEngine->RegisterEnumValue("ShaderStage", "Fragment", static_cast<int>(Renderer::ShaderStage::Fragment));
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
             return false;
         }
 
-        CE_REGISTER_GLOBAL("bool CreateShaderProgram(const string &in name)", CreateShaderProgram);
-        CE_REGISTER_GLOBAL("bool LoadShader(const string &in path, const string &in name, int fragmentSamplerCount = 4)", LoadShader);
-        CE_REGISTER_GLOBAL("bool LoadShaderStage(const string &in program, const string &in path, CE::Graphics::Shaders::ShaderStage stage, int samplerCount = 1)", LoadShaderStage);
-        CE_REGISTER_GLOBAL("bool UseDefaultShaderStage(const string &in program, CE::Graphics::Shaders::ShaderStage stage)", UseDefaultShaderStage);
-        CE_REGISTER_GLOBAL("bool CompileShaderProgram(const string &in name)", CompileShaderProgram);
-        CE_REGISTER_GLOBAL("bool BindShader(const string &in name)", BindShaderProgram);
-        CE_REGISTER_GLOBAL("void UnbindShader()", UnbindShaderProgram);
-        CE_REGISTER_GLOBAL("void UnloadShader(const string &in name)", UnloadShader);
-        CE_REGISTER_GLOBAL("void SetShaderFloat(const string &in uniformName, float value)", SetShaderFloat);
-        CE_REGISTER_GLOBAL("void SetShaderVec2(const string &in uniformName, float x, float y)", SetShaderVec2);
-        CE_REGISTER_GLOBAL("void SetShaderVec3(const string &in uniformName, float x, float y, float z)", SetShaderVec3);
-        CE_REGISTER_GLOBAL("void SetShaderVec4(const string &in uniformName, float x, float y, float z, float w)", SetShaderVec4);
-        CE_REGISTER_GLOBAL("void SetShaderMat4(const string &in uniformName, const array<float>@ values)", SetShaderMat4);
-        CE_REGISTER_GLOBAL("void SetShaderInt(const string &in uniformName, int value)", SetShaderInt);
-        CE_REGISTER_GLOBAL("bool SetShaderTexture(const string &in uniformName, const CE::Texture &in texture, int slot = 0)", SetShaderTexture);
+        // Register global functions
+        r = CE_REGISTER_GLOBAL("ShaderHandle CreateShaderProgram()", CreateShaderProgram);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("ShaderHandle LoadShader(const string &in path, int fragmentSamplerCount = 4)", LoadShader);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("bool LoadShaderStage(ShaderHandle handle, const string &in path, CE::Graphics::Shaders::ShaderStage stage, int samplerCount = 1)", LoadShaderStage);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("bool UseDefaultShaderStage(ShaderHandle handle, CE::Graphics::Shaders::ShaderStage stage)", UseDefaultShaderStage);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("bool CompileShaderProgram(ShaderHandle handle)", CompileShaderProgram);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("bool BindShader(ShaderHandle handle)", BindShaderProgram);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void UnbindShader()", UnbindShaderProgram);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void UnloadShader(ShaderHandle handle)", UnloadShader);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderFloat(const string &in uniformName, float value)", SetShaderFloat);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderVec2(const string &in uniformName, float x, float y)", SetShaderVec2);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderVec3(const string &in uniformName, float x, float y, float z)", SetShaderVec3);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderVec4(const string &in uniformName, float x, float y, float z, float w)", SetShaderVec4);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderMat4(const string &in uniformName, const array<float>@ values)", SetShaderMat4);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("void SetShaderInt(const string &in uniformName, int value)", SetShaderInt);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
+        
+        r = CE_REGISTER_GLOBAL("bool SetShaderTexture(const string &in uniformName, const CE::Texture &in texture, int slot = 0)", SetShaderTexture);
+        if (r < 0) {
+            mScriptEngine->SetDefaultNamespace("");
+            return false;
+        }
 
         mScriptEngine->SetDefaultNamespace("");
         return true;
     }
 
-    bool Runtime::CreateShaderProgram(const std::string& name) {
-        return mShaderManager.CreateProgram(name.c_str());
+    Renderer::Resources::ShaderHandle Runtime::CreateShaderProgram() {
+        return mShaderManager.CreateProgram();
     }
 
-    bool Runtime::LoadShader(const std::string& path, const std::string& name, int fragmentSamplerCount) {
-        return mShaderManager.Load(path.c_str(), name.c_str(), fragmentSamplerCount);
+    Renderer::Resources::ShaderHandle Runtime::LoadShader(const std::string& path, int fragmentSamplerCount) {
+        return mShaderManager.Load(path.c_str(), fragmentSamplerCount);
     }
 
-    bool Runtime::LoadShaderStage(const std::string& program, const std::string& path, Renderer::ShaderStage stage, int samplerCount) {
-        return mShaderManager.LoadStage(program.c_str(), path.c_str(), stage, samplerCount);
+    bool Runtime::LoadShaderStage(Renderer::Resources::ShaderHandle handle, const std::string& path, Renderer::ShaderStage stage, int samplerCount) {
+        return mShaderManager.LoadStage(handle, path, stage, samplerCount);
     }
 
-    bool Runtime::UseDefaultShaderStage(const std::string& program, Renderer::ShaderStage stage) {
-        return mShaderManager.UseDefaultStage(program.c_str(), stage);
+    bool Runtime::UseDefaultShaderStage(Renderer::Resources::ShaderHandle handle, Renderer::ShaderStage stage) {
+        return mShaderManager.UseDefaultStage(handle, stage);
     }
 
-    bool Runtime::CompileShaderProgram(const std::string& name) {
-        return mShaderManager.Compile(name.c_str());
+    bool Runtime::CompileShaderProgram(Renderer::Resources::ShaderHandle handle) {
+        return mShaderManager.Compile(handle);
     }
 
-    bool Runtime::BindShaderProgram(const std::string& name) {
-        return mShaderManager.Bind(name.c_str());
+    bool Runtime::BindShaderProgram(Renderer::Resources::ShaderHandle handle) {
+        return mShaderManager.Bind(handle);
     }
 
     void Runtime::UnbindShaderProgram() {
         mShaderManager.Unbind();
     }
 
-    void Runtime::UnloadShader(const std::string& name) {
-        mShaderManager.Unload(name.c_str());
+    void Runtime::UnloadShader(Renderer::Resources::ShaderHandle handle) {
+        mShaderManager.Unload(handle);
     }
 
     void Runtime::SetShaderFloat(const std::string& uniformName, float value) {
