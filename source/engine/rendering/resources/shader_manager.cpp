@@ -10,6 +10,47 @@ namespace {
 }
 
 namespace CE::Renderer::Resources {
+    ShaderRef::ShaderRef(ShaderManager* mgr, ShaderHandle handle, Shader* shader)
+        : mManager(mgr), mHandle(handle), mShader(shader) {}
+
+    ShaderRef::~ShaderRef() {
+        if (mManager && mHandle) {
+            // TODO add a return here
+        }
+    }
+
+    ShaderRef::ShaderRef(ShaderRef&& other) noexcept {
+        *this = std::move(other);
+    }
+
+    ShaderRef& ShaderRef::operator=(ShaderRef&& other) noexcept {
+        if (this != &other) {
+            if (mManager) {
+                // Add a return here
+            }
+            
+            mManager = other.mManager;
+            mHandle = other.mHandle;
+            mShader = other.mShader;
+            other.mManager = nullptr;
+            other.mHandle = ShaderHandle{};
+            other.mShader = nullptr;
+        }
+        return *this;
+    }
+
+    void ShaderRef::Reset() {
+        if (mManager && mHandle) {
+            // Add a return here
+        }
+
+        mManager = nullptr;
+        mHandle = ShaderHandle{};
+        mShader = nullptr;
+    }
+}
+
+namespace CE::Renderer::Resources {
     ShaderManager::ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man) : mVFS(vfs), mRenderer(renderer), mTextureManager(tex_man) {}
 
     ShaderManager::ShaderEntry* ShaderManager::GetShaderEntry(ShaderHandle handle) {
@@ -304,5 +345,31 @@ namespace CE::Renderer::Resources {
 
     ShaderHandle ShaderManager::Debug_GetBoundShaderID() const {
         return mBoundShaderID;
+    }
+
+    ShaderRef ShaderManager::AcquireRef(ShaderHandle handle) {
+        auto entry = GetShaderEntry(handle);
+
+        if (!entry) {
+            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Invalid or stale handle");
+            return {};
+        }
+
+        if (entry->IsPendingUnload) {
+            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is pending unload: {}", handle.id);
+            return {};
+        }
+
+        if (!entry->IsCompiled) {
+            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is not compiled, please use Compile");
+            return {};
+        }
+
+        if (entry->IsErrorShader) {
+            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is an error shader!");
+        }
+
+        entry->RefCount++;
+        return ShaderRef(this, handle, entry->Shader);
     }
 }

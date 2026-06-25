@@ -105,7 +105,7 @@ namespace CE::Renderer::Resources {
             bool IsError;
             bool IsPendingUnload;
         };
-        // int because so I can check if it's valid
+
         TextureEntry* GetTextureEntry(TextureHandle handle);
         
         IRenderer& mRenderer;

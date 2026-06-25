@@ -9,7 +9,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 
-namespace CE::Renderer::Resources {
+namespace CE::Renderer::Resources {  
     struct ShaderHandle {
         ShaderHandle() : id(0) {}
         ShaderHandle(const ShaderHandle& other) : id(other.id) {}
@@ -31,6 +31,34 @@ namespace CE::Renderer::Resources {
         }
     };
 
+    class ShaderManager;
+
+    class ShaderRef {
+        public:
+            ShaderRef() = default;
+            
+            ShaderRef(ShaderManager* mgr, ShaderHandle handle, Shader* shader);
+            
+            ~ShaderRef();
+            void Reset();
+            Shader* Get() const { return mShader; }
+            
+            bool IsValid() const {
+                return mShader != nullptr;
+            }
+            
+            ShaderRef(const ShaderRef&) = delete;
+            ShaderRef& operator=(const ShaderRef&) = delete;
+            
+            ShaderRef(ShaderRef&& other) noexcept;
+            ShaderRef& operator=(ShaderRef&& other) noexcept;
+            
+        private:
+            ShaderManager* mManager = nullptr;
+            ShaderHandle mHandle{};
+            Shader* mShader = nullptr;
+    };
+
     class ShaderManager {
         public:
             struct DebugShaderInfo {
@@ -46,6 +74,11 @@ namespace CE::Renderer::Resources {
 
             ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man);
 
+            /**
+             * @brief For long term use of a shader, Eg using it in a material struct
+             */
+            ShaderRef AcquireRef(ShaderHandle handle);
+            
             ShaderHandle CreateProgram();
             ShaderHandle Load(const std::string& filepath, int fragmentSamplerCount = 4);
             bool LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage, int sampler_count = 1);
@@ -84,6 +117,8 @@ namespace CE::Renderer::Resources {
                 std::string FragmentPath;
                 CE::Renderer::Shader* Shader = nullptr;
                 int FragmentSamplerCount = 4;
+                uint64_t RefCount = 0;
+                bool IsPendingUnload = false;
             };
 
             ShaderEntry* GetShaderEntry(ShaderHandle handle);
@@ -94,5 +129,6 @@ namespace CE::Renderer::Resources {
             uint64_t mNextShaderHandleID = 0;
             ShaderHandle mBoundShaderID;
             std::unordered_map<ShaderHandle, ShaderEntry, ShaderHandleHash> mShaders;
+            std::vector<ShaderHandle> mPendingUnloads;
     };
 }
