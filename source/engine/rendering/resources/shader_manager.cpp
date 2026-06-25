@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <utility>
 
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/common/tracelog.hpp"
@@ -32,7 +33,7 @@ namespace CE::Renderer::Resources {
         }
 
         handle.id = mNextShaderHandleID++;
-        mShaders.emplace(handle, info);
+        mShaders.emplace(handle, std::move(info));
         return handle;
     }
 
@@ -64,7 +65,7 @@ namespace CE::Renderer::Resources {
             CE::Log(LogLevel::Debug, "[Shader Manager] Loaded shader: {}", filepath);
         }
 
-        mShaders.emplace(handle, entry);
+        mShaders.emplace(handle, std::move(entry));
         return handle;
     }
 

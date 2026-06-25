@@ -16,6 +16,10 @@ namespace CE::Renderer::Resources {
         explicit operator bool() const {
             return id != 0;
         }
+        
+        bool operator==(const ShaderHandle& other) const {
+            return id == other.id;
+        }
     };
 
     struct ShaderHandleHash {
