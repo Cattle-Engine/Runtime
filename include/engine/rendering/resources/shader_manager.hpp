@@ -45,7 +45,7 @@ namespace CE::Renderer::Resources {
             };
 
             ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man);
-        
+
             ShaderHandle CreateProgram();
             ShaderHandle Load(const std::string& filepath, int fragmentSamplerCount = 4);
             bool LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage, int sampler_count = 1);

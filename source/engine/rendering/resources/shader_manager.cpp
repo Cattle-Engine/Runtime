@@ -21,6 +21,10 @@ namespace CE::Renderer::Resources {
         }
     }
 
+    ShaderManager::~ShaderManager() {
+        this->UnloadAll();
+    }
+
     ShaderHandle ShaderManager::CreateProgram() {
         ShaderEntry info;
         ShaderHandle handle;
@@ -278,10 +282,6 @@ namespace CE::Renderer::Resources {
         return count;
     }
 
-    ShaderHandle ShaderManager::Debug_GetBoundShaderID() const {
-        return mBoundShaderID;
-    }
-
     std::vector<ShaderManager::DebugShaderInfo> ShaderManager::Debug_GetShaders() const {
         std::vector<DebugShaderInfo> debugShaders;
         debugShaders.reserve(this->mShaders.size());
@@ -300,5 +300,9 @@ namespace CE::Renderer::Resources {
         }
 
         return debugShaders;
+    }
+
+    ShaderHandle ShaderManager::Debug_GetBoundShaderID() const {
+        return mBoundShaderID;
     }
 }

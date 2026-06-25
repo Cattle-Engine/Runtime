@@ -19,7 +19,7 @@ namespace CE::UI {
             void Draw(
                 CE::Renderer::IRenderer& renderer,
                 CE::Renderer::Resources::TextureManager& texman,
-                CE::Assets::Shaders::ShaderManager& shaderman,
+                CE::Renderer::Resources::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 CE::Assets::Fonts::FontManager& fontman,
                 CE::GameInfo& gameinfo,
@@ -43,7 +43,7 @@ namespace CE::UI {
             void DrawPerformanceTab(
                 CE::Renderer::IRenderer& renderer,
                 CE::Renderer::Resources::TextureManager& texman,
-                CE::Assets::Shaders::ShaderManager& shaderman,
+                CE::Renderer::Resources::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 const CE::Settings::SettingsManager& settings,
                 int fps,
@@ -54,7 +54,7 @@ namespace CE::UI {
                 CE::Renderer::IRenderer& renderer,
                 const CE::Settings::SettingsManager& settings,
                 CE::Renderer::Resources::TextureManager& texman,
-                CE::Assets::Shaders::ShaderManager& shaderman,
+                CE::Renderer::Resources::ShaderManager& shaderman,
                 CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                 CE::Assets::Fonts::FontManager& fontman
             );

@@ -11,7 +11,7 @@
 - [X] Refactor AnimationManager to be AnimatedTextureManager
 - [X] Refactor shader manager to live in engine/rendering/resources and have it handle based
 
-- [ ] Refactor everything else to use the new shader system
+- [X] Refactor everything else to use the new shader system
 - [ ] Add "ShaderRef" like TextureRef but for shaders (for the future material shaders)
 - [ ] Hook up the alias thing to instance
 - [ ] Add support for setting shader/s on a material

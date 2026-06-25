@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cinttypes>
 
 #include "imgui/imgui.h"
 #include "third_party/imgui_stdlib.h"
@@ -146,7 +147,7 @@ namespace CE::UI {
     void DebugWindow::DrawPerformanceTab(
         CE::Renderer::IRenderer& renderer,
         CE::Renderer::Resources::TextureManager& texman,
-        CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Renderer::Resources::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         const CE::Settings::SettingsManager& settings,
         int fps,
@@ -271,7 +272,7 @@ namespace CE::UI {
         CE::Renderer::IRenderer& renderer,
         const Settings::SettingsManager& settings,
         Renderer::Resources::TextureManager& texman,
-        Assets::Shaders::ShaderManager& shaderman,
+        CE::Renderer::Resources::ShaderManager& shaderman,
         Assets::Skyboxes::SkyBoxManager& skyboxman,
         Assets::Fonts::FontManager& fontman
     ) 
@@ -464,13 +465,13 @@ namespace CE::UI {
             ImGui::Text("Total loaded: %d", shaderman.Debug_LoadedShadersCount());
             ImGui::Text("No error: %d", shaderman.Debug_LoadedShadersNoError());
             ImGui::Text("Errors: %d", shaderman.Debug_LoadedShadersError());
-            ImGui::Text("Bound shader: %s", shaderman.Debug_GetBoundShaderName().c_str());
+            ImGui::Text("Bound shader: %", PRIu64, shaderman.Debug_GetBoundShaderID().id);
 
             auto shaders = shaderman.Debug_GetShaders();
             if (ImGui::TreeNode("Shader List")) {
                 for (const auto& shader : shaders) {
-                    ImGui::PushID(shader.name.c_str());
-                    if (ImGui::TreeNode(shader.name.c_str())) {
+                    ImGui::PushID(shader.id);
+                    if (ImGui::TreeNode("Shader")) {
                         ImGui::Text("Compiled: %s", shader.isCompiled ? "Yes" : "No");
                         ImGui::Text("Error: %s", shader.isErrorShader ? "Yes" : "No");
                         ImGui::Text("Bound: %s", shader.isBound ? "Yes" : "No");
@@ -637,7 +638,7 @@ namespace CE::UI {
     void DebugWindow::Draw(
         CE::Renderer::IRenderer& renderer,
         CE::Renderer::Resources::TextureManager& texman,
-        CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Renderer::Resources::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,
@@ -697,7 +698,7 @@ namespace CE::UI {
     void DrawDebugUI(
         CE::Renderer::IRenderer& renderer,
         CE::Renderer::Resources::TextureManager& texman,
-        CE::Assets::Shaders::ShaderManager& shaderman,
+        CE::Renderer::Resources::ShaderManager& shaderman,
         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
         CE::Assets::Fonts::FontManager& fontman,
         CE::GameInfo& gameinfo,

@@ -29,7 +29,7 @@ namespace CE::Scripting {
         Instance& instance,
         Renderer::IRenderer& renderer,
         Renderer::Resources::TextureManager& textureManager,
-        Assets::Shaders::ShaderManager& shaderManager,
+        Renderer::Resources::ShaderManager& shadermanager,
         Assets::Skyboxes::SkyBoxManager& skyboxManager,
         Assets::Fonts::FontManager& fontManager,
         Renderer::Resources::GPUMeshManager& gpuMeshManager,
@@ -46,7 +46,7 @@ namespace CE::Scripting {
         , mInstance(instance)
         , mRenderer(renderer)
         , mTextureManager(textureManager)
-        , mShaderManager(shaderManager)
+        , mShaderManager(shadermanager)
         , mSkyboxManager(skyboxManager)
         , mFontManager(fontManager)
         , mGPUMeshManager(gpuMeshManager)
