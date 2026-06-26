@@ -12,6 +12,7 @@
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
+#include "engine/common/containers/registries.hpp"
 
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
@@ -131,6 +132,7 @@ namespace CE::Scripting {
                 Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
                 bool output_debug_info,
+                CE::Common::Containers::RendererResourcesNameRegistry& RendererResourcesNameRegistry,
                 CE::Assets::Audio::AudioManager* audioManager = nullptr
             );
             ~Runtime();
@@ -155,6 +157,7 @@ namespace CE::Scripting {
             bool RegisterInstanceBindings();
             bool RegisterCallbackBindings();
             bool RegisterAudioBindings();
+            bool RegisterRegistryBindings();
             bool Fail(const std::string& message);
 
             struct ScriptCallbackRegistration {
@@ -332,6 +335,7 @@ namespace CE::Scripting {
             std::vector<ScriptCallbackRegistration> mStateCallbacks;
             std::string mLastError;
 
+            CE::Common::Containers::RendererResourcesNameRegistry& mRendererResourcesNameRegistry;
             VFS::VFS& mVFS;
             CE::GameInfo& mGameInfo;
             Settings::SettingsManager& mSettingsManager;

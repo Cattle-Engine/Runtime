@@ -38,6 +38,7 @@ namespace CE::Scripting {
         Input::Keyboard& keyboard,
         Input::Mouse& mouse,
         bool output_debug_info,
+        CE::Common::Containers::RendererResourcesNameRegistry& RendererResourcesNameRegistry,
         CE::Assets::Audio::AudioManager* audioManager
     )
         : mVFS(vfs)
@@ -54,6 +55,7 @@ namespace CE::Scripting {
         , mAnimationManager(AnimatedTextureManager)
         , mKeyboard(keyboard)
         , mMouse(mouse)
+        , mRendererResourcesNameRegistry(RendererResourcesNameRegistry)
         , mAudioManager(audioManager) {
         mOutputDebugInfo = output_debug_info;
     }
@@ -111,6 +113,10 @@ namespace CE::Scripting {
 
         if (!RegisterAudioBindings()) {
             return Fail("Failed to register AngelScript audio bindings");
+        }
+
+        if (!RegisterRegistryBindings()) {
+            return Fail("Failed to register AngelScript registery bindings");
         }
 
         mContext = mScriptEngine->CreateContext();

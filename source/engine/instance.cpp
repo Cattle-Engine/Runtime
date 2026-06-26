@@ -122,6 +122,7 @@ namespace CE {
             *gKeyboardManger,
             *gMouseManger,
             gProgramArguments.OutputDebugASInfo,
+            *mRendererResourcesNameRegistry,
             gAudioManager.get()
         );
         if (!gScriptingManager->Initialize()) {
