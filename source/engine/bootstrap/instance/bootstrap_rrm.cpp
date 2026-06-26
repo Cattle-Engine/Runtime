@@ -13,6 +13,9 @@ namespace CE {
         gGPUMeshManager = std::make_unique<CE::Renderer::Resources::GPUMeshManager>(*gRenderer, *gMaterialManager);
         gAnimatedTextureManager = std::make_unique<CE::Assets::Animations::AnimatedTextureManager>(*gVFS, *gRenderer, gInstanceID);
         gModelRenderer = std::make_unique<CE::Renderer::Resources::ModelRenderer>(*gMaterialManager, *gGPUMeshManager, *gRenderer);
+        
+        mRendererResourcesNameRegistry = std::make_unique<CE::Common::Containers::RendererResourcesNameRegistry>();
+        
         return 0;
     }
 }

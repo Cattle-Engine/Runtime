@@ -14,6 +14,7 @@
 #include "engine/rendering/resources/model_renderer.hpp"
 #include "engine/assets/3d_model_importer.hpp"
 #include "engine/common/misc/arguments.hpp"
+#include "engine/common/containers/registries.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/scripting/angelscript.hpp"
@@ -57,6 +58,7 @@ namespace CE {
 
             std::unique_ptr<CE::VFS::VFS> gVFS;
             std::unique_ptr<CE::GameInfo> gGameInfo;
+            std::unique_ptr<CE::Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
             std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
             std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
 

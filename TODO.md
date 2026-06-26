@@ -2,7 +2,6 @@
 - [X] Make a small manager for GPUMesh
 - [X] Create file for 3D primtives
 - [X] Refactor to new texture manager
-
 - [X] Add DrawMeshMat4 implimentation to SDL_GPU_Renderer, and a stub for software renderer
 - [X] 3D model loading
 - [X] 3D model drawing
@@ -12,8 +11,9 @@
 - [X] Refactor shader manager to live in engine/rendering/resources and have it handle based
 - [X] Refactor everything else to use the new shader system
 - [X] Add "ShaderRef" like TextureRef but for shaders (for the future material shaders)
+- [X] Hook up the alias thing to instance
 
-- [ ] Hook up the alias thing to instance
+- [ ] Hook up name registry stuff into AngelScript
 - [ ] Add support for setting shader/s on a material
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
@@ -26,7 +26,11 @@
 // Main script
 ```angelscript
 import test; // Imports a file called test, adds whatever has "export" inside the file
-import test.foo_func; // Import just 1 function
+import test::foo_func; // Import just 1 function
+
+void main() {
+    test::foo_func();
+}
 ```
 
 Script export
