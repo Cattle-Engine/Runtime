@@ -75,10 +75,11 @@ namespace CE::Renderer::Resources {
             ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man);
 
             /**
-             * @brief For long term use of a shader, Eg using it in a material struct
+             * @brief For long term use of a shader, Eg using it in the material struct
              */
             ShaderRef AcquireRef(ShaderHandle handle);
-            
+            void Return(ShaderHandle handle);
+
             ShaderHandle CreateProgram();
             ShaderHandle Load(const std::string& filepath, int fragmentSamplerCount = 4);
             bool LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage, int sampler_count = 1);
@@ -86,7 +87,13 @@ namespace CE::Renderer::Resources {
             bool Compile(ShaderHandle handle);
             bool Bind(ShaderHandle handle);
             void Unbind();
+            /**
+             * @brief Adds a shader to be deleted, if it's called on the current bound shader this will error
+             */
             void Unload(ShaderHandle handle);
+            /**
+             * @brief Auto unbinds the shader and then marks all shaders for deletion
+             */
             void UnloadAll();
 
             void SetFloat(const std::string& uniformName, float value);
@@ -102,6 +109,11 @@ namespace CE::Renderer::Resources {
             int Debug_LoadedShadersError() const;
             ShaderHandle Debug_GetBoundShaderID() const;
             std::vector<DebugShaderInfo> Debug_GetShaders() const;
+
+            /**
+             * @brief Called at the end of the frame to unload pending deletions
+             */
+            void UnloadPendingDeletions();
 
             ~ShaderManager();
         private:

@@ -144,8 +144,10 @@ namespace CE::Renderer::Resources {
             return nullptr;
         }
     }
-    
+     
     void TextureManager::UnloadPendingDeletions() {
+        std::vector<TextureHandle> still_pending;
+
         for (TextureHandle handle : mPendingUnload) {
             auto it = mTextureCache.find(handle);
 
@@ -155,16 +157,17 @@ namespace CE::Renderer::Resources {
             TextureEntry& entry = it->second;
 
             if (entry.RefCount == 0) {
-                if (entry.Resource) {
+                if (entry.Resource)
                     mRenderer.UnloadTex(entry.Resource);
-                }
 
                 mPathCache.erase(entry.Path);
                 mTextureCache.erase(it);
+            } else {
+                still_pending.push_back(handle);
             }
         }
 
-        mPendingUnload.clear();
+        mPendingUnload.swap(still_pending);
     }
 
     void TextureManager::UnloadAll() {

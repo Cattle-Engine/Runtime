@@ -15,7 +15,7 @@ namespace CE::Renderer::Resources {
 
     ShaderRef::~ShaderRef() {
         if (mManager && mHandle) {
-            // TODO add a return here
+            mManager->Return(mHandle);
         }
     }
 
@@ -26,7 +26,7 @@ namespace CE::Renderer::Resources {
     ShaderRef& ShaderRef::operator=(ShaderRef&& other) noexcept {
         if (this != &other) {
             if (mManager) {
-                // Add a return here
+                mManager->Return(mHandle);              
             }
             
             mManager = other.mManager;
@@ -41,7 +41,7 @@ namespace CE::Renderer::Resources {
 
     void ShaderRef::Reset() {
         if (mManager && mHandle) {
-            // Add a return here
+            mManager->Return(mHandle);
         }
 
         mManager = nullptr;
@@ -63,7 +63,15 @@ namespace CE::Renderer::Resources {
     }
 
     ShaderManager::~ShaderManager() {
-        this->UnloadAll();
+        for (auto& [name, entry] : mShaders) {
+            if (entry.Shader) {
+                mRenderer.UnloadShader(entry.Shader);
+                entry.Shader = nullptr;
+            }
+        }
+
+        mPendingUnloads.clear(); 
+        mShaders.clear();
     }
 
     ShaderHandle ShaderManager::CreateProgram() {
@@ -198,6 +206,11 @@ namespace CE::Renderer::Resources {
             return false;
         }
 
+        if (entry->IsPendingUnload) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Tried to bind a pending deletion shader");
+            return false;
+        }
+
         if (!entry->IsCompiled) {
             CE::Log(LogLevel::Error, "[Shader Manager] Bind called for an unbound shader: {}", handle.id);
             return false;
@@ -231,24 +244,21 @@ namespace CE::Renderer::Resources {
             return;
         }
 
-        if (it->second.Shader) {
-            mRenderer.UnloadShader(it->second.Shader);
-            it->second.Shader = nullptr;
+        if (it->second.IsPendingUnload) {
+            CE::Log(LogLevel::Warn, "[Shader manager] Shader has already been marked to be unloaded");
+            return;
         }
 
-        mShaders.erase(handle);
-        CE::Log(LogLevel::Debug, "[Shader Manager] Unloaded shader: {}", handle.id);
+        it->second.IsPendingUnload = true;
+        mPendingUnloads.push_back(handle);
     }
 
     void ShaderManager::UnloadAll() {
         Unbind();
         for (auto& [name, entry] : mShaders) {
-            if (entry.Shader) {
-                mRenderer.UnloadShader(entry.Shader);
-                entry.Shader = nullptr;
-            }
+            entry.IsPendingUnload = true;
+            mPendingUnloads.push_back(name);
         }
-        mShaders.clear();
     }
 
     void ShaderManager::SetFloat(const std::string& uniformName, float value) {
@@ -347,6 +357,16 @@ namespace CE::Renderer::Resources {
         return mBoundShaderID;
     }
 
+    void ShaderManager::Return(ShaderHandle handle) {
+        auto entry = GetShaderEntry(handle);
+        if (!entry) {
+            CE::Log(LogLevel::Error, "[Shader Manager] Return called with an invalid or stale handle");
+            return;
+        }
+    
+        if (entry->RefCount > 0) entry->RefCount--;
+    }
+
     ShaderRef ShaderManager::AcquireRef(ShaderHandle handle) {
         auto entry = GetShaderEntry(handle);
 
@@ -371,5 +391,27 @@ namespace CE::Renderer::Resources {
 
         entry->RefCount++;
         return ShaderRef(this, handle, entry->Shader);
+    }
+
+    void ShaderManager::UnloadPendingDeletions() {
+        std::vector<ShaderHandle> still_pending;
+        for (ShaderHandle handle : mPendingUnloads) {
+            auto it = mShaders.find(handle);
+
+            if (it == mShaders.end()) continue;
+
+            ShaderEntry& entry = it->second;
+
+            if (entry.RefCount == 0) {
+                if (entry.Shader) {
+                    mRenderer.UnloadShader(entry.Shader);
+                }
+                mShaders.erase(it);
+            } else {
+                still_pending.push_back(handle);
+            }
+        }
+
+        mPendingUnloads.swap(still_pending);
     }
 }
