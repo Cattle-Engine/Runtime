@@ -1,63 +1,80 @@
-name: Build ce_engine
+name: Build ce_engine Release
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  release:
+    types:
+      - created
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os:
+          - ubuntu-latest
+          - windows-latest
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Install build tools (Linux)
+      - name: Install Linux build tools
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential ninja-build g++ gcc
+            build-essential \
+            ninja-build \
+            python3 \
+            python3-pip \
+            autoconf \
+            autoconf-archive \
+            autocmake \
+            libtool
 
-      - name: Setup MSVC (Windows)
+      - name: Setup MSVC
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Ninja (Windows)
+      - name: Install Ninja
         if: runner.os == 'Windows'
         run: choco install -y ninja
 
-      - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+      - name: Cache vcpkg
+        uses: actions/cache@v4
         with:
-          vcpkgGitCommitId: 4bc07e3eb00c5a9539a5a7a83415150a9260f8db
-          vcpkgJsonGlob: '**/vcpkg.json'
+          path: |
+            tools/cache/vcpkg
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
 
       - name: Configure CMake
         run: |
           cmake -S . -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build -j 2
+        run: cmake --build build --parallel 2
 
-      - name: Upload artifact (Linux)
+      - name: Package Linux build
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ce_engine-linux
-          path: build/ce_engine
+        run: |
+          mkdir release
+          cp build/ce_engine release/ce_engine-linux
 
-      - name: Upload artifact (Windows)
+      - name: Package Windows build
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        run: |
+          mkdir release
+          cp build/ce_engine.exe release/ce_engine-windows.exe
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
         with:
-          name: ce_engine-windows
-          path: build/Release/ce_engine.exe
+          files: |
+            release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
