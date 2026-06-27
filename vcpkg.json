@@ -45,6 +45,7 @@
     },
 
     "sdl3-ttf",
-    "assimp"
+    "assimp",
+    "xxhash"
   ]
 }

@@ -71,7 +71,6 @@ namespace CE::UI {
         const glm::mat4 cameraRotation = glm::mat4_cast(glm::quat(cam->rotation));
         const glm::vec3 forward = glm::normalize(glm::vec3(cameraRotation * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
         const glm::vec3 right = -glm::normalize(glm::vec3(cameraRotation * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
-        const glm::vec3 up = glm::normalize(glm::vec3(cameraRotation * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
         const glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 
         float speed = gFreeCam.speed * deltaTime;
@@ -462,10 +461,10 @@ namespace CE::UI {
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Shaders")) {
-            ImGui::Text("Total loaded: %d", shaderman.Debug_LoadedShadersCount());
+            ImGui::Text("Total loaded: %zu", shaderman.Debug_LoadedShadersCount());
             ImGui::Text("No error: %d", shaderman.Debug_LoadedShadersNoError());
             ImGui::Text("Errors: %d", shaderman.Debug_LoadedShadersError());
-            ImGui::Text("Bound shader: %", PRIu64, shaderman.Debug_GetBoundShaderID().id);
+            ImGui::Text("Bound shader: %" PRIu64, shaderman.Debug_GetBoundShaderID().id);
 
             auto shaders = shaderman.Debug_GetShaders();
             if (ImGui::TreeNode("Shader List")) {

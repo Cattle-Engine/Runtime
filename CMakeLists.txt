@@ -254,6 +254,8 @@ endif()
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(ce_engine PRIVATE glm::glm)
 
+find_package(xxHash CONFIG REQUIRED)
+
 set(ANGELSCRIPT_LINK_TARGET "")
 foreach(CANDIDATE_TARGET Angelscript::angelscript angelscript AngelScript::angelscript AngelScript)
     if(TARGET ${CANDIDATE_TARGET})
@@ -266,7 +268,10 @@ if(NOT ANGELSCRIPT_LINK_TARGET)
     message(FATAL_ERROR "Could not find an exported AngelScript CMake target.")
 endif()
 
-target_link_libraries(ce_engine PRIVATE ${ANGELSCRIPT_LINK_TARGET})
+target_link_libraries(ce_engine PRIVATE 
+    ${ANGELSCRIPT_LINK_TARGET}
+    xxHash::xxhash
+)
 
 set(CE_SHADER_STAMP "${CMAKE_BINARY_DIR}/generated/shaders.stamp")
 add_custom_command(

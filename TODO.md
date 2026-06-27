@@ -14,16 +14,11 @@
 - [X] Hook up the alias thing to instance
 - [X] Hook up name registry stuff into AngelScript
 
-- [ ] Add support for setting shader/s on a material
-- [ ] Make glass materials actually work
-- [ ] Multiple light support
-- [ ] Update AngelScript bindings for the shaders
+- [ ] Make the AST for angelscript
+- [ ] Make new module system
+- [ ] Make the Runtime class actually use the new module system
 
-- [ ] Basic 3D model bone support
-- [ ] 3D model animation support
-- [ ] AngelScript bindings for bones
 - [ ] AngelScript imports:
-- [ ] Update docs to show new AngelScript bindings
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -59,6 +54,16 @@ export int foo_func() {
 
 }
 ```
+
+- [ ] Add support for setting shader/s on a material
+- [ ] Make glass materials actually work
+- [ ] Multiple light support
+- [ ] Update AngelScript bindings for the shaders
+- [ ] Add XXHash to licence stuff
+- [ ] Basic 3D model bone support
+- [ ] 3D model animation support
+- [ ] AngelScript bindings for bones
+- [ ] Update docs to show new AngelScript bindings
 
 - [ ] AngelScript attributes:
 Basically a thing you can put on classes, structs and variables. Will look like this:
