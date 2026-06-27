@@ -32,7 +32,7 @@ This for a generated function
 ```__ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>_<returnType>```
 
 This for generated globals (vars)
-```__ce_mod_g_<moduleHash>_<namespaceHash>_<symbolHash>_<typeHash>``
+```__ce_mod_g_<moduleHash>_<namespaceHash>_<symbolHash>_<typeHash>```
 
 This for generated types
 ```__ce_mod_t_<moduleHash>_<namespaceHash>_<symbolHash>```
