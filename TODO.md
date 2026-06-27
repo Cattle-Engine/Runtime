@@ -12,8 +12,8 @@
 - [X] Refactor everything else to use the new shader system
 - [X] Add "ShaderRef" like TextureRef but for shaders (for the future material shaders)
 - [X] Hook up the alias thing to instance
+- [X] Hook up name registry stuff into AngelScript
 
-- [ ] Hook up name registry stuff into AngelScript
 - [ ] Add support for setting shader/s on a material
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
