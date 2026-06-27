@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "engine/rendering/renderer.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::Renderer::Resources {

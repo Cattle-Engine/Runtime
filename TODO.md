@@ -18,13 +18,31 @@
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
 - [ ] Update AngelScript bindings for the shaders
+
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
 - [ ] AngelScript imports:
 - [ ] Update docs to show new AngelScript bindings
+
+Going to do symbol mangling so this.
+(With the namespace hash it is generated from the full symbol)
+
+This for a generated function
+```__ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>_<returnType>```
+
+This for generated globals (vars)
+```__ce_mod_g_<moduleHash>_<namespaceHash>_<symbolHash>_<typeHash>``
+
+This for generated types
+```__ce_mod_t_<moduleHash>_<namespaceHash>_<symbolHash>```
+
+Internal stuff
+```__ce_mod_i_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>```
+
 // Main script
 ```angelscript
+// This stuff is global like C++
 import test; // Imports a file called test, adds whatever has "export" inside the file
 import test::foo_func; // Import just 1 function
 

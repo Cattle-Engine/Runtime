@@ -13,7 +13,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
 #include "engine/common/containers/registries.hpp"
-
+#include "engine/scripting/private/modules.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/rendering/renderer.hpp"

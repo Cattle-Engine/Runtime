@@ -331,7 +331,7 @@ namespace CE::Renderer {
                 bool error_tex
             ) = 0;
             virtual TextureUploadBatch* BeginBatchTextureUpload() { return nullptr; }
-            virtual void EndBatchTextureUpload(TextureUploadBatch* batch) {}
+            virtual void EndBatchTextureUpload(TextureUploadBatch* batch) { (void)batch; }
             
             void SetLightingState(const LightingState& lighting) {
                 mLightingState = lighting;

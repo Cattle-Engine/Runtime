@@ -1,6 +1,10 @@
 #pragma once
 
-namespace CE::Scripting {
+namespace CE::Scripting::Impl {
+    struct MangledSymbolInfo {
+
+    };
+    
     class ModuleImporter {
         
     };
