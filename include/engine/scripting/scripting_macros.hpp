@@ -39,11 +39,11 @@
                 return GetRegistry()->Exists(name); \
             } \
             \
-            static void Add(std::string_view name, cppType value) { \
+            static void Add(std::string_view name, const cppType& value) { \
                 GetRegistry()->Add(std::string(name), value); \
             } \
             \
-            static cppType Get(std::string_view name) { \
+            static const cppType& Get(std::string_view name) { \
                 return GetRegistry()->Get(std::string(name)); \
             } \
             \
@@ -74,14 +74,14 @@
         } \
         \
         if (mScriptEngine->RegisterGlobalFunction( \
-                "void Add(const string &in, " scriptType ")", \
+                "void Add(const string &in, const " scriptType " &in)", \
                 asFUNCTION(CE_CONCAT(_ce_registry_wrapper_, id)::Add), \
                 asCALL_CDECL) < 0) { \
             return false; \
         } \
         \
         if (mScriptEngine->RegisterGlobalFunction( \
-                scriptType " Get(const string &in)", \
+                "const " scriptType " &Get(const string &in)", \
                 asFUNCTION(CE_CONCAT(_ce_registry_wrapper_, id)::Get), \
                 asCALL_CDECL) < 0) { \
             return false; \
@@ -111,12 +111,14 @@
                 return GetRegistry()->Exists(name); \
             } \
             \
-            static void Add(std::string_view name, cppType value) { \
+            static void Add(std::string_view name, const cppType& value) { \
                 GetRegistry()->Add(std::string(name), value.handleMember); \
             } \
             \
-            static cppType Get(std::string_view name) { \
-                return cppType{ GetRegistry()->Get(std::string(name)) }; \
+            static const cppType& Get(std::string_view name) { \
+                static cppType cachedValue{}; \
+                cachedValue = cppType{ GetRegistry()->Get(std::string(name)) }; \
+                return cachedValue; \
             } \
             \
             static void Remove(std::string_view name) { \
@@ -145,14 +147,14 @@
         } \
         \
         if (mScriptEngine->RegisterGlobalFunction( \
-                "void Add(const string &in, " scriptType ")", \
+                "void Add(const string &in, const " scriptType " &in)", \
                 asFUNCTION(CE_CONCAT(_ce_registry_wrapper_, id)::Add), \
                 asCALL_CDECL) < 0) { \
             return false; \
         } \
         \
         if (mScriptEngine->RegisterGlobalFunction( \
-                scriptType " Get(const string &in)", \
+                "const " scriptType " &Get(const string &in)", \
                 asFUNCTION(CE_CONCAT(_ce_registry_wrapper_, id)::Get), \
                 asCALL_CDECL) < 0) { \
             return false; \
