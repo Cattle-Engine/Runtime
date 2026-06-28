@@ -68,7 +68,7 @@ export int foo_func() {
 - [ ] AngelScript attributes:
 Basically a thing you can put on classes, structs and variables. Will look like this:
 ```angelscript
-[foo_attribute]
+@foo_attribute,@test_able
 struct foo {
     
 }
@@ -79,6 +79,10 @@ struct foo {
 - [ ] Physics via Jolt
 - [ ] Save system
 - [ ] plugins
+- [ ] In the angelscript bindings for plugins have it so you use the import keyword so like
+```angelscript
+import CE::Plugins::{plugin name here};
+```
 
 - [ ] POLISH
 - [ ] 1.0 ?

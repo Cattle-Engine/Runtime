@@ -28,13 +28,19 @@ namespace CE::Scripting::Impl::Lexer {
             EndOfFile
         };
 
-        TokenType Type= TokenType::EndOfFile;
+        TokenType Type = TokenType::EndOfFile;
 
         std::string Value = "";
 
         SourceLocation Location{};
     };
     
-    // Throws CE::Runtime::Impl::Exceptioms::LexerError when an errpr occurs
-    std::vector<Token> Lex(const std::string& data);
+    /**
+     * @brief Parses a script file as a string and returns tokens
+     * @return Returns a std::vector of tokens or throws CE::Runtime::Impl::Exceptioms::LexerError when an error occurs
+     * 
+     * @param data The script file
+     * @param filename Used for logging purposes
+     */
+    std::vector<Token> Lex(const std::string& data, const std::string& filename);
 }
