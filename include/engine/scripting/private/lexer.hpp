@@ -35,5 +35,6 @@ namespace CE::Scripting::Impl::Lexer {
         SourceLocation Location{};
     };
     
+    // Throws CE::Runtime::Impl::Exceptioms::LexerError when an errpr occurs
     std::vector<Token> Lex(const std::string& data);
 }
