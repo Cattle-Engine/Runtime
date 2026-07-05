@@ -88,6 +88,10 @@ namespace CE::Scripting::Impl::Lexer {
                     token.Type = Token::TokenType::KeywordExport;
                 } else if (value == "namespace") {
                     token.Type = Token::TokenType::KeywordNamespace;
+                } else if (value == "class") {
+                    token.Type = Token::TokenType::KeywordClass;
+                } else if (value == "struct") {
+                    token.Type = Token::TokenType::KeywordStruct;
                 } else {
                     token.Type = Token::TokenType::Identifier;
                 }

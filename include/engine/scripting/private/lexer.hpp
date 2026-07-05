@@ -11,6 +11,8 @@ namespace CE::Scripting::Impl::Lexer {
             KeywordImport,
             KeywordExport,
             KeywordNamespace,
+            KeywordClass,
+            KeywordStruct,
 
             Identifier,
             String,
