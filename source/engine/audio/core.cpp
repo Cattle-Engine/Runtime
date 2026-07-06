@@ -13,8 +13,8 @@ namespace CE::Core::Audio {
         mInstanceID = instanceid;
         if (gMixInitRefCount.fetch_add(1) == 0) {
             if(!MIX_Init()) {
-                CE::Log(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
-                CE::Log(LogLevel::Fatal, "[Audio {}] Error from SDL: {}", mInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
+                CE_LOG(LogLevel::Fatal, "[Audio {}] Error from SDL: {}", mInstanceID, SDL_GetError());
                 gMixInitRefCount.fetch_sub(1);
                 throw std::runtime_error("Failed to create audio subsystem");
             }
@@ -71,12 +71,12 @@ namespace CE::Core::Audio {
         spec.format = SDL_AUDIO_F32;
         mMixer = MIX_CreateMixerDevice(static_cast<SDL_AudioDeviceID>(device_id), &spec);
         if (!mMixer) {
-            CE::Log(LogLevel::Error, "[Audio {}] Failed to create mixer device: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Audio {}] Failed to create mixer device: {}", mInstanceID, SDL_GetError());
             return;
         }
 
         if (!MIX_GetMixerFormat(mMixer, &mMixerSpec)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to query mixer format: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to query mixer format: {}", mInstanceID, SDL_GetError());
             mMixerSpec = spec;
         }
     }

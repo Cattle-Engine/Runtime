@@ -17,7 +17,7 @@ namespace CE::Bootstrap::Engine {
         auto stream = VFS::OpenIStream(tmp_vfs, "Gameinfo.txt");
 
         if (!stream) {
-            CE::Log(LogLevel::Error, "[Engine] Unable to open Gameinfo.txt :'(");
+            CE_LOG(LogLevel::Error, "[Engine] Unable to open Gameinfo.txt :'(");
             return 1;
         }
 
@@ -35,12 +35,12 @@ namespace CE::Bootstrap::Engine {
         bool gresult = Common::GData_Has(text);
 
         if (!gresult) {
-            CE::Log(LogLevel::Error, "[Engine] Gameinfo.txt is missing required game-info");
+            CE_LOG(LogLevel::Error, "[Engine] Gameinfo.txt is missing required game-info");
             return 2;
         }
 
         if (!CE::Ini::parse(text, ini, &err, opts)) {
-            CE::Log(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
+            CE_LOG(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
             return 3;
         }
         gameinfo.gameNameString = ini.get_string("Gameinfo", "Game_Name", "");

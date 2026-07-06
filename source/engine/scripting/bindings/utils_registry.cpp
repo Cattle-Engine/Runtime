@@ -35,7 +35,7 @@ namespace CE::Scripting {
             "CE::Registries::Shaders"
         );
 
-        CE::Log(CE::LogLevel::Info, "[AngelScript] Registry bindings registered successfully");
+        CE_LOG(CE::LogLevel::Info, "[AngelScript] Registry bindings registered successfully");
         return true;
     }
 }

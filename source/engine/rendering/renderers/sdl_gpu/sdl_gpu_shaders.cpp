@@ -145,7 +145,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         std::string shaderPath(path ? path : "");
         if (shaderPath.empty()) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] LoadShaderStage called with an empty path");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] LoadShaderStage called with an empty path");
             return false;
         }
 
@@ -176,7 +176,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         if (!loadedShader) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to load {} shader '{}'",
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to load {} shader '{}'",
                 stage == ShaderStage::Vertex ? "vertex" : "fragment",
                 shaderPath);
             return false;
@@ -212,7 +212,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     Shader* SDL_GPU_Renderer::LoadShader(const char* path, int fragmentSamplerCount) {
         std::string baseName = GetShaderBaseName(path);
         if (baseName.empty()) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] LoadShader called with an invalid path");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] LoadShader called with an invalid path");
             return nullptr;
         }
 
@@ -230,14 +230,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loaded shader program '{}'", baseName);
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loaded shader program '{}'", baseName);
         return shaderProgram;
     }
 
     bool SDL_GPU_Renderer::LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount) {
         auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] LoadShaderStage called with an invalid shader program");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] LoadShaderStage called with an invalid shader program");
             return false;
         }
 
@@ -252,7 +252,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     bool SDL_GPU_Renderer::UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) {
         auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] UseDefaultShaderStage called with an invalid shader program");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] UseDefaultShaderStage called with an invalid shader program");
             return false;
         }
 
@@ -269,20 +269,20 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     bool SDL_GPU_Renderer::CompileShaderProgram(Shader* shaderProgram) {
         auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram called with an invalid shader program");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram called with an invalid shader program");
             return false;
         }
 
         SDL_Window* window = SDL_GetWindowFromID(mWindowID);
         if (!window) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram could not resolve the renderer window");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram could not resolve the renderer window");
             return false;
         }
 
         SDL_GPUShader* vertexShader = GetStageShader(program, ShaderStage::Vertex);
         SDL_GPUShader* fragmentShader = GetStageShader(program, ShaderStage::Fragment);
         if (!vertexShader || !fragmentShader) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram requires both a vertex and fragment stage");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram requires both a vertex and fragment stage");
             return false;
         }
 
@@ -344,13 +344,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         auto* program = GetShaderProgram(shader);
         if (!program) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Invalid shader program passed to BindShader");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Invalid shader program passed to BindShader");
             return;
         }
 
         if (program->Dirty || !program->Pipeline) {
             if (!CompileShaderProgram(shader)) {
-                CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to compile shader program before binding");
+                CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to compile shader program before binding");
                 return;
             }
         }
@@ -514,7 +514,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         if (slot < 0) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderTexture slot {} is invalid", slot);
+            CE_LOG(LogLevel::Warn, "[SDL_GPU Renderer] SetShaderTexture slot {} is invalid", slot);
             return;
         }
 

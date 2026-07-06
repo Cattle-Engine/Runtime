@@ -13,7 +13,7 @@ namespace CE::Assets::Audio {
     AudioManager::AMPlayingSoundInfo* AudioManager::GetSoundInfo(uint32_t handle) {
         auto it = mPlayingSounds.find(handle);
         if (it == mPlayingSounds.end()) {
-            CE::Log(LogLevel::Error, "[Audio Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
+            CE_LOG(LogLevel::Error, "[Audio Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
             return nullptr;
         } else {
             return &it->second;
@@ -22,12 +22,12 @@ namespace CE::Assets::Audio {
 
     void AudioManager::LoadSound(const std::string& path, const std::string& name, Core::Audio::AudioType type) {
         if (!mVFS.FileExists(path.c_str())) {
-            CE::Log(LogLevel::Error, "[Audio Manager {}] Audio file does not exist: {}", mInstanceID, path);
+            CE_LOG(LogLevel::Error, "[Audio Manager {}] Audio file does not exist: {}", mInstanceID, path);
             return;
         }
         auto audio_clip = mAudioSys.LoadSound(path, type);
         if (audio_clip == nullptr) {
-            CE::Log(LogLevel::Error, "[Audio Manager {}] Failed to load audio file", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Audio Manager {}] Failed to load audio file", mInstanceID);
             return;
         }
         mAudioCache[name] = audio_clip;
@@ -36,7 +36,7 @@ namespace CE::Assets::Audio {
     void AudioManager::UnloadSound(const std::string& name) {
         auto it = mAudioCache.find(name);
         if (it == mAudioCache.end()) {
-            CE::Log(LogLevel::Warn, "[Audio Manager {}] Tried to unload missing asset: {}", mInstanceID, name);
+            CE_LOG(LogLevel::Warn, "[Audio Manager {}] Tried to unload missing asset: {}", mInstanceID, name);
             return;
         }
 
@@ -65,7 +65,7 @@ namespace CE::Assets::Audio {
             mPlayingSounds[info.Id] = info;
             return info.Id;
         }
-        CE::Log(LogLevel::Error, "[Audio Manager {}] Tried to use a missing or unloaded asset: {}", mInstanceID, name);
+        CE_LOG(LogLevel::Error, "[Audio Manager {}] Tried to use a missing or unloaded asset: {}", mInstanceID, name);
         return 0;
    }
 
@@ -226,7 +226,7 @@ namespace CE::Assets::Audio {
     void AudioManager::DeleteSoundInstance(uint32_t handle) {
         auto it = mPlayingSounds.find(handle);
         if (it == mPlayingSounds.end()) {
-            CE::Log(LogLevel::Warn,
+            CE_LOG(LogLevel::Warn,
                 "[Audio Manager {}] Tried to delete invalid handle: {}",
                 mInstanceID, handle);
             return;

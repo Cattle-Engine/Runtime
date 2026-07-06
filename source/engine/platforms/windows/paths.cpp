@@ -11,7 +11,7 @@ namespace CE::Platforms::Windows {
         const char* local_app_data_str = std::getenv("LOCALAPPDATA");
 
         if(!local_app_data_str) {
-            CE::Log(LogLevel::Fatal, "[Windows] Failed to get local appdata directory");
+            CE_LOG(LogLevel::Fatal, "[Windows] Failed to get local appdata directory");
             ShowError("[Winows] Failed to find local appdata directory");
             std::exit(5);
         }
@@ -24,7 +24,7 @@ namespace CE::Platforms::Windows {
         const char* app_data_str = std::getenv("APPDATA");
 
         if(!app_data_str) {
-            CE::Log(LogLevel::Fatal, "[Windows] Failed to get user home directory");
+            CE_LOG(LogLevel::Fatal, "[Windows] Failed to get user home directory");
             ShowError("[Winows] Failed to find user home directory");
             std::exit(5);
         }

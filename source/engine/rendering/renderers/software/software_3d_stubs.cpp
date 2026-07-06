@@ -3,7 +3,7 @@
 
 namespace CE::Renderer::Software {
     void Software_Renderer::LogAbout3D() {
-        CE::Log(LogLevel::Warn, "[Software Renderer] 3D is not supported in the software renderer");
+        CE_LOG(LogLevel::Warn, "[Software Renderer] 3D is not supported in the software renderer");
     }
 
     GPUMesh* Software_Renderer::CreateGPUMesh(MeshData& mesh) {

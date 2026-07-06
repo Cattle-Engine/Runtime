@@ -7,7 +7,7 @@ namespace CE::Core::Audio {
 
         clip->Path = path;
         if (!mVFS.FileExists(path.c_str())) {
-            CE::Log(LogLevel::Error, "[Audio {}] Audio file does not exist: {}", mInstanceID, path);
+            CE_LOG(LogLevel::Error, "[Audio {}] Audio file does not exist: {}", mInstanceID, path);
             delete clip;
             return nullptr;
         }
@@ -19,7 +19,7 @@ namespace CE::Core::Audio {
         }
         clip->Audio = MIX_LoadAudio_IO(mMixer, file->sdl_stream, false, false);
         if(!clip->Audio) {
-            CE::Log(LogLevel::Error, "[Audio {}] Failed to load audio file: {}", mInstanceID, path);
+            CE_LOG(LogLevel::Error, "[Audio {}] Failed to load audio file: {}", mInstanceID, path);
             delete file;
             delete clip;
             return nullptr;
@@ -36,7 +36,7 @@ namespace CE::Core::Audio {
 
     void AudioSystem::DestroySound(AudioClip* clip) {
         if (clip == nullptr) {
-            CE::Log(LogLevel::Error, "[Audio {}] Audio clip was null!", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Audio {}] Audio clip was null!", mInstanceID);
             return;
         }
         if (clip->Audio) {

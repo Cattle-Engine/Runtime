@@ -75,8 +75,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 break;
 
             default:
-                CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unsupported GPU device was given!");
-                CE::Log(LogLevel::Info,
+                CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Unsupported GPU device was given!");
+                CE_LOG(LogLevel::Info,
                     "[SDL_GPU Renderer] Backend given was: {}",
                     static_cast<int>(gdevice->backend));
                 return 1;
@@ -85,12 +85,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gDevice = static_cast<SDL_GPUDevice*>(gdevice->device);
 
         if (gDevice == nullptr) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] gDevice is NULL!");
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] gDevice is NULL!");
             return 2;
         }
 
         if (!SDL_ClaimWindowForGPUDevice(gDevice, window)) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
             ShowError("[SDL_GPU Renderer] Unable to bind window to gpu device");
             return 3;
         }
@@ -151,7 +151,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         ttiInfo.size  = sizeof(uint16_t) * MAX_INDICES;
         gTransferTexIdx = SDL_CreateGPUTransferBuffer(gDevice, &ttiInfo);
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Batch buffers created");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Batch buffers created");
 
         uint8_t white[4] = { 255, 255, 255, 255 };
 
@@ -271,7 +271,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         wSampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         gWhiteSampler = SDL_CreateGPUSampler(gDevice, &wSampInfo);
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] White fallback texture created");
 
         // Default normal
         uint8_t defaultNormal[4] = { 128, 128, 255, 255 };
@@ -322,17 +322,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         nSampInfo.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
         gNormalSampler = SDL_CreateGPUSampler(gDevice, &nSampInfo);
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Default normal map texture created");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Default normal map texture created");
 
         ImGuiInit(window, gDevice);
         return 0;
     }
 
     int SDL_GPU_Renderer::Shutdown(SDL_Window* window) {
-        CE::Log(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
+        CE_LOG(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
 
         if(gDevice == nullptr) {
-            CE::Log(LogLevel::Error, "[Renderer {}] No device!", static_cast<void*>(this));
+            CE_LOG(LogLevel::Error, "[Renderer {}] No device!", static_cast<void*>(this));
             return 0;
         }
         
@@ -359,7 +359,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             gWhiteSampler = nullptr;
         }  
         
-        CE::Log(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", 
+        CE_LOG(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", 
                 static_cast<void*>(this), static_cast<void*>(gWhiteTex));
         if (gWhiteTex) {
             SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
@@ -394,7 +394,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         mWarnedOutsideFrame = false;
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to acquire command buffer");
             return 1;
         }
 
@@ -404,12 +404,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         gSwapchainTexture = nullptr;
         if (!SDL_WaitAndAcquireGPUSwapchainTexture(gCommandBuffer, window, &gSwapchainTexture, NULL, NULL)) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
             return 2;
         }
 
         if (gSwapchainTexture == nullptr) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
             return 3;
         }
         gVertCount  = 0;
@@ -588,7 +588,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     float rotation) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -629,7 +629,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -648,7 +648,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float rotation) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -688,13 +688,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                 uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
         } 
         if (gVertCount + 4 > MAX_VERTS || gIndexCount + 6 > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping line");
+            CE_LOG(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping line");
             return;
         }
 
@@ -735,7 +735,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -746,7 +746,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint32_t iNeeded = (uint32_t)(segments * 3);
 
         if (gVertCount + vNeeded > MAX_VERTS || gIndexCount + iNeeded > MAX_INDICES) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping circle");
+            CE_LOG(LogLevel::Warn, "[SDL_GPU Renderer] Batch full, skipping circle");
             return;
         }
 
@@ -786,7 +786,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -808,13 +808,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not stat '{}' (missing or empty)", path);
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not stat '{}' (missing or empty)", path);
             return nullptr;
         }
 
         VirtualFile* vf = vfs.OpenFile(path);
         if (!vf) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
             return nullptr;
         }
 
@@ -824,20 +824,20 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
             return nullptr;
         }
 
         SDL_Surface* surface = IMG_Load_IO(mem, true); 
         if (!surface) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
             return nullptr;
         }
 
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_ConvertSurface failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_ConvertSurface failed: {}", SDL_GetError());
             return nullptr;
         }
 
@@ -856,7 +856,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
         if (!gpuTex) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(converted);
             return nullptr;
         }
@@ -904,7 +904,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             delete data;
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create texture samplers: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create texture samplers: {}", SDL_GetError());
             return nullptr;
         }
 
@@ -949,17 +949,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         TextureUploadBatch* batch
     ) {
         if (!gDevice) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData called before Init()");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData called before Init()");
             return nullptr;
         }
 
         if (width <= 0 || height <= 0) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData invalid size {}x{}", width, height);
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData invalid size {}x{}", width, height);
             return nullptr;
         }
 
         if (!pixels) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pixels was null");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pixels was null");
             return nullptr;
         }
 
@@ -974,18 +974,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         const int srcBpp = bytesPerPixelFor(format);
         if (srcBpp == 0) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData unsupported format {}", (int)format);
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData unsupported format {}", (int)format);
             return nullptr;
         }
 
         const int srcPitchBytes = (pitch > 0) ? pitch : (width * srcBpp);
         if (srcPitchBytes < width * srcBpp) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} too small for {}x{}x{}",
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} too small for {}x{}x{}",
                     srcPitchBytes, width, height, srcBpp);
             return nullptr;
         }
         if ((srcPitchBytes % srcBpp) != 0) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} not divisible by bpp {}",
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData pitch {} not divisible by bpp {}",
                     srcPitchBytes, srcBpp);
             return nullptr;
         }
@@ -1038,7 +1038,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
         if (!gpuTex) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             return nullptr;
         }
 
@@ -1051,14 +1051,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
         if (!tb) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             return nullptr;
         }
 
         void* mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
         if (!mapped) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(gDevice, tb);
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             return nullptr;
@@ -1118,7 +1118,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         data->repeatSampler = CreateSampler(gDevice, gpuFilter, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
 
         if (!data->sampler || !data->repeatSampler) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
             if (data->sampler)       SDL_ReleaseGPUSampler(gDevice, data->sampler);
             if (data->repeatSampler) SDL_ReleaseGPUSampler(gDevice, data->repeatSampler);
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
@@ -1141,7 +1141,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                                     TextureFlip flip) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -1207,7 +1207,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                     TextureFlip flip) {
         if(!gFrameActive) {
             if (!mWarnedOutsideFrame) {
-                CE::Log(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
+                CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
                 mWarnedOutsideFrame = true;
             }
             return;
@@ -1382,7 +1382,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::SetVSync(bool setting) {
         SDL_Window* window = SDL_GetWindowFromID(mWindowID);
         if (window == nullptr) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Renderer] SetVSync called before window was available");
+            CE_LOG(LogLevel::Warn, "[SDL_GPU Renderer] SetVSync called before window was available");
             return;
         }
 
@@ -1401,7 +1401,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             );
 
         if (!result) {
-            CE::Log(
+            CE_LOG(
                 LogLevel::Warn,
                 "[SDL_GPU Renderer] Failed to set VSync to {}: {}",
                 setting ? "enabled" : "disabled",

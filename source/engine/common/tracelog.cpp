@@ -9,6 +9,16 @@
 #include "engine/platforms.hpp"
 #include "engine/common/tracelog.hpp"
 
+namespace {
+    bool kIsDebug =
+    #if defined(CE_DEBUG)
+        true;
+    #else
+        false;
+    #endif
+    using Manip = std::ostream& (*)(std::ostream&);
+}
+
 namespace CE {
 
     inline bool g_UseANSI = Platforms::EnableANSI();
@@ -62,36 +72,67 @@ namespace CE {
         return ss.str();
     }
 
-    void Log(LogLevel level, const std::string& message) {
+    std::string GetLocation(const std::source_location& loc) {
+        std::string_view file = loc.file_name();
+
+        size_t source_pos = file.rfind("source/");
+        size_t include_pos = file.rfind("include/");
+
+        size_t pos = std::string_view::npos;
+
+        if (source_pos != std::string_view::npos)
+            pos = source_pos;
+        if (include_pos != std::string_view::npos)
+            pos = (pos == std::string_view::npos) ? include_pos : std::max(pos, include_pos);
+
+        if (pos != std::string_view::npos)
+            file.remove_prefix(pos);
+
+        if (kIsDebug)
+            return std::format("[{}:{}] ", file, loc.line());
+
+        return {};
+    }
+
+    void LogImpl(LogLevel level, const std::string& message, std::source_location loc) {
+        if (level == LogLevel::Debug && !kIsDebug)
+            return;
+
         std::ostream& os = std::cout;
+
+        Manip colour = nullptr;
+        std::string tag;
 
         switch (level) {
             case Info:
-                os << blue
-                   << "[" << GetTimestamp() << "] [INFO] " << message;
+                colour = blue;
+                tag = "[INFO]";
                 break;
-
             case Warn:
-                os << yellow
-                   << "[" << GetTimestamp() << "] [WARN] " << message;
+                colour = yellow;
+                tag = "[WARNING]";
                 break;
-
             case Debug:
-                os << blue
-                   << "[" << GetTimestamp() << "] [DEBUG] " << message;
+                colour = blue;
+                tag = "[DEBUG]";
                 break;
-
             case Error:
-                os << red
-                   << "[" << GetTimestamp() << "] [ERROR] " << message;
+                colour = red;
+                tag = "[ERROR]";
                 break;
-
             case Fatal:
-                os << bold_red
-                   << "[" << GetTimestamp() << "] [FATAL] " << message;
+                colour = bold_red;
+                tag = "[FATAL]";
                 break;
         }
 
-        os << std::endl;
+        if (colour)
+            os << colour;
+
+        os << "[" << GetTimestamp() << "] "
+        << tag << " "
+        << GetLocation(loc)
+        << message
+        << std::endl;
     }
 }

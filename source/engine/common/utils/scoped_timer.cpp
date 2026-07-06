@@ -14,22 +14,22 @@ namespace CE::Utils {
             end - mTimeStart).count();
 
         if (ns >= 1'000'000'000) {
-            CE::Log(LogLevel::Debug,
+            CE_LOG(LogLevel::Debug,
                 "{} took: {:.3f} s",
                 mLabel,
                 ns / 1e9);
         } else if (ns >= 1'000'000) {
-            CE::Log(LogLevel::Debug,
+            CE_LOG(LogLevel::Debug,
                 "{} took: {:.3f} ms",
                 mLabel,
                 ns / 1e6);
         } else if (ns >= 1'000) {
-            CE::Log(LogLevel::Debug,
+            CE_LOG(LogLevel::Debug,
                 "{} took: {:.3f} us",
                 mLabel,
                 ns / 1e3);
         } else {
-            CE::Log(LogLevel::Debug,
+            CE_LOG(LogLevel::Debug,
                 "{} took: {} ns",
                 mLabel,
                 ns);

@@ -11,7 +11,7 @@ namespace CE::Platforms::Linux {
         const char* home_str = std::getenv("HOME");
 
         if (!home_str) {
-            CE::Log(CE::Fatal, "[Linux] Couldn't find user home directory");
+            CE_LOG(CE::Fatal, "[Linux] Couldn't find user home directory");
             ShowError("[Linux] Unable to find user home directory");
             std::exit(5);
         }
@@ -24,7 +24,7 @@ namespace CE::Platforms::Linux {
         const char* home_str = std::getenv("HOME");
 
         if (!home_str) {
-            CE::Log(CE::Fatal, "[Linux] Couldn't find user home directory");
+            CE_LOG(CE::Fatal, "[Linux] Couldn't find user home directory");
             ShowError("[Linux] Unable to find user home directory");
             std::exit(5);
         }

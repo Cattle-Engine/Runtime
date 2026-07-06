@@ -15,7 +15,7 @@ namespace CE::Assets::Animations {
     AnimationInstance* AnimatedTextureManager::GetAnimationInfo(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
         if (it == mAnimationInstances.end()) {
-            CE::Log(LogLevel::Error, "[Animation Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
+            CE_LOG(LogLevel::Error, "[Animation Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
             return nullptr;
         } else {
             return &it->second;
@@ -23,14 +23,14 @@ namespace CE::Assets::Animations {
     }
 
     void AnimatedTextureManager::Load(std::string name, std::string path) {
-        CE::Log(LogLevel::Info,
+        CE_LOG(LogLevel::Info,
             "[Animation Manager {}] Loading '{}' from '{}'",
             mInstanceID,
             name,
             path
         );
         if (!mVFS.FileExists(path.c_str())) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Missing animation info file: {}",
                 mInstanceID, path);
             return;
@@ -40,7 +40,7 @@ namespace CE::Assets::Animations {
         info.load(mVFS, path);
 
         if (!info.has("SourceImagePath")) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Missing source image path key in: {}",
                 mInstanceID, path);
             return;
@@ -50,14 +50,14 @@ namespace CE::Assets::Animations {
             TDFFile::readString(info.entries["SourceImagePath"]);
 
         if (!mVFS.FileExists(source_image_path.c_str())) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Missing source image file: {}",
                 mInstanceID, source_image_path);
             return;
         }
 
         if (!info.has("FrameCount")) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Missing frame count key in: {}",
                 mInstanceID, path);
             return;
@@ -67,7 +67,7 @@ namespace CE::Assets::Animations {
             TDFFile::readUInt(info.entries["FrameCount"]);
 
         if (!info.has("Frames")) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Missing Frames array in: {}",
                 mInstanceID, path);
             return;
@@ -81,7 +81,7 @@ namespace CE::Assets::Animations {
         anim->mSourceFileName = source_image_path;
         anim->Texture = mRenderer.LoadTex(source_image_path.c_str());
         if (anim->Texture == nullptr) {
-            CE::Log(LogLevel::Error, "[Animation Manager {}] Texture came back as nullptr! Name: {}", mInstanceID, name);
+            CE_LOG(LogLevel::Error, "[Animation Manager {}] Texture came back as nullptr! Name: {}", mInstanceID, name);
             return;
         }
 
@@ -104,7 +104,7 @@ namespace CE::Assets::Animations {
     }
 
     uint32_t AnimatedTextureManager::CreateInstance(std::string name) {
-        CE::Log(LogLevel::Info,
+        CE_LOG(LogLevel::Info,
             "[Animation Manager {}] Creating instance for: '{}'",
             mInstanceID,
             name
@@ -125,7 +125,7 @@ namespace CE::Assets::Animations {
             return handle;
         }
 
-        CE::Log(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}",
+        CE_LOG(LogLevel::Error, "[Animation Manager {}] Tried using an unloaded or missing animation: {}",
         mInstanceID, name);
         return 0;
     }
@@ -164,7 +164,7 @@ namespace CE::Assets::Animations {
         if (info->AnimInfo == nullptr) return;
 
         if (frame >= info->AnimInfo->FrameCount) {
-            CE::Log(LogLevel::Error, "[Animation Manager {}] Frame is out of range: {} (max: {})",
+            CE_LOG(LogLevel::Error, "[Animation Manager {}] Frame is out of range: {} (max: {})",
             mInstanceID, frame, info->AnimInfo->FrameCount);
             return;
         }
@@ -305,7 +305,7 @@ namespace CE::Assets::Animations {
         auto it = mAnimationInstances.find(handle);
 
         if (it == mAnimationInstances.end()) {
-            CE::Log(LogLevel::Error,
+            CE_LOG(LogLevel::Error,
                 "[Animation Manager {}] Tried to delete invalid handle: {}",
                 mInstanceID, handle);
             return;

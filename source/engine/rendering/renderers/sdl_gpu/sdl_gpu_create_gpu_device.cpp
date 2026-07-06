@@ -10,14 +10,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     static void LogAvailableGPUDrivers() {
         const int driverCount = SDL_GetNumGPUDrivers();
         if (driverCount <= 0) {
-            CE::Log(LogLevel::Warn, "[SDL_GPU Device Creator] SDL reports 0 built-in GPU drivers");
+            CE_LOG(LogLevel::Warn, "[SDL_GPU Device Creator] SDL reports 0 built-in GPU drivers");
             return;
         }
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Device Creator] Built-in GPU drivers ({}):", driverCount);
+        CE_LOG(LogLevel::Info, "[SDL_GPU Device Creator] Built-in GPU drivers ({}):", driverCount);
         for (int i = 0; i < driverCount; ++i) {
             const char* driver = SDL_GetGPUDriver(i);
-            CE::Log(LogLevel::Info, "  - {}", (driver ? driver : "(null)"));
+            CE_LOG(LogLevel::Info, "  - {}", (driver ? driver : "(null)"));
         }
     }
 
@@ -45,7 +45,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         switch (backend) {
             case (RendererBackend::Vulkan):
                 if (!HasGPUDriver("vulkan")) {
-                    CE::Log(LogLevel::Fatal,
+                    CE_LOG(LogLevel::Fatal,
                         "[SDL_GPU Device Creator] SDL was built/packaged without a 'vulkan' GPU driver.");
                     return nullptr;
                 }
@@ -56,7 +56,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             
             case (RendererBackend::Metal):
                 if (!HasGPUDriver("metal")) {
-                    CE::Log(LogLevel::Fatal,
+                    CE_LOG(LogLevel::Fatal,
                         "[SDL_GPU Device Creator] SDL was built/packaged without a 'metal' GPU driver.");
                     return nullptr;
                 }
@@ -67,7 +67,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             case (RendererBackend::DX12):
                 if (!HasGPUDriver("direct3d12")) {
-                    CE::Log(LogLevel::Fatal,
+                    CE_LOG(LogLevel::Fatal,
                         "[SDL_GPU Device Creator] SDL was built/packaged without a 'direct3d12' GPU driver.");
                     return nullptr;
                 }
@@ -77,17 +77,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 break;
             
             default:
-                CE::Log(LogLevel::Fatal, "[SDL_GPU Device Creator] Got invalid RendererBackend");
+                CE_LOG(LogLevel::Fatal, "[SDL_GPU Device Creator] Got invalid RendererBackend");
                 return nullptr;
                 break;
         }
 
-        CE::Log(LogLevel::Info,
+        CE_LOG(LogLevel::Info,
             "[SDL_GPU Renderer] Backend given was: {}",
             static_cast<int>(deviceinfo.backend));
         
         if (gdevice == nullptr) {
-            CE::Log(LogLevel::Fatal,
+            CE_LOG(LogLevel::Fatal,
                 "[SDL_GPU Device Creator] SDL_CreateGPUDevice failed for backend {}: {}",
                 static_cast<int>(deviceinfo.backend),
                 SDL_GetError());

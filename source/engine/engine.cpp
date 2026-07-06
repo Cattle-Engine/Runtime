@@ -19,19 +19,19 @@ namespace CE {
    Engine::Engine(int argc, char *argv[],
                std::string datafilename,
                bool debug) {
-        CE::Log(CE::LogLevel::Info, "Cattle Engine");
-        CE::Log(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
+        CE_LOG(CE::LogLevel::Info, "Cattle Engine");
+        CE_LOG(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
 
         // Parse arguments and activate certain settings and shish
 
         const char* base = SDL_GetBasePath();
         if (!base) {
-            CE::Log(LogLevel::Fatal, "[Engine] SDL_GetBasePath() returned NULL");
+            CE_LOG(LogLevel::Fatal, "[Engine] SDL_GetBasePath() returned NULL");
             base = "";
         }
 
         mDataFileName =  std::format("{}{}", base, datafilename);
-        CE::Log(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
+        CE_LOG(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
         
         if (!fs::exists(mDataFileName)) {
             throw std::runtime_error("[Engine] Base game data file does not exist!");
@@ -46,53 +46,53 @@ namespace CE {
         CE::Settings::SettingsManager msettings(mGameInfo, 1714284757 /*Why this large number? Its ENGINEC encoded to smth like base26*/);
 
         Common::RendererName2String(msettings.Settings.rendererName, mBackend);
-        CE::Log(LogLevel::Info, "[Engine] Rendererbackend name: {}", msettings.Settings.rendererName);
+        CE_LOG(LogLevel::Info, "[Engine] Rendererbackend name: {}", msettings.Settings.rendererName);
         if (msettings.Settings.rendererName != "None") {
             if (!SDL_Init(SDL_INIT_VIDEO)) {
-                CE::Log(LogLevel::Fatal, "[Engine] SDL_Init(SDL_INIT_VIDEO) failed: {}", SDL_GetError());
+                CE_LOG(LogLevel::Fatal, "[Engine] SDL_Init(SDL_INIT_VIDEO) failed: {}", SDL_GetError());
                 throw std::runtime_error("[Engine] SDL_Init(SDL_INIT_VIDEO) failed");
             }
         }
-        CE::Log(LogLevel::Info, "[Engine] Creating GPU handle");
+        CE_LOG(LogLevel::Info, "[Engine] Creating GPU handle");
         mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
         
         if (mGPUHandle == nullptr || mGPUHandle->device == nullptr) {
-            CE::Log(LogLevel::Warn,
+            CE_LOG(LogLevel::Warn,
                 "[Engine] Failed to create requested GPU device (backend {}). Falling back to Software renderer.",
                 static_cast<int>(mBackend));
             mBackend = RendererBackend::Software;
             mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
             if (mGPUHandle == nullptr) {
-                CE::Log(LogLevel::Fatal, "[Engine] Failed to create any GPU device (including Software)");
+                CE_LOG(LogLevel::Fatal, "[Engine] Failed to create any GPU device (including Software)");
                 throw std::runtime_error("[Engine] Failed to create any GPU device (including Software)");
             }
         }
         
-        CE::Log(LogLevel::Info, "[Engine] Created GPU handle");
+        CE_LOG(LogLevel::Info, "[Engine] Created GPU handle");
         // idk what else to put here
     }
 
     bool Engine::CreateInstance(std::string name, 
             bool debug, std::optional<std::string> datafilename)  {
         std::string file2use;
-        CE::Log(LogLevel::Info, "[Engine] Attempting to make instance");
+        CE_LOG(LogLevel::Info, "[Engine] Attempting to make instance");
         if (datafilename) {
-            CE::Log(LogLevel::Info, "[Engine] Data file wasn't nullptr");
+            CE_LOG(LogLevel::Info, "[Engine] Data file wasn't nullptr");
             file2use = *datafilename;
         } else {
             file2use = mDataFileName;
-            CE::Log(LogLevel::Info, "[Engine] Data file was nullptr");
+            CE_LOG(LogLevel::Info, "[Engine] Data file was nullptr");
         }
 
         try {
             InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle, mProgramArgs);
             mInstances[name] = std::move(handle);
         } catch (std::runtime_error& e) {
-            CE::Log(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());
+            CE_LOG(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());
             return false;
         }
 
-        CE::Log(LogLevel::Info, "[Engine] Created instance with ID of: {}", GLOBALINSTANCESCOUNTER);
+        CE_LOG(LogLevel::Info, "[Engine] Created instance with ID of: {}", GLOBALINSTANCESCOUNTER);
         return true;
     }
 
@@ -100,13 +100,13 @@ namespace CE {
         auto handle = mInstances.find(name);
 
         if (handle != mInstances.end()) {
-            CE::Log(LogLevel::Info, "[Engine] Deleting engine with ID of: {} ", 
+            CE_LOG(LogLevel::Info, "[Engine] Deleting engine with ID of: {} ", 
             handle->second->GetInstanceID());
             handle->second.reset();
             mInstances.erase(name);
             return true;
         } else {
-            CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
+            CE_LOG(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
             return false;
         }
     }
@@ -117,20 +117,20 @@ namespace CE {
         if (handle != mInstances.end()) {
             return handle->second->Update();
         } else {
-            CE::Log(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
+            CE_LOG(LogLevel::Error, "[Engine] Instance {} does not exist!", name);
             return 0;
         }
     }
 
     int Engine::Run() {
-        CE::Log(LogLevel::Info, "[Engine] Starting main loop");
+        CE_LOG(LogLevel::Info, "[Engine] Starting main loop");
 
         while (mRunning && !mInstances.empty()) {
             CE::SDL_Events::Update();
 
             for (const auto& e : CE::SDL_Events::gEvents) {
                 if (e.type == SDL_EVENT_QUIT) {
-                    CE::Log(LogLevel::Info, "[Engine] Quit event received");
+                    CE_LOG(LogLevel::Info, "[Engine] Quit event received");
                     mRunning = false;
                 }
             }
@@ -142,7 +142,7 @@ namespace CE {
                 }
 
                 if (it->second->ShouldExit()) {
-                    CE::Log(LogLevel::Info,
+                    CE_LOG(LogLevel::Info,
                         "[Engine] Instance {} requested shutdown",
                         it->second->GetInstanceID());
 
@@ -155,7 +155,7 @@ namespace CE {
             }
         }
 
-        CE::Log(LogLevel::Info, "[Engine] All instances closed. Shutting down.");
+        CE_LOG(LogLevel::Info, "[Engine] All instances closed. Shutting down.");
         return 0;
     }
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 option(USE_CLANG "Use Clang compiler" OFF)
 option(ENABLE_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
-set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 set(CE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CE_BUILD_SCRIPT "${CE_ROOT_DIR}/tools/build/build.py")
 set(CE_BOOTSTRAP_SH "${CE_ROOT_DIR}/tools/bootstrap/bootstrap.sh")
@@ -197,6 +197,7 @@ target_compile_definitions(ce_engine PRIVATE
     CE_DATA_FILE_NAME="${DATA_FILE_NAME}"
     ${PLATFORM_FLAGS}
     TDF_MODE_CE
+    $<$<CONFIG:Debug>:CE_DEBUG>
 )
 
 if(MSVC)
@@ -331,6 +332,7 @@ if(WIN32)
     )
 
 endif()
+
 
 install(TARGETS ce_engine DESTINATION bin)
 

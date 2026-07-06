@@ -9,7 +9,7 @@
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
-        CE::Log(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
+        CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
         
         /*if (debugmode) {
@@ -22,7 +22,7 @@ namespace CE::Bootstrap {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
         
         if (!stream) {
-            CE::Log(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
+            CE_LOG(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
             ShowError("[Bootstrap] Gameinfo.txt is missing");
             return 1;
         }
@@ -39,7 +39,7 @@ namespace CE::Bootstrap {
         std::string text = ss.str();
 
         if (!CE::Ini::parse(text, ini, &err, opts)) {
-            CE::Log(LogLevel::Error, "[Bootstrap] Failed to parse Gameinfo.txt");
+            CE_LOG(LogLevel::Error, "[Bootstrap] Failed to parse Gameinfo.txt");
             ShowError("[Bootstrap] Failed to parse Gameinfo.txt");
             return 2;;
         }
@@ -47,7 +47,7 @@ namespace CE::Bootstrap {
         bool gresult = Common::GData_Has(text);
 
         if (!gresult) {
-            CE::Log(LogLevel::Error, "[Boostrap] Gameinfo.txt is missing required game-info");
+            CE_LOG(LogLevel::Error, "[Boostrap] Gameinfo.txt is missing required game-info");
             return 2;
         }
 
@@ -83,8 +83,8 @@ namespace CE::Bootstrap {
             std::swap(gameinfo->minWindowHeight, gameinfo->maxWindowHeight);
         }
 
-        CE::Log(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
-        CE::Log(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
+        CE_LOG(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
+        CE_LOG(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
         return 0;
     }
 }

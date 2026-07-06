@@ -28,7 +28,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUShader* fragmentShader
     ) const {
         if (!gDevice || !window || !vertexShader || !fragmentShader) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] CreateGraphicsPipeline received invalid input");
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateGraphicsPipeline received invalid input");
             return nullptr;
         }
 
@@ -86,34 +86,34 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
         if (!pipeline) {
-            CE::Log(LogLevel::Error, "[SDL_GPU Renderer] Failed to create graphics pipeline: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create graphics pipeline: {}", SDL_GetError());
         }
 
         return pipeline;
     }
 
     int SDL_GPU_Renderer::CreateDefaultPipeline(SDL_Window* window) {
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading default vertex shader");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default vertex shader");
         gDefaultVertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, gVFS);
         if (!gDefaultVertexShader) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default vertex shader");
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default vertex shader");
             return 4;
         }
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Loading default fragment shader");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default fragment shader");
         gDefaultFragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, gVFS);
         if (!gDefaultFragmentShader) {
             SDL_ReleaseGPUShader(gDevice, gDefaultVertexShader);
             gDefaultVertexShader = nullptr;
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default fragment shader");
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default fragment shader");
             return 5;
         }
 
-        CE::Log(LogLevel::Info, "[SDL_GPU Renderer] Creating default graphics pipeline");
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Creating default graphics pipeline");
         gPipeline = CreateGraphicsPipeline(window, gDefaultVertexShader, gDefaultFragmentShader);
 
         if (!gPipeline) {
-            CE::Log(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default pipeline");
+            CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default pipeline");
             return 6;
         }
 

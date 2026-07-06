@@ -13,7 +13,7 @@ namespace CE::Common {
         opts.allow_empty_values = false;
 
         if (!CE::Ini::parse(text, ini, &err, opts)) {
-            CE::Log(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
+            CE_LOG(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
             return false;
         }
 

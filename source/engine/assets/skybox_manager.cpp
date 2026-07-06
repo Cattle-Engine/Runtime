@@ -19,17 +19,17 @@ namespace CE::Assets::Skyboxes {
         isErrorFace = true;
 
         if (!gRenderer || !gVFS) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Renderer or VFS is not available");
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Renderer or VFS is not available");
             return {};
         }
 
         if (path.empty()) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Skybox face path was empty");
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Skybox face path was empty");
             return MakeTextureHandle(gErrorTex);
         }
 
         if (!gVFS->FileExists(path.c_str())) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Missing skybox face: {}", path);
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Missing skybox face: {}", path);
             return MakeTextureHandle(gErrorTex);
         }
 
@@ -38,13 +38,13 @@ namespace CE::Assets::Skyboxes {
             return MakeTextureHandle(texture);
         }
 
-        CE::Log(LogLevel::Error, "[SkyBox Manager] Failed to load skybox face: {}", path);
+        CE_LOG(LogLevel::Error, "[SkyBox Manager] Failed to load skybox face: {}", path);
         return MakeTextureHandle(gErrorTex);
     }
 
     void SkyBoxManager::Load(std::string frontPath, std::string backPath, std::string leftPath, std::string rightPath, std::string top_path, std::string bottom_path, std::string name) {
         if (name.empty()) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Load called with an empty name");
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Load called with an empty name");
             return;
         }
 
@@ -96,7 +96,7 @@ namespace CE::Assets::Skyboxes {
 
         auto it = gSkyBoxes.find(name);
         if (it == gSkyBoxes.end()) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Tried to set an unloaded skybox: {}", name);
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Tried to set an unloaded skybox: {}", name);
             return;
         }
 
@@ -107,7 +107,7 @@ namespace CE::Assets::Skyboxes {
     void SkyBoxManager::Unload(std::string name) {
         auto it = gSkyBoxes.find(name);
         if (it == gSkyBoxes.end()) {
-            CE::Log(LogLevel::Error, "[SkyBox Manager] Can not unload a non-existant skybox");
+            CE_LOG(LogLevel::Error, "[SkyBox Manager] Can not unload a non-existant skybox");
             return;
         }
 

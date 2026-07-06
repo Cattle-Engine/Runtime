@@ -300,7 +300,7 @@ namespace CE::Core::Audio {
         }
 
         if (!MIX_SetTrackCookedCallback(sound.Track, AudioSystem::TrackCookedDSP, this)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to set DSP callback: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to set DSP callback: {}", mInstanceID, SDL_GetError());
         }
     }
 

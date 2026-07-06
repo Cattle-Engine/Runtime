@@ -20,7 +20,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         const std::string& basePath
     ) {
         if (vfs == nullptr) {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");
             return nullptr;
         }
 
@@ -30,7 +30,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         } else if (shaderfilename.find(".frag") != std::string::npos){
             stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         } else {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Invalid shader stage!");
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Invalid shader stage!");
             return nullptr;
         }
 
@@ -54,21 +54,21 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
             format = SDL_GPU_SHADERFORMAT_DXIL;
             entrypoint = "main";
         } else {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Unrecognized backend shader format!");
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Unrecognized backend shader format!");
             return nullptr;
         }
 
         // Load shader data from VFS
         auto* shaderFile = vfs->V_fopen(fullPath.c_str(), "rb");
         if (!shaderFile) {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to open shader file: {}", fullPath);
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to open shader file: {}", fullPath);
             return nullptr;
         }
 
         // Get file size
         uint64_t fileSize = 0;
         if (!vfs->GetFileSize(fullPath.c_str(), fileSize)) {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to get shader file size: {}", fullPath);
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to get shader file size: {}", fullPath);
             vfs->V_fclose(shaderFile);
             return nullptr;
         }
@@ -79,7 +79,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         vfs->V_fclose(shaderFile);
 
         if (bytesRead != fileSize) {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to read shader file: {}", fullPath);
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to read shader file: {}", fullPath);
             return nullptr;
         }
 
@@ -96,11 +96,11 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
 
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderinfo);
         if (shader == nullptr) {
-            CE::Log(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to create GPU shader: {}", SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to create GPU shader: {}", SDL_GetError());
             return nullptr;
         }
 
-        CE::Log(LogLevel::Info, "[Renderer Utils] [LoadShader] Successfully loaded shader: {}", fullPath);
+        CE_LOG(LogLevel::Info, "[Renderer Utils] [LoadShader] Successfully loaded shader: {}", fullPath);
         return shader;
     }
 

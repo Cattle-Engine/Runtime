@@ -86,7 +86,7 @@ namespace CE::Scripting {
             return Fail("Failed to create AngelScript engine");
         }
 
-        CE::Log(CE::LogLevel::Info, "[AngelScript] Engine created");
+        CE_LOG(CE::LogLevel::Info, "[AngelScript] Engine created");
         mScriptEngine->SetMessageCallback(asFUNCTION(MessageCallback), this, asCALL_CDECL_OBJLAST);
         RegisterStdString(mScriptEngine);
         RegisterScriptArray(mScriptEngine, true);
@@ -124,7 +124,7 @@ namespace CE::Scripting {
             return Fail("Failed to create AngelScript context");
         }
 
-        CE::Log(CE::LogLevel::Info, "[AngelScript] Runtime initialized");
+        CE_LOG(CE::LogLevel::Info, "[AngelScript] Runtime initialized");
         return true;
     }
 
@@ -142,7 +142,7 @@ namespace CE::Scripting {
             return Fail(std::format("Failed to load AngelScript startup file '{}'", mGameInfo.startupFileName));
         }
 
-        CE::Log(CE::LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
+        CE_LOG(CE::LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
 
         int r = mScriptModule->AddScriptSection("startup", code.c_str());
         if (r < 0) {
@@ -177,7 +177,7 @@ namespace CE::Scripting {
         ctx->Release();
         mUpdateFunc = mScriptModule->GetFunctionByDecl("void update()");
         if (mUpdateFunc == nullptr) {
-            CE::Log(CE::LogLevel::Warn, "[AngelScript] No 'void update()' function found");
+            CE_LOG(CE::LogLevel::Warn, "[AngelScript] No 'void update()' function found");
             return true;
         }
 
@@ -186,7 +186,7 @@ namespace CE::Scripting {
             return Fail("Failed to create AngelScript update context");
         }
 
-        CE::Log(CE::LogLevel::Info, "[AngelScript] Startup completed");
+        CE_LOG(CE::LogLevel::Info, "[AngelScript] Startup completed");
         return true;
     }
 
@@ -230,14 +230,14 @@ namespace CE::Scripting {
         switch (msg->type) {
             case asMSGTYPE_ERROR:
                 runtime->mLastError = message;
-                CE::Log(CE::LogLevel::Error, "{}", message);
+                CE_LOG(CE::LogLevel::Error, "{}", message);
                 break;
             case asMSGTYPE_WARNING:
-                CE::Log(CE::LogLevel::Warn, "{}", message);
+                CE_LOG(CE::LogLevel::Warn, "{}", message);
                 break;
             case asMSGTYPE_INFORMATION:
             default:
-                CE::Log(CE::LogLevel::Info, "{}", message);
+                CE_LOG(CE::LogLevel::Info, "{}", message);
                 break;
         }
     }
@@ -247,7 +247,7 @@ namespace CE::Scripting {
             mLastError = message;
         }
 
-        CE::Log(CE::LogLevel::Error, "{}", mLastError);
+        CE_LOG(CE::LogLevel::Error, "{}", mLastError);
         return false;
     }
 }

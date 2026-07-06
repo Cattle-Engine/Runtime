@@ -82,7 +82,7 @@ namespace CE::Renderer::Resources {
         info.IsErrorShader = info.Shader == nullptr;
 
         if (!info.Shader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Failed to create shader program");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Failed to create shader program");
         }
 
         handle.id = mNextShaderHandleID++;
@@ -94,7 +94,7 @@ namespace CE::Renderer::Resources {
         ShaderHandle handle;
         
         if (filepath.empty()) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Load file path was empty!");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Load file path was empty!");
             return handle;
         }
 
@@ -113,9 +113,9 @@ namespace CE::Renderer::Resources {
         entry.FragmentSamplerCount = std::max(1, fragment_sampler_count);
 
         if (!entry.Shader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Failed to load shader: {}", filepath);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Failed to load shader: {}", filepath);
         } else {
-            CE::Log(LogLevel::Debug, "[Shader Manager] Loaded shader: {}", filepath);
+            CE_LOG(LogLevel::Debug, "[Shader Manager] Loaded shader: {}", filepath);
         }
 
         mShaders.emplace(handle, std::move(entry));
@@ -126,19 +126,19 @@ namespace CE::Renderer::Resources {
         ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry) {
-            CE::Log(LogLevel::Error, "[Shader Manager] LoadStage Invalid handle!");
+            CE_LOG(LogLevel::Error, "[Shader Manager] LoadStage Invalid handle!");
             return false;
         }
 
         if (!entry->Shader) return false;
 
         if (filepath.empty()) {
-            CE::Log(LogLevel::Error, "[Shader manager] LoadStage filepath was empty!");
+            CE_LOG(LogLevel::Error, "[Shader manager] LoadStage filepath was empty!");
             return false;
         }
 
         if (!mRenderer.LoadShaderStage(entry->Shader, filepath.c_str(), stage, sampler_count)) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Failed to load shader stage");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Failed to load shader stage");
             entry->IsErrorShader = true;
             return false;
         }
@@ -154,7 +154,7 @@ namespace CE::Renderer::Resources {
             entry->UsesDefaultFragment = false;
             entry->FragmentSamplerCount = sampler_count;
         }
-        CE::Log(LogLevel::Debug, "[Shader Manager] Loaded shader stage: {}", filepath);
+        CE_LOG(LogLevel::Debug, "[Shader Manager] Loaded shader stage: {}", filepath);
         return true;
     }
 
@@ -162,12 +162,12 @@ namespace CE::Renderer::Resources {
         ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] UseDefaultStage called for a missing shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] UseDefaultStage called for a missing shader: {}", handle.id);
             return false;
         }
 
         if (!mRenderer.UseDefaultShaderStage(entry->Shader, stage)) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Failed to set default stage for shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Failed to set default stage for shader: {}", handle.id);
             return false;
         }
 
@@ -188,7 +188,7 @@ namespace CE::Renderer::Resources {
         ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Compile called for a missing shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Compile called for a missing shader: {}", handle.id);
             return false;
         }
 
@@ -202,17 +202,17 @@ namespace CE::Renderer::Resources {
         ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Bind called for a missing shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Bind called for a missing shader: {}", handle.id);
             return false;
         }
 
         if (entry->IsPendingUnload) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Tried to bind a pending deletion shader");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Tried to bind a pending deletion shader");
             return false;
         }
 
         if (!entry->IsCompiled) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Bind called for an unbound shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Bind called for an unbound shader: {}", handle.id);
             return false;
         }
 
@@ -235,17 +235,17 @@ namespace CE::Renderer::Resources {
         auto it = mShaders.find(handle);
 
         if (it == mShaders.end()) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Unload called for a stale or missing shader: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Unload called for a stale or missing shader: {}", handle.id);
             return;
         }
 
         if (it->first.id == mBoundShaderID.id) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Unload called for a bound shader, PLEASE UNBIND IT BEFORE UNLOADING. ID: {}", it->first.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] Unload called for a bound shader, PLEASE UNBIND IT BEFORE UNLOADING. ID: {}", it->first.id);
             return;
         }
 
         if (it->second.IsPendingUnload) {
-            CE::Log(LogLevel::Warn, "[Shader manager] Shader has already been marked to be unloaded");
+            CE_LOG(LogLevel::Warn, "[Shader manager] Shader has already been marked to be unloaded");
             return;
         }
 
@@ -290,7 +290,7 @@ namespace CE::Renderer::Resources {
         Texture* tex = nullptr;
 
         if (!entry) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Tried to call SetTexture with no shader bound!");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Tried to call SetTexture with no shader bound!");
             return false;
         }
 
@@ -298,7 +298,7 @@ namespace CE::Renderer::Resources {
         tex = entry->Texture.Get();
 
         if (!tex) {
-            CE::Log(LogLevel::Error, "[Shader Manager] SetTexture texture handle was invalid");
+            CE_LOG(LogLevel::Error, "[Shader Manager] SetTexture texture handle was invalid");
             return false;
         }
 
@@ -360,7 +360,7 @@ namespace CE::Renderer::Resources {
     void ShaderManager::Return(ShaderHandle handle) {
         auto entry = GetShaderEntry(handle);
         if (!entry) {
-            CE::Log(LogLevel::Error, "[Shader Manager] Return called with an invalid or stale handle");
+            CE_LOG(LogLevel::Error, "[Shader Manager] Return called with an invalid or stale handle");
             return;
         }
     
@@ -371,22 +371,22 @@ namespace CE::Renderer::Resources {
         auto entry = GetShaderEntry(handle);
 
         if (!entry) {
-            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Invalid or stale handle");
+            CE_LOG(LogLevel::Error, "[Shader Manager] AcquireShaderRef Invalid or stale handle");
             return {};
         }
 
         if (entry->IsPendingUnload) {
-            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is pending unload: {}", handle.id);
+            CE_LOG(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is pending unload: {}", handle.id);
             return {};
         }
 
         if (!entry->IsCompiled) {
-            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is not compiled, please use Compile");
+            CE_LOG(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is not compiled, please use Compile");
             return {};
         }
 
         if (entry->IsErrorShader) {
-            CE::Log(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is an error shader!");
+            CE_LOG(LogLevel::Error, "[Shader Manager] AcquireShaderRef Shader is an error shader!");
         }
 
         entry->RefCount++;

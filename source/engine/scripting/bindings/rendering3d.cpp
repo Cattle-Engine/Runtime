@@ -761,7 +761,7 @@ namespace CE::Scripting {
     }
     void Runtime::CreateMeshHandle(ASMeshData* meshData, MeshHandle& meshHandle) {
         if (!meshData) {
-            CE::Log(CE::LogLevel::Warn, "[AngelScript 3D] CreateMeshHandle called with a null mesh");
+            CE_LOG(CE::LogLevel::Warn, "[AngelScript 3D] CreateMeshHandle called with a null mesh");
             meshHandle = MeshHandle{};
             return;
         }
@@ -771,7 +771,7 @@ namespace CE::Scripting {
 
     void Runtime::ChangeMesh(const MeshHandle& handle, ASMeshData* meshData) {
         if (!meshData) {
-            CE::Log(CE::LogLevel::Warn, "[AngelScript 3D] ChangeMesh called with a null mesh");
+            CE_LOG(CE::LogLevel::Warn, "[AngelScript 3D] ChangeMesh called with a null mesh");
             return;
         }
 

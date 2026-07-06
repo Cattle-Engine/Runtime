@@ -18,7 +18,7 @@ namespace CE::Renderer::Resources {
 
         if (!entry.AlbedoTex.IsValid()) {
             entry.IsError = true;
-            CE::Log(LogLevel::Error, "[Material Manager] Invalid texture handle!");
+            CE_LOG(LogLevel::Error, "[Material Manager] Invalid texture handle!");
             entry.Resource.albedo = mRenderer.GetErrorTexture();
         } else {
             entry.IsError = false;

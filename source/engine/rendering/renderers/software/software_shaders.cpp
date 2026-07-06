@@ -4,7 +4,7 @@
 
 namespace CE::Renderer::Software {
     void Software_Renderer::LogAboutShaders() {
-        CE::Log(LogLevel::Warn, "[Software renderer] Shaders are not supported in software renderer!");
+        CE_LOG(LogLevel::Warn, "[Software renderer] Shaders are not supported in software renderer!");
     }
 
     Shader* Software_Renderer::CreateShaderProgram() {

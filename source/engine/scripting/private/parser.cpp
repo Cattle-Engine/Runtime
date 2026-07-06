@@ -47,7 +47,7 @@ namespace CE::Scripting::Impl::Parser {
                     return mTokens[mPosition++];
                 }
 
-                AST::ASTImport Parser::ParseImport() {
+                AST::ASTImport ParseImport() {
                     AST::ASTImport result;
 
                     result.Location = Current().Location;

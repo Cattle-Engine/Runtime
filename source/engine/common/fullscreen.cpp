@@ -5,13 +5,13 @@
 namespace CE {
     bool ApplyFullscreenMode(SDL_Window* window, int width, int height) {
         if (window == nullptr) {
-            CE::Log(CE::LogLevel::Error, "[Window] Cannot apply fullscreen mode to a null window");
+            CE_LOG(CE::LogLevel::Error, "[Window] Cannot apply fullscreen mode to a null window");
             return false;
         }
 
         const SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
         if (displayID == 0) {
-            CE::Log(CE::LogLevel::Warn,
+            CE_LOG(CE::LogLevel::Warn,
                 "[Window] Failed to find display for window, using desktop fullscreen: {}",
                 SDL_GetError());
             return SDL_SetWindowFullscreenMode(window, nullptr) && SDL_SetWindowFullscreen(window, true);
@@ -31,7 +31,7 @@ namespace CE {
         );
 
         if (!foundMode) {
-            CE::Log(CE::LogLevel::Warn,
+            CE_LOG(CE::LogLevel::Warn,
                 "[Window] No matching exclusive fullscreen mode for {}x{}, using desktop fullscreen: {}",
                 width,
                 height,
@@ -40,7 +40,7 @@ namespace CE {
         }
 
         if (!SDL_SetWindowFullscreenMode(window, &fullscreenMode)) {
-            CE::Log(CE::LogLevel::Warn,
+            CE_LOG(CE::LogLevel::Warn,
                 "[Window] Failed to set fullscreen mode {}x{} @ {} Hz, using desktop fullscreen: {}",
                 fullscreenMode.w,
                 fullscreenMode.h,
@@ -50,7 +50,7 @@ namespace CE {
         }
 
         if (!SDL_SetWindowFullscreen(window, true)) {
-            CE::Log(CE::LogLevel::Error,
+            CE_LOG(CE::LogLevel::Error,
                 "[Window] Failed to enter fullscreen after selecting {}x{} @ {} Hz: {}",
                 fullscreenMode.w,
                 fullscreenMode.h,
@@ -59,7 +59,7 @@ namespace CE {
             return false;
         }
 
-        CE::Log(CE::LogLevel::Info,
+        CE_LOG(CE::LogLevel::Info,
             "[Window] Fullscreen mode set to {}x{} @ {} Hz",
             fullscreenMode.w,
             fullscreenMode.h,

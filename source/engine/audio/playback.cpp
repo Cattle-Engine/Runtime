@@ -28,23 +28,23 @@ namespace CE::Core::Audio {
         sound.Bus = DefaultBusName(clip.Type);
 
         if (!mMixer) {
-            CE::Log(LogLevel::Error, "[Audio {}] Can't create sound instance: mixer not initialized.", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Audio {}] Can't create sound instance: mixer not initialized.", mInstanceID);
             return sound;
         }
 
         if (!clip.Audio) {
-            CE::Log(LogLevel::Error, "[Audio {}] Can't create sound instance: clip has no audio: {}", mInstanceID, clip.Path);
+            CE_LOG(LogLevel::Error, "[Audio {}] Can't create sound instance: clip has no audio: {}", mInstanceID, clip.Path);
             return sound;
         }
 
         MIX_Track* track = MIX_CreateTrack(mMixer);
         if (!track) {
-            CE::Log(LogLevel::Error, "[Audio {}] Failed to create track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Audio {}] Failed to create track: {}", mInstanceID, SDL_GetError());
             return sound;
         }
 
         if (!MIX_SetTrackAudio(track, clip.Audio)) {
-            CE::Log(LogLevel::Error, "[Audio {}] Failed to set track audio: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Audio {}] Failed to set track audio: {}", mInstanceID, SDL_GetError());
             MIX_DestroyTrack(track);
             return sound;
         }
@@ -69,12 +69,12 @@ namespace CE::Core::Audio {
 
     void AudioSystem::PlaySound(PlayingSound& sound) {
         if (!sound.Clip) {
-            CE::Log(LogLevel::Error, "[Audio {}] PlaySound called with null clip.", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Audio {}] PlaySound called with null clip.", mInstanceID);
             return;
         }
 
         if (!mMixer) {
-            CE::Log(LogLevel::Error, "[Audio {}] PlaySound called without an audio mixer.", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Audio {}] PlaySound called without an audio mixer.", mInstanceID);
             return;
         }
 
@@ -122,7 +122,7 @@ namespace CE::Core::Audio {
                     SDL_SetNumberProperty(opts, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
                 }
             } else {
-                CE::Log(LogLevel::Warn, "[Audio {}] Failed to create playback properties: {}", mInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Audio {}] Failed to create playback properties: {}", mInstanceID, SDL_GetError());
             }
         }
 
@@ -132,7 +132,7 @@ namespace CE::Core::Audio {
         }
 
         if (!ok) {
-            CE::Log(LogLevel::Error, "[Audio {}] Failed to play track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Audio {}] Failed to play track: {}", mInstanceID, SDL_GetError());
             sound.IsPlaying = false;
             return;
         }
@@ -158,12 +158,12 @@ namespace CE::Core::Audio {
         const Sint64 ms = static_cast<Sint64>(position_seconds * 1000.0f);
         const Sint64 frames = MIX_TrackMSToFrames(sound.Track, ms);
         if (frames < 0) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to convert ms->frames for seek: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to convert ms->frames for seek: {}", mInstanceID, SDL_GetError());
             return;
         }
 
         if (!MIX_SetTrackPlaybackPosition(sound.Track, frames)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to seek track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to seek track: {}", mInstanceID, SDL_GetError());
             return;
         }
 
@@ -179,7 +179,7 @@ namespace CE::Core::Audio {
         sound.PositionSeconds = GetSoundPositionSeconds(sound.Track);
 
         if (!MIX_PauseTrack(sound.Track)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to pause track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to pause track: {}", mInstanceID, SDL_GetError());
             return;
         }
 
@@ -195,7 +195,7 @@ namespace CE::Core::Audio {
         SeekSound(sound, sound.PositionSeconds);
 
         if (!MIX_ResumeTrack(sound.Track)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to resume track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to resume track: {}", mInstanceID, SDL_GetError());
             sound.IsPlaying = false;
             return;
         }
@@ -209,7 +209,7 @@ namespace CE::Core::Audio {
             return;
         }
         if (!MIX_StopTrack(sound.Track, 0)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to stop track: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to stop track: {}", mInstanceID, SDL_GetError());
         }
         sound.IsPlaying = false;
     }
@@ -246,7 +246,7 @@ namespace CE::Core::Audio {
 
         // Disable DSP callback before the track is destroyed.
         if (!MIX_SetTrackCookedCallback(track, nullptr, nullptr)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to clear DSP callback: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to clear DSP callback: {}", mInstanceID, SDL_GetError());
         }
 
         {
@@ -337,7 +337,7 @@ namespace CE::Core::Audio {
         }
 
         if (!MIX_SetTrackGain(track, gain)) {
-            CE::Log(LogLevel::Warn, "[Audio {}] Failed to set track gain: {}", mInstanceID, SDL_GetError());
+            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to set track gain: {}", mInstanceID, SDL_GetError());
         }
     }
 
@@ -356,7 +356,7 @@ namespace CE::Core::Audio {
                 continue;
             }
             if (!MIX_SetTrackGain(track, gain)) {
-                CE::Log(LogLevel::Warn, "[Audio {}] Failed to update track gain: {}", mInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Audio {}] Failed to update track gain: {}", mInstanceID, SDL_GetError());
             }
         }
     }
@@ -399,12 +399,12 @@ namespace CE::Core::Audio {
 
         if (bus_limit > 0 && active_bus >= bus_limit) {
             if (!oldest_bus || !MIX_StopTrack(oldest_bus->Track, 0)) {
-                CE::Log(LogLevel::Warn, "[Audio {}] Voice limit hit for bus '{}' and no voice could be stolen: {}", mInstanceID, bus, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Audio {}] Voice limit hit for bus '{}' and no voice could be stolen: {}", mInstanceID, bus, SDL_GetError());
                 return false;
             }
         } else if (global_limit > 0 && active_global >= global_limit) {
             if (!oldest_global || !MIX_StopTrack(oldest_global->Track, 0)) {
-                CE::Log(LogLevel::Warn, "[Audio {}] Global voice limit hit and no voice could be stolen: {}", mInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Audio {}] Global voice limit hit and no voice could be stolen: {}", mInstanceID, SDL_GetError());
                 return false;
             }
         }

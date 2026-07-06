@@ -20,7 +20,7 @@ namespace CE::Settings {
     }
 
     bool SettingsManager::ReloadSettings() {
-        CE::Log(LogLevel::Debug, "[Settings Manager {}] To change renderer you need to reload engine!", mInstanceID);
+        CE_LOG(LogLevel::Debug, "[Settings Manager {}] To change renderer you need to reload engine!", mInstanceID);
         bool reloaded = Internal_ReloadSettings();
         if (mInstance != nullptr) {
             mInstance->ReloadSettings();
@@ -31,7 +31,7 @@ namespace CE::Settings {
     bool SettingsManager::Internal_ReloadSettings() {
         std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
         if(!CE::Ini::load_file(config_path, mIniFile, &mParseError)) {
-            CE::Log(LogLevel::Error, "[Settings Manager {}] Setting parser error\n Line: {}, Column: {}, Message: {}", mInstanceID, mParseError.line,
+            CE_LOG(LogLevel::Error, "[Settings Manager {}] Setting parser error\n Line: {}, Column: {}, Message: {}", mInstanceID, mParseError.line,
                                         mParseError.column, mParseError.message);
             Settings.windowHeight = mGameInfo.windowHeight;
             Settings.windowWidth = mGameInfo.windowWidth;
@@ -80,7 +80,7 @@ namespace CE::Settings {
             std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
 
         if (!CE::Ini::save_file(config_path, mIniFile)) {
-            CE::Log(LogLevel::Error, "[Settings Manager {}] Failed to save file!", mInstanceID);
+            CE_LOG(LogLevel::Error, "[Settings Manager {}] Failed to save file!", mInstanceID);
         }
     }
 

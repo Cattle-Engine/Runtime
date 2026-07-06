@@ -21,10 +21,10 @@ namespace CE::Bootstrap {
             window_title = gameinfo->windowTitle;
         }
 
-        CE::Log(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
-        CE::Log(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth, settings.windowHeight);
-        CE::Log(CE::LogLevel::Info, "[Window] Window renderer: {}", settings.rendererName);
-        CE::Log(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth, settings.windowHeight);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window renderer: {}", settings.rendererName);
+        CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
 
         SDL_WindowFlags windowFlags = 0;
         if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
@@ -38,14 +38,14 @@ namespace CE::Bootstrap {
         );
 
         if (window == nullptr) {
-            CE::Log(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
+            CE_LOG(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
             ShowError("Failed to create game window :{");
             return 3;
         }
 
         if (settings.fullscreen) {
             if (!CE::ApplyFullscreenMode(window, settings.windowWidth, settings.windowHeight)) {
-                CE::Log(CE::LogLevel::Fatal, "[Window] Failed to apply fullscreen mode: {}", SDL_GetError());
+                CE_LOG(CE::LogLevel::Fatal, "[Window] Failed to apply fullscreen mode: {}", SDL_GetError());
                 return 4;
             }
         }

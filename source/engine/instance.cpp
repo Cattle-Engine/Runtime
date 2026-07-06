@@ -28,14 +28,14 @@ namespace CE {
         gVFS = std::make_unique<CE::VFS::VFS>();
         gGameInfo = std::make_unique<CE::GameInfo>();
 
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
         int gds_return = Bootstrap::Init_GameData(gVFS, data_file_path, gDebug);
         if(gds_return != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Gamedata mount returned with code {}", gInstanceID, gds_return));
         }
 
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating game info", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating game info", gInstanceID);
         int gis_return = Bootstrap::Init_GameInfo(gVFS, gGameInfo, gDebug);
         if(gis_return != 0) {
             throw std::runtime_error(
@@ -46,7 +46,7 @@ namespace CE {
         gSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*gGameInfo, gInstanceID);
         gSettingsManager->SetInstance(*this);
 
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
         int vis = CE::Bootstrap::Init_Video(
             gGameInfo,
             gSettingsManager->Settings,
@@ -69,7 +69,7 @@ namespace CE {
             SetWindowIcon(gGameInfo->windowIcon);
         }
 
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", gInstanceID);
         int brrms = this->Bootstrap_RendererResourceManagers();
         if (brrms != 0) {
             throw std::runtime_error(
@@ -83,12 +83,12 @@ namespace CE {
             );
         }
 
-        CE::Log(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
         gKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         gMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
 
         try {
-            CE::Log(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
+            CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
             gAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
                 *gVFS,
                 gInstanceID,
@@ -101,7 +101,7 @@ namespace CE {
             gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
             gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
         } catch (const std::exception& e) {
-            CE::Log(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
+            CE_LOG(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
             gAudioManager.reset();
             gAudioSystem.reset();
         }
@@ -222,7 +222,7 @@ namespace CE {
         gGameStateManager.Emit("Draw2D");
         if (!gScriptingManager->RunUpdate()) {
             ShowError(gScriptingManager->GetLastError());
-            CE::Log(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
+            CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
             gShouldExit = true;
             return 1;
         }
@@ -313,7 +313,7 @@ namespace CE {
     }
 
     void Instance::ReloadSettings() {
-        CE::Log(LogLevel::Debug,"[Instance {}] ReloadSettings called", gInstanceID);
+        CE_LOG(LogLevel::Debug,"[Instance {}] ReloadSettings called", gInstanceID);
         gPendingSettingsReload = true;
     }
 
@@ -326,19 +326,19 @@ namespace CE {
                     gWindow,
                     targetW,
                     targetH)) {
-                CE::Log(LogLevel::Error, "[Instance {}] Failed to apply fullscreen mode", gInstanceID);
+                CE_LOG(LogLevel::Error, "[Instance {}] Failed to apply fullscreen mode", gInstanceID);
             }
         } else  {
             // Ensure we exit fullscreen before resizing.
             if (!SDL_SetWindowFullscreenMode(gWindow, nullptr)) {
-                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreenMode(nullptr) failed: {}", gInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreenMode(nullptr) failed: {}", gInstanceID, SDL_GetError());
             }
             if (!SDL_SetWindowFullscreen(gWindow, false)) {
-                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreen(false) failed: {}", gInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreen(false) failed: {}", gInstanceID, SDL_GetError());
             }
 
             if (!SDL_SetWindowSize(gWindow, targetW, targetH)) {
-                CE::Log(LogLevel::Warn, "[Instance {}] SDL_SetWindowSize({}x{}) failed: {}", gInstanceID, targetW, targetH, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowSize({}x{}) failed: {}", gInstanceID, targetW, targetH, SDL_GetError());
             }
         }
 
@@ -354,12 +354,12 @@ namespace CE {
     void Instance::SetWindowIcon(std::string path) {
         uint64_t sz = 0;
         if (!gVFS->GetFileSize(path.c_str(), sz) || sz == 0) {
-            CE::Log(LogLevel::Error, "[Instance {}] VFS could not stat '{}' (missing or empty)", gInstanceID, path);
+            CE_LOG(LogLevel::Error, "[Instance {}] VFS could not stat '{}' (missing or empty)", gInstanceID, path);
         }
 
         VirtualFile* vf = gVFS->OpenFile(path.c_str());
         if (!vf) {
-            CE::Log(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID ,path);
+            CE_LOG(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID ,path);
         }
 
         std::vector<uint8_t> fileBytes((size_t)sz);
@@ -368,18 +368,18 @@ namespace CE {
 
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
-            CE::Log(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID,SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID,SDL_GetError());
         }
 
         SDL_Surface* surface = IMG_Load_IO(mem, true); 
         if (!surface) {
-            CE::Log(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID,path, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID,path, SDL_GetError());
         }
 
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE::Log(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID,SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID,SDL_GetError());
         }
 
         SDL_SetWindowIcon(gWindow, converted);

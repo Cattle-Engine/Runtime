@@ -25,7 +25,7 @@ namespace CE::Renderer::Resources {
     MeshHandle GPUMeshManager::CreateMeshHandle(MeshData& data) {
         GPUMesh* mesh = CreateMesh(data);
         if (!mesh) {
-            CE::Log(LogLevel::Error, "[GPUMesh Manager] Failed to create mesh");
+            CE_LOG(LogLevel::Error, "[GPUMesh Manager] Failed to create mesh");
             return 0;
         }
 
@@ -39,7 +39,7 @@ namespace CE::Renderer::Resources {
     void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle, bool error_texture) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end() || !it->second.Mesh) {
-            CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
+            CE_LOG(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
             return;
         }
 
@@ -62,7 +62,7 @@ namespace CE::Renderer::Resources {
     void GPUMeshManager::DrawMeshHandleMat4(MeshHandle handle, glm::mat4 transform, MaterialHandle matt_handle, bool error_texture) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end() || !it->second.Mesh) {
-            CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
+            CE_LOG(LogLevel::Warn, "[GPUMesh Manager] Tried to draw missing mesh handle {}", handle);
             return;
         }
 
@@ -85,13 +85,13 @@ namespace CE::Renderer::Resources {
     void GPUMeshManager::ChangeMesh(MeshHandle handle, MeshData& data) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
-            CE::Log(LogLevel::Warn, "[GPUMesh Manager] Tried to change missing mesh handle {}", handle);
+            CE_LOG(LogLevel::Warn, "[GPUMesh Manager] Tried to change missing mesh handle {}", handle);
             return;
         }
 
         GPUMesh* newMesh = CreateMesh(data);
         if (!newMesh) {
-            CE::Log(LogLevel::Error, "[GPUMesh Manager] Failed to rebuild mesh {}", handle);
+            CE_LOG(LogLevel::Error, "[GPUMesh Manager] Failed to rebuild mesh {}", handle);
             return;
         }
 

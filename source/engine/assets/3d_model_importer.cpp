@@ -31,13 +31,13 @@ namespace {
         }
         SDL_Surface* surface = IMG_Load_IO(rw, 1);
         if (!surface) {
-            CE::Log(CE::LogLevel::Error, "[3D Model Importer] IMG_Load_IO failed");
+            CE_LOG(CE::LogLevel::Error, "[3D Model Importer] IMG_Load_IO failed");
             return CreateWhiteSurface();
         }
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE::Log(CE::LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
+            CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
             return CreateWhiteSurface();
         }
         return converted;
@@ -51,13 +51,13 @@ namespace {
             tex->mWidth * 4
         );
         if (!surface) {
-            CE::Log(CE::LogLevel::Error, "[3D Model Importer] Failed to create SDL_Surface from raw texture");
+            CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to create SDL_Surface from raw texture");
             return CreateWhiteSurface();
         }
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE::Log(CE::LogLevel::Error, "[3D Model Importer] Failed to convert raw surface to RGBA32");
+            CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to convert raw surface to RGBA32");
             return CreateWhiteSurface();
         }
         return converted;
@@ -237,10 +237,10 @@ namespace CE::Assets::Model3DImporter {
                     result = DecodeRawTexture(tex);
                 }
             } catch (const std::invalid_argument&) {
-                CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi invalid argument for path: {}", assimp_path);
+                CE_LOG(LogLevel::Error, "[3D Model Importer] std::stoi invalid argument for path: {}", assimp_path);
                 result = CreateWhiteSurface();
             } catch (const std::out_of_range&) {
-                CE::Log(LogLevel::Error, "[3D Model Importer] std::stoi out of range for path: {}", assimp_path);
+                CE_LOG(LogLevel::Error, "[3D Model Importer] std::stoi out of range for path: {}", assimp_path);
                 result = CreateWhiteSurface();
             }
         } else {
@@ -249,13 +249,13 @@ namespace CE::Assets::Model3DImporter {
             std::string virtual_path = mVFS.NormalizeVirtualPath(combined.generic_string());
 
             if (!mVFS.FileExists(virtual_path.c_str())) {
-                CE::Log(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
+                CE_LOG(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
                 result = CreateWhiteSurface();
             } else {
                 VirtualFile* file = mVFS.OpenFile(virtual_path.c_str());
                 SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
                 if (!surface) {
-                    CE::Log(LogLevel::Error, "[3D Model Importer] Failed to load texture: {}", virtual_path);
+                    CE_LOG(LogLevel::Error, "[3D Model Importer] Failed to load texture: {}", virtual_path);
                     result = CreateWhiteSurface();
                 } else if (surface->format != SDL_PIXELFORMAT_RGBA32) {
                     SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
@@ -403,10 +403,10 @@ namespace CE::Assets::Model3DImporter {
     Renderer::Resources::Model ModelImporter::ImportModel(std::string path) {
         Utils::ScopedTimer total_timer("[3D Model Importer] Total import time");
         kModel model;
-        CE::Log(LogLevel::Debug, "[3D Model Importer] Attempting to load: {}", path);
+        CE_LOG(LogLevel::Debug, "[3D Model Importer] Attempting to load: {}", path);
 
         if (!mVFS.FileExists(path.c_str())) {
-            CE::Log(LogLevel::Error, "[3D Model Importer] File: {}, doesn't exist", path);
+            CE_LOG(LogLevel::Error, "[3D Model Importer] File: {}, doesn't exist", path);
             return model;
         }
 
@@ -422,14 +422,14 @@ namespace CE::Assets::Model3DImporter {
         }
 
         if (!scene || !scene->mRootNode) {
-            CE::Log(LogLevel::Error, "[3D Model Importer] Assimp error");
+            CE_LOG(LogLevel::Error, "[3D Model Importer] Assimp error");
             return model;
         }
 
-        CE::Log(LogLevel::Debug, "RootNode pointer: {}", (void*)scene->mRootNode);
-        CE::Log(LogLevel::Debug, "Model: {}, mNumChildren: {}", path, scene->mRootNode->mNumChildren);
+        CE_LOG(LogLevel::Debug, "RootNode pointer: {}", (void*)scene->mRootNode);
+        CE_LOG(LogLevel::Debug, "Model: {}, mNumChildren: {}", path, scene->mRootNode->mNumChildren);
         for (unsigned int i = 0; i < std::min(scene->mRootNode->mNumChildren, 5u); ++i)
-            CE::Log(LogLevel::Debug, "Child {} Name: {}", i, scene->mRootNode->mChildren[i]->mName.C_Str());
+            CE_LOG(LogLevel::Debug, "Child {} Name: {}", i, scene->mRootNode->mChildren[i]->mName.C_Str());
 
         model.Materials.reserve(scene->mNumMaterials);
         model.Nodes.reserve(scene->mRootNode->mNumChildren * 8);

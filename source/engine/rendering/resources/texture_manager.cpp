@@ -86,7 +86,7 @@ namespace CE::Renderer::Resources {
 
         if (!mVFS.FileExists(path.c_str()))
         {
-            CE::Log(LogLevel::Error, "[Texture Manager] File doesn't exist: {}", path);
+            CE_LOG(LogLevel::Error, "[Texture Manager] File doesn't exist: {}", path);
             texentry.Resource = mRenderer.GetErrorTexture();
             texentry.IsError = true;
         }
@@ -96,7 +96,7 @@ namespace CE::Renderer::Resources {
 
             if (tex == nullptr)
             {
-                CE::Log(LogLevel::Error, "[Texture Manager] Failed to load texture: {}", path);
+                CE_LOG(LogLevel::Error, "[Texture Manager] Failed to load texture: {}", path);
                 texentry.Resource = mRenderer.GetErrorTexture();
                 texentry.IsError = true;
             }
@@ -121,7 +121,7 @@ namespace CE::Renderer::Resources {
         auto it = mTextureCache.find(handle);
 
         if (it == mTextureCache.end()) {
-            CE::Log(LogLevel::Error, "[Texture Manager] Tried to unload missing texture: {}", handle);
+            CE_LOG(LogLevel::Error, "[Texture Manager] Tried to unload missing texture: {}", handle);
             return;
         }
 
@@ -177,7 +177,7 @@ namespace CE::Renderer::Resources {
             }
         }
         mTextureCache.clear();
-        CE::Log(LogLevel::Info, "[Texture Manager] Unloaded all textures");
+        CE_LOG(LogLevel::Info, "[Texture Manager] Unloaded all textures");
     }
 
     size_t TextureManager::GetLoadedTextureCount() const {
@@ -260,7 +260,7 @@ namespace CE::Renderer::Resources {
         TextureEntry entry = {};
         
         if (tex == nullptr) {
-            CE::Log(LogLevel::Error, "[Texture Manager] Failed to create a texture from data!");
+            CE_LOG(LogLevel::Error, "[Texture Manager] Failed to create a texture from data!");
             entry.IsError = true;
             entry.Resource = mRenderer.GetErrorTexture();
         } else {

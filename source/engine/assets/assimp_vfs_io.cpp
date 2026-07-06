@@ -38,7 +38,7 @@ namespace CE::Assets {
 
         bool success = mVFS->SeekFile(mFile, offset, whence);
         if (!success) {
-            CE::Log(LogLevel::Error, "[VFS] Seek failure at offset {}", offset);
+            CE_LOG(LogLevel::Error, "[VFS] Seek failure at offset {}", offset);
         }
         
         return success ? aiReturn_SUCCESS : aiReturn_FAILURE;
