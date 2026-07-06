@@ -14,8 +14,8 @@
 - [X] Hook up the alias thing to instance
 - [X] Hook up name registry stuff into AngelScript
 
-- [ ] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
-- [ ] Make the logger use std::source_location in debug builds
+- [X] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
+- [X] Make the logger use std::source_location in debug builds
 - [ ] Make the AST for angelscript
 - [ ] Make new module system
 - [ ] Make the Runtime class actually use the new module system
@@ -65,6 +65,7 @@ export int foo_func() {
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
+- [ ] In debug window have git commit info and in logs
 - [ ] Update docs to show new AngelScript bindings
 
 - [ ] AngelScript attributes:
