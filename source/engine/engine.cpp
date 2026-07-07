@@ -20,7 +20,7 @@ namespace CE {
                std::string datafilename,
                bool debug) {
         CE_LOG(CE::LogLevel::Info, "Cattle Engine");
-        CE_LOG(CE::LogLevel::Info, "CE Version: {}", CE::Version::engineVersionString);
+        CE_LOG(CE::LogLevel::Info, "CE Version: {}", CE::Version::GetBuildString());
 
         // Parse arguments and activate certain settings and shish
 

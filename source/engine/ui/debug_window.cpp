@@ -15,7 +15,7 @@
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/rendering/resources/shader_manager.hpp"
-
+#include "engine/version.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/keyboard.hpp"
@@ -122,6 +122,12 @@ namespace CE::UI {
             ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
             ImGui::Text("Fullscreen: %s", gameinfo.fullscreen ? "Yes" : "No");
             ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
+        }
+
+        Utils::SpaceSep();
+
+        if (ImGui::CollapsingHeader("Cattle Engine Info")) {
+            ImGui::Text("CE Build string: %s", CE::Version::GetBuildString().c_str());
         }
     }
 

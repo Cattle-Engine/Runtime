@@ -7,3 +7,7 @@
 #define CE_GIT_BRANCH "@CE_GIT_BRANCH@"
 #define CE_GIT_TAGS "@CE_GIT_TAGS@"
 #define CE_GIT_ISDIRTY "@CE_GIT_ISDIRTY@"
+
+inline constexpr bool CE_IsGitDirty() {
+    return std::string_view{CE_GIT_ISDIRTY} == "true";
+}
