@@ -101,26 +101,30 @@ namespace CE::Scripting::Impl::Lexer {
                 continue;
             }
 
-            // Handle numbers (including alternative radix literals: 0x, 0b, 0o, 0d)
-            if (std::isdigit(current)) {
+            // Handle numbers integers, floats, scientific notation, and alternative radix literals
+            if (std::isdigit(current) || 
+                (current == '.' && position + 1 < data.size() && std::isdigit(data[position + 1]))) {
+
                 std::string value;
-                
-                // Check if it's an alternative radix literal base prefix
+
+                // Alternative radix literals: 0x, 0b, 0o, 0d
                 if (current == '0' && position + 1 < data.size()) {
                     char radix = data[position + 1];
-                    if (radix == 'x' || radix == 'X' || radix == 'b' || radix == 'B' || 
-                        radix == 'o' || radix == 'O' || radix == 'd' || radix == 'D') {
-                        
+
+                    if (radix == 'x' || radix == 'X' ||
+                        radix == 'b' || radix == 'B' ||
+                        radix == 'o' || radix == 'O' ||
+                        radix == 'd' || radix == 'D') {
+
                         value += current;
                         value += radix;
                         advance(2);
-                        
-                        // Consume all following valid alphanumeric characters for the radix group
+
                         while (position < data.size() && std::isalnum(data[position])) {
                             value += data[position];
                             advance();
                         }
-                        
+
                         Token token;
                         token.Location = tokenLocation;
                         token.Type = Token::TokenType::Number;
@@ -130,10 +134,57 @@ namespace CE::Scripting::Impl::Lexer {
                     }
                 }
 
-                // Fallback standard decimal loop
-                while (position < data.size() && std::isdigit(data[position])) {
+                bool hasDecimal = false;
+                bool hasExponent = false;
+
+                // Integer/fraction part
+                while (position < data.size()) {
+                    char c = data[position];
+
+                    if (std::isdigit(c)) {
+                        value += c;
+                        advance();
+                        continue;
+                    }
+
+                    // Decimal point
+                    if (c == '.' && !hasDecimal && !hasExponent) {
+                        hasDecimal = true;
+                        value += c;
+                        advance();
+                        continue;
+                    }
+
+                    break;
+                }
+
+                // Scientific notation: e / E
+                if (position < data.size() &&
+                    (data[position] == 'e' || data[position] == 'E')) {
+
+                    hasExponent = true;
                     value += data[position];
                     advance();
+
+                    // Optional exponent sign
+                    if (position < data.size() &&
+                        (data[position] == '+' || data[position] == '-')) {
+
+                        value += data[position];
+                        advance();
+                    }
+
+                    bool hasExponentDigits = false;
+
+                    while (position < data.size() && std::isdigit(data[position])) {
+                        hasExponentDigits = true;
+                        value += data[position];
+                        advance();
+                    }
+
+                    if (!hasExponentDigits) {
+                        throw Exceptions::LexerError("Invalid exponent in number literal", tokenLocation);
+                    }
                 }
 
                 Token token;
@@ -220,7 +271,7 @@ namespace CE::Scripting::Impl::Lexer {
                 Token::TokenType matchedType = Token::TokenType::Symbol;
                 bool isMultiOp = false;
 
-                if (op == "::") { matchedType = Token::TokenType::Symbol; isMultiOp = true; } 
+                if (op == "::") { matchedType = Token::TokenType::ScopeResolution; isMultiOp = true; }
                 else if (op == "==") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
                 else if (op == "!=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
                 else if (op == "<=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }

@@ -56,8 +56,15 @@ export int foo_func() {
 
 }
 ```
+
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
+- [ ] Connect input binder to instance
+- [ ] Bindings for the input binder in angelscript
 - [ ] Add support for setting shader/s on a material
+- [ ] Emission textures
+- [ ] HDR rendering
+- [ ] Tone mapping
+- [ ] Bloom
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
 - [ ] Update AngelScript bindings for the shaders

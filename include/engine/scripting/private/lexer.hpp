@@ -13,6 +13,7 @@ namespace CE::Scripting::Impl::Lexer {
             KeywordNamespace,
             KeywordClass,
             KeywordStruct,
+            ScopeResolution,
 
             Identifier,
             String,
