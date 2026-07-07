@@ -13,9 +13,9 @@
 - [X] Add "ShaderRef" like TextureRef but for shaders (for the future material shaders)
 - [X] Hook up the alias thing to instance
 - [X] Hook up name registry stuff into AngelScript
-
 - [X] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
 - [X] Make the logger use std::source_location in debug builds
+
 - [ ] Make the AST for angelscript
 - [ ] Make new module system
 - [ ] Make the Runtime class actually use the new module system
@@ -56,7 +56,7 @@ export int foo_func() {
 
 }
 ```
-
+- [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Add support for setting shader/s on a material
 - [ ] Make glass materials actually work
 - [ ] Multiple light support

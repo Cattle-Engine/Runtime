@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <git_version.hpp>
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/rendering/renderer.hpp"
@@ -126,8 +126,27 @@ namespace CE::UI {
 
         Utils::SpaceSep();
 
-        if (ImGui::CollapsingHeader("Cattle Engine Info")) {
-            ImGui::Text("CE Build string: %s", CE::Version::GetBuildString().c_str());
+        if (ImGui::CollapsingHeader("Engine info")) {
+            ImGui::Text("Build string: %s", CE::Version::GetBuildString().c_str());
+
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Click to copy to clipboard");
+
+                if (ImGui::IsMouseClicked(0)) {
+                    SDL_SetClipboardText(CE::Version::GetBuildString().c_str());
+                }
+            }
+
+            ImGui::Text("Version string: %s", CE::Version::engineVersionString);
+            ImGui::Text("Version number: %d.%d.%d", CE::Version::engineVersionMajor, CE::Version::engineVersionMinor, CE::Version::engineVersionPatch);
+
+            Utils::SpaceSep();
+
+            ImGui::Text("Git infomation: ");
+            ImGui::Text("Branch: %s", CE_GIT_BRANCH);
+            ImGui::Text("Commit hash: %s", CE_GIT_HASH_FULL);
+            ImGui::Text("Commit dirty: %s", CE_GIT_ISDIRTY);
+            ImGui::Text("Tags: %s", CE_GIT_TAGS);
         }
     }
 
