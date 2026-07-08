@@ -31,6 +31,14 @@ namespace CE::Platforms {
         bool EnableANSI() {
             return Linux::EnableANSI();
         }
+
+        void* AlignedAllocate(std::size_t size, std::size_t alignment) {
+            return Linux::AlignedAllocate(size, alignment);
+        }
+
+        void AlignedFree(void* ptr) noexcept {
+            Linux::AlignedFree(ptr);
+        }
     #endif
 
     #if defined(_WIN32)
@@ -52,6 +60,14 @@ namespace CE::Platforms {
 
         bool EnableANSI() {
             return Windows::EnableANSI();
+        }
+
+        void* AlignedAllocate(std::size_t size, std::size_t alignment) {
+            return Windows::AlignedAllocate(size, alignment);
+        }
+
+        void AlignedFree(void* ptr) noexcept {
+            Windows::AlignedFree(ptr);
         }
     #endif
 }
