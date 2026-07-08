@@ -1,4 +1,7 @@
 #include <cstring>
+
+#include <string>
+#include <format>
 #include <cinttypes>
 
 #include "imgui/imgui.h"
@@ -13,6 +16,7 @@
 #include "engine/ui/utils.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
+#include "engine/memory/stats.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/version.hpp"
@@ -22,6 +26,28 @@
 #include "engine/instance.hpp"
 #include "engine/settings.hpp"
 #include "engine/assets/audio.hpp"
+
+std::string FormatBytes(std::size_t bytes) {
+    constexpr double KB = 1024.0;
+    constexpr double MB = KB * 1024.0;
+    constexpr double GB = MB * 1024.0;
+
+    double value = static_cast<double>(bytes);
+
+    if (value >= GB) {
+        return std::format("{:.2f} GB", value / GB);
+    }
+
+    if (value >= MB) {
+        return std::format("{:.2f} MB", value / MB);
+    }
+
+    if (value >= KB) {
+        return std::format("{:.2f} KB", value / KB);
+    }
+
+    return std::format("{} B", bytes);
+}
 
 namespace CE::UI {
     void DebugWindow::SetOpen(bool open) {
@@ -204,6 +230,20 @@ namespace CE::UI {
             300.0f,
             ImVec2(0, 80)
         );
+
+        Utils::SpaceSep();
+        ImGui::Text("Memory");
+
+        auto& memory = Memory::GetStats();
+
+        ImGui::Text("Total allocations: %zu", memory.allocations.load());
+        ImGui::Text("Total deallocations: %zu", memory.deallocations.load());
+
+        ImGui::Text("Memory allocated: %s", FormatBytes(memory.bytesAllocated.load()).c_str());
+        ImGui::Text("Memory freed: %s", FormatBytes(memory.bytesFreed.load()).c_str());
+        ImGui::Text("Currently allocated memory: %s", FormatBytes(memory.currentBytes.load()).c_str());
+        ImGui::Text("Peak memory: %s", FormatBytes(memory.peakBytes.load()).c_str());
+
     }
 
     void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman) {

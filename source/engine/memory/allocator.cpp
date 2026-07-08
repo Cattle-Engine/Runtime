@@ -3,8 +3,13 @@
 #include <engine/platforms.hpp>
 
 #include <atomic>
+#include <cstdint>
 #include <cstdlib>
 #include <new>
+
+struct AllocationHeader {
+    std::size_t size;
+};
 
 namespace {
     std::atomic<bool> trackingEnabled{false};
@@ -32,16 +37,15 @@ namespace {
         }
     }
 
-    void TrackDeallocation(std::size_t size = 0) {
+    void TrackDeallocation(std::size_t size) {
         if (!CE::Memory::IsTrackingEnabled())
             return;
 
         auto& stats = CE::Memory::GetStats();
 
         stats.deallocations.fetch_add(1, std::memory_order_relaxed);
-
-        if (size)
-            stats.bytesFreed.fetch_add(size, std::memory_order_relaxed);
+        stats.bytesFreed.fetch_add(size, std::memory_order_relaxed);
+        stats.currentBytes.fetch_sub(size, std::memory_order_relaxed);
     }
 }
 
@@ -56,61 +60,77 @@ namespace CE::Memory {
 }
 
 void* operator new(std::size_t size) {
-    void* ptr = std::malloc(size);
+    const auto total_size = sizeof(AllocationHeader) + size;
 
-    if (!ptr)
-        throw std::bad_alloc();
+    void* raw = std::malloc(total_size);
+
+    if (!raw) throw std::bad_alloc();
+
+    auto* header = static_cast<AllocationHeader*>(raw);
+    header->size = size;
 
     TrackAllocation(size);
 
-    return ptr;
+    return header + 1;
 }
 
 void* operator new[](std::size_t size) {
-    void* ptr = std::malloc(size);
+    const auto total_size = sizeof(AllocationHeader) + size;
 
-    if (!ptr)
+    void* raw = std::malloc(total_size);
+
+    if (!raw)
         throw std::bad_alloc();
+
+    auto* header = static_cast<AllocationHeader*>(raw);
+    header->size = size;
 
     TrackAllocation(size);
 
-    return ptr;
+    return header + 1;
 }
 
 void operator delete(void* ptr) noexcept {
-    if (!ptr)
-        return;
+    if (!ptr) return;
 
-    TrackDeallocation();
+    auto* header = static_cast<AllocationHeader*>(ptr) - 1;
 
-    std::free(ptr);
+    TrackDeallocation(header->size);
+
+    std::free(header);
 }
 
 void operator delete[](void* ptr) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation();
+    auto* header = static_cast<AllocationHeader*>(ptr) - 1;
 
-    std::free(ptr);
+    TrackDeallocation(header->size);
+
+    std::free(header);
 }
 
-void operator delete(void* ptr, std::size_t size) noexcept {
+void operator delete(void* ptr, std::size_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation(size);
+    auto* header = static_cast<AllocationHeader*>(ptr) - 1;
 
-    std::free(ptr);
+    TrackDeallocation(header->size);
+
+    std::free(header);
 }
 
-void operator delete[](void* ptr, std::size_t size) noexcept {
+void operator delete[](void* ptr, std::size_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation(size);
+    auto* header = static_cast<AllocationHeader*>(ptr) - 1;
 
-    std::free(ptr);
+    TrackDeallocation(header->size);
+
+    std::free(header);
 }
 
 void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
@@ -138,63 +158,107 @@ void operator delete[](void* ptr, const std::nothrow_t&) noexcept {
 }
 
 void* operator new(std::size_t size, std::align_val_t alignment) {
-    void* ptr = CE::Platforms::AlignedAllocate(
-        size,
-        static_cast<std::size_t>(alignment));
+    const auto align = static_cast<std::size_t>(alignment);
+    const auto header_size = sizeof(AllocationHeader);
+    const auto ptr_size = sizeof(void*);
+    const auto total_size = size + align + header_size + ptr_size;
 
-    if (!ptr)
+    void* raw = CE::Platforms::AlignedAllocate(total_size, align);
+
+    if (!raw)
         throw std::bad_alloc();
+
+    auto raw_addr = reinterpret_cast<std::uintptr_t>(raw);
+    auto aligned_user_addr = (raw_addr + ptr_size + header_size + align - 1) & ~(align - 1);
+
+    auto* header = reinterpret_cast<AllocationHeader*>(aligned_user_addr - header_size);
+    header->size = size;
+
+    void** original_ptr = reinterpret_cast<void**>(aligned_user_addr - header_size - ptr_size);
+    *original_ptr = raw;
 
     TrackAllocation(size);
 
-    return ptr;
+    return reinterpret_cast<void*>(aligned_user_addr);
 }
 
 void* operator new[](std::size_t size, std::align_val_t alignment) {
-    void* ptr = CE::Platforms::AlignedAllocate(
-        size,
-        static_cast<std::size_t>(alignment));
+    const auto align = static_cast<std::size_t>(alignment);
+    const auto header_size = sizeof(AllocationHeader);
+    const auto ptr_size = sizeof(void*);
+    const auto total_size = size + align + header_size + ptr_size;
 
-    if (!ptr)
+    void* raw = CE::Platforms::AlignedAllocate(total_size, align);
+
+    if (!raw)
         throw std::bad_alloc();
+
+    auto raw_addr = reinterpret_cast<std::uintptr_t>(raw);
+    auto aligned_user_addr = (raw_addr + ptr_size + header_size + align - 1) & ~(align - 1);
+
+    auto* header = reinterpret_cast<AllocationHeader*>(aligned_user_addr - header_size);
+    header->size = size;
+
+    void** original_ptr = reinterpret_cast<void**>(aligned_user_addr - header_size - ptr_size);
+    *original_ptr = raw;
 
     TrackAllocation(size);
 
-    return ptr;
+    return reinterpret_cast<void*>(aligned_user_addr);
 }
 
 void operator delete(void* ptr, std::align_val_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation();
+    auto* header = reinterpret_cast<AllocationHeader*>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader));
+    auto* original_ptr = reinterpret_cast<void**>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader) - sizeof(void*));
 
-    CE::Platforms::AlignedFree(ptr);
+    TrackDeallocation(header->size);
+
+    CE::Platforms::AlignedFree(*original_ptr);
 }
 
 void operator delete[](void* ptr, std::align_val_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation();
+    auto* header = reinterpret_cast<AllocationHeader*>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader));
+    auto* original_ptr = reinterpret_cast<void**>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader) - sizeof(void*));
 
-    CE::Platforms::AlignedFree(ptr);
+    TrackDeallocation(header->size);
+
+    CE::Platforms::AlignedFree(*original_ptr);
 }
 
-void operator delete(void* ptr, std::size_t size, std::align_val_t) noexcept {
+void operator delete(void* ptr, std::size_t, std::align_val_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation(size);
+    auto* header = reinterpret_cast<AllocationHeader*>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader));
+    auto* original_ptr = reinterpret_cast<void**>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader) - sizeof(void*));
 
-    CE::Platforms::AlignedFree(ptr);
+    TrackDeallocation(header->size);
+
+    CE::Platforms::AlignedFree(*original_ptr);
 }
 
-void operator delete[](void* ptr, std::size_t size, std::align_val_t) noexcept {
+void operator delete[](void* ptr, std::size_t, std::align_val_t) noexcept {
     if (!ptr)
         return;
 
-    TrackDeallocation(size);
+    auto* header = reinterpret_cast<AllocationHeader*>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader));
+    auto* original_ptr = reinterpret_cast<void**>(
+        reinterpret_cast<char*>(ptr) - sizeof(AllocationHeader) - sizeof(void*));
 
-    CE::Platforms::AlignedFree(ptr);
+    TrackDeallocation(header->size);
+
+    CE::Platforms::AlignedFree(*original_ptr);
 }
