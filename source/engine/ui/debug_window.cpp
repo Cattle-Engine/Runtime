@@ -17,6 +17,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/memory/stats.hpp"
+#include "engine/memory/allocator.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/version.hpp"
@@ -235,6 +236,7 @@ namespace CE::UI {
         ImGui::Text("Memory");
 
         auto& memory = Memory::GetStats();
+        static bool enable;
 
         ImGui::Text("Total allocations: %zu", memory.allocations.load());
         ImGui::Text("Total deallocations: %zu", memory.deallocations.load());
@@ -244,6 +246,9 @@ namespace CE::UI {
         ImGui::Text("Currently allocated memory: %s", FormatBytes(memory.currentBytes.load()).c_str());
         ImGui::Text("Peak memory: %s", FormatBytes(memory.peakBytes.load()).c_str());
 
+        ImGui::Checkbox("Track memory", &enable);
+
+        CE::Memory::EnableTracking(enable);
     }
 
     void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman) {

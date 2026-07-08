@@ -59,6 +59,7 @@ export int foo_func() {
 
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Connect input binder to instance
+- [X] Fix skybox not rendering when no mesh's are drawn
 - [ ] Bindings for the input binder in angelscript
 - [ ] Add support for setting shader/s on a material
 - [ ] Emission textures

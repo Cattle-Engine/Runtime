@@ -493,9 +493,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (!gMeshCommands.empty() || hasSkybox) {
             DrawQueuedMeshes();
             colorTargetInfo.load_op = SDL_GPU_LOADOP_LOAD;
-        }
-
-        if (gMeshCommands.empty()) {
+        } else {
             colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         }
 

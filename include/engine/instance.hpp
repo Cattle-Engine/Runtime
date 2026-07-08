@@ -102,9 +102,6 @@ namespace CE {
             CE::Core::GameState::GameStateManager gGameStateManager;
             CE::UI::DebugWindow gDebugWindow;
             ProgramArguements gProgramArguments;
-
-            Renderer::Resources::Model GREMOVEMETESTTHING;
-            Renderer::Transform3D GREMOVEMETESTHING_TRANSFORM{};
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;

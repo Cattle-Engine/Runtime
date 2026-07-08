@@ -137,8 +137,6 @@ namespace CE {
                 std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
-
-        GREMOVEMETESTTHING = g3DModelImporter->ImportModel("/GlassHurricaneCandleHolder.glb");
     }
 
     bool Instance::ShouldExit() {
@@ -215,7 +213,6 @@ namespace CE {
         } 
         gRenderer->BeginMode3D();
         gGameStateManager.Emit("Draw3D");
-        gModelRenderer->RenderModel(GREMOVEMETESTTHING, GREMOVEMETESTHING_TRANSFORM);
         gRenderer->EndMode3D();
 
         gRenderer->BeginMode2D();
