@@ -15,7 +15,7 @@
 namespace CE::Renderer::SDL_GPU_Renderer {
     namespace {
         constexpr SDL_GPUTextureUsageFlags kDepthTextureUsage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
-        constexpr float kSkyboxHalfExtent = 1.0f;
+        constexpr float kSkyboxHalfExtent = 1.001f;
         constexpr float kPi = 3.14159265358979323846f;
         constexpr float kHalfPi = kPi * 0.5f;
 
