@@ -58,6 +58,7 @@ export int foo_func() {
 ```
 
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
+- [ ] Refactor the angelscript bindings to have something like IScriptBinding
 - [ ] Connect input binder to instance
 - [X] Fix skybox not rendering when no mesh's are drawn
 - [ ] Bindings for the input binder in angelscript

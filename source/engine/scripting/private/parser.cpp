@@ -95,7 +95,7 @@ namespace CE::Scripting::Impl::Parser {
                 }
 
 
-                AST::ASTFunction ParseGlobal(AST::ASTTypeRef type, std::string name) {
+                AST::ASTGlobal ParseGlobal(AST::ASTTypeRef type, std::string name) {
 
                 }
 
@@ -104,7 +104,43 @@ namespace CE::Scripting::Impl::Parser {
                 }
 
                 AST::ASTTypeRef ParseTypeRef() {
+                    AST::ASTTypeRef typeref;
+                    
+                    if (Current().Type == Lexer::Token::TokenType::KeywordConst) {
+                        typeref.IsConst = true;
+                        Advance();
+                    }
 
+                    if (Current().Type == Lexer::Token::TokenType::KeywordAuto) {
+                        typeref.IsAuto = true;
+                        Advance();
+                        return typeref; // cant have modifiers with auto
+                    }
+
+                    typeref.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                    while (Current().Type == Lexer::Token::TokenType::ScopeResolution) {
+                        Advance(); // consume the ::
+                        typeref.Name += "::" + Expect(Lexer::Token::TokenType::Identifier).Value;
+                    }
+
+                    // parse modifiers
+                    while (true) {
+                        if (Current().Type == Lexer::Token::TokenType::Handle) {
+                            typeref.IsHandle = true;
+                            Advance();
+                        } else if (Current().Type == Lexer::Token::TokenType::Reference) {
+                            typeref.IsReference = true;
+                            Advance();
+                        } else if (Current().Type == Lexer::Token::TokenType::OpenBracket) {
+                            typeref.ArrayDepth++;
+                            Advance();
+                            Expect(Lexer::Token::TokenType::CloseBracket);
+                        } else {
+                            break;
+                        }
+                    }
+
+                    return typeref;
                 }
 
                 AST::ASTNamespace ParseNamespace() {

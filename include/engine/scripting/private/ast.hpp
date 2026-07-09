@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <cstdint>
 
 #include "engine/scripting/private/modules.hpp"
 
@@ -21,7 +22,7 @@ namespace CE::Scripting::Impl::AST {
         bool IsConst = false;
         bool IsReference = false;
         bool IsHandle = false;
-        bool IsArray = false;
+        uint32_t ArrayDepth = 0;
         bool IsAuto = false;
     };
 

@@ -8,25 +8,34 @@
 namespace CE::Scripting::Impl::Lexer {
     struct Token {
         enum class TokenType {
-            KeywordImport,
-            KeywordExport,
-            KeywordNamespace,
-            KeywordClass,
-            KeywordStruct,
-            ScopeResolution,
+            KeywordImport, // import
+            KeywordExport, // export
+            KeywordNamespace, // namespace
+            KeywordClass, // class
+            KeywordStruct, // struct
+            KeywordConst, // const
+            KeywordAuto, // auto
+
+            OpenBracket, // [
+            CloseBracket, // ]
+
+            Handle, // @
+            Reference, // &
+
+            ScopeResolution, // ::
 
             Identifier,
             String,
             Number,
             Symbol,
 
-            OpenBrace,
-            CloseBrace,
-            OpenParen,
-            CloseParen,
+            OpenBrace, // {
+            CloseBrace, // }
+            OpenParen, // (
+            CloseParen, // )
 
-            Comma,
-            Semicolon,
+            Comma, // ,
+            Semicolon, // ;
 
             EndOfFile
         };

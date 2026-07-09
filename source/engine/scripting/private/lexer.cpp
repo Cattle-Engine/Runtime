@@ -92,6 +92,10 @@ namespace CE::Scripting::Impl::Lexer {
                     token.Type = Token::TokenType::KeywordClass;
                 } else if (value == "struct") {
                     token.Type = Token::TokenType::KeywordStruct;
+                } else if (value == "const"){
+                    token.Type == Token::TokenType::KeywordConst;
+                }else if (value == "auto") {
+                    token.Type == Token::TokenType::KeywordAuto;
                 } else {
                     token.Type = Token::TokenType::Identifier;
                 }
@@ -297,7 +301,7 @@ namespace CE::Scripting::Impl::Lexer {
             // standard Single-Character Symbols
             Token token;
             token.Location = tokenLocation;
-
+            
             switch (current) {
                 case '{':
                     token.Type = Token::TokenType::OpenBrace;
@@ -310,6 +314,18 @@ namespace CE::Scripting::Impl::Lexer {
                     break;
                 case ')':
                     token.Type = Token::TokenType::CloseParen;
+                    break;
+                case '[':
+                    token.Type = Token::TokenType::OpenBracket;
+                    break;
+                case ']':
+                    token.Type = Token::TokenType::CloseBracket;
+                    break;
+                case '@':
+                    token.Type = Token::TokenType::Handle;
+                    break;
+                case '&':
+                    token.Type = Token::TokenType::Reference;
                     break;
                 case ';':
                     token.Type = Token::TokenType::Semicolon;
