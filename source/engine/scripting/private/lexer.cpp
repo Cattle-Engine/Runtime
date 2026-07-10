@@ -333,6 +333,9 @@ namespace CE::Scripting::Impl::Lexer {
                 case ',':
                     token.Type = Token::TokenType::Comma;
                     break;
+                case '=':
+                    token.Type = Token::TokenType::Assignment;
+                    break;
                 default:
                     token.Type = Token::TokenType::Symbol;
                     break;

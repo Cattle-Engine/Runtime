@@ -15,8 +15,7 @@ namespace {
     std::atomic<bool> trackingEnabled{false};
 
     void TrackAllocation(std::size_t size) {
-        if (!CE::Memory::IsTrackingEnabled())
-            return;
+        if (!CE::Memory::IsTrackingEnabled()) return;
 
         auto& stats = CE::Memory::GetStats();
 

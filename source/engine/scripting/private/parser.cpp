@@ -96,7 +96,33 @@ namespace CE::Scripting::Impl::Parser {
 
 
                 AST::ASTGlobal ParseGlobal(AST::ASTTypeRef type, std::string name) {
+                    AST::ASTGlobal global;
 
+                    global.Type = type;
+                    global.Name = name;
+
+                    // check for an initializer
+                    if (Current().Type == Lexer::Token::TokenType::Assignment) {
+                        Advance(); // consume the = 
+
+                        std::string initializer;
+                        int paren_count = 0;
+
+                        // parse the initializer until ';'
+                        while (Current().Type != Lexer::Token::TokenType::Semicolon || 
+                                paren_count > 0) {
+                                if (Current().Type == Lexer::Token::TokenType::OpenParen) paren_count++;
+                                if (Current().Type == Lexer::Token::TokenType::CloseParen) paren_count--;
+                                
+                                initializer += Current().Value + " ";
+                                Advance();
+                            }
+                            
+                            global.Initializer = initializer;
+                        }
+
+                        Expect(Lexer::Token::TokenType::Semicolon);
+                        return global;
                 }
 
                 AST::ASTType ParseType() {
@@ -106,6 +132,7 @@ namespace CE::Scripting::Impl::Parser {
                 AST::ASTTypeRef ParseTypeRef() {
                     AST::ASTTypeRef typeref;
                     
+                    // check for const
                     if (Current().Type == Lexer::Token::TokenType::KeywordConst) {
                         typeref.IsConst = true;
                         Advance();

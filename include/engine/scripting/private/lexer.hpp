@@ -23,6 +23,7 @@ namespace CE::Scripting::Impl::Lexer {
             Reference, // &
 
             ScopeResolution, // ::
+            Assignment, // =
 
             Identifier,
             String,
