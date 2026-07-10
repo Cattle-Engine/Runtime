@@ -15,9 +15,9 @@
 - [X] Hook up name registry stuff into AngelScript
 - [X] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
 - [X] Make the logger use std::source_location in debug builds
-
-
 - [X] Make the AST for angelscript
+
+
 - [ ] Semnatic parser (Not all of angelscript shall be parsed, just enough of the extensions)
 - [ ] Make new module system
 - [ ] Make the Runtime class actually use the new module system

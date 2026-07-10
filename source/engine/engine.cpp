@@ -77,11 +77,11 @@ namespace CE {
         std::string file2use;
         CE_LOG(LogLevel::Info, "[Engine] Attempting to make instance");
         if (datafilename) {
-            CE_LOG(LogLevel::Info, "[Engine] Data file wasn't nullptr");
+            CE_LOG(LogLevel::Info, "[Engine] Data file wasn't empty");
             file2use = *datafilename;
         } else {
             file2use = mDataFileName;
-            CE_LOG(LogLevel::Info, "[Engine] Data file was nullptr");
+            CE_LOG(LogLevel::Info, "[Engine] Data file was empty");
         }
 
         try {
