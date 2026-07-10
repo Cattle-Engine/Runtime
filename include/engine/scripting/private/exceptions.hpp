@@ -43,4 +43,22 @@ namespace CE::Scripting::Impl::Exceptions {
             SourceLocation mLocation;
             std::string mWhat;
     };
+    
+    class SemanticError : std::exception {
+    public:
+        SemanticError(std::string message, SourceLocation location)
+        : mMessage(std::move(message)),
+        mLocation(std::move(location)),
+        mWhat(std::format("{}, at file: {}, line: {}, column: {}",
+                          mMessage, mLocation.File, mLocation.Line, mLocation.Column))
+        {}
+        
+        const char* what() const noexcept override {
+            return mWhat.c_str();
+        }
+    private:
+        std::string mMessage;
+        SourceLocation mLocation;
+        std::string mWhat;
+    };
 }
