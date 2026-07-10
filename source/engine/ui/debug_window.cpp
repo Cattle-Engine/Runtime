@@ -233,21 +233,79 @@ namespace CE::UI {
         );
 
         Utils::SpaceSep();
+
         ImGui::Text("Memory");
 
         auto& memory = Memory::GetStats();
-        static bool enable;
+        static bool enable = Memory::IsTrackingEnabled();
 
-        ImGui::Text("Total allocations: %zu", memory.allocations.load());
-        ImGui::Text("Total deallocations: %zu", memory.deallocations.load());
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+        ImGui::TextWrapped("Note: Total allocations/deallocations include every C++ new/delete.");
+        ImGui::PopStyleColor();
 
-        ImGui::Text("Memory allocated: %s", FormatBytes(memory.bytesAllocated.load()).c_str());
-        ImGui::Text("Memory freed: %s", FormatBytes(memory.bytesFreed.load()).c_str());
-        ImGui::Text("Currently allocated memory: %s", FormatBytes(memory.currentBytes.load()).c_str());
-        ImGui::Text("Peak memory: %s", FormatBytes(memory.peakBytes.load()).c_str());
+        ImGui::Spacing();
 
-        ImGui::Checkbox("Track memory", &enable);
+        if (ImGui::BeginTable("MemoryTable", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg)) {
+            ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableHeadersRow();
 
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Total Allocations");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%zu", memory.allocations.load());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Total Deallocations");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%zu", memory.deallocations.load());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Current Alive");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%zu", memory.aliveAllocations.load());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Peak Live");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%zu", memory.peakAliveAllocations.load());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Memory Allocated");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", FormatBytes(memory.bytesAllocated.load()).c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Memory Freed");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", FormatBytes(memory.bytesFreed.load()).c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Currently Used");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", FormatBytes(memory.currentBytes.load()).c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "Peak Memory");
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%s", FormatBytes(memory.peakBytes.load()).c_str());
+
+            ImGui::EndTable();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Checkbox("Enable Memory Tracking", &enable);
         CE::Memory::EnableTracking(enable);
     }
 

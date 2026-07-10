@@ -22,6 +22,19 @@ namespace {
         stats.allocations.fetch_add(1, std::memory_order_relaxed);
         stats.bytesAllocated.fetch_add(size, std::memory_order_relaxed);
 
+        auto currentAlive = stats.aliveAllocations.fetch_add(
+            1,
+            std::memory_order_relaxed) + 1;
+
+        auto peakAlive = stats.peakAliveAllocations.load(std::memory_order_relaxed);
+
+        while (currentAlive > peakAlive &&
+            !stats.peakAliveAllocations.compare_exchange_weak(
+                peakAlive,
+                currentAlive,
+                std::memory_order_relaxed)) {
+        }
+
         auto current = stats.currentBytes.fetch_add(
             size,
             std::memory_order_relaxed) + size;
@@ -45,6 +58,7 @@ namespace {
         stats.deallocations.fetch_add(1, std::memory_order_relaxed);
         stats.bytesFreed.fetch_add(size, std::memory_order_relaxed);
         stats.currentBytes.fetch_sub(size, std::memory_order_relaxed);
+        stats.aliveAllocations.fetch_sub(1, std::memory_order_relaxed);
     }
 }
 

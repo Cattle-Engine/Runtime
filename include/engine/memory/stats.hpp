@@ -11,6 +11,8 @@ namespace CE::Memory {
         std::atomic<std::size_t> bytesFreed{0};
         std::atomic<std::size_t> currentBytes{0};
         std::atomic<std::size_t> peakBytes{0};
+        std::atomic<std::size_t> aliveAllocations{0};
+        std::atomic<std::size_t> peakAliveAllocations{0};
     };
 
     Stats& GetStats();

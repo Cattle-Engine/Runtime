@@ -84,6 +84,7 @@ export int foo_func() {
 - [ ] AngelScript bindings for bones
 - [ ] In debug window have git commit info and in logs
 - [ ] Update docs to show new AngelScript bindings
+- [ ] Add an arguemnt "--mess-with-ce" to unlock the ability to eg, change pi at runtime, or modify the contents of memory 
 
 - [ ] AngelScript attributes:
 Basically a thing you can put on classes, structs and variables. Will look like this:
