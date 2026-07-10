@@ -91,7 +91,43 @@ namespace CE::Scripting::Impl::Parser {
                 }
 
                 AST::ASTFunction ParseFunction(AST::ASTTypeRef type, std::string name) {
+                    AST::ASTFunction func;
+                    func.Name = name;
+                    func.ReturnType = type;
 
+                    Expect(Lexer::Token::TokenType::OpenParen);
+
+                    // parse parameters
+                    while (Current().Type != Lexer::Token::TokenType::CloseParen) {
+                        AST::ASTParameter param;
+                        param.Type = ParseTypeRef();
+                        param.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                        func.Parameters.push_back(param);
+
+                        if (Current().Type != Lexer::Token::TokenType::CloseParen) {
+                            Expect(Lexer::Token::TokenType::Comma);
+                        }
+                    }
+
+                    Expect(Lexer::Token::TokenType::CloseParen);
+                    Expect(Lexer::Token::TokenType::OpenBrace);
+
+                    // parse the function body
+                    std::string body; 
+                    int brace_depth = 1;
+
+                    while (brace_depth > 0) {
+                        if (Current().Type == Lexer::Token::TokenType::OpenBrace) brace_depth++;
+                        if (Current().Type == Lexer::Token::TokenType::CloseBrace) brace_depth--;
+
+                        if (brace_depth > 0) {
+                            body += Current().Value + " ";
+                        }
+                        Advance();
+                    }
+                    
+                    func.Body = body;
+                    return func;
                 }
 
 
@@ -126,7 +162,31 @@ namespace CE::Scripting::Impl::Parser {
                 }
 
                 AST::ASTType ParseType() {
+                    AST::ASTType type;
 
+                    // skip class/struct keyword
+                    Advance();
+
+                    type.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                    Expect(Lexer::Token::TokenType::OpenBrace);
+
+                    // parse the body
+                    std::string body;
+                    int brace_depth = 1;
+
+                    while (brace_depth > 0) {
+                        if (Current().Type == Lexer::Token::TokenType::OpenBrace) brace_depth++;
+                        if (Current().Type == Lexer::Token::TokenType::CloseBrace) brace_depth--;
+
+                        if (brace_depth > 0) {
+                            body += Current().Value + " ";
+                        }
+
+                        Advance();
+                    }
+
+                    type.Body = body;
+                    return type;
                 }
 
                 AST::ASTTypeRef ParseTypeRef() {
@@ -171,7 +231,20 @@ namespace CE::Scripting::Impl::Parser {
                 }
 
                 AST::ASTNamespace ParseNamespace() {
-
+                    AST::ASTNamespace ns;
+                    
+                    Expect(Lexer::Token::TokenType::KeywordNamespace);
+                    ns.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                    Expect(Lexer::Token::TokenType::OpenBrace);
+                    
+                    while (Current().Type != Lexer::Token::TokenType::CloseBrace && 
+                        Current().Type != Lexer::Token::TokenType::EndOfFile) {
+                        ns.Declarations.push_back(ParseDeclaration());
+                    }
+                    
+                    Expect(Lexer::Token::TokenType::CloseBrace);
+                    
+                    return ns;
                 }
 
                 AST::ASTDeclaration ParseDeclaration() {

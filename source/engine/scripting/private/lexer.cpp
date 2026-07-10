@@ -93,9 +93,9 @@ namespace CE::Scripting::Impl::Lexer {
                 } else if (value == "struct") {
                     token.Type = Token::TokenType::KeywordStruct;
                 } else if (value == "const"){
-                    token.Type == Token::TokenType::KeywordConst;
+                    token.Type = Token::TokenType::KeywordConst;
                 }else if (value == "auto") {
-                    token.Type == Token::TokenType::KeywordAuto;
+                    token.Type = Token::TokenType::KeywordAuto;
                 } else {
                     token.Type = Token::TokenType::Identifier;
                 }

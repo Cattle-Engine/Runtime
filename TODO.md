@@ -16,7 +16,9 @@
 - [X] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
 - [X] Make the logger use std::source_location in debug builds
 
-- [ ] Make the AST for angelscript
+
+- [X] Make the AST for angelscript
+- [ ] Semnatic parser (Not all of angelscript shall be parsed, just enough of the extensions)
 - [ ] Make new module system
 - [ ] Make the Runtime class actually use the new module system
 
@@ -36,6 +38,12 @@ This for generated types
 
 Internal stuff
 ```__ce_mod_i_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>```
+
+
+For the entry point of an CE game will be:
+```void int()```
+which shall be transformed into:
+```void __ce_user_int()```
 
 // Main script
 ```angelscript
