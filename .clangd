@@ -1,0 +1,8 @@
+CompileFlags:
+  CompilationDatabase: build
+
+Hover:
+  ShowAKA: Yes
+
+Documentation:
+  CommentFormat: Doxygen
