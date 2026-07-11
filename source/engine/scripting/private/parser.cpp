@@ -46,6 +46,32 @@ namespace CE::Scripting::Impl::Parser {
 
                     return mTokens[mPosition++];
                 }
+                
+                bool IsTypeRefAhead() {
+                    if (Current().Type == Lexer::Token::TokenType::KeywordConst ||
+                        Current().Type == Lexer::Token::TokenType::KeywordAuto) {
+                        return true;
+                    }
+                    
+                    if (Current().Type == Lexer::Token::TokenType::Identifier) {
+                        size_t scanPos = mPosition;
+                        while (scanPos < mTokens.size() && 
+                               (mTokens[scanPos].Type == Lexer::Token::TokenType::Identifier ||
+                                mTokens[scanPos].Type == Lexer::Token::TokenType::ScopeResolution)) {
+                            scanPos++;
+                        }
+                        
+                        if (scanPos < mTokens.size()) {
+                            auto nextT = mTokens[scanPos].Type;
+                            if (nextT == Lexer::Token::TokenType::Handle || 
+                                nextT == Lexer::Token::TokenType::Reference ||
+                                nextT == Lexer::Token::TokenType::Identifier) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
 
                 AST::ASTImport ParseImport() {
                     AST::ASTImport result;
@@ -94,35 +120,53 @@ namespace CE::Scripting::Impl::Parser {
                     AST::ASTFunction func;
                     func.Name = name;
                     func.ReturnType = type;
-
+                    
                     Expect(Lexer::Token::TokenType::OpenParen);
-
+                    
                     // parse parameters
                     while (Current().Type != Lexer::Token::TokenType::CloseParen) {
                         AST::ASTParameter param;
                         param.Type = ParseTypeRef();
                         param.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
                         func.Parameters.push_back(param);
-
+                        
                         if (Current().Type != Lexer::Token::TokenType::CloseParen) {
                             Expect(Lexer::Token::TokenType::Comma);
                         }
                     }
-
+                    
                     Expect(Lexer::Token::TokenType::CloseParen);
                     Expect(Lexer::Token::TokenType::OpenBrace);
-
-                    // parse the function body
+                    
                     std::string body; 
                     int brace_depth = 1;
-
-                    while (brace_depth > 0) {
+                    
+                    while (brace_depth > 0 && Current().Type != Lexer::Token::TokenType::EndOfFile) {
                         if (Current().Type == Lexer::Token::TokenType::OpenBrace) brace_depth++;
                         if (Current().Type == Lexer::Token::TokenType::CloseBrace) brace_depth--;
-
+                        
                         if (brace_depth > 0) {
+                            // check if a variable declaration begins here before appending text
+                            if (IsTypeRefAhead()) {
+                                AST::ASTLocalVariable local;
+                                
+                                // Parse the TypeRef structurally for the metadata vector
+                                size_t start_pos = mPosition;
+                                local.Type = ParseTypeRef();
+                                local.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                                func.LocalVariables.push_back(local);
+                                
+                                // append the tokens we just structurally consumed back into the raw body string
+                                for (size_t i = start_pos; i < mPosition; ++i) {
+                                    body += mTokens[i].Value + " ";
+                                }
+                                continue;
+                            }
+                            
+                            // otherwise, track normal code tokens
                             body += Current().Value + " ";
                         }
+                        
                         Advance();
                     }
                     
@@ -255,7 +299,7 @@ namespace CE::Scripting::Impl::Parser {
                     if (Current().Type == Lexer::Token::TokenType::KeywordNamespace) {
                         auto ns = std::make_shared<AST::ASTNamespace>(ParseNamespace());
 
-                        decl.Kind = AST::ASTDeclaration::Kind::Namespace;
+                        decl.Type = AST::ASTDeclaration::Kind::Namespace;
                         decl.Name = ns->Name;
                         decl.Data = ns;
 
@@ -267,7 +311,7 @@ namespace CE::Scripting::Impl::Parser {
 
                         auto type = ParseType();
 
-                        decl.Kind = AST::ASTDeclaration::Kind::Type;
+                        decl.Type = AST::ASTDeclaration::Kind::Type;
                         decl.Name = type.Name;
                         decl.Data = std::move(type);
 
@@ -280,7 +324,7 @@ namespace CE::Scripting::Impl::Parser {
                     if (Current().Type == Lexer::Token::TokenType::OpenParen) {
                         auto fn = ParseFunction(type, name);
 
-                        decl.Kind = AST::ASTDeclaration::Kind::Function;
+                        decl.Type = AST::ASTDeclaration::Kind::Function;
                         decl.Name = name;
                         decl.Data = std::move(fn);
 
@@ -289,7 +333,7 @@ namespace CE::Scripting::Impl::Parser {
 
                     auto global = ParseGlobal(type, name);
 
-                    decl.Kind = AST::ASTDeclaration::Kind::Global;
+                    decl.Type = AST::ASTDeclaration::Kind::Global;
                     decl.Name = name;
                     decl.Data = std::move(global);
 
