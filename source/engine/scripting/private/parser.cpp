@@ -123,7 +123,6 @@ namespace CE::Scripting::Impl::Parser {
                     
                     Expect(Lexer::Token::TokenType::OpenParen);
                     
-                    // parse parameters
                     while (Current().Type != Lexer::Token::TokenType::CloseParen) {
                         AST::ASTParameter param;
                         param.Type = ParseTypeRef();
@@ -136,44 +135,37 @@ namespace CE::Scripting::Impl::Parser {
                     }
                     
                     Expect(Lexer::Token::TokenType::CloseParen);
+                    
+                    size_t body_start_idx = mPosition; 
                     Expect(Lexer::Token::TokenType::OpenBrace);
                     
-                    std::string body; 
                     int brace_depth = 1;
-                    
                     while (brace_depth > 0 && Current().Type != Lexer::Token::TokenType::EndOfFile) {
+                        if (IsTypeRefAhead()) {
+                            size_t saved_pos = mPosition;
+                            
+                            AST::ASTLocalVariable local;
+                            local.Type = ParseTypeRef();
+                            local.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
+                            func.LocalVariables.push_back(local);
+                            
+                            mPosition = saved_pos; 
+                        }
+                        
                         if (Current().Type == Lexer::Token::TokenType::OpenBrace) brace_depth++;
                         if (Current().Type == Lexer::Token::TokenType::CloseBrace) brace_depth--;
                         
-                        if (brace_depth > 0) {
-                            // check if a variable declaration begins here before appending text
-                            if (IsTypeRefAhead()) {
-                                AST::ASTLocalVariable local;
-                                
-                                // Parse the TypeRef structurally for the metadata vector
-                                size_t start_pos = mPosition;
-                                local.Type = ParseTypeRef();
-                                local.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
-                                func.LocalVariables.push_back(local);
-                                
-                                // append the tokens we just structurally consumed back into the raw body string
-                                for (size_t i = start_pos; i < mPosition; ++i) {
-                                    body += mTokens[i].Value + " ";
-                                }
-                                continue;
-                            }
-                            
-                            // otherwise, track normal code tokens
-                            body += Current().Value + " ";
-                        }
-                        
                         Advance();
+                    }
+
+                    std::string body;
+                    for (size_t i = body_start_idx; i < mPosition; ++i) {
+                        body += mTokens[i].Value + " ";
                     }
                     
                     func.Body = body;
                     return func;
                 }
-
 
                 AST::ASTGlobal ParseGlobal(AST::ASTTypeRef type, std::string name) {
                     AST::ASTGlobal global;
