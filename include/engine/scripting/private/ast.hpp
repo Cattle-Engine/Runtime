@@ -11,6 +11,7 @@
 namespace CE::Scripting::Impl::AST {
     struct ASTImport {
         std::string Module;
+        std::vector<std::string> Path;
         std::optional<std::string> Symbol;
 
         SourceLocation Location;
@@ -72,6 +73,7 @@ namespace CE::Scripting::Impl::AST {
         bool Exported = false;
 
         std::string Name;
+        SourceLocation Location;
         std::string NameSpace;
 
         std::variant<

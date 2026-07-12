@@ -52,22 +52,23 @@ namespace CE::Scripting::Impl::Parser {
                         Current().Type == Lexer::Token::TokenType::KeywordAuto) {
                         return true;
                     }
-                    
-                    if (Current().Type == Lexer::Token::TokenType::Identifier) {
-                        size_t scanPos = mPosition;
-                        while (scanPos < mTokens.size() && 
-                               (mTokens[scanPos].Type == Lexer::Token::TokenType::Identifier ||
-                                mTokens[scanPos].Type == Lexer::Token::TokenType::ScopeResolution)) {
-                            scanPos++;
-                        }
-                        
-                        if (scanPos < mTokens.size()) {
-                            auto nextT = mTokens[scanPos].Type;
-                            if (nextT == Lexer::Token::TokenType::Handle || 
-                                nextT == Lexer::Token::TokenType::Reference ||
-                                nextT == Lexer::Token::TokenType::Identifier) {
-                                return true;
-                            }
+                    if (Current().Type != Lexer::Token::TokenType::Identifier) {
+                        return false;
+                    }
+
+                    size_t scanPos = mPosition + 1; // first identifier already consumed
+                    while (scanPos + 1 < mTokens.size() &&
+                        mTokens[scanPos].Type == Lexer::Token::TokenType::ScopeResolution &&
+                        mTokens[scanPos + 1].Type == Lexer::Token::TokenType::Identifier) {
+                        scanPos += 2;
+                    }
+
+                    if (scanPos < mTokens.size()) {
+                        auto nextT = mTokens[scanPos].Type;
+                        if (nextT == Lexer::Token::TokenType::Handle ||
+                            nextT == Lexer::Token::TokenType::Reference ||
+                            nextT == Lexer::Token::TokenType::Identifier) {
+                            return true;
                         }
                     }
                     return false;
@@ -83,10 +84,11 @@ namespace CE::Scripting::Impl::Parser {
                     std::vector<std::string> parts;
 
                     while (Current().Type == Lexer::Token::TokenType::Identifier) {
+                        result.Path.push_back(Current().Value);
                         parts.push_back(Current().Value);
                         Advance();
 
-                        if (Current().Value != "::") {
+                        if (Current().Type != Lexer::Token::TokenType::ScopeResolution) {
                             break;
                         }
 
@@ -268,18 +270,23 @@ namespace CE::Scripting::Impl::Parser {
 
                 AST::ASTNamespace ParseNamespace() {
                     AST::ASTNamespace ns;
-                    
+
                     Expect(Lexer::Token::TokenType::KeywordNamespace);
                     ns.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
                     Expect(Lexer::Token::TokenType::OpenBrace);
-                    
-                    while (Current().Type != Lexer::Token::TokenType::CloseBrace && 
+
+                    while (Current().Type != Lexer::Token::TokenType::CloseBrace &&
                         Current().Type != Lexer::Token::TokenType::EndOfFile) {
-                        ns.Declarations.push_back(ParseDeclaration());
+                        AST::ASTDeclaration decl = ParseDeclaration();
+
+                        decl.NameSpace = decl.NameSpace.empty()
+                            ? ns.Name
+                            : ns.Name + "::" + decl.NameSpace;
+
+                        ns.Declarations.push_back(std::move(decl));
                     }
-                    
+
                     Expect(Lexer::Token::TokenType::CloseBrace);
-                    
                     return ns;
                 }
 
@@ -287,6 +294,7 @@ namespace CE::Scripting::Impl::Parser {
                     AST::ASTDeclaration decl;
 
                     decl.Exported = Match(Lexer::Token::TokenType::KeywordExport);
+                    decl.Location = Current().Location;
 
                     if (Current().Type == Lexer::Token::TokenType::KeywordNamespace) {
                         auto ns = std::make_shared<AST::ASTNamespace>(ParseNamespace());

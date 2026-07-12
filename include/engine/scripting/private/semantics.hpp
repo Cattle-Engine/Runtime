@@ -6,6 +6,27 @@
 #include "engine/scripting/private/ast.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
+    struct Symbol {
+        AST::ASTDeclaration::Kind Kind;
+        std::string QualifiedName;// eg: "Foo::Test"
+        std::string InternalName; // the mangled symbol
+        std::string SourceModule; // source module 
+        SourceLocation Location;
+        bool Exported = false;
+    };
+
+    class SymbolTable {
+        public:
+            // returns false if a colliding symbol already exists 
+            bool Declare(Symbol symbol);
+
+            const Symbol* Find(const std::string& qualified_name) const;
+            std::vector<const Symbol*> FindOverloads(const std::string& qualified_name) const;
+
+        private:
+            std::unordered_map<std::string, std::vector<Symbol>> mSymbols;
+    };
+    
     class SymanticAnalyser {
         public:
             /**
@@ -22,10 +43,7 @@ namespace CE::Scripting::Impl::Semantics {
              *
              * @return Does not return anything but throws CE::Scripting::Impl::Exceptions::SemanticError if an error happened 
             */
-            void AddModule(AST::ASTModule& module, const std::string module_path);
-            
-            // Get the mono script for compilation to bytecode
-            std::string GetMonoscript() const;
+            void CheckModule(AST::ASTModule& module, const std::string module_path);
         private:
             struct ExportInfo {
               std::string OriginalName = "";

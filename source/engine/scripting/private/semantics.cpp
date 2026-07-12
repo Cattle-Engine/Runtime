@@ -9,11 +9,32 @@ namespace {
 }
 
 namespace CE::Scripting::Impl::Semantics {
+    bool SymbolTable::Declare(Symbol symbol) {
+        auto& bucket = mSymbols[symbol.QualifiedName];
+
+        if (symbol.Kind != AST::ASTDeclaration::Kind::Function) {
+            if (!bucket.empty()) {
+                return false; // globals/types/namespaces can't collide at all
+            }
+            bucket.push_back(std::move(symbol));
+            return true;
+        }
+
+        // functions, collide only if InternalName matches (same signature)
+        for (const auto& existing : bucket) {
+            if (existing.InternalName == symbol.InternalName) {
+                return false;
+            }
+        }
+        bucket.push_back(std::move(symbol));
+        return true;
+    }
+
     SymanticAnalyser::SymanticAnalyser(VFS::VFS& vfs) :
         mVFS(vfs) {}
         
-        void SymanticAnalyser::AddModule(AST::ASTModule& module, const std::string module_path) {
-            
+        void SymanticAnalyser::CheckModule(AST::ASTModule& module, const std::string module_path) {
+            std::string module_hash = Utils::Hash2String(AST::HashModule(module));
         }
         
         std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) {
@@ -23,7 +44,11 @@ namespace CE::Scripting::Impl::Semantics {
             
             // add parameter types
             for (const auto& param : func.Parameters) {
-                signature += "_" + param.Type.Name;
+                signature += "_" + param.Type.Name
+                        + (param.Type.IsConst ? "C" : "")
+                        + (param.Type.IsHandle ? "H" : "")
+                        + (param.Type.IsReference ? "R" : "")
+                        + std::to_string(param.Type.ArrayDepth);
             }
             
             return Utils::Hash2String(Utils::Hash64(signature));
