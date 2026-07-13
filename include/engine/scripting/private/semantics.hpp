@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/scripting/private/ast.hpp"
@@ -37,7 +39,7 @@ namespace CE::Scripting::Impl::Semantics {
             SymanticAnalyser(VFS::VFS& vfs);
                 
             /**
-             * @brief Analyses a module for semantic errors and adds the mono script if no errors
+             * @brief Analyses a module for semantic errors and adds to the mono script if no errors
              *
              * @param module The module to analyse and add
              *
@@ -52,8 +54,17 @@ namespace CE::Scripting::Impl::Semantics {
               std::string Namespace = "";
               std::string Modulepath;
             };
+            
             VFS::VFS& mVFS;
-
+            SymbolTable mSymbols;
+            std::unordered_map<std::string, std::vector<ExportInfo>> mModuleExports;
+            std::unordered_map<std::string, bool> mAnalyzedModules; // false = in-progres, true = done
+            
+            
+            void VisitDeclaration(AST::ASTDeclaration& decl, const std::string& enclosing_namespace,
+                                  const std::string& module_hash, const std::string& module_path);
+            AST::ASTModule LoadAndParseModule(const std::string& module_path);
+            
             std::string GenerateInternalName(const AST::ASTDeclaration& decl, const std::string& namespace_path, const std::string& module_hash);
             std::string GenerateSignatureHash(const AST::ASTFunction func);
     };

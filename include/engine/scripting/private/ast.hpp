@@ -13,7 +13,8 @@ namespace CE::Scripting::Impl::AST {
         std::string Module;
         std::vector<std::string> Path;
         std::optional<std::string> Symbol;
-
+        bool Exported = false;
+        
         SourceLocation Location;
     };
 

@@ -10,16 +10,25 @@ namespace CE::Scripting::Impl::Parser {
 
                 AST::ASTModule Parse() {
                     AST::ASTModule script_module;
-
+                    
                     while (Current().Type != Lexer::Token::TokenType::EndOfFile) {
                         if (Current().Type == Lexer::Token::TokenType::KeywordImport) {
                             script_module.Imports.push_back(ParseImport());
                             continue;
-                        } else {
-                            script_module.Declarations.push_back(ParseDeclaration());
                         }
+                        
+                        if (Current().Type == Lexer::Token::TokenType::KeywordExport &&
+                            Peek().Type == Lexer::Token::TokenType::KeywordImport) {
+                            Advance(); // consume 'export'
+                            AST::ASTImport import = ParseImport();
+                        import.Exported = true;
+                        script_module.Imports.push_back(import);
+                        continue;
+                            }
+                            
+                            script_module.Declarations.push_back(ParseDeclaration());
                     }
-
+                    
                     return script_module;
                 }
         private:
@@ -45,6 +54,14 @@ namespace CE::Scripting::Impl::Parser {
                     }
 
                     return mTokens[mPosition++];
+                }
+                
+                const Lexer::Token& Peek(size_t offset = 1) {
+                    size_t idx = mPosition + offset;
+                    if (idx >= mTokens.size()) {
+                        return mTokens.back();
+                    }
+                    return mTokens[idx];
                 }
                 
                 bool IsTypeRefAhead() {
