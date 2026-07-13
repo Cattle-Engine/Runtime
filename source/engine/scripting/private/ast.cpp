@@ -36,8 +36,16 @@ namespace CE::Scripting::Impl::AST {
     void HashParameter(Utils::StreamingHasher& hasher, const ASTParameter& param) {
         HashTypeRef(hasher, param.Type);
         hasher.AddString(param.Name);
+        hasher.AddString(param.Direction);
     }
     
+    void HashTokens(Utils::StreamingHasher& hasher, const std::vector<Lexer::Token>& tokens) {
+        for (const auto& token : tokens) {
+            hasher.AddValue(static_cast<int>(token.Type));
+            hasher.AddString(token.Value);
+        }
+    }
+
     void HashFunction(Utils::StreamingHasher& hasher, const ASTFunction& func) {
         hasher.AddString(func.Name);
         HashTypeRef(hasher, func.ReturnType);
@@ -47,18 +55,18 @@ namespace CE::Scripting::Impl::AST {
             HashParameter(hasher, param);
         }
         // hash the function body
-        hasher.AddString(func.Body);
+        HashTokens(hasher, func.Body);
     }
     
     void HashGlobal(Utils::StreamingHasher& hasher, const ASTGlobal& global) {
         HashTypeRef(hasher, global.Type);
         hasher.AddString(global.Name);
-        hasher.AddString(global.Initializer);
+        HashTokens(hasher, global.Initializer);
     }
     
     void HashType(Utils::StreamingHasher& hasher, const ASTType& type) {
         hasher.AddString(type.Name);
-        hasher.AddString(type.Body);
+        HashTokens(hasher, type.Body);
     }
 
     void HashDeclaration(Utils::StreamingHasher& hasher, const ASTDeclaration& decl) {

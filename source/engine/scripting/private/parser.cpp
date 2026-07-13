@@ -65,6 +65,12 @@ namespace CE::Scripting::Impl::Parser {
                 }
                 
                 bool IsTypeRefAhead() {
+                    // A qualified type is detected at its first component only.
+                    // Without this guard `MyType::Nested value` is recorded twice,
+                    // once as MyType::Nested and again at Nested.
+                    if (mPosition > 0 && mTokens[mPosition - 1].Type == Lexer::Token::TokenType::ScopeResolution) {
+                        return false;
+                    }
                     if (Current().Type == Lexer::Token::TokenType::KeywordConst ||
                         Current().Type == Lexer::Token::TokenType::KeywordAuto) {
                         return true;
@@ -130,6 +136,7 @@ namespace CE::Scripting::Impl::Parser {
                         }
 
                         result.Symbol = parts.back();
+                        result.Path.pop_back();
                     }
 
                     return result;
@@ -145,6 +152,11 @@ namespace CE::Scripting::Impl::Parser {
                     while (Current().Type != Lexer::Token::TokenType::CloseParen) {
                         AST::ASTParameter param;
                         param.Type = ParseTypeRef();
+                        if (Current().Type == Lexer::Token::TokenType::Identifier &&
+                            (Current().Value == "in" || Current().Value == "out" || Current().Value == "inout")) {
+                            param.Direction = Current().Value;
+                            Advance();
+                        }
                         param.Name = Expect(Lexer::Token::TokenType::Identifier).Value;
                         func.Parameters.push_back(param);
                         
@@ -177,12 +189,7 @@ namespace CE::Scripting::Impl::Parser {
                         Advance();
                     }
 
-                    std::string body;
-                    for (size_t i = body_start_idx; i < mPosition; ++i) {
-                        body += mTokens[i].Value + " ";
-                    }
-                    
-                    func.Body = body;
+                    func.Body.assign(mTokens.begin() + body_start_idx, mTokens.begin() + mPosition);
                     return func;
                 }
 
@@ -196,7 +203,7 @@ namespace CE::Scripting::Impl::Parser {
                     if (Current().Type == Lexer::Token::TokenType::Assignment) {
                         Advance(); // consume the = 
 
-                        std::string initializer;
+                        std::vector<Lexer::Token> initializer;
                         int paren_count = 0;
 
                         // parse the initializer until ';'
@@ -205,7 +212,7 @@ namespace CE::Scripting::Impl::Parser {
                                 if (Current().Type == Lexer::Token::TokenType::OpenParen) paren_count++;
                                 if (Current().Type == Lexer::Token::TokenType::CloseParen) paren_count--;
                                 
-                                initializer += Current().Value + " ";
+                                initializer.push_back(Current());
                                 Advance();
                             }
                             
@@ -226,7 +233,7 @@ namespace CE::Scripting::Impl::Parser {
                     Expect(Lexer::Token::TokenType::OpenBrace);
 
                     // parse the body
-                    std::string body;
+                    std::vector<Lexer::Token> body;
                     int brace_depth = 1;
 
                     while (brace_depth > 0) {
@@ -234,13 +241,14 @@ namespace CE::Scripting::Impl::Parser {
                         if (Current().Type == Lexer::Token::TokenType::CloseBrace) brace_depth--;
 
                         if (brace_depth > 0) {
-                            body += Current().Value + " ";
+                            body.push_back(Current());
                         }
 
                         Advance();
                     }
 
                     type.Body = body;
+                    Match(Lexer::Token::TokenType::Semicolon);
                     return type;
                 }
 

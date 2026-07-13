@@ -1,3 +1,4 @@
+#include <memory>
 #include <xxhash.h>
 #include <sstream>
 #include <iomanip>
@@ -13,13 +14,13 @@ namespace CE::Utils {
     
     // Streaming hasher functions
     StreamingHasher::StreamingHasher() {
-        mImpl = new Impl;
+        mImpl = std::make_unique<Impl>();
         mImpl->mState = XXH3_createState();
+        XXH3_64bits_reset(mImpl->mState);
     }
     
     StreamingHasher::~StreamingHasher() {
         XXH3_freeState(mImpl->mState);
-        delete mImpl;
     }
     
     void StreamingHasher::AddData(const void* data, size_t size) {
@@ -30,10 +31,6 @@ namespace CE::Utils {
         uint32_t len = s.size();
         AddData(&len, sizeof(len));
         AddData(s.data(), s.size());
-    }
-    
-    void StreamingHasher::AddValue(auto&& value) {
-        AddData(&value, sizeof(value));
     }
     
     uint64_t StreamingHasher::Finalize() {

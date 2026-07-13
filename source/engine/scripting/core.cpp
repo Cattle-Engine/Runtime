@@ -1,6 +1,7 @@
 #include "engine/scripting/angelscript.hpp"
 
 #include "engine/common/tracelog.hpp"
+#include "engine/scripting/private/modules.hpp"
 
 #include <format>
 #include <scriptarray/scriptarray.h>
@@ -135,8 +136,18 @@ namespace CE::Scripting {
             return Fail("Failed to create AngelScript module");
         }
 
-        std::string code =
-            Utils::LoadScript(mVFS, mGameInfo.startupFileName.c_str());
+        std::string code;
+        std::string mainEntrypoint;
+        std::string updateEntrypoint;
+        try {
+            Impl::ModuleImporter importer(mVFS);
+            code = importer.LoadFile(mGameInfo.startupFileName);
+            mainEntrypoint = importer.GetGeneratedEntrypoint("main");
+            updateEntrypoint = importer.GetGeneratedEntrypoint("update");
+        } catch (const std::exception& error) {
+            return Fail(std::format("Failed to prepare AngelScript startup file '{}': {}",
+                                    mGameInfo.startupFileName, error.what()));
+        }
 
         if (code.empty()) {
             return Fail(std::format("Failed to load AngelScript startup file '{}'", mGameInfo.startupFileName));
@@ -154,8 +165,9 @@ namespace CE::Scripting {
             return Fail("Failed to build AngelScript module");
         }
 
-        asIScriptFunction* func =
-            mScriptModule->GetFunctionByDecl("void main()");
+        asIScriptFunction* func = mainEntrypoint.empty()
+            ? nullptr
+            : mScriptModule->GetFunctionByName(mainEntrypoint.c_str());
 
         if (!func) {
             return Fail("AngelScript entrypoint 'void main()' was not found");
@@ -175,7 +187,9 @@ namespace CE::Scripting {
         }
 
         ctx->Release();
-        mUpdateFunc = mScriptModule->GetFunctionByDecl("void update()");
+        mUpdateFunc = updateEntrypoint.empty()
+            ? nullptr
+            : mScriptModule->GetFunctionByName(updateEntrypoint.c_str());
         if (mUpdateFunc == nullptr) {
             CE_LOG(CE::LogLevel::Warn, "[AngelScript] No 'void update()' function found");
             return true;

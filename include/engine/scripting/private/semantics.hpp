@@ -46,6 +46,13 @@ namespace CE::Scripting::Impl::Semantics {
              * @return Does not return anything but throws CE::Scripting::Impl::Exceptions::SemanticError if an error happened 
             */
             void CheckModule(AST::ASTModule& module, const std::string module_path);
+
+            const Symbol* FindSymbol(const std::string& qualified_name,
+                                     const std::string& module_path = "") const;
+            const Symbol* ResolveSymbol(const std::string& module_path,
+                                        const std::string& qualified_name) const;
+            const std::vector<std::string>& GetEmissionOrder() const { return mEmissionOrder; }
+            const std::unordered_map<std::string, AST::ASTModule>& GetParsedModules() const { return mParsedModules; }
         private:
             struct ExportInfo {
               std::string OriginalName = "";
@@ -56,9 +63,13 @@ namespace CE::Scripting::Impl::Semantics {
             };
             
             VFS::VFS& mVFS;
-            SymbolTable mSymbols;
+            // Each module owns its private declarations. Cross-module visibility is
+            // controlled exclusively by mModuleExports.
+            std::unordered_map<std::string, SymbolTable> mModuleSymbols;
             std::unordered_map<std::string, std::vector<ExportInfo>> mModuleExports;
             std::unordered_map<std::string, bool> mAnalyzedModules; // false = in-progres, true = done
+            std::unordered_map<std::string, AST::ASTModule> mParsedModules;
+            std::vector<std::string> mEmissionOrder;
             
             
             void VisitDeclaration(AST::ASTDeclaration& decl, const std::string& enclosing_namespace,

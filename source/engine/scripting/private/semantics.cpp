@@ -71,7 +71,8 @@ namespace CE::Scripting::Impl::Semantics {
             + (param.Type.IsConst ? "C" : "")
             + (param.Type.IsHandle ? "H" : "")
             + (param.Type.IsReference ? "R" : "")
-            + std::to_string(param.Type.ArrayDepth);
+            + std::to_string(param.Type.ArrayDepth)
+            + param.Direction;
         }
         
         return Utils::Hash2String(Utils::Hash64(signature));
@@ -154,7 +155,7 @@ namespace CE::Scripting::Impl::Semantics {
             decl.Exported
         };
         
-        if (!mSymbols.Declare(symbol)) {
+        if (!mModuleSymbols[module_path].Declare(symbol)) {
             throw Exceptions::SemanticError(
                 "Redeclaration of '" + qualified_name + "'"
                 + (decl.Type == AST::ASTDeclaration::Kind::Function ? " with an identical parameter signature" : ""),
@@ -169,8 +170,6 @@ namespace CE::Scripting::Impl::Semantics {
     }
                                             
     void SymanticAnalyser::CheckModule(AST::ASTModule& module, const std::string module_path) {
-        std::string module_hash = Utils::Hash2String(AST::HashModule(module));
-        
         auto state = mAnalyzedModules.find(module_path);
         if (state != mAnalyzedModules.end()) {
             if (!state->second) {
@@ -179,6 +178,9 @@ namespace CE::Scripting::Impl::Semantics {
             return; // already fully analysed
         }
         mAnalyzedModules[module_path] = false; // mark in-progress
+        mParsedModules[module_path] = module;
+
+        std::string module_hash = Utils::Hash2String(AST::HashModule(module));
         
         for (const auto& import : module.Imports) {
             std::string imported_path = Common::Import2Path(import, mVFS);
@@ -223,6 +225,7 @@ namespace CE::Scripting::Impl::Semantics {
             VisitDeclaration(decl, /*enclosing_namespace=*/"", module_hash, module_path);
         }
         
+        mEmissionOrder.push_back(module_path);
         mAnalyzedModules[module_path] = true; // done
     }
                                             
@@ -230,5 +233,57 @@ namespace CE::Scripting::Impl::Semantics {
         std::string source = Common::GetScriptFromVFS(module_path, mVFS);
         auto tokens = Lexer::Lex(source, module_path);
         return Parser::ParseLexerOutput(tokens);
+    }
+
+    const Symbol* SymanticAnalyser::FindSymbol(const std::string& qualified_name,
+                                                const std::string& module_path) const {
+        if (!module_path.empty()) {
+            auto module = mModuleSymbols.find(module_path);
+            return module == mModuleSymbols.end() ? nullptr : module->second.Find(qualified_name);
+        }
+
+        for (const auto& path : mEmissionOrder) {
+            auto module = mModuleSymbols.find(path);
+            if (module != mModuleSymbols.end()) {
+                if (const Symbol* symbol = module->second.Find(qualified_name)) {
+                    return symbol;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    const Symbol* SymanticAnalyser::ResolveSymbol(const std::string& module_path,
+                                                   const std::string& qualified_name) const {
+        if (const Symbol* local = FindSymbol(qualified_name, module_path)) {
+            return local;
+        }
+
+        auto parsed = mParsedModules.find(module_path);
+        if (parsed == mParsedModules.end()) {
+            return nullptr;
+        }
+
+        for (const auto& import : parsed->second.Imports) {
+            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
+            auto exports = mModuleExports.find(imported_path);
+            if (exports == mModuleExports.end()) {
+                continue;
+            }
+            for (const ExportInfo& export_info : exports->second) {
+                if (import.Symbol && export_info.OriginalName != *import.Symbol) {
+                    continue;
+                }
+                const std::string exported_name = export_info.Namespace.empty()
+                    ? export_info.OriginalName
+                    : export_info.Namespace + "::" + export_info.OriginalName;
+                if (qualified_name == exported_name || qualified_name == export_info.OriginalName) {
+                    if (const Symbol* symbol = FindSymbol(exported_name, export_info.Modulepath)) {
+                        return symbol;
+                    }
+                }
+            }
+        }
+        return nullptr;
     }
 }

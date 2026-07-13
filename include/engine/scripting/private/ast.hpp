@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "engine/scripting/private/modules.hpp"
+#include "engine/scripting/private/lexer.hpp"
 
 namespace CE::Scripting::Impl::AST {
     struct ASTImport {
@@ -31,6 +32,8 @@ namespace CE::Scripting::Impl::AST {
     struct ASTParameter {
         ASTTypeRef Type;
         std::string Name;
+        // AngelScript parameter direction: in, out, or inout.
+        std::string Direction;
     };
     
     struct ASTLocalVariable {
@@ -43,7 +46,7 @@ namespace CE::Scripting::Impl::AST {
         ASTTypeRef ReturnType;
         
         std::vector<ASTParameter> Parameters;
-        std::string Body;
+        std::vector<Lexer::Token> Body;
         std::vector<ASTLocalVariable> LocalVariables; // Exactly what you need
     };
 
@@ -51,13 +54,13 @@ namespace CE::Scripting::Impl::AST {
         ASTTypeRef Type;
         std::string Name;
 
-        std::string Initializer;
+        std::vector<Lexer::Token> Initializer;
     };
 
     struct ASTType {
         std::string Name;
 
-        std::string Body;
+        std::vector<Lexer::Token> Body;
     };
 
     struct ASTNamespace;

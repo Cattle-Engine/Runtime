@@ -264,7 +264,9 @@ namespace CE::Scripting::Impl::Lexer {
                 Token token;
                 token.Location = tokenLocation;
                 token.Type = (quoteChar == '"') ? Token::TokenType::String : Token::TokenType::Symbol;
-                token.Value = value;
+                token.Value = isHeredoc
+                    ? "\"\"\"" + value + "\"\"\""
+                    : std::string(1, quoteChar) + value + std::string(1, quoteChar);
                 tokens.push_back(token);
                 continue;
             }

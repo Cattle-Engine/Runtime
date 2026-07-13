@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "engine/common/fs/vfs.hpp"
@@ -68,10 +69,12 @@ namespace CE::Scripting::Impl {
              */ 
             std::string LoadFile(const std::string& filepath);
             ModuleInfo LoadModule(const std::string& name);
+            std::string GetGeneratedEntrypoint(const std::string& source_name) const;
         private:
             std::string GenerateCombinedScripts();
 
             VFS::VFS& mVFS;
             std::vector<std::string> mLoadModules;
+            std::unordered_map<std::string, std::string> mEntrypoints;
     };
 }
