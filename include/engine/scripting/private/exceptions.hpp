@@ -8,7 +8,7 @@
 #include "engine/scripting/private/modules.hpp"
 
 namespace CE::Scripting::Impl::Exceptions {
-    class LexerError : std::exception {
+    class LexerError : public std::exception {
         public:
             LexerError(std::string message, SourceLocation location)
                 : mMessage(std::move(message)),
@@ -26,7 +26,7 @@ namespace CE::Scripting::Impl::Exceptions {
             std::string mWhat;
     };
 
-    class ParserError : std::exception {
+    class ParserError : public std::exception {
         public:
             ParserError(std::string message, SourceLocation location)
                 : mMessage(std::move(message)),
@@ -44,7 +44,7 @@ namespace CE::Scripting::Impl::Exceptions {
             std::string mWhat;
     };
     
-    class SemanticError : std::exception {
+    class SemanticError : public std::exception {
     public:
         SemanticError(std::string message, SourceLocation location)
         : mMessage(std::move(message)),

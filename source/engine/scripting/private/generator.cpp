@@ -80,8 +80,11 @@ namespace CE::Scripting::Impl::Codegen {
             }
             const std::string scoped = candidate.find("::") == std::string::npos && !name_space.empty()
                 ? name_space + "::" + candidate : candidate;
-            const auto* symbol = mAnalyser.ResolveSymbol(module_path, scoped);
-            if (!symbol && scoped != candidate) symbol = mAnalyser.ResolveSymbol(module_path, candidate);
+                
+                const auto* symbol = mAnalyser.ResolveSymbol(module_path, candidate);
+                if (!symbol && scoped != candidate)
+                    symbol = mAnalyser.ResolveSymbol(module_path, scoped);
+                
             if (symbol && symbol->Kind != AST::ASTDeclaration::Kind::Namespace) {
                 token.Value = symbol->InternalName;
                 result.push_back(std::move(token));

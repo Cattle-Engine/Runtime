@@ -15,6 +15,7 @@ namespace CE::Scripting::Impl::Lexer {
             KeywordStruct, // struct
             KeywordConst, // const
             KeywordAuto, // auto
+            KeywordUsing, // used for: using module::symbol
 
             OpenBracket, // [
             CloseBracket, // ]

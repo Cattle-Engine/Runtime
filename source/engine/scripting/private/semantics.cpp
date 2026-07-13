@@ -175,15 +175,20 @@ namespace CE::Scripting::Impl::Semantics {
             if (!state->second) {
                 throw Exceptions::SemanticError("Circular import detected involving module '" + module_path + "'", {});
             }
-            return; // already fully analysed
+            return; // already analysed
         }
-        mAnalyzedModules[module_path] = false; // mark in-progress
+        mAnalyzedModules[module_path] = false;
         mParsedModules[module_path] = module;
-
-        std::string module_hash = Utils::Hash2String(AST::HashModule(module));
         
-        for (const auto& import : module.Imports) {
+        std::string module_hash = Utils::Hash2String(AST::HashModule(module));
+
+        for (auto& import : module.Imports) {
             std::string imported_path = Common::Import2Path(import, mVFS);
+            
+            // check if this is a file import (symbol present and path exists)
+            if (import.Symbol.has_value() && !imported_path.empty() && mVFS.FileExists(imported_path.c_str())) {
+                import.IsFileImport = true;
+            }
             
             if (!mAnalyzedModules.count(imported_path)) {
                 AST::ASTModule imported = LoadAndParseModule(imported_path);
@@ -196,37 +201,66 @@ namespace CE::Scripting::Impl::Semantics {
             
             const auto& imported_exports = mModuleExports[imported_path];
             
-            if (import.Symbol.has_value()) {
-                auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
-                                            [&](const ExportInfo& e) { return e.OriginalName == *import.Symbol; });
-                
-                if (match == imported_exports.end()) {
-                    throw Exceptions::SemanticError(
-                        "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + "'",
-                        import.Location);
+            if (import.IsUsing) {
+                // using: bring symbols into scope )
+                if (import.IsFileImport) {
+                    // using tests::testing; (testing is a file  bring all exports from that file
+                    for (const auto& exp : imported_exports) {
+                        mModuleUsing[module_path].push_back(exp);
+                    }
+                } else if (import.Symbol.has_value()) {
+                    // using module::symbol;
+                    auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
+                                                [&](const ExportInfo& e) { return e.OriginalName == *import.Symbol; });
+                    if (match == imported_exports.end()) {
+                        throw Exceptions::SemanticError(
+                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + "'",
+                            import.Location);
+                    }
+                    mModuleUsing[module_path].push_back(*match);
+                } else {
+                    // using module; bring all exports
+                    for (const auto& exp : imported_exports) {
+                        mModuleUsing[module_path].push_back(exp);
+                    }
                 }
-                
-                // transient import: "export import foo::bar;" - re-export the
-                // single matched symbol so modules importing *this* module can
-                // see it too, without needing to know about 'foo' at all
-                if (import.Exported) {
-                    mModuleExports[module_path].push_back(*match);
-                }
-            } else if (import.Exported) {
-                // transient import: "export import foo;" with no specific symbol -
-                // re-export everything 'foo' exports under this module as well
-                for (const auto& exp : imported_exports) {
-                    mModuleExports[module_path].push_back(exp);
+            } else {
+                // import: can export if marked
+                if (import.IsFileImport) {
+                    // import tests::foo; (foo is a file)  treat like whole-module import
+                    if (import.Exported) {
+                        for (const auto& exp : imported_exports) {
+                            mModuleExports[module_path].push_back(exp);
+                        }
+                    }
+                    // no symbol lookup; we just let the import exist for resolution
+                } else if (import.Symbol.has_value()) {
+                    // import module::symbol;
+                    auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
+                                                [&](const ExportInfo& e) { return e.OriginalName == *import.Symbol; });
+                    if (match == imported_exports.end()) {
+                        throw Exceptions::SemanticError(
+                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + "'",
+                            import.Location);
+                    }
+                    if (import.Exported) {
+                        mModuleExports[module_path].push_back(*match);
+                    }
+                } else if (import.Exported) {
+                    // export import module;
+                    for (const auto& exp : imported_exports) {
+                        mModuleExports[module_path].push_back(exp);
+                    }
                 }
             }
         }
         
         for (auto& decl : module.Declarations) {
-            VisitDeclaration(decl, /*enclosing_namespace=*/"", module_hash, module_path);
+            VisitDeclaration(decl, "", module_hash, module_path);
         }
         
         mEmissionOrder.push_back(module_path);
-        mAnalyzedModules[module_path] = true; // done
+        mAnalyzedModules[module_path] = true;
     }
                                             
     AST::ASTModule SymanticAnalyser::LoadAndParseModule(const std::string& module_path) {
@@ -254,36 +288,72 @@ namespace CE::Scripting::Impl::Semantics {
     }
 
     const Symbol* SymanticAnalyser::ResolveSymbol(const std::string& module_path,
-                                                   const std::string& qualified_name) const {
+        const std::string& qualified_name) const {
+        // first check local symbols
         if (const Symbol* local = FindSymbol(qualified_name, module_path)) {
             return local;
         }
-
-        auto parsed = mParsedModules.find(module_path);
-        if (parsed == mParsedModules.end()) {
-            return nullptr;
-        }
-
-        for (const auto& import : parsed->second.Imports) {
-            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
-            auto exports = mModuleExports.find(imported_path);
-            if (exports == mModuleExports.end()) {
-                continue;
-            }
-            for (const ExportInfo& export_info : exports->second) {
-                if (import.Symbol && export_info.OriginalName != *import.Symbol) {
-                    continue;
-                }
+        
+        // check symbols brought in via 'using'
+        auto using_it = mModuleUsing.find(module_path);
+        if (using_it != mModuleUsing.end()) {
+            for (const auto& export_info : using_it->second) {
                 const std::string exported_name = export_info.Namespace.empty()
-                    ? export_info.OriginalName
-                    : export_info.Namespace + "::" + export_info.OriginalName;
+                ? export_info.OriginalName
+                : export_info.Namespace + "::" + export_info.OriginalName;
                 if (qualified_name == exported_name || qualified_name == export_info.OriginalName) {
+                    if (const Symbol* symbol = FindSymbol(export_info.OriginalName, export_info.Modulepath)) {
+                        return symbol;
+                    }
                     if (const Symbol* symbol = FindSymbol(exported_name, export_info.Modulepath)) {
                         return symbol;
                     }
                 }
             }
         }
+        
+        // then check imports
+        auto parsed = mParsedModules.find(module_path);
+        if (parsed == mParsedModules.end()) {
+            return nullptr;
+        }
+        
+        for (const auto& import : parsed->second.Imports) {
+            if (import.IsUsing) continue; // already handled
+            
+            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
+            auto exports = mModuleExports.find(imported_path);
+            if (exports == mModuleExports.end()) {
+                continue;
+            }
+            
+            for (const ExportInfo& export_info : exports->second) {
+
+                if (!import.IsFileImport && import.Symbol && export_info.OriginalName != *import.Symbol) {
+                    continue;
+                }
+                
+                const std::string exported_name = export_info.Namespace.empty()
+                ? export_info.OriginalName
+                : export_info.Namespace + "::" + export_info.OriginalName;
+                
+                const std::string module_qualified_name =
+                import.Module + "::" + export_info.OriginalName;
+                
+                if (qualified_name == exported_name ||
+                    qualified_name == export_info.OriginalName ||
+                    qualified_name == module_qualified_name) {
+                    
+                    if (const Symbol* symbol = FindSymbol(export_info.OriginalName, export_info.Modulepath)) {
+                        return symbol;
+                    }
+                    if (const Symbol* symbol = FindSymbol(exported_name, export_info.Modulepath)) {
+                        return symbol;
+                    }
+                    }
+            }
+        }
+        
         return nullptr;
     }
 }

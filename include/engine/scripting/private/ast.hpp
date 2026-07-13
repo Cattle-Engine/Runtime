@@ -15,6 +15,8 @@ namespace CE::Scripting::Impl::AST {
         std::vector<std::string> Path;
         std::optional<std::string> Symbol;
         bool Exported = false;
+        bool IsUsing = false;
+        bool IsFileImport = false;
         
         SourceLocation Location;
     };

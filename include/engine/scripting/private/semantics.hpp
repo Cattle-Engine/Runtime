@@ -70,7 +70,7 @@ namespace CE::Scripting::Impl::Semantics {
             std::unordered_map<std::string, bool> mAnalyzedModules; // false = in-progres, true = done
             std::unordered_map<std::string, AST::ASTModule> mParsedModules;
             std::vector<std::string> mEmissionOrder;
-            
+            std::unordered_map<std::string, std::vector<ExportInfo>> mModuleUsing;
             
             void VisitDeclaration(AST::ASTDeclaration& decl, const std::string& enclosing_namespace,
                                   const std::string& module_hash, const std::string& module_path);

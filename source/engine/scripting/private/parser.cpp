@@ -12,7 +12,8 @@ namespace CE::Scripting::Impl::Parser {
                     AST::ASTModule script_module;
                     
                     while (Current().Type != Lexer::Token::TokenType::EndOfFile) {
-                        if (Current().Type == Lexer::Token::TokenType::KeywordImport) {
+                        if (Current().Type == Lexer::Token::TokenType::KeywordImport || Current().Type == 
+                            Lexer::Token::TokenType::KeywordUsing) {
                             script_module.Imports.push_back(ParseImport());
                             continue;
                         }
@@ -99,46 +100,48 @@ namespace CE::Scripting::Impl::Parser {
 
                 AST::ASTImport ParseImport() {
                     AST::ASTImport result;
-
                     result.Location = Current().Location;
-
-                    Expect(Lexer::Token::TokenType::KeywordImport);
-
-                    std::vector<std::string> parts;
-
-                    while (Current().Type == Lexer::Token::TokenType::Identifier) {
+                    
+                    // consume either 'import' or 'using'
+                    if (Current().Type != Lexer::Token::TokenType::KeywordImport && 
+                        Current().Type != Lexer::Token::TokenType::KeywordUsing) {
+                        throw Exceptions::ParserError("Expected 'import' or 'using'", Current().Location);
+                        }
+                        
+                        // store whether this is 'using' vs 'import'
+                        result.IsUsing = (Current().Type == Lexer::Token::TokenType::KeywordUsing);
+                    Advance();
+                    
+                    // parse the first identifier
+                    if (Current().Type != Lexer::Token::TokenType::Identifier) {
+                        throw Exceptions::ParserError("Expected identifier", Current().Location);
+                    }
+                    
+                    std::string first_part = Current().Value;
+                    Advance();
+                    
+                    // check if we have a scope resolution (::)
+                    if (Current().Type == Lexer::Token::TokenType::ScopeResolution) {
+                        Advance(); // consume ::
+                        
+                        // we have module::symbol
+                        if (Current().Type != Lexer::Token::TokenType::Identifier) {
+                            throw Exceptions::ParserError("Expected symbol name after '::'", Current().Location);
+                        }
+                        
+                        result.Module = first_part;
+                        result.Symbol = Current().Value;
+                        result.Path.push_back(first_part); // keep path for compatibility
                         result.Path.push_back(Current().Value);
-                        parts.push_back(Current().Value);
                         Advance();
-
-                        if (Current().Type != Lexer::Token::TokenType::ScopeResolution) {
-                            break;
-                        }
-
-                        Advance();
-                    }
-
-                    Expect(Lexer::Token::TokenType::Semicolon);
-
-                    if (parts.empty()) {
-                        throw Exceptions::ParserError("Expected import path", Current().Location);
-                    }
-
-                    if (parts.size() == 1) {
-                        result.Module = parts[0];
                     } else {
-                        for (size_t i = 0; i < parts.size() - 1; i++) {
-                            if (!result.Module.empty()) {
-                                result.Module += "::";
-                            }
-
-                            result.Module += parts[i];
-                        }
-
-                        result.Symbol = parts.back();
-                        result.Path.pop_back();
+                        // we just have a module/file import
+                        result.Module = first_part;
+                        result.Path.push_back(first_part);
+                        // result.Symbol remains nullopt)
                     }
-
+                    
+                    Expect(Lexer::Token::TokenType::Semicolon);
                     return result;
                 }
 

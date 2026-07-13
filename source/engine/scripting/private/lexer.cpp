@@ -94,11 +94,13 @@ namespace CE::Scripting::Impl::Lexer {
                     token.Type = Token::TokenType::KeywordStruct;
                 } else if (value == "const"){
                     token.Type = Token::TokenType::KeywordConst;
-                }else if (value == "auto") {
+                } else if (value == "auto") {
                     token.Type = Token::TokenType::KeywordAuto;
+                } else if (value == "using"){
+                    token.Type = Token::TokenType::KeywordUsing;
                 } else {
                     token.Type = Token::TokenType::Identifier;
-                }
+                }  
 
                 token.Value = value;
                 tokens.push_back(token);

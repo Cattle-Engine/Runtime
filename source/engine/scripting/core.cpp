@@ -1,5 +1,6 @@
 #include "engine/scripting/angelscript.hpp"
 
+#include "engine/scripting/private/exceptions.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/scripting/private/modules.hpp"
 
@@ -144,9 +145,14 @@ namespace CE::Scripting {
             code = importer.LoadFile(mGameInfo.startupFileName);
             mainEntrypoint = importer.GetGeneratedEntrypoint("main");
             updateEntrypoint = importer.GetGeneratedEntrypoint("update");
-        } catch (const std::exception& error) {
-            return Fail(std::format("Failed to prepare AngelScript startup file '{}': {}",
-                                    mGameInfo.startupFileName, error.what()));
+        } catch (const Impl::Exceptions::LexerError& error) {
+            return Fail(std::format("(Lexer Error) Failed to prepare AngelScript startup file '{}': {}",mGameInfo.startupFileName, error.what()));
+        }
+        catch (const Impl::Exceptions::SemanticError& error) {
+            return Fail(std::format("(Semantic Error) Failed to prepare AngelScript startup file '{}': {}",mGameInfo.startupFileName, error.what()));
+        }
+        catch (const Impl::Exceptions::ParserError& error) {
+            return Fail(std::format("(Parser Error) Failed to prepare AngelScript startup file '{}': {}",mGameInfo.startupFileName, error.what()));
         }
 
         if (code.empty()) {
@@ -156,6 +162,7 @@ namespace CE::Scripting {
         CE_LOG(CE::LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
 
         int r = mScriptModule->AddScriptSection("startup", code.c_str());
+        
         if (r < 0) {
             return Fail("Failed to add AngelScript startup script section");
         }

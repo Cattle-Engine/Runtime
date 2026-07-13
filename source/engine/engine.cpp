@@ -167,5 +167,6 @@ namespace CE {
         
         Renderer::DestroyGPUDevice(mGPUHandle);
         mGPUHandle.reset();
+        SDL_Quit();
     }
 }

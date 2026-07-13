@@ -63,7 +63,7 @@ namespace CE::Scripting {
     }
 
     void Runtime::DrawText(const std::string& text, int x, int y, float size) {
-        mFontManager.Draw(text, x, y, size, kWhite);
+        mFontManager.Draw(text, x, y, size, {0, 0, 0, 255});
     }
 
     void Runtime::DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size, const Renderer::Colour& colour) {
