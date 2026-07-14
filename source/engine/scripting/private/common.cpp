@@ -21,58 +21,22 @@ namespace CE::Scripting::Impl::Common {
     }
 
     std::string Import2Path(const AST::ASTImport& import, VFS::VFS& vfs) {
-        std::string module_path = import.Module;
-        std::replace(module_path.begin(), module_path.end(), ':', '/');
-
+        size_t module_components = import.Symbol.has_value() && !import.Path.empty()
+        ? import.Path.size() - 1
+        : import.Path.size();
+        
+        std::string path;
+        for (size_t i = 0; i < module_components; ++i) {
+            if (!path.empty()) path += "/";
+            path += import.Path[i];
+        }
+        
         if (import.Symbol.has_value()) {
             for (const auto& ext : {".as", ".ceas"}) {
-                std::string file = module_path + "/" + *import.Symbol + ext;
+                std::string file = path.empty() ? (*import.Symbol + ext) : (path + "/" + *import.Symbol + ext);
                 if (vfs.FileExists(file.c_str())) {
                     return file;
                 }
-            }
-            
-            // if the symbol isn't a separate file, it might be in the module file
-            for (const auto& ext : {".as", ".ceas"}) {
-                std::string file = module_path + ext;
-                if (vfs.FileExists(file.c_str())) {
-                    return file;
-                }
-            }
-            
-            // try foo/module.as or foo/module.ceas
-            for (const auto& ext : {".as", ".ceas"}) {
-                std::string file = module_path + "/module" + ext;
-                if (vfs.FileExists(file.c_str())) {
-                    return file;
-                }
-            }
-        } else {
-            // importing whole module
-            // first we try: tests.as or tests.ceas
-            for (const auto& ext : {".as", ".ceas"}) {
-                std::string file = module_path + ext;
-                if (vfs.FileExists(file.c_str())) {
-                    return file;
-                }
-            }
-            
-            // then we try: tests/module.as or tests/module.ceas
-            for (const auto& ext : {".as", ".ceas"}) {
-                std::string file = module_path + "/module" + ext;
-                if (vfs.FileExists(file.c_str())) {
-                    return file;
-                }
-            }
-        }
-        /*
-        // probably dead code, keeping here for just in case
-            std::string path;
-            for (const auto& component : import.Path) {
-                if (!path.empty()) {
-                    path += "/";
-                }
-                path += component;
             }
             
             for (const auto& ext : {".as", ".ceas"}) {
@@ -81,9 +45,28 @@ namespace CE::Scripting::Impl::Common {
                     return file;
                 }
             }
-            
-            return "";
-        */
+
+            for (const auto& ext : {".as", ".ceas"}) {
+                std::string file = path + "/module" + ext;
+                if (vfs.FileExists(file.c_str())) {
+                    return file;
+                }
+            }
+        } else {
+            for (const auto& ext : {".as", ".ceas"}) {
+                std::string file = path + ext;
+                if (vfs.FileExists(file.c_str())) {
+                    return file;
+                }
+            }
+            for (const auto& ext : {".as", ".ceas"}) {
+                std::string file = path + "/module" + ext;
+                if (vfs.FileExists(file.c_str())) {
+                    return file;
+                }
+            }
+        }
+        
         return "";
     }
 }

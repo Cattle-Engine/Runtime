@@ -160,7 +160,8 @@ namespace CE::Scripting {
         }
 
         CE_LOG(CE::LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
-
+        CE_LOG(CE::LogLevel::Debug, "[AngelScript] generated monoscript: \n\n{}", code);
+        
         int r = mScriptModule->AddScriptSection("startup", code.c_str());
         
         if (r < 0) {

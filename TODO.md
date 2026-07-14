@@ -16,13 +16,12 @@
 - [X] Make CMake define CE_GIT_HASH,  CE_GIT_HASH_FULL, CE_GIT_BRANCH, CE_GIT_TAGS, CE_GIT_ISDIRTY
 - [X] Make the logger use std::source_location in debug builds
 - [X] Make the AST for angelscript
+- [X] Semnatic parser (Not all of angelscript shall be parsed, just enough of the extensions)
+- [X] Make new module system
+- [X] Make the Runtime class actually use the new module system
+- [X] AngelScript imports:
+- [X] Fix skybox not rendering when no mesh's are drawn
 
-
-- [ ] Semnatic parser (Not all of angelscript shall be parsed, just enough of the extensions)
-- [ ] Make new module system
-- [ ] Make the Runtime class actually use the new module system
-
-- [ ] AngelScript imports:
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -64,11 +63,10 @@ export int foo_func() {
 
 }
 ```
-
+- [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
 - [ ] Connect input binder to instance
-- [X] Fix skybox not rendering when no mesh's are drawn
 - [ ] Bindings for the input binder in angelscript
 - [ ] Add support for setting shader/s on a material
 - [ ] Emission textures

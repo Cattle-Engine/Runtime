@@ -173,20 +173,21 @@ namespace CE::Scripting::Impl::Semantics {
         auto state = mAnalyzedModules.find(module_path);
         if (state != mAnalyzedModules.end()) {
             if (!state->second) {
-                throw Exceptions::SemanticError("Circular import detected involving module '" + module_path + "'", {});
+                throw Exceptions::SemanticError("Circular import detected involving module '" + module_path 
+                + "'", {});
             }
             return; // already analysed
         }
         mAnalyzedModules[module_path] = false;
-        mParsedModules[module_path] = module;
         
         std::string module_hash = Utils::Hash2String(AST::HashModule(module));
-
+        
         for (auto& import : module.Imports) {
             std::string imported_path = Common::Import2Path(import, mVFS);
             
             // check if this is a file import (symbol present and path exists)
-            if (import.Symbol.has_value() && !imported_path.empty() && mVFS.FileExists(imported_path.c_str())) {
+            if (import.Symbol.has_value() && !imported_path.empty() && 
+                mVFS.FileExists(imported_path.c_str())) {
                 import.IsFileImport = true;
             }
             
@@ -211,10 +212,12 @@ namespace CE::Scripting::Impl::Semantics {
                 } else if (import.Symbol.has_value()) {
                     // using module::symbol;
                     auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
-                                                [&](const ExportInfo& e) { return e.OriginalName == *import.Symbol; });
+                                                [&](const ExportInfo& e) { return e.OriginalName == 
+                                                    *import.Symbol; });
                     if (match == imported_exports.end()) {
                         throw Exceptions::SemanticError(
-                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + "'",
+                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + 
+                            "'",
                             import.Location);
                     }
                     mModuleUsing[module_path].push_back(*match);
@@ -237,10 +240,12 @@ namespace CE::Scripting::Impl::Semantics {
                 } else if (import.Symbol.has_value()) {
                     // import module::symbol;
                     auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
-                                                [&](const ExportInfo& e) { return e.OriginalName == *import.Symbol; });
+                                                [&](const ExportInfo& e) { return e.OriginalName == 
+                                                    *import.Symbol; });
                     if (match == imported_exports.end()) {
                         throw Exceptions::SemanticError(
-                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + "'",
+                            "Module '" + imported_path + "' has no exported symbol '" + *import.Symbol + 
+                            "'",
                             import.Location);
                     }
                     if (import.Exported) {
@@ -254,6 +259,8 @@ namespace CE::Scripting::Impl::Semantics {
                 }
             }
         }
+        
+        mParsedModules[module_path] = module;
         
         for (auto& decl : module.Declarations) {
             VisitDeclaration(decl, "", module_hash, module_path);
@@ -328,7 +335,6 @@ namespace CE::Scripting::Impl::Semantics {
             }
             
             for (const ExportInfo& export_info : exports->second) {
-
                 if (!import.IsFileImport && import.Symbol && export_info.OriginalName != *import.Symbol) {
                     continue;
                 }
@@ -337,8 +343,14 @@ namespace CE::Scripting::Impl::Semantics {
                 ? export_info.OriginalName
                 : export_info.Namespace + "::" + export_info.OriginalName;
                 
-                const std::string module_qualified_name =
-                import.Module + "::" + export_info.OriginalName;
+                // Build the full module path from import.Path
+                std::string full_module_path;
+                for (size_t i = 0; i < import.Path.size(); ++i) {
+                    if (i > 0) full_module_path += "::";
+                    full_module_path += import.Path[i];
+                }
+                
+                const std::string module_qualified_name = full_module_path + "::" + export_info.OriginalName;
                 
                 if (qualified_name == exported_name ||
                     qualified_name == export_info.OriginalName ||
