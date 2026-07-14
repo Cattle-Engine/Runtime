@@ -5,7 +5,7 @@ Cattle engine (abbreviated to CE), is a general 2D game engine currently using S
 
 It has experimental 3D support not the best but it works!
 
-Licences for third party stuff can be found in [/thirdparty/README.md](thirdparty)
+Licences for third party stuff can be found in [/thirdparty/README.md](thirdparty/README.md)
 
 ## Building
 
@@ -27,6 +27,9 @@ CMake clean helper:
 - Generated files only: `cmake --build build --target ce_clean_generated`
 
 ## ROADMAP!
+
+> [NOTE]
+> For a more infomation about what's happening check [TODO.md](TODO.md
 
 - [X] Core stuff
 - [X] Angelscript API

@@ -21,7 +21,7 @@
 - [X] Make the Runtime class actually use the new module system
 - [X] AngelScript imports:
 - [X] Fix skybox not rendering when no mesh's are drawn
-
+- [X] Add XXHash to licence stuff
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -76,7 +76,6 @@ export int foo_func() {
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
 - [ ] Update AngelScript bindings for the shaders
-- [ ] Add XXHash to licence stuff
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
