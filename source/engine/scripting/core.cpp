@@ -43,7 +43,8 @@ namespace CE::Scripting {
         CE::Common::Containers::RendererResourcesNameRegistry& RendererResourcesNameRegistry,
         CE::Assets::Audio::AudioManager* audioManager
     )
-        : mVFS(vfs)
+        : mRendererResourcesNameRegistry(RendererResourcesNameRegistry)
+        , mVFS(vfs)
         , mGameInfo(gameInfo)
         , mSettingsManager(settingsManager)
         , mInstance(instance)
@@ -57,7 +58,6 @@ namespace CE::Scripting {
         , mAnimationManager(AnimatedTextureManager)
         , mKeyboard(keyboard)
         , mMouse(mouse)
-        , mRendererResourcesNameRegistry(RendererResourcesNameRegistry)
         , mAudioManager(audioManager) {
         mOutputDebugInfo = output_debug_info;
     }

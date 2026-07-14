@@ -34,7 +34,7 @@ namespace CE {
     class Instance {
         public:
             Instance(const char* data_file_path, bool debugmode, 
-                Renderer::GPUDeviceHandle& gpudevice, ProgramArguements args);
+                Renderer::GPUDeviceHandle& gpudevice, EngineArguements args);
             int Update();
             bool ShouldExit();
             void Exit();
@@ -101,7 +101,7 @@ namespace CE {
             CE::Core::EventBus gEventBus;
             CE::Core::GameState::GameStateManager gGameStateManager;
             CE::UI::DebugWindow gDebugWindow;
-            ProgramArguements gProgramArguments;
+            EngineArguements gProgramArguments;
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;

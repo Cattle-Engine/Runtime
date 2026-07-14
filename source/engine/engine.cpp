@@ -16,21 +16,13 @@
 namespace fs = std::filesystem;
 
 namespace CE {
-   Engine::Engine(int argc, char *argv[],
-               std::string datafilename,
-               bool debug) {
+   Engine::Engine(std::string datafilename, bool debug, const EngineArguements& args) {
         CE_LOG(CE::LogLevel::Info, "Cattle Engine");
         CE_LOG(CE::LogLevel::Info, "CE Version: {}", CE::Version::GetBuildString());
 
         // Parse arguments and activate certain settings and shish
-
-        const char* base = SDL_GetBasePath();
-        if (!base) {
-            CE_LOG(LogLevel::Fatal, "[Engine] SDL_GetBasePath() returned NULL");
-            base = "";
-        }
-
-        mDataFileName =  std::format("{}{}", base, datafilename);
+        mEngineArgs = args;
+        mDataFileName = datafilename;
         CE_LOG(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
         
         if (!fs::exists(mDataFileName)) {
@@ -85,7 +77,7 @@ namespace CE {
         }
 
         try {
-            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle, mProgramArgs);
+            InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle, mEngineArgs);
             mInstances[name] = std::move(handle);
         } catch (std::runtime_error& e) {
             CE_LOG(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());

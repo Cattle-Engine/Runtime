@@ -16,7 +16,7 @@
 #include "engine/common/sdl_events.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice, ProgramArguements args)
+    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice, EngineArguements args)
         : gGameStateManager(gEventBus) {
         gProgramArguments = args;
         GLOBALINSTANCESCOUNTER ++;
@@ -125,6 +125,7 @@ namespace CE {
             *mRendererResourcesNameRegistry,
             gAudioManager.get()
         );
+        
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());
             throw std::runtime_error(
@@ -352,11 +353,13 @@ namespace CE {
         uint64_t sz = 0;
         if (!gVFS->GetFileSize(path.c_str(), sz) || sz == 0) {
             CE_LOG(LogLevel::Error, "[Instance {}] VFS could not stat '{}' (missing or empty)", gInstanceID, path);
+            return;
         }
 
         VirtualFile* vf = gVFS->OpenFile(path.c_str());
         if (!vf) {
             CE_LOG(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID ,path);
+            return;
         }
 
         std::vector<uint8_t> fileBytes((size_t)sz);
@@ -366,17 +369,20 @@ namespace CE {
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
             CE_LOG(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID,SDL_GetError());
+            return;
         }
 
         SDL_Surface* surface = IMG_Load_IO(mem, true); 
         if (!surface) {
             CE_LOG(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID,path, SDL_GetError());
+            return;
         }
 
         SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE_LOG(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID,SDL_GetError());
+            return;
         }
 
         SDL_SetWindowIcon(gWindow, converted);

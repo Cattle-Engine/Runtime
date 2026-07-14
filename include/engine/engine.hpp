@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <optional>
 #include <unordered_map>
 
@@ -13,7 +12,7 @@
 namespace CE {
     class Engine {
         public:
-            Engine(int argc, char *argv[], std::string datafilename, bool debug);
+            Engine(std::string datafilename, bool debug, const EngineArguements& args);
             ~Engine();
             bool CreateInstance(std::string name, 
                 bool debug, std::optional<std::string> datafilename = std::nullopt);
@@ -21,10 +20,7 @@ namespace CE {
             int UpdateInstance(std::string name);
             int Run();    
         private:
-
-            void ParseProgramArguments(std::vector<std::string> args);
-
-            ProgramArguements mProgramArgs;
+            EngineArguements mEngineArgs;
             Renderer::GPUDeviceHandle mGPUHandle;
             RendererBackend mBackend;
             bool mRunning = true;
