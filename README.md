@@ -1,14 +1,15 @@
 # Cattle Engine - NO BULLSHIT
 
 It's in a somewhat usable state? 
-Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3...
+Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3, it uses AngelScript for the actual game making stuff with a few custom extension (a custom import/export system) the docs for all this can be found inside [docs.md](docs.md).
+
+Documentation will be moved to the other repo "Documentation" but for now it'll be in this repo.
 
 It has experimental 3D support not the best but it works!
 
 Licences for third party stuff can be found in [/thirdparty/README.md](thirdparty/README.md)
 
 ## Building
-
 Primary workflow:
 
 - Configure: `cmake -S . -B build`
