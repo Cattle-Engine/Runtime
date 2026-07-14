@@ -400,3 +400,26 @@ add_custom_target(run
     DEPENDS ce_engine ce_assets
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+find_program(CLANG_FORMAT_BIN clang-format)
+
+if(CLANG_FORMAT_BIN)
+    file(GLOB_RECURSE CE_FORMAT_FILES CONFIGURE_DEPENDS
+        "${CE_ROOT_DIR}/source/*.cpp"
+        "${CE_ROOT_DIR}/source/*.hpp"
+        "${CE_ROOT_DIR}/source/*.c"
+        "${CE_ROOT_DIR}/source/*.h"
+        "${CE_ROOT_DIR}/include/*.hpp"
+        "${CE_ROOT_DIR}/include/*.h"
+    )
+    list(FILTER CE_FORMAT_FILES EXCLUDE REGEX "include/third_party/")
+
+    add_custom_target(ce_format
+        COMMAND "${CLANG_FORMAT_BIN}" -i -style=file ${CE_FORMAT_FILES}
+        WORKING_DIRECTORY "${CE_ROOT_DIR}"
+        COMMENT "Formatting CE using clang-format..."
+        VERBATIM
+    )
+else()
+    message(STATUS "clang-format executable not found. Target 'ce_format' is disabled.")
+endif()

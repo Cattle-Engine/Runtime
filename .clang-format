@@ -1,0 +1,44 @@
+Language: Cpp
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+
+BreakBeforeBraces: Attach
+AllowShortBlocksOnASingleLine: Never
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+
+NamespaceIndentation: None
+CompactNamespaces: false
+
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+
+ConstructorInitializerIndentWidth: 4
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+PackConstructorInitializers: NextLine
+
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^<[a-z_]+>'
+    Priority:        1
+  - Regex:           '^<(SDL3|SDL3_ttf)/'
+    Priority:        2
+  - Regex:           '^"engine/'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        4
+
+SortIncludes: CaseSensitive
+...
