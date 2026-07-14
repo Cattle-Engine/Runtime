@@ -28,12 +28,12 @@ CMake clean helper:
 
 ## ROADMAP!
 
-> [NOTE]
-> For a more infomation about what's happening check [TODO.md](TODO.md
+> [!NOTE]
+> For more information about what's happening, check [TODO.md](TODO.md).
 
-- [X] Core stuff
-- [X] Angelscript API
-- [X] Audio support
+- [x] Core stuff
+- [x] Angelscript API
+- [x] Audio support
 - [ ] Plugins
 - [ ] Data & texture/audio compression
-- [ ] Stabilise everything 
+- [ ] Stabilise everything
