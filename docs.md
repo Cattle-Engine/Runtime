@@ -7,6 +7,40 @@ or ./ce_runtime output_debug_as_info=false
 Type: Boolean
 Use: Output debug info for as, going to mostly be used for the module and preproccesor
 
+## output_debug_as_info_path
+Type: String
+Use: Output directory for angelscript debug info. **This requires an absloute path.**
+Note: If not set it uses the platform default, for windows and linux this is in the same directory as the CE executable: ```./ce_debug``
+
+# AngelScript Modules
+An AngelScript module is a script file.
+To import a module you do this: 
+```angelscript
+import foo;
+```
+This brings all exports from the module into the current file.
+
+To only bring one symbol, Eg a; function, type, variable, you use the keyword ```using``. The syntax is below
+```angelscript
+using foo::gPlayerHealth;
+```
+
+After importing something you can just use it as a normal variable, function or type.
+
+
+To export something just place export before you variable, type and function.Stuff such as class, interface, struct etc, all count as a type. An example is below:
+```angelscript
+export int gPlayerHealth;
+
+export void DamagePlayer(int amount) {
+    gPlayerHealth - amount;
+}
+
+export class Player {
+
+};
+```
+
 # API Documentation
 
 You can use Color like this:
