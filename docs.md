@@ -20,7 +20,7 @@ import foo;
 ```
 This brings all exports from the module into the current file.
 
-To only bring one symbol, Eg a; function, type, variable, you use the keyword ```using``. The syntax is below
+To only bring one symbol, Eg a; function, type, variable, you use the keyword ```using```. The syntax is below
 ```angelscript
 using foo::gPlayerHealth;
 ```
