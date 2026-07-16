@@ -64,6 +64,7 @@ export int foo_func() {
 }
 ```
 
+- [ ] Actually make function overloading work (semantic parser just throws it away)
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
