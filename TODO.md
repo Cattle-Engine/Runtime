@@ -63,6 +63,7 @@ export int foo_func() {
 
 }
 ```
+
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
@@ -92,7 +93,9 @@ struct foo {
 }
 ```
 - [ ] AngelScript #define, #ifdef and shish
-- [ ] Make a UI system
+- [ ] Make a Retained UI system
+- [ ] Make it so you can load a UI from a file (probs gonna use tdf with a .ceui extension)
+
 - [ ] Add an ECS
 - [ ] Physics via Jolt
 - [ ] Save system
