@@ -15,6 +15,19 @@ namespace {
 }
 
 namespace CE::Scripting::Impl::Semantics {
+    void AddFunctionOverloads(
+        std::vector<const Symbol*>& result,
+        const SymbolTable& table,
+        const std::string& name) {
+        auto overloads = table.FindOverloads(name);
+        
+        for (const auto* symbol : overloads) {
+            if (symbol->Kind == AST::ASTDeclaration::Kind::Function) {
+                result.push_back(symbol);
+            }
+        }
+    }
+    
     // Symbol table functions
     bool SymbolTable::Declare(Symbol symbol) {
         auto& bucket = mSymbols[symbol.QualifiedName];
@@ -37,11 +50,15 @@ namespace CE::Scripting::Impl::Semantics {
         return true;
     }
     
-    const Symbol* SymbolTable::Find(const std::string& qualified_name) const {
+    const Symbol* SymbolTable::Find( const std::string& qualified_name) const {
         auto it = mSymbols.find(qualified_name);
-        if (it == mSymbols.end() || it->second.empty()) {
+        
+        if (it == mSymbols.end() || it->second.empty())
             return nullptr;
-        }
+        
+        if (it->second.size() > 1)
+            return nullptr; // ambiguous overload set
+            
         return &it->second.front();
     }
     
@@ -63,9 +80,6 @@ namespace CE::Scripting::Impl::Semantics {
     std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) {
         std::string signature;
         
-        signature += func.ReturnType.Name;
-        
-        // add parameter types
         for (const auto& param : func.Parameters) {
             signature += "_" + param.Type.Name
             + (param.Type.IsConst ? "C" : "")
@@ -155,6 +169,16 @@ namespace CE::Scripting::Impl::Semantics {
             decl.Exported
         };
         
+        if (decl.Type == AST::ASTDeclaration::Kind::Function) {
+            const auto& function = std::get<AST::ASTFunction>(decl.Data);
+            
+            symbol.Signature.ReturnType = function.ReturnType;
+            
+            for (const auto& parameter : function.Parameters) {
+                symbol.Signature.Parameters.push_back(parameter.Type);
+            }
+        }
+        
         if (!mModuleSymbols[module_path].Declare(symbol)) {
             throw Exceptions::SemanticError(
                 "Redeclaration of '" + qualified_name + "'"
@@ -163,9 +187,19 @@ namespace CE::Scripting::Impl::Semantics {
         }
         
         if (decl.Exported) {
-            mModuleExports[module_path].push_back(ExportInfo{
-                decl.Name, internal_name, decl.Type, full_namespace, module_path
-            });
+            ExportInfo info{
+                decl.Name,
+                internal_name,
+                decl.Type,
+                full_namespace,
+                module_path
+            };
+            
+            if (decl.Type == AST::ASTDeclaration::Kind::Function) {
+                info.Signature = symbol.Signature;
+            }
+            
+            mModuleExports[module_path].push_back(std::move(info));
         }
     }
                                             
@@ -367,5 +401,197 @@ namespace CE::Scripting::Impl::Semantics {
         }
         
         return nullptr;
+    }
+    
+    std::vector<const Symbol*> SymanticAnalyser::ResolveOverloads(
+        const std::string& module_path,
+        const std::string& qualified_name) const {
+        std::vector<const Symbol*> result;
+        
+        auto add = [&](const std::string& name, const std::string& path) {
+            auto module = mModuleSymbols.find(path);
+            
+            if (module == mModuleSymbols.end())
+                return;
+            
+            auto overloads = module->second.FindOverloads(name);
+            
+            for (const auto* symbol : overloads) {
+                if (symbol->Kind == AST::ASTDeclaration::Kind::Function)
+                    result.push_back(symbol);
+            }
+        };
+        
+        add(qualified_name, module_path);
+        
+        if (!result.empty())
+            return result;
+
+        auto using_it = mModuleUsing.find(module_path);
+        
+        if (using_it != mModuleUsing.end()) {
+            for (const auto& export_info : using_it->second) {
+                
+                std::string exported_name =
+                export_info.Namespace.empty()
+                ? export_info.OriginalName
+                : export_info.Namespace + "::" + export_info.OriginalName;
+                
+                
+                if (qualified_name == export_info.OriginalName ||
+                    qualified_name == exported_name)
+                {
+                    add(export_info.OriginalName,
+                        export_info.Modulepath);
+                }
+            }
+        }
+        
+        
+        if (!result.empty())
+            return result;
+        
+        auto parsed = mParsedModules.find(module_path);
+        
+        if (parsed == mParsedModules.end())
+            return result;
+        
+        
+        for (const auto& import : parsed->second.Imports) {
+            if (import.IsUsing)
+                continue;
+            
+            
+            const std::string imported_path =
+            Common::Import2Path(
+                import,
+                const_cast<VFS::VFS&>(mVFS));
+            
+            
+            auto exports = mModuleExports.find(imported_path);
+            
+            if (exports == mModuleExports.end())
+                continue;
+            
+            
+            for (const auto& export_info : exports->second) {
+                if (export_info.Type != AST::ASTDeclaration::Kind::Function)
+                    continue;
+                
+                
+                if (!import.IsFileImport &&
+                    import.Symbol &&
+                    export_info.OriginalName != *import.Symbol)
+                {
+                    continue;
+                }
+                
+                
+                std::string exported_name =
+                export_info.Namespace.empty()
+                ? export_info.OriginalName
+                : export_info.Namespace + "::" +
+                export_info.OriginalName;
+                
+                
+                std::string module_qualified_name;
+                
+                for (size_t i = 0; i < import.Path.size(); ++i)
+                {
+                    if (i > 0)
+                        module_qualified_name += "::";
+                    
+                    module_qualified_name += import.Path[i];
+                }
+                
+                if (!module_qualified_name.empty())
+                    module_qualified_name += "::";
+                
+                module_qualified_name += export_info.OriginalName;
+                
+                
+                if (qualified_name == export_info.OriginalName ||
+                    qualified_name == exported_name ||
+                    qualified_name == module_qualified_name)
+                {
+                    add(export_info.OriginalName,
+                        export_info.Modulepath);
+                }
+            }
+        }
+        
+        
+        return result;
+    }
+    
+    const Symbol* SymanticAnalyser::ResolveFunction(
+        const std::string& module_path,
+        const std::string& name,
+        const std::vector<AST::ASTTypeRef>& arguments) const {
+        auto overloads = ResolveOverloads(
+            module_path,
+            name);
+        
+        
+        const Symbol* match = nullptr;
+        
+        
+        for (const auto* symbol : overloads) {
+            const auto& parameters =
+            symbol->Signature.Parameters;
+            
+            
+            if (parameters.size() != arguments.size())continue;
+            
+            bool valid = true;
+            
+            
+            for (size_t i = 0; i < parameters.size(); ++i) {
+                const auto& expected = parameters[i];
+                const auto& actual = arguments[i];
+                
+                
+                if (expected.Name != actual.Name) {
+                    valid = false;
+                    break;
+                }
+                
+                
+                if (expected.IsConst != actual.IsConst) {
+                    valid = false;
+                    break;
+                }
+                
+                
+                if (expected.IsHandle != actual.IsHandle) {
+                    valid = false;
+                    break;
+                }
+                
+                
+                if (expected.IsReference != actual.IsReference) {
+                    valid = false;
+                    break;
+                }
+                
+                
+                if (expected.ArrayDepth != actual.ArrayDepth) {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            
+            if (valid) {
+                if (match != nullptr) {
+                    // ambiguous overload
+                    return nullptr;
+                }
+                
+                match = symbol;
+            }
+        }
+        
+        return match;
     }
 }

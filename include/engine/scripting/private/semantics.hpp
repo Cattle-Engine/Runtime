@@ -8,6 +8,11 @@
 #include "engine/scripting/private/ast.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
+    struct FunctionSignature {
+        AST::ASTTypeRef ReturnType;
+        std::vector<AST::ASTTypeRef> Parameters;
+    };
+    
     struct Symbol {
         AST::ASTDeclaration::Kind Kind;
         std::string QualifiedName;// eg: "Foo::Test"
@@ -15,6 +20,7 @@ namespace CE::Scripting::Impl::Semantics {
         std::string SourceModule; // source module 
         SourceLocation Location;
         bool Exported = false;
+        FunctionSignature Signature; // only used for functions
     };
 
     class SymbolTable {
@@ -51,15 +57,26 @@ namespace CE::Scripting::Impl::Semantics {
                                      const std::string& module_path = "") const;
             const Symbol* ResolveSymbol(const std::string& module_path,
                                         const std::string& qualified_name) const;
+                                        
+            const Symbol* ResolveFunction(
+                const std::string& module_path,
+                const std::string& name,
+                const std::vector<AST::ASTTypeRef>& arguments) const;
+                
+            std::vector<const Symbol*> ResolveOverloads(
+                const std::string& module_path, 
+                const std::string& qualified_name) const;
+                
             const std::vector<std::string>& GetEmissionOrder() const { return mEmissionOrder; }
             const std::unordered_map<std::string, AST::ASTModule>& GetParsedModules() const { return mParsedModules; }
         private:
             struct ExportInfo {
-              std::string OriginalName = "";
-              std::string GeneratedName = "";
-              AST::ASTDeclaration::Kind Type = AST::ASTDeclaration::Kind::Type;
-              std::string Namespace = "";
-              std::string Modulepath;
+                std::string OriginalName;
+                std::string InternalName;
+                AST::ASTDeclaration::Kind Type;
+                std::string Namespace;
+                std::string Modulepath;
+                FunctionSignature Signature;
             };
             
             VFS::VFS& mVFS;
@@ -71,7 +88,7 @@ namespace CE::Scripting::Impl::Semantics {
             std::unordered_map<std::string, AST::ASTModule> mParsedModules;
             std::vector<std::string> mEmissionOrder;
             std::unordered_map<std::string, std::vector<ExportInfo>> mModuleUsing;
-            
+
             void VisitDeclaration(AST::ASTDeclaration& decl, const std::string& enclosing_namespace,
                                   const std::string& module_hash, const std::string& module_path);
             AST::ASTModule LoadAndParseModule(const std::string& module_path);
