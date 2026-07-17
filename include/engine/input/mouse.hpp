@@ -2,25 +2,23 @@
 
 #include <array>
 #include <cstdint>
+
 #include <SDL3/SDL.h>
 
 namespace CE::Input {
 
     enum class MouseButtons {
-        LEFT   = SDL_BUTTON_LEFT,
+        LEFT = SDL_BUTTON_LEFT,
         MIDDLE = SDL_BUTTON_MIDDLE,
-        RIGHT  = SDL_BUTTON_RIGHT,
-        X1     = SDL_BUTTON_X1,
-        X2     = SDL_BUTTON_X2
+        RIGHT = SDL_BUTTON_RIGHT,
+        X1 = SDL_BUTTON_X1,
+        X2 = SDL_BUTTON_X2
     };
 
-    enum class MouseVisibility {
-        Hidden,
-        Shown
-    };
+    enum class MouseVisibility { Hidden, Shown };
 
     class Mouse {
-    public:
+      public:
         Mouse(int windowID);
 
         void Update();
@@ -29,22 +27,34 @@ namespace CE::Input {
         bool IsButtonPressed(MouseButtons button) const;
         bool IsButtonReleased(MouseButtons button) const;
 
-        int GetX() const { return gX; }
-        int GetY() const { return gY; }
+        int GetX() const {
+            return gX;
+        }
+        int GetY() const {
+            return gY;
+        }
 
-        int GetDeltaX() const { return gDX; }
-        int GetDeltaY() const { return gDY; }
+        int GetDeltaX() const {
+            return gDX;
+        }
+        int GetDeltaY() const {
+            return gDY;
+        }
 
-        int GetWheelX() const { return gWheelX; }
-        int GetWheelY() const { return gWheelY; }
+        int GetWheelX() const {
+            return gWheelX;
+        }
+        int GetWheelY() const {
+            return gWheelY;
+        }
 
         void SetCursorVisibility(MouseVisibility visiblity);
         void LockCursor(bool lock);
 
-    private:
+      private:
         static constexpr int ToIndex(MouseButtons button);
 
-    private:
+      private:
         int gWindowID;
 
         std::array<bool, 5> gCurrent{};
@@ -56,4 +66,4 @@ namespace CE::Input {
         int gWheelX = 0, gWheelY = 0;
     };
 
-}
+} // namespace CE::Input

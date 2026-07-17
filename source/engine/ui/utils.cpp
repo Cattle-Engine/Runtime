@@ -1,4 +1,4 @@
-#include "imgui/imgui.h" 
+#include "imgui.h"
 
 namespace CE::UI::Utils {
     void SpaceSep() {
@@ -6,4 +6,4 @@ namespace CE::UI::Utils {
         ImGui::Separator();
         ImGui::Spacing();
     }
-}
+} // namespace CE::UI::Utils

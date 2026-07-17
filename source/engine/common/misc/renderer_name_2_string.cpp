@@ -1,9 +1,10 @@
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/rendering/renderer.hpp"
 #include "engine/common/misc/renderer_name_2_string.hpp"
 
+#include "engine/common/misc/gameinfo.hpp"
+#include "engine/rendering/renderer.hpp"
+
 namespace CE::Common {
-    void RendererName2String(const std::string renderername, RendererBackend& backend) {
+    void RendererName2String(const std::string renderername, RendererBackend &backend) {
         if (renderername == "None") {
             backend = RendererBackend::None;
         } else if (renderername == "Software") {
@@ -21,4 +22,4 @@ namespace CE::Common {
         }
         return;
     }
-}
+} // namespace CE::Common

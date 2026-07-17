@@ -32,4 +32,4 @@ namespace CE::Scripting {
 
         return true;
     }
-}
+} // namespace CE::Scripting

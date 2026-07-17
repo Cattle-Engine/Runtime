@@ -1,17 +1,19 @@
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/fullscreen.hpp"
-#include "engine/rendering/renderer.hpp"
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/misc/error_box.hpp"
 #include <SDL3/SDL.h>
 
-namespace CE::Bootstrap {
-    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, const Settings::SettingsInfo& settings, bool debugvideo,
-        std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
-        std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
+#include "engine/bootstrap/instance.hpp"
+#include "engine/common/fullscreen.hpp"
+#include "engine/common/misc/error_box.hpp"
+#include "engine/common/misc/gameinfo.hpp"
+#include "engine/common/tracelog.hpp"
+#include "engine/rendering/renderer.hpp"
 
-        renderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpudevice->backend, vfs.get()));
+namespace CE::Bootstrap {
+    int Init_Video(std::unique_ptr<GameInfo> &gameinfo, const Settings::SettingsInfo &settings, bool debugvideo,
+                   std::unique_ptr<CE::Renderer::IRenderer> &renderer, RendererBackend &backend, SDL_Window *&window,
+                   std::unique_ptr<VFS::VFS> &vfs, Renderer::GPUDeviceHandle gpudevice) {
+
+        renderer =
+            std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpudevice->backend, vfs.get()));
         renderer->PreWinInit();
 
         std::string window_title;
@@ -22,20 +24,18 @@ namespace CE::Bootstrap {
         }
 
         CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
-        CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth, settings.windowHeight);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth,
+               settings.windowHeight);
         CE_LOG(CE::LogLevel::Info, "[Window] Window renderer: {}", settings.rendererName);
         CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
 
         SDL_WindowFlags windowFlags = 0;
-        if (backend == RendererBackend::OpenGL) windowFlags |= SDL_WINDOW_OPENGL;
-        if (gameinfo->resizableWindow)          windowFlags |= SDL_WINDOW_RESIZABLE;
+        if (backend == RendererBackend::OpenGL)
+            windowFlags |= SDL_WINDOW_OPENGL;
+        if (gameinfo->resizableWindow)
+            windowFlags |= SDL_WINDOW_RESIZABLE;
 
-        window = SDL_CreateWindow(
-            window_title.c_str(),
-            settings.windowWidth,
-            settings.windowHeight,
-            windowFlags
-        );
+        window = SDL_CreateWindow(window_title.c_str(), settings.windowWidth, settings.windowHeight, windowFlags);
 
         if (window == nullptr) {
             CE_LOG(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
@@ -56,4 +56,4 @@ namespace CE::Bootstrap {
         }
         return 0;
     }
-}
+} // namespace CE::Bootstrap

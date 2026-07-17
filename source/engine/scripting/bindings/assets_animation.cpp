@@ -1,8 +1,8 @@
+#include <cstdint>
+
+#include "engine/assets/animated_textures.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/scripting_macros.hpp"
-#include "engine/assets/animated_textures.hpp"
-
-#include <cstdint>
 
 namespace CE::Scripting {
     bool Runtime::RegisterAssetAnimationBindings() {
@@ -15,8 +15,10 @@ namespace CE::Scripting {
         CE_REGISTER_GLOBAL("void UnloadAnimation(const string &in name)", UnloadAnimation);
         CE_REGISTER_GLOBAL("uint CreateInstance(const string &in name)", CreateAnimationInstance);
         CE_REGISTER_GLOBAL("void DeleteInstance(uint handle)", DeleteAnimationInstance);
-        CE_REGISTER_GLOBAL("void Play(uint handle, int x, int y, bool loop = false, bool autoRender = true)", PlayAnimation);
-        CE_REGISTER_GLOBAL("void PlayRot(uint handle, int x, int y, bool loop, float rotation, bool autoRender = true)", PlayAnimationRot);
+        CE_REGISTER_GLOBAL("void Play(uint handle, int x, int y, bool loop = false, bool autoRender = true)",
+                           PlayAnimation);
+        CE_REGISTER_GLOBAL("void PlayRot(uint handle, int x, int y, bool loop, float rotation, bool autoRender = true)",
+                           PlayAnimationRot);
         CE_REGISTER_GLOBAL("void SetPosition(uint handle, int x, int y, float rotation = 0.0f)", SetAnimationPosition);
         CE_REGISTER_GLOBAL("void Seek(uint handle, uint frame)", SeekAnimation);
         CE_REGISTER_GLOBAL("void SetDrawMode(uint handle, bool autoRender)", SetAnimationDrawMode);
@@ -30,21 +32,21 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::LoadAnimation(const std::string& path, const std::string& name) {
+    void Runtime::LoadAnimation(const std::string &path, const std::string &name) {
         if (!mAnimationManager) {
             return;
         }
         mAnimationManager->Load(name, path);
     }
 
-    void Runtime::UnloadAnimation(const std::string& name) {
+    void Runtime::UnloadAnimation(const std::string &name) {
         if (!mAnimationManager) {
             return;
         }
         mAnimationManager->Unload(name);
     }
 
-    uint32_t Runtime::CreateAnimationInstance(const std::string& name) {
+    uint32_t Runtime::CreateAnimationInstance(const std::string &name) {
         if (!mAnimationManager) {
             return 0;
         }
@@ -100,7 +102,7 @@ namespace CE::Scripting {
         mAnimationManager->SetLooping(handle, loop);
     }
 
-    void Runtime::SetAnimationTint(uint32_t handle, const Renderer::Colour& colour) {
+    void Runtime::SetAnimationTint(uint32_t handle, const Renderer::Colour &colour) {
         if (!mAnimationManager) {
             return;
         }
@@ -127,4 +129,4 @@ namespace CE::Scripting {
         }
         mAnimationManager->DrawFrame(handle);
     }
-}
+} // namespace CE::Scripting

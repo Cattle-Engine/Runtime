@@ -1,8 +1,8 @@
 #include "engine/common/misc/arguments.hpp"
 
 namespace CE::Common {
-    void ParseProgramArguments(std::vector<std::string> args, EngineArguements& output) {
-        for (const std::string& arg : args) {
+    void ParseProgramArguments(std::vector<std::string> args, EngineArguements &output) {
+        for (const std::string &arg : args) {
             size_t split = arg.find('=');
 
             if (split == std::string::npos) {
@@ -20,4 +20,4 @@ namespace CE::Common {
             }
         }
     }
-}
+} // namespace CE::Common

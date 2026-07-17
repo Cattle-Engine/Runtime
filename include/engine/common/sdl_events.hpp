@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <span>
 #include <unordered_map>
+#include <vector>
+
 #include <SDL3/SDL.h>
 
 // Due to the lovely way SDL handles events I'm having to create
@@ -13,4 +14,4 @@ namespace CE::SDL_Events {
     extern std::unordered_map<SDL_WindowID, std::vector<size_t>> gWindowEventIndices;
     void Update();
     std::span<const size_t> GetWindowEventIndices(int windowID);
-}
+} // namespace CE::SDL_Events

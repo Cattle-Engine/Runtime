@@ -1,17 +1,17 @@
 #include "engine/scripting/angelscript.hpp"
 
 namespace {
-    bool RegisterKeyboardEnum(asIScriptEngine* engine) {
+    bool RegisterKeyboardEnum(asIScriptEngine *engine) {
         int result = engine->RegisterEnum("KeyboardKeys");
         if (result < 0) {
             return false;
         }
 
-#define CE_REGISTER_KEY(name) \
-        result = engine->RegisterEnumValue("KeyboardKeys", #name, static_cast<int>(CE::Input::KeyboardKeys::name)); \
-        if (result < 0) { \
-            return false; \
-        }
+#define CE_REGISTER_KEY(name)                                                                                          \
+    result = engine->RegisterEnumValue("KeyboardKeys", #name, static_cast<int>(CE::Input::KeyboardKeys::name));        \
+    if (result < 0) {                                                                                                  \
+        return false;                                                                                                  \
+    }
 
         CE_REGISTER_KEY(KEY_APOSTROPHE);
         CE_REGISTER_KEY(KEY_COMMA);
@@ -123,17 +123,17 @@ namespace {
         return true;
     }
 
-    bool RegisterMouseEnum(asIScriptEngine* engine) {
+    bool RegisterMouseEnum(asIScriptEngine *engine) {
         int result = engine->RegisterEnum("MouseButtons");
         if (result < 0) {
             return false;
         }
 
-#define CE_REGISTER_MOUSE(name) \
-        result = engine->RegisterEnumValue("MouseButtons", #name, static_cast<int>(CE::Input::MouseButtons::name)); \
-        if (result < 0) { \
-            return false; \
-        }
+#define CE_REGISTER_MOUSE(name)                                                                                        \
+    result = engine->RegisterEnumValue("MouseButtons", #name, static_cast<int>(CE::Input::MouseButtons::name));        \
+    if (result < 0) {                                                                                                  \
+        return false;                                                                                                  \
+    }
 
         CE_REGISTER_MOUSE(LEFT);
         CE_REGISTER_MOUSE(MIDDLE);
@@ -144,7 +144,7 @@ namespace {
 #undef CE_REGISTER_MOUSE
         return true;
     }
-}
+} // namespace
 
 namespace CE::Scripting {
     bool Runtime::RegisterInputBindings() {
@@ -164,162 +164,104 @@ namespace CE::Scripting {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsKeyDown(KeyboardKeys key)",
-            asMETHOD(Runtime, IsKeyDown),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("bool IsKeyDown(KeyboardKeys key)", asMETHOD(Runtime, IsKeyDown),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("bool IsKeyPressed(KeyboardKeys key)",
+                                                       asMETHOD(Runtime, IsKeyPressed), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsKeyPressed(KeyboardKeys key)",
-            asMETHOD(Runtime, IsKeyPressed),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            "bool IsKeyReleased(KeyboardKeys key)", asMETHOD(Runtime, IsKeyReleased), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsKeyReleased(KeyboardKeys key)",
-            asMETHOD(Runtime, IsKeyReleased),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result =
+            mScriptEngine->RegisterGlobalFunction("bool IsMouseButtonDown(MouseButtons button)",
+                                                  asMETHOD(Runtime, IsMouseButtonDown), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsMouseButtonDown(MouseButtons button)",
-            asMETHOD(Runtime, IsMouseButtonDown),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("bool IsMouseButtonPressed(MouseButtons button)",
+                                                       asMETHOD(Runtime, IsMouseButtonPressed),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsMouseButtonPressed(MouseButtons button)",
-            asMETHOD(Runtime, IsMouseButtonPressed),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("bool IsMouseButtonReleased(MouseButtons button)",
+                                                       asMETHOD(Runtime, IsMouseButtonReleased),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "bool IsMouseButtonReleased(MouseButtons button)",
-            asMETHOD(Runtime, IsMouseButtonReleased),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseX()", asMETHOD(Runtime, GetMouseX),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseX()",
-            asMETHOD(Runtime, GetMouseX),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseY()", asMETHOD(Runtime, GetMouseY),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseY()",
-            asMETHOD(Runtime, GetMouseY),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseDeltaX()", asMETHOD(Runtime, GetMouseDeltaX),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseDeltaX()",
-            asMETHOD(Runtime, GetMouseDeltaX),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseDeltaY()", asMETHOD(Runtime, GetMouseDeltaY),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseDeltaY()",
-            asMETHOD(Runtime, GetMouseDeltaY),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseWheelX()", asMETHOD(Runtime, GetMouseWheelX),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseWheelX()",
-            asMETHOD(Runtime, GetMouseWheelX),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "int GetMouseWheelY()",
-            asMETHOD(Runtime, GetMouseWheelY),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("int GetMouseWheelY()", asMETHOD(Runtime, GetMouseWheelY),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
 
         result = mScriptEngine->RegisterEnum("MouseVisibility");
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterEnumValue(
-            "MouseVisibility",
-            "Hidden",
-            static_cast<int>(Input::MouseVisibility::Hidden)
-        );
+        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Hidden",
+                                                  static_cast<int>(Input::MouseVisibility::Hidden));
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterEnumValue(
-            "MouseVisibility",
-            "Shown",
-            static_cast<int>(Input::MouseVisibility::Shown)
-        );
+        result = mScriptEngine->RegisterEnumValue("MouseVisibility", "Shown",
+                                                  static_cast<int>(Input::MouseVisibility::Shown));
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetMouseVisibility(MouseVisibility visibility)",
-            asMETHOD(Runtime, SetCursorVisibility),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("void SetMouseVisibility(MouseVisibility visibility)",
+                                                       asMETHOD(Runtime, SetCursorVisibility), asCALL_THISCALL_ASGLOBAL,
+                                                       this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void LockMouseCursor(bool lock)",
-            asMETHOD(Runtime, LockCursor),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("void LockMouseCursor(bool lock)", asMETHOD(Runtime, LockCursor),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
 
         if (result < 0) {
             return false;
@@ -336,7 +278,7 @@ namespace CE::Scripting {
     void Runtime::LockCursor(bool lock) {
         mMouse.LockCursor(lock);
     }
-    
+
     bool Runtime::IsKeyDown(Input::KeyboardKeys key) {
         return mKeyboard.IsKeyDown(key);
     }
@@ -384,4 +326,4 @@ namespace CE::Scripting {
     int Runtime::GetMouseWheelY() {
         return mMouse.GetWheelY();
     }
-}
+} // namespace CE::Scripting

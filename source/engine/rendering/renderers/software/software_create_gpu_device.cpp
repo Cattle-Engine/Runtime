@@ -9,4 +9,4 @@ namespace CE::Renderer::Software {
         device->backend = RendererBackend::Software;
         return device;
     }
-}
+} // namespace CE::Renderer::Software

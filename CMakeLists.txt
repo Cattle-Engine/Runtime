@@ -315,6 +315,7 @@ find_package(glm CONFIG REQUIRED)
 target_link_libraries(ce_engine PRIVATE glm::glm)
 
 find_package(xxHash CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 set(ANGELSCRIPT_LINK_TARGET "")
 foreach(CANDIDATE_TARGET Angelscript::angelscript angelscript AngelScript::angelscript AngelScript)
@@ -331,6 +332,7 @@ endif()
 target_link_libraries(ce_engine PRIVATE 
     ${ANGELSCRIPT_LINK_TARGET}
     xxHash::xxhash
+    imgui::imgui
 )
 
 set(CE_SHADER_STAMP "${CMAKE_BINARY_DIR}/generated/shaders.stamp")

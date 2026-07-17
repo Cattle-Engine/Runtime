@@ -1,25 +1,29 @@
+#include "engine/instance.hpp"
+
 #include <format>
 #include <memory>
-#include <SDL3/SDL.h>
-#include "SDL3_image/SDL_image.h"
 
-#include "engine/ui/debug_window.hpp"
-#include "engine/instance.hpp"
+#include <SDL3/SDL.h>
+
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fullscreen.hpp"
 #include "engine/common/misc/error_box.hpp"
-#include "engine/settings.hpp"
-#include "engine/platforms.hpp"
-#include "engine/common/utils/is_fullscreen.hpp"
-#include "engine/scripting/angelscript.hpp"
-#include "engine/common/tracelog.hpp"
 #include "engine/common/sdl_events.hpp"
+#include "engine/common/tracelog.hpp"
+#include "engine/common/utils/is_fullscreen.hpp"
+#include "engine/platforms.hpp"
+#include "engine/scripting/angelscript.hpp"
+#include "engine/settings.hpp"
+#include "engine/ui/debug_window.hpp"
+
+#include "SDL3_image/SDL_image.h"
 
 namespace CE {
-    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice, EngineArguements args)
+    Instance::Instance(const char *data_file_path, bool debugmode, Renderer::GPUDeviceHandle &gpudevice,
+                       EngineArguements args)
         : gGameStateManager(gEventBus) {
         gProgramArguments = args;
-        GLOBALINSTANCESCOUNTER ++;
+        GLOBALINSTANCESCOUNTER++;
         gInstanceID = GLOBALINSTANCESCOUNTER;
         gDebug = debugmode;
         gPerformanceFrequency = SDL_GetPerformanceFrequency();
@@ -30,37 +34,29 @@ namespace CE {
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
         int gds_return = Bootstrap::Init_GameData(gVFS, data_file_path, gDebug);
-        if(gds_return != 0) {
+        if (gds_return != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Gamedata mount returned with code {}", gInstanceID, gds_return));
         }
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating game info", gInstanceID);
         int gis_return = Bootstrap::Init_GameInfo(gVFS, gGameInfo, gDebug);
-        if(gis_return != 0) {
+        if (gis_return != 0) {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to get gameinfo with code: {}", gInstanceID, gis_return));
         }
-        gVFS->MountFolder(Platforms::GetConfigPath(gGameInfo->gameNameString).c_str(), "/config", LoadMode::OnDemand, 100);
+        gVFS->MountFolder(Platforms::GetConfigPath(gGameInfo->gameNameString).c_str(), "/config", LoadMode::OnDemand,
+                          100);
 
         gSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*gGameInfo, gInstanceID);
         gSettingsManager->SetInstance(*this);
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
-        int vis = CE::Bootstrap::Init_Video(
-            gGameInfo,
-            gSettingsManager->Settings,
-            gDebug,
-            gRenderer,
-            gRendererBackend,
-            gWindow,
-            gVFS,
-            gpudevice
-        );
+        int vis = CE::Bootstrap::Init_Video(gGameInfo, gSettingsManager->Settings, gDebug, gRenderer, gRendererBackend,
+                                            gWindow, gVFS, gpudevice);
 
-        if(vis != 0) {
-            throw std::runtime_error(
-                std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
+        if (vis != 0) {
+            throw std::runtime_error(std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
         }
 
         gRenderer->SetVSync(gSettingsManager->Settings.enableVSync);
@@ -79,8 +75,7 @@ namespace CE {
         int aiam = this->Bootstrap_AssetImportersAndManagers();
         if (aiam != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to init asset importers and managers {}", gInstanceID, aiam)
-            );
+                std::format("[Instance {}] Failed to init asset importers and managers {}", gInstanceID, aiam));
         }
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
@@ -90,52 +85,34 @@ namespace CE {
         try {
             CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
             gAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
-                *gVFS,
-                gInstanceID,
-                static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK),
-                true
-            );
+                *gVFS, gInstanceID, static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK), true);
 
             gAudioManager = std::make_unique<CE::Assets::Audio::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
             gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
             gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
             gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             CE_LOG(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
             gAudioManager.reset();
             gAudioSystem.reset();
         }
-        
+
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
-            *gVFS,
-            *gGameInfo,
-            *gSettingsManager,
-            *this,
-            *gRenderer,
-            *gTextureManager,
-            *gShaderManager,
-            *gSkyBoxManager,
-            *gFontManager,
-            *gGPUMeshManager,
-            *gMaterialManager,
-            gAnimatedTextureManager.get() /*TODO: Make this use & not a fucking pointer*/,
-            *gKeyboardManger,
-            *gMouseManger,
-            gProgramArguments.OutputDebugASInfo,
-            *mRendererResourcesNameRegistry,
-            gAudioManager.get()
-        );
-        
+            *gVFS, *gGameInfo, *gSettingsManager, *this, *gRenderer, *gTextureManager, *gShaderManager, *gSkyBoxManager,
+            *gFontManager, *gGPUMeshManager, *gMaterialManager,
+            gAnimatedTextureManager.get() /*TODO: Make this use & not a fucking pointer*/, *gKeyboardManger,
+            *gMouseManger, gProgramArguments.OutputDebugASInfo, *mRendererResourcesNameRegistry, gAudioManager.get());
+
         if (!gScriptingManager->Initialize()) {
             ShowError(gScriptingManager->GetLastError());
-            throw std::runtime_error(
-                std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID, gScriptingManager->GetLastError()));
+            throw std::runtime_error(std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
+                                                 gScriptingManager->GetLastError()));
         }
 
         if (!gScriptingManager->RunStartup()) {
             ShowError(gScriptingManager->GetLastError());
-            throw std::runtime_error(
-                std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID, gScriptingManager->GetLastError()));
+            throw std::runtime_error(std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID,
+                                                 gScriptingManager->GetLastError()));
         }
         gWindowFocus = true;
     }
@@ -145,7 +122,8 @@ namespace CE {
     }
 
     int Instance::Update() {
-        if (gShouldExit) return 1;
+        if (gShouldExit)
+            return 1;
 
         const Uint64 frame_start_counter = SDL_GetPerformanceCounter();
 
@@ -155,42 +133,42 @@ namespace CE {
         auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
 
         for (size_t i : indices) {
-            const SDL_Event& e = CE::SDL_Events::gEvents[i];
+            const SDL_Event &e = CE::SDL_Events::gEvents[i];
 
             switch (e.type) {
-                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                    gShouldExit = true;
-                    break;
-                case SDL_EVENT_WINDOW_FOCUS_LOST:
-                    if (gGameInfo->pauseRenderingWhenFocusLostInWindowedMode && !Utils::IsWindowFullScreen(gWindow)) {
-                        gShouldRender = false;
-                    }
+            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                gShouldExit = true;
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_LOST:
+                if (gGameInfo->pauseRenderingWhenFocusLostInWindowedMode && !Utils::IsWindowFullScreen(gWindow)) {
+                    gShouldRender = false;
+                }
 
-                    // Due to it being wasteful on the GPU to render the window when its not even visible 
-                    // and on windows the swapchain texture returns nullptr renderering is paused
-                    if (Utils::IsWindowFullScreen(gWindow)) {
-                        gShouldRender = false;
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
-                    } else {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
-                    }
+                // Due to it being wasteful on the GPU to render the window when its not even visible
+                // and on windows the swapchain texture returns nullptr renderering is paused
+                if (Utils::IsWindowFullScreen(gWindow)) {
+                    gShouldRender = false;
+                    gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
+                } else {
+                    gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
+                }
 
-                    if (gGameInfo->pauseUpdateWhenFocusLost) {
-                        gWindowFocus = false;
-                    }
+                if (gGameInfo->pauseUpdateWhenFocusLost) {
+                    gWindowFocus = false;
+                }
 
-                    break;
-                case SDL_EVENT_WINDOW_FOCUS_GAINED:
-                    if (gGameInfo->pauseUpdateWhenFocusLost) {
-                        gWindowFocus = true;
-                    }
-                    gShouldRender = true;
-                    if (Utils::IsWindowFullScreen(gWindow)) {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAIMED_FULLSCREEN");
-                    } else {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
-                    }
-                    break;
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                if (gGameInfo->pauseUpdateWhenFocusLost) {
+                    gWindowFocus = true;
+                }
+                gShouldRender = true;
+                if (Utils::IsWindowFullScreen(gWindow)) {
+                    gGameStateManager.Emit("CE_WINDOW_FOCUS_GAIMED_FULLSCREEN");
+                } else {
+                    gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
+                }
+                break;
             }
         }
 
@@ -208,68 +186,53 @@ namespace CE {
         gRenderer->SetClearColor(255, 255, 255, 255);
         gGameStateManager.Emit("Update");
         if (gShouldRender) {
-        int bfr = gRenderer->BeginFrame(gWindow);
-        if (bfr != 0) {
-            return 1;
-        } 
-        gRenderer->BeginMode3D();
-        gGameStateManager.Emit("Draw3D");
-        gRenderer->EndMode3D();
+            int bfr = gRenderer->BeginFrame(gWindow);
+            if (bfr != 0) {
+                return 1;
+            }
+            gRenderer->BeginMode3D();
+            gGameStateManager.Emit("Draw3D");
+            gRenderer->EndMode3D();
 
-        gRenderer->BeginMode2D();
-        gGameStateManager.Emit("Draw2D");
-        if (!gScriptingManager->RunUpdate()) {
-            ShowError(gScriptingManager->GetLastError());
-            CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
-            gShouldExit = true;
-            return 1;
-        }
-        gAnimatedTextureManager->Render();
-        gRenderer->EndMode2D();
+            gRenderer->BeginMode2D();
+            gGameStateManager.Emit("Draw2D");
+            if (!gScriptingManager->RunUpdate()) {
+                ShowError(gScriptingManager->GetLastError());
+                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
+                gShouldExit = true;
+                return 1;
+            }
+            gAnimatedTextureManager->Render();
+            gRenderer->EndMode2D();
 
-        gRenderer->ImGuiStartFrame();
-        gDebugWindow.Draw(
-            *gRenderer,
-            *gTextureManager,
-            *gShaderManager,
-            *gSkyBoxManager,
-            *gFontManager,
-            *gGameInfo,
-            *gSettingsManager,
-            gAudioManager.get(),
-            *gKeyboardManger,
-            *this,
-            *gMouseManger,
-            this->GetFPS(),
-            this->GetDeltaTime(),
-            this->GetFrameTime()
-        );
-        gRenderer->ImGuiEndFrame(gWindow);
+            gRenderer->ImGuiStartFrame();
+            gDebugWindow.Draw(*gRenderer, *gTextureManager, *gShaderManager, *gSkyBoxManager, *gFontManager, *gGameInfo,
+                              *gSettingsManager, gAudioManager.get(), *gKeyboardManger, *this, *gMouseManger,
+                              this->GetFPS(), this->GetDeltaTime(), this->GetFrameTime());
+            gRenderer->ImGuiEndFrame(gWindow);
 
-        gRenderer->EndFrame(gWindow);
-        gFontManager->Update();
+            gRenderer->EndFrame(gWindow);
+            gFontManager->Update();
         }
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();
         gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                    static_cast<float>(gPerformanceFrequency) * 1000.0f;
+                     static_cast<float>(gPerformanceFrequency) * 1000.0f;
 
         if (gSettingsManager->Settings.maxFPS > 0) {
-            const float target_frame_time_ms = 1000.0f /
-                static_cast<float>(gSettingsManager->Settings.maxFPS);
+            const float target_frame_time_ms = 1000.0f / static_cast<float>(gSettingsManager->Settings.maxFPS);
 
             if (gFrameTime < target_frame_time_ms) {
-                SDL_DelayPrecise(static_cast<Uint64>(
-                    (target_frame_time_ms - gFrameTime) * 1000000.0f));
+                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - gFrameTime) * 1000000.0f));
 
                 frame_end_counter = SDL_GetPerformanceCounter();
                 gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                            static_cast<float>(gPerformanceFrequency) * 1000.0f;
+                             static_cast<float>(gPerformanceFrequency) * 1000.0f;
             }
         }
 
-        gDeltaTime = static_cast<float>(frame_end_counter - gLastFrameCounter) /
-                    static_cast<float>(gPerformanceFrequency);
+        gDeltaTime =
+            static_cast<float>(frame_end_counter - gLastFrameCounter) / static_cast<float>(gPerformanceFrequency);
 
         gLastFrameCounter = frame_end_counter;
         gAnimatedTextureManager->Update(gDeltaTime);
@@ -281,19 +244,19 @@ namespace CE {
         return gInstanceID;
     }
 
-    void Instance::SetGameState(const std::string& state) {
+    void Instance::SetGameState(const std::string &state) {
         gGameStateManager.ChangeState(state);
     }
 
-    const std::string& Instance::GetGameState() const {
+    const std::string &Instance::GetGameState() const {
         return gGameStateManager.GetState();
     }
 
-    CE::Core::EventBus& Instance::GetEventBus() {
+    CE::Core::EventBus &Instance::GetEventBus() {
         return gEventBus;
     }
 
-    CE::Core::GameState::GameStateManager& Instance::GetGameStateManager() {
+    CE::Core::GameState::GameStateManager &Instance::GetGameStateManager() {
         return gGameStateManager;
     }
 
@@ -306,12 +269,13 @@ namespace CE {
     }
 
     int Instance::GetFPS() const {
-        if (gDeltaTime <= 0.0f) return 0.0f;
+        if (gDeltaTime <= 0.0f)
+            return 0.0f;
         return 1.0f / gDeltaTime;
     }
 
     void Instance::ReloadSettings() {
-        CE_LOG(LogLevel::Debug,"[Instance {}] ReloadSettings called", gInstanceID);
+        CE_LOG(LogLevel::Debug, "[Instance {}] ReloadSettings called", gInstanceID);
         gPendingSettingsReload = true;
     }
 
@@ -320,23 +284,23 @@ namespace CE {
         const int targetH = std::max(1, gSettingsManager->Settings.windowHeight);
 
         if (gSettingsManager->Settings.fullscreen) {
-            if (!CE::ApplyFullscreenMode(
-                    gWindow,
-                    targetW,
-                    targetH)) {
+            if (!CE::ApplyFullscreenMode(gWindow, targetW, targetH)) {
                 CE_LOG(LogLevel::Error, "[Instance {}] Failed to apply fullscreen mode", gInstanceID);
             }
-        } else  {
+        } else {
             // Ensure we exit fullscreen before resizing.
             if (!SDL_SetWindowFullscreenMode(gWindow, nullptr)) {
-                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreenMode(nullptr) failed: {}", gInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreenMode(nullptr) failed: {}", gInstanceID,
+                       SDL_GetError());
             }
             if (!SDL_SetWindowFullscreen(gWindow, false)) {
-                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreen(false) failed: {}", gInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowFullscreen(false) failed: {}", gInstanceID,
+                       SDL_GetError());
             }
 
             if (!SDL_SetWindowSize(gWindow, targetW, targetH)) {
-                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowSize({}x{}) failed: {}", gInstanceID, targetW, targetH, SDL_GetError());
+                CE_LOG(LogLevel::Warn, "[Instance {}] SDL_SetWindowSize({}x{}) failed: {}", gInstanceID, targetW,
+                       targetH, SDL_GetError());
             }
         }
 
@@ -356,9 +320,9 @@ namespace CE {
             return;
         }
 
-        VirtualFile* vf = gVFS->OpenFile(path.c_str());
+        VirtualFile *vf = gVFS->OpenFile(path.c_str());
         if (!vf) {
-            CE_LOG(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID ,path);
+            CE_LOG(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID, path);
             return;
         }
 
@@ -366,22 +330,22 @@ namespace CE {
         gVFS->ReadFile(vf, fileBytes.data(), fileBytes.size());
         gVFS->CloseFile(vf);
 
-        SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
+        SDL_IOStream *mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
-            CE_LOG(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID,SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID, SDL_GetError());
             return;
         }
 
-        SDL_Surface* surface = IMG_Load_IO(mem, true); 
+        SDL_Surface *surface = IMG_Load_IO(mem, true);
         if (!surface) {
-            CE_LOG(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID,path, SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID, path, SDL_GetError());
             return;
         }
 
-        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
-            CE_LOG(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID,SDL_GetError());
+            CE_LOG(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID, SDL_GetError());
             return;
         }
 
@@ -410,4 +374,4 @@ namespace CE {
         gRenderer->Shutdown(gWindow);
         SDL_DestroyWindow(gWindow);
     }
-}
+} // namespace CE

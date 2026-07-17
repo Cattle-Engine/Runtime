@@ -1,8 +1,9 @@
 #include "engine/scripting/private/lexer.hpp"
+
 #include "engine/scripting/private/exceptions.hpp"
 
 namespace CE::Scripting::Impl::Lexer {
-    std::vector<Token> Lex(const std::string& data, const std::string& filename) {
+    std::vector<Token> Lex(const std::string &data, const std::string &filename) {
         std::vector<Token> tokens;
 
         size_t position = 0;
@@ -36,7 +37,7 @@ namespace CE::Scripting::Impl::Lexer {
 
                 // Single-line comment
                 if (next == '/') {
-                    SourceLocation commentStart{ filename, line, column };
+                    SourceLocation commentStart{filename, line, column};
                     advance(2); // Skip '//'
                     while (position < data.size() && data[position] != '\n') {
                         advance();
@@ -46,7 +47,7 @@ namespace CE::Scripting::Impl::Lexer {
 
                 // Multi-line comment
                 if (next == '*') {
-                    SourceLocation commentStart{ filename, line, column };
+                    SourceLocation commentStart{filename, line, column};
                     advance(2); // Skip '/*'
                     bool closed = false;
 
@@ -67,14 +68,13 @@ namespace CE::Scripting::Impl::Lexer {
             }
 
             // Capture location for the token starting here
-            SourceLocation tokenLocation{ filename, line, column };
+            SourceLocation tokenLocation{filename, line, column};
 
             // check if its a standard alphabetic character or an _
             if (std::isalpha(current) || current == '_') {
                 std::string value;
 
-                while (position < data.size() &&
-                       (std::isalnum(data[position]) || data[position] == '_')) {
+                while (position < data.size() && (std::isalnum(data[position]) || data[position] == '_')) {
                     value += data[position];
                     advance();
                 }
@@ -92,15 +92,15 @@ namespace CE::Scripting::Impl::Lexer {
                     token.Type = Token::TokenType::KeywordClass;
                 } else if (value == "struct") {
                     token.Type = Token::TokenType::KeywordStruct;
-                } else if (value == "const"){
+                } else if (value == "const") {
                     token.Type = Token::TokenType::KeywordConst;
                 } else if (value == "auto") {
                     token.Type = Token::TokenType::KeywordAuto;
-                } else if (value == "using"){
+                } else if (value == "using") {
                     token.Type = Token::TokenType::KeywordUsing;
                 } else {
                     token.Type = Token::TokenType::Identifier;
-                }  
+                }
 
                 token.Value = value;
                 tokens.push_back(token);
@@ -108,7 +108,7 @@ namespace CE::Scripting::Impl::Lexer {
             }
 
             // Handle numbers integers, floats, scientific notation, and alternative radix literals
-            if (std::isdigit(current) || 
+            if (std::isdigit(current) ||
                 (current == '.' && position + 1 < data.size() && std::isdigit(data[position + 1]))) {
 
                 std::string value;
@@ -117,9 +117,7 @@ namespace CE::Scripting::Impl::Lexer {
                 if (current == '0' && position + 1 < data.size()) {
                     char radix = data[position + 1];
 
-                    if (radix == 'x' || radix == 'X' ||
-                        radix == 'b' || radix == 'B' ||
-                        radix == 'o' || radix == 'O' ||
+                    if (radix == 'x' || radix == 'X' || radix == 'b' || radix == 'B' || radix == 'o' || radix == 'O' ||
                         radix == 'd' || radix == 'D') {
 
                         value += current;
@@ -165,16 +163,14 @@ namespace CE::Scripting::Impl::Lexer {
                 }
 
                 // Scientific notation: e / E
-                if (position < data.size() &&
-                    (data[position] == 'e' || data[position] == 'E')) {
+                if (position < data.size() && (data[position] == 'e' || data[position] == 'E')) {
 
                     hasExponent = true;
                     value += data[position];
                     advance();
 
                     // Optional exponent sign
-                    if (position < data.size() &&
-                        (data[position] == '+' || data[position] == '-')) {
+                    if (position < data.size() && (data[position] == '+' || data[position] == '-')) {
 
                         value += data[position];
                         advance();
@@ -208,13 +204,15 @@ namespace CE::Scripting::Impl::Lexer {
                 std::string value;
 
                 // Check for multi-line Heredoc string (""")
-                if (quoteChar == '"' && position + 2 < data.size() && data[position + 1] == '"' && data[position + 2] == '"') {
+                if (quoteChar == '"' && position + 2 < data.size() && data[position + 1] == '"' &&
+                    data[position + 2] == '"') {
                     isHeredoc = true;
                     advance(3); // skip opening """
 
                     bool closed = false;
                     while (position < data.size()) {
-                        if (data[position] == '"' && position + 2 < data.size() && data[position + 1] == '"' && data[position + 2] == '"') {
+                        if (data[position] == '"' && position + 2 < data.size() && data[position + 1] == '"' &&
+                            data[position + 2] == '"') {
                             advance(3); // skip closing """
                             closed = true;
                             break;
@@ -226,7 +224,7 @@ namespace CE::Scripting::Impl::Lexer {
                     if (!closed) {
                         throw Exceptions::LexerError("Unterminated heredoc string literal", tokenLocation);
                     }
-                } 
+                }
                 // Normal single-line string or character literal
                 else {
                     advance(); // skip opening quote
@@ -234,7 +232,9 @@ namespace CE::Scripting::Impl::Lexer {
                     bool closed = false;
                     while (position < data.size()) {
                         if (data[position] == '\n') {
-                            throw Exceptions::LexerError(quoteChar == '"' ? "Newline in constant string literal" : "Newline in character literal", tokenLocation);
+                            throw Exceptions::LexerError(quoteChar == '"' ? "Newline in constant string literal"
+                                                                          : "Newline in character literal",
+                                                         tokenLocation);
                         }
 
                         // Handle escape sequences (e.g., \", \', \\)
@@ -259,16 +259,17 @@ namespace CE::Scripting::Impl::Lexer {
                     }
 
                     if (!closed) {
-                        throw Exceptions::LexerError(quoteChar == '"' ? "Unterminated string literal" : "Unterminated character literal", tokenLocation);
+                        throw Exceptions::LexerError(quoteChar == '"' ? "Unterminated string literal"
+                                                                      : "Unterminated character literal",
+                                                     tokenLocation);
                     }
                 }
 
                 Token token;
                 token.Location = tokenLocation;
                 token.Type = (quoteChar == '"') ? Token::TokenType::String : Token::TokenType::Symbol;
-                token.Value = isHeredoc
-                    ? "\"\"\"" + value + "\"\"\""
-                    : std::string(1, quoteChar) + value + std::string(1, quoteChar);
+                token.Value = isHeredoc ? "\"\"\"" + value + "\"\"\""
+                                        : std::string(1, quoteChar) + value + std::string(1, quoteChar);
                 tokens.push_back(token);
                 continue;
             }
@@ -279,17 +280,40 @@ namespace CE::Scripting::Impl::Lexer {
                 Token::TokenType matchedType = Token::TokenType::Symbol;
                 bool isMultiOp = false;
 
-                if (op == "::") { matchedType = Token::TokenType::ScopeResolution; isMultiOp = true; }
-                else if (op == "==") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "!=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "<=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == ">=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "&&") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "||") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "+=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "-=") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "++") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
-                else if (op == "--") { matchedType = Token::TokenType::Symbol; isMultiOp = true; }
+                if (op == "::") {
+                    matchedType = Token::TokenType::ScopeResolution;
+                    isMultiOp = true;
+                } else if (op == "==") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "!=") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "<=") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == ">=") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "&&") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "||") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "+=") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "-=") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "++") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                } else if (op == "--") {
+                    matchedType = Token::TokenType::Symbol;
+                    isMultiOp = true;
+                }
 
                 if (isMultiOp) {
                     Token token;
@@ -305,44 +329,44 @@ namespace CE::Scripting::Impl::Lexer {
             // standard Single-Character Symbols
             Token token;
             token.Location = tokenLocation;
-            
+
             switch (current) {
-                case '{':
-                    token.Type = Token::TokenType::OpenBrace;
-                    break;
-                case '}':
-                    token.Type = Token::TokenType::CloseBrace;
-                    break;
-                case '(':
-                    token.Type = Token::TokenType::OpenParen;
-                    break;
-                case ')':
-                    token.Type = Token::TokenType::CloseParen;
-                    break;
-                case '[':
-                    token.Type = Token::TokenType::OpenBracket;
-                    break;
-                case ']':
-                    token.Type = Token::TokenType::CloseBracket;
-                    break;
-                case '@':
-                    token.Type = Token::TokenType::Handle;
-                    break;
-                case '&':
-                    token.Type = Token::TokenType::Reference;
-                    break;
-                case ';':
-                    token.Type = Token::TokenType::Semicolon;
-                    break;
-                case ',':
-                    token.Type = Token::TokenType::Comma;
-                    break;
-                case '=':
-                    token.Type = Token::TokenType::Assignment;
-                    break;
-                default:
-                    token.Type = Token::TokenType::Symbol;
-                    break;
+            case '{':
+                token.Type = Token::TokenType::OpenBrace;
+                break;
+            case '}':
+                token.Type = Token::TokenType::CloseBrace;
+                break;
+            case '(':
+                token.Type = Token::TokenType::OpenParen;
+                break;
+            case ')':
+                token.Type = Token::TokenType::CloseParen;
+                break;
+            case '[':
+                token.Type = Token::TokenType::OpenBracket;
+                break;
+            case ']':
+                token.Type = Token::TokenType::CloseBracket;
+                break;
+            case '@':
+                token.Type = Token::TokenType::Handle;
+                break;
+            case '&':
+                token.Type = Token::TokenType::Reference;
+                break;
+            case ';':
+                token.Type = Token::TokenType::Semicolon;
+                break;
+            case ',':
+                token.Type = Token::TokenType::Comma;
+                break;
+            case '=':
+                token.Type = Token::TokenType::Assignment;
+                break;
+            default:
+                token.Type = Token::TokenType::Symbol;
+                break;
             }
 
             token.Value = std::string(1, current);
@@ -353,9 +377,9 @@ namespace CE::Scripting::Impl::Lexer {
 
         Token end;
         end.Type = Token::TokenType::EndOfFile;
-        end.Location = SourceLocation{ filename, line, column };
+        end.Location = SourceLocation{filename, line, column};
 
         tokens.push_back(end);
         return tokens;
     }
-}
+} // namespace CE::Scripting::Impl::Lexer

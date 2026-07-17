@@ -1,32 +1,32 @@
 #include <string>
 
 #include "engine/bootstrap/instance.hpp"
+#include "engine/common/fs/ini.hpp"
 #include "engine/common/fs/vfs_stl.hpp"
+#include "engine/common/misc/error_box.hpp"
 #include "engine/common/misc/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/fs/ini.hpp"
-#include "engine/common/misc/error_box.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
+    int Init_GameData(std::unique_ptr<VFS::VFS> &vfs, const char *datafilename, bool debugmode) {
         CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
-        
+
         /*if (debugmode) {
             vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
         }*/
         return 0;
     }
 
-    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, bool debugmode) {
+    int Init_GameInfo(std::unique_ptr<VFS::VFS> &vfs, std::unique_ptr<GameInfo> &gameinfo, bool debugmode) {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
-        
+
         if (!stream) {
             CE_LOG(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
             ShowError("[Bootstrap] Gameinfo.txt is missing");
             return 1;
         }
-        
+
         CE::Ini::IniFile ini;
         CE::Ini::ParseError err;
         CE::Ini::Options opts;
@@ -41,9 +41,10 @@ namespace CE::Bootstrap {
         if (!CE::Ini::parse(text, ini, &err, opts)) {
             CE_LOG(LogLevel::Error, "[Bootstrap] Failed to parse Gameinfo.txt");
             ShowError("[Bootstrap] Failed to parse Gameinfo.txt");
-            return 2;;
+            return 2;
+            ;
         }
-        
+
         bool gresult = Common::GData_Has(text);
 
         if (!gresult) {
@@ -63,7 +64,7 @@ namespace CE::Bootstrap {
         gameinfo->fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
         gameinfo->startupFileName = ini.get_string("Gameinfo", "Scripting_Startup_File", "startup.as");
-        if(ini.has("Gameinfo", "Window_Icon")) {
+        if (ini.has("Gameinfo", "Window_Icon")) {
             gameinfo->windowIcon = ini.get_string("Gameinfo", "Window_Icon", "");
         }
 
@@ -87,4 +88,4 @@ namespace CE::Bootstrap {
         CE_LOG(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
         return 0;
     }
-}
+} // namespace CE::Bootstrap

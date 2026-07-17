@@ -1,13 +1,13 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <variant>
 #include <vector>
-#include <cstdint>
 
-#include "engine/scripting/private/modules.hpp"
 #include "engine/scripting/private/lexer.hpp"
+#include "engine/scripting/private/modules.hpp"
 
 namespace CE::Scripting::Impl::AST {
     struct ASTImport {
@@ -17,7 +17,7 @@ namespace CE::Scripting::Impl::AST {
         bool Exported = false;
         bool IsUsing = false;
         bool IsFileImport = false;
-        
+
         SourceLocation Location;
     };
 
@@ -37,16 +37,16 @@ namespace CE::Scripting::Impl::AST {
         // AngelScript parameter direction: in, out, or inout.
         std::string Direction;
     };
-    
+
     struct ASTLocalVariable {
         ASTTypeRef Type;
         std::string Name;
     };
-    
+
     struct ASTFunction {
         std::string Name;
         ASTTypeRef ReturnType;
-        
+
         std::vector<ASTParameter> Parameters;
         std::vector<Lexer::Token> Body;
         std::vector<ASTLocalVariable> LocalVariables; // Exactly what you need
@@ -68,12 +68,7 @@ namespace CE::Scripting::Impl::AST {
     struct ASTNamespace;
 
     struct ASTDeclaration {
-        enum class Kind {
-            Function,
-            Global,
-            Type,
-            Namespace
-        };
+        enum class Kind { Function, Global, Type, Namespace };
 
         Kind Type;
         bool Exported = false;
@@ -82,12 +77,7 @@ namespace CE::Scripting::Impl::AST {
         SourceLocation Location;
         std::string NameSpace;
 
-        std::variant<
-            ASTFunction,
-            ASTGlobal,
-            ASTType,
-            std::shared_ptr<ASTNamespace>
-        > Data;
+        std::variant<ASTFunction, ASTGlobal, ASTType, std::shared_ptr<ASTNamespace>> Data;
     };
 
     struct ASTNamespace {
@@ -100,13 +90,13 @@ namespace CE::Scripting::Impl::AST {
         std::vector<ASTImport> Imports;
         std::vector<ASTDeclaration> Declarations;
     };
-    
+
     /**
      * @brief Hashes a module deterministly
-     * 
+     *
      * This is mostly used by the ast to generate the internal name
-     * 
+     *
      * @return Returns a uint64_t of the hashed model
      */
-    uint64_t HashModule(const ASTModule& module);
-}
+    uint64_t HashModule(const ASTModule &module);
+} // namespace CE::Scripting::Impl::AST

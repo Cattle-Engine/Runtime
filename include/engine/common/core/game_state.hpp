@@ -5,7 +5,7 @@
 
 #include "engine/common/core/event_bus.hpp"
 
-namespace CE::Core::GameState { 
+namespace CE::Core::GameState {
     struct StateEnterEvent {
         std::string name;
     };
@@ -20,15 +20,16 @@ namespace CE::Core::GameState {
     };
 
     class GameStateManager {
-        public:
-            explicit GameStateManager(EventBus& eventbus);
+      public:
+        explicit GameStateManager(EventBus &eventbus);
 
-            void ChangeState(std::string state);
-            void Emit(const std::string& eventName) const;
-            bool IsState(std::string_view state) const;
-            const std::string& GetState() const;
-        private:
-            std::string mCurrentState = "None";
-            EventBus& mEventBus;
+        void ChangeState(std::string state);
+        void Emit(const std::string &eventName) const;
+        bool IsState(std::string_view state) const;
+        const std::string &GetState() const;
+
+      private:
+        std::string mCurrentState = "None";
+        EventBus &mEventBus;
     };
-}
+} // namespace CE::Core::GameState

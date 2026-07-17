@@ -1,15 +1,15 @@
 #include <string>
 
 #include "engine/bootstrap/engine.hpp"
-#include "engine/common/misc/gameinfo.hpp"
+#include "engine/common/fs/ini.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/fs/vfs_stl.hpp"
-#include "engine/common/tracelog.hpp"
+#include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/misc/gdat_has.hpp"
-#include "engine/common/fs/ini.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::Bootstrap::Engine {
-    int GetGameInfo(GameInfo& gameinfo, std::string& gdata_name, bool debug) {
+    int GetGameInfo(GameInfo &gameinfo, std::string &gdata_name, bool debug) {
         VFS::VFS tmp_vfs;
 
         tmp_vfs.MountArchive(gdata_name.c_str(), "/", LoadMode::OnDemand);
@@ -63,4 +63,4 @@ namespace CE::Bootstrap::Engine {
         }
         return 0;
     }
-}
+} // namespace CE::Bootstrap::Engine

@@ -1,8 +1,9 @@
-#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 
 #include "engine/platforms/linux.hpp"
+
+#include <unistd.h>
 
 namespace CE::Platforms::Linux {
     bool SupportsANSI() {
@@ -18,7 +19,7 @@ namespace CE::Platforms::Linux {
             return false;
         }
 
-        const char* term = std::getenv("TERM");
+        const char *term = std::getenv("TERM");
         if (!term || std::strcmp(term, "dumb") == 0) {
             return false;
         }
@@ -29,4 +30,4 @@ namespace CE::Platforms::Linux {
     bool EnableANSI() {
         return true;
     }
-}
+} // namespace CE::Platforms::Linux

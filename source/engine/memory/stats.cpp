@@ -1,8 +1,8 @@
 #include "engine/memory/stats.hpp"
 
 namespace CE::Memory {
-    Stats& GetStats() {
+    Stats &GetStats() {
         static Stats stats;
         return stats;
     }
-}
+} // namespace CE::Memory

@@ -1,9 +1,10 @@
 #include "engine/scripting/angelscript.hpp"
 
-namespace  CE::Scripting::Utils {
-    std::string LoadScript(VFS::VFS& vfs, const char* path) {
-        VirtualFile* f = vfs.OpenFile(path);
-        if (!f) return "";
+namespace CE::Scripting::Utils {
+    std::string LoadScript(VFS::VFS &vfs, const char *path) {
+        VirtualFile *f = vfs.OpenFile(path);
+        if (!f)
+            return "";
 
         uint64_t size = 0;
         vfs.GetFileSize(path, size);
@@ -16,5 +17,4 @@ namespace  CE::Scripting::Utils {
 
         return out;
     }
-}
-
+} // namespace CE::Scripting::Utils

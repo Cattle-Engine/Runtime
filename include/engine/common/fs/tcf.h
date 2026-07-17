@@ -1,16 +1,16 @@
 #ifndef TCF_H
 #define TCF_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
-#define TCF_OK                0
-#define TCF_ERR_IO           -1
-#define TCF_ERR_FORMAT       -2
-#define TCF_ERR_CRC          -3
-#define TCF_ERR_MEMORY       -4
-#define TCF_ERR_NOT_FOUND    -5
-#define TCF_ERR_ARG          -6
+#define TCF_OK 0
+#define TCF_ERR_IO -1
+#define TCF_ERR_FORMAT -2
+#define TCF_ERR_CRC -3
+#define TCF_ERR_MEMORY -4
+#define TCF_ERR_NOT_FOUND -5
+#define TCF_ERR_ARG -6
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,10 +23,7 @@ int tcf_pack(const char *input_dir, const char *out_path);
  * - inner_path is the archive path (forward slashes).
  * - out_data is heap-allocated with malloc; free with tcf_free().
  */
-int tcf_load_file(const char *tcf_path,
-                  const char *inner_path,
-                  uint8_t **out_data,
-                  uint64_t *out_size);
+int tcf_load_file(const char *tcf_path, const char *inner_path, uint8_t **out_data, uint64_t *out_size);
 
 void tcf_free(void *ptr);
 
@@ -47,10 +44,7 @@ uint64_t tcf_vfs_file_size(tcf_file_t *file);
  * Pointers returned by tcf_vfs_entry_info remain valid until tcf_vfs_close().
  */
 uint64_t tcf_vfs_entry_count(const tcf_vfs_t *vfs);
-int tcf_vfs_entry_info(const tcf_vfs_t *vfs,
-                       uint32_t index,
-                       const char **path_out,
-                       uint32_t *path_len_out,
+int tcf_vfs_entry_info(const tcf_vfs_t *vfs, uint32_t index, const char **path_out, uint32_t *path_len_out,
                        uint64_t *size_out);
 
 /* Reads and unshifts the entire entry (index) into buffer.
@@ -62,4 +56,4 @@ int tcf_vfs_read_entry(tcf_vfs_t *vfs, uint32_t index, void *buffer, size_t buff
 }
 #endif
 
-#endif 
+#endif

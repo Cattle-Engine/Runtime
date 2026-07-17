@@ -1,5 +1,6 @@
-#include <windows.h>
 #include "engine/platforms/windows.hpp"
+
+#include <windows.h>
 
 namespace CE::Platforms::Windows {
     bool SupportsANSI() {
@@ -31,4 +32,4 @@ namespace CE::Platforms::Windows {
 
         return SetConsoleMode(hOut, mode) != 0;
     }
-}
+} // namespace CE::Platforms::Windows

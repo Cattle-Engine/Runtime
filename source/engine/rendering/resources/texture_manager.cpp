@@ -1,13 +1,15 @@
 #include "engine/rendering/resources/texture_manager.hpp"
-#include "engine/common/tracelog.hpp"
+
 #include <format>
+
+#include "engine/common/tracelog.hpp"
 
 namespace {
     constexpr const char kGeneratedTexturePathName[] = "__ce_internal_texture_generated_path";
 }
 
 namespace CE::Renderer::Resources {
-    TextureRef::TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex)
+    TextureRef::TextureRef(TextureManager *mgr, TextureHandle handle, Texture *tex)
         : mManager(mgr), mHandle(handle), mTexture(tex) {}
 
     TextureRef::~TextureRef() {
@@ -15,16 +17,16 @@ namespace CE::Renderer::Resources {
             mManager->Return(mHandle);
     }
 
-    TextureRef::TextureRef(TextureRef&& other) noexcept {
+    TextureRef::TextureRef(TextureRef &&other) noexcept {
         *this = std::move(other);
     }
 
-    TextureRef& TextureRef::operator=(TextureRef&& other) noexcept {
+    TextureRef &TextureRef::operator=(TextureRef &&other) noexcept {
         if (this != &other) {
             if (mManager) {
                 mManager->Return(mHandle);
             }
-            
+
             mManager = other.mManager;
             mHandle = other.mHandle;
             mTexture = other.mTexture;
@@ -42,21 +44,21 @@ namespace CE::Renderer::Resources {
         mHandle = 0;
         mTexture = nullptr;
     }
-}
+} // namespace CE::Renderer::Resources
 
 namespace CE::Renderer::Resources {
-    TextureManager::TextureManager(VFS::VFS& vfs, IRenderer& renderer) : mRenderer(renderer), mVFS(vfs) {}
+    TextureManager::TextureManager(VFS::VFS &vfs, IRenderer &renderer) : mRenderer(renderer), mVFS(vfs) {}
 
-    TextureManager::TextureEntry* TextureManager::GetTextureEntry(TextureHandle handle) {
+    TextureManager::TextureEntry *TextureManager::GetTextureEntry(TextureHandle handle) {
         auto list = mTextureCache.find(handle);
         if (list != mTextureCache.end()) {
             return &list->second;
-        } 
+        }
         return nullptr;
     }
 
     TextureRef TextureManager::Acquire(TextureHandle handle) {
-        TextureEntry* entry = GetTextureEntry(handle);
+        TextureEntry *entry = GetTextureEntry(handle);
         if (!entry || entry->IsPendingUnload)
             return {};
 
@@ -65,43 +67,36 @@ namespace CE::Renderer::Resources {
     }
 
     void TextureManager::Return(TextureHandle handle) {
-        TextureEntry* entry = GetTextureEntry(handle);
+        TextureEntry *entry = GetTextureEntry(handle);
         if (entry) {
-            if (entry->RefCount > 0) entry->RefCount--;
+            if (entry->RefCount > 0)
+                entry->RefCount--;
             return;
         }
     }
 
     TextureHandle TextureManager::Load(std::string path) {
-        if (auto it = mPathCache.find(path); it != mPathCache.end())
-        {
-            TextureEntry* entry = GetTextureEntry(it->second);
-            if (entry && !entry->IsPendingUnload)
-            {
+        if (auto it = mPathCache.find(path); it != mPathCache.end()) {
+            TextureEntry *entry = GetTextureEntry(it->second);
+            if (entry && !entry->IsPendingUnload) {
                 return it->second;
             }
         }
 
         TextureEntry texentry = {};
 
-        if (!mVFS.FileExists(path.c_str()))
-        {
+        if (!mVFS.FileExists(path.c_str())) {
             CE_LOG(LogLevel::Error, "[Texture Manager] File doesn't exist: {}", path);
             texentry.Resource = mRenderer.GetErrorTexture();
             texentry.IsError = true;
-        }
-        else
-        {
-            Texture* tex = mRenderer.LoadTex(path.c_str());
+        } else {
+            Texture *tex = mRenderer.LoadTex(path.c_str());
 
-            if (tex == nullptr)
-            {
+            if (tex == nullptr) {
                 CE_LOG(LogLevel::Error, "[Texture Manager] Failed to load texture: {}", path);
                 texentry.Resource = mRenderer.GetErrorTexture();
                 texentry.IsError = true;
-            }
-            else
-            {
+            } else {
                 texentry.Resource = tex;
                 texentry.IsError = false;
             }
@@ -131,12 +126,14 @@ namespace CE::Renderer::Resources {
         }
     }
 
-    Texture* TextureManager::GetTexture(TextureHandle handle) {
-        TextureEntry* entry = GetTextureEntry(handle);
+    Texture *TextureManager::GetTexture(TextureHandle handle) {
+        TextureEntry *entry = GetTextureEntry(handle);
 
-        if (!entry) return nullptr;
+        if (!entry)
+            return nullptr;
 
-        if (entry->IsPendingUnload) return nullptr;
+        if (entry->IsPendingUnload)
+            return nullptr;
 
         if (entry) {
             return entry->Resource;
@@ -144,7 +141,7 @@ namespace CE::Renderer::Resources {
             return nullptr;
         }
     }
-     
+
     void TextureManager::UnloadPendingDeletions() {
         std::vector<TextureHandle> still_pending;
 
@@ -154,7 +151,7 @@ namespace CE::Renderer::Resources {
             if (it == mTextureCache.end())
                 continue;
 
-            TextureEntry& entry = it->second;
+            TextureEntry &entry = it->second;
 
             if (entry.RefCount == 0) {
                 if (entry.Resource)
@@ -171,7 +168,7 @@ namespace CE::Renderer::Resources {
     }
 
     void TextureManager::UnloadAll() {
-        for (auto& [name, texinfo] : mTextureCache) {
+        for (auto &[name, texinfo] : mTextureCache) {
             if (!texinfo.IsError) {
                 mRenderer.UnloadTex(texinfo.Resource);
             }
@@ -191,7 +188,7 @@ namespace CE::Renderer::Resources {
     size_t TextureManager::GetValidTextureCount() const {
         size_t count = 0;
 
-        for (const auto& [handle, entry] : mTextureCache) {
+        for (const auto &[handle, entry] : mTextureCache) {
             if (!entry.IsError && !entry.IsPendingUnload) {
                 ++count;
             }
@@ -203,7 +200,7 @@ namespace CE::Renderer::Resources {
     size_t TextureManager::GetErrorTextureCount() const {
         size_t count = 0;
 
-        for (const auto& [handle, entry] : mTextureCache) {
+        for (const auto &[handle, entry] : mTextureCache) {
             if (entry.IsError) {
                 ++count;
             }
@@ -215,7 +212,7 @@ namespace CE::Renderer::Resources {
     size_t TextureManager::GetPendingUnloadCount() const {
         size_t count = 0;
 
-        for (const auto& [handle, entry] : mTextureCache) {
+        for (const auto &[handle, entry] : mTextureCache) {
             if (entry.IsPendingUnload) {
                 ++count;
             }
@@ -224,22 +221,14 @@ namespace CE::Renderer::Resources {
         return count;
     }
 
-    TextureHandle TextureManager::CreateTextureFromData(
-            int width,
-            int height,
-            const void* pixels,
-            TextureFormat format,
-            int pitch,
-            TextureFilter filter,
-            TextureWrap wrap,
-            std::string cache_key,
-            TextureUploadBatch* batch
-    ) {
+    TextureHandle TextureManager::CreateTextureFromData(int width, int height, const void *pixels, TextureFormat format,
+                                                        int pitch, TextureFilter filter, TextureWrap wrap,
+                                                        std::string cache_key, TextureUploadBatch *batch) {
         if (!cache_key.empty()) {
             auto it = mPathCache.find(cache_key);
 
             if (it != mPathCache.end()) {
-                TextureEntry* entry = GetTextureEntry(it->second);
+                TextureEntry *entry = GetTextureEntry(it->second);
 
                 if (entry && !entry->IsPendingUnload) {
                     return it->second;
@@ -247,18 +236,9 @@ namespace CE::Renderer::Resources {
             }
         }
 
-        auto tex = mRenderer.CreateTextureFromData(
-            width,
-            height,
-            pixels,
-            format,
-            pitch,
-            filter,
-            wrap,
-            batch
-        );
+        auto tex = mRenderer.CreateTextureFromData(width, height, pixels, format, pitch, filter, wrap, batch);
         TextureEntry entry = {};
-        
+
         if (tex == nullptr) {
             CE_LOG(LogLevel::Error, "[Texture Manager] Failed to create a texture from data!");
             entry.IsError = true;
@@ -291,4 +271,4 @@ namespace CE::Renderer::Resources {
             return true;
         }
     }
-}
+} // namespace CE::Renderer::Resources

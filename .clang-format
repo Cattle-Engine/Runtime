@@ -8,12 +8,11 @@ ColumnLimit: 120
 
 BreakBeforeBraces: Attach
 AllowShortBlocksOnASingleLine: Never
-AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: Never
 
-NamespaceIndentation: None
+NamespaceIndentation: All
 CompactNamespaces: false
 
 SpacesInParentheses: false
@@ -41,4 +40,3 @@ IncludeCategories:
     Priority:        4
 
 SortIncludes: CaseSensitive
-...

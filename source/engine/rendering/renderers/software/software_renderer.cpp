@@ -5,42 +5,42 @@
 #include <cstddef>
 #include <vector>
 
-#include <SDL3_image/SDL_image.h>
-#include "imgui/imgui.h"
-#include "imgui_impl_sdl3.h"
-
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
+
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include <SDL3_image/SDL_image.h>
 
 namespace {
     constexpr float kPi = 3.14159265358979323846f;
 
     SDL_PixelFormat ToSDLPixelFormat(CE::Renderer::TextureFormat format) {
         switch (format) {
-            case CE::Renderer::TextureFormat::RGBA8:
-                return SDL_PIXELFORMAT_RGBA32;
-            case CE::Renderer::TextureFormat::RGB8:
-                return SDL_PIXELFORMAT_RGB24;
-            case CE::Renderer::TextureFormat::R8:
-                return SDL_PIXELFORMAT_RGBA32;
-            default:
-                return SDL_PIXELFORMAT_RGBA32;
+        case CE::Renderer::TextureFormat::RGBA8:
+            return SDL_PIXELFORMAT_RGBA32;
+        case CE::Renderer::TextureFormat::RGB8:
+            return SDL_PIXELFORMAT_RGB24;
+        case CE::Renderer::TextureFormat::R8:
+            return SDL_PIXELFORMAT_RGBA32;
+        default:
+            return SDL_PIXELFORMAT_RGBA32;
         }
     }
 
     int BytesPerPixel(CE::Renderer::TextureFormat format) {
         switch (format) {
-            case CE::Renderer::TextureFormat::RGBA8:
-                return 4;
-            case CE::Renderer::TextureFormat::RGB8:
-                return 3;
-            case CE::Renderer::TextureFormat::R8:
-                return 1;
-            default:
-                return 4;
+        case CE::Renderer::TextureFormat::RGBA8:
+            return 4;
+        case CE::Renderer::TextureFormat::RGB8:
+            return 3;
+        case CE::Renderer::TextureFormat::R8:
+            return 1;
+        default:
+            return 4;
         }
     }
-}
+} // namespace
 
 namespace CE::Renderer::Software {
     namespace {
@@ -54,7 +54,7 @@ namespace CE::Renderer::Software {
         bool ApproximatelyInteger(float value) {
             return std::abs(value - std::round(value)) <= kTileEpsilon;
         }
-    }
+    } // namespace
 
     static SDL_FlipMode ToSDLFlipMode(bool flipX, bool flipY) {
         if (flipX && flipY) {
@@ -69,24 +69,22 @@ namespace CE::Renderer::Software {
         return SDL_FLIP_NONE;
     }
 
-    static void RotateCorner(SDL_FPoint& point, float cx, float cy, float sinA, float cosA) {
+    static void RotateCorner(SDL_FPoint &point, float cx, float cy, float sinA, float cosA) {
         const float dx = point.x - cx;
         const float dy = point.y - cy;
         point.x = cx + dx * cosA - dy * sinA;
         point.y = cy + dx * sinA + dy * cosA;
     }
 
-    Software_Renderer::Software_Renderer(VFS::VFS* vfs) : mVFS(vfs) {
-    }
+    Software_Renderer::Software_Renderer(VFS::VFS *vfs) : mVFS(vfs) {}
 
     Software_Renderer::~Software_Renderer() {
         Shutdown(nullptr);
     }
 
-    void Software_Renderer::PreWinInit() {
-    }
+    void Software_Renderer::PreWinInit() {}
 
-    int Software_Renderer::Init(SDL_Window* window, bool, GPUDeviceHandle gdevice) {
+    int Software_Renderer::Init(SDL_Window *window, bool, GPUDeviceHandle gdevice) {
         if (gdevice == nullptr || gdevice->backend != RendererBackend::Software) {
             return 1;
         }
@@ -95,7 +93,8 @@ namespace CE::Renderer::Software {
             return 0;
         }
 
-        mRenderer = SDL_CreateRenderer(window, "software");;
+        mRenderer = SDL_CreateRenderer(window, "software");
+        ;
         if (mRenderer == nullptr) {
             return 2;
         }
@@ -104,41 +103,26 @@ namespace CE::Renderer::Software {
         ImGuiInit(window);
 
         const uint32_t whitePixel = 0xFFFFFFFFu;
-        mWhiteTexture = CreateTextureFromData(
-            1,
-            1,
-            &whitePixel,
-            TextureFormat::RGBA8,
-            static_cast<int>(sizeof(uint32_t)),
-            TextureFilter::Nearest,
-            TextureWrap::Clamp
-        );
+        mWhiteTexture =
+            CreateTextureFromData(1, 1, &whitePixel, TextureFormat::RGBA8, static_cast<int>(sizeof(uint32_t)),
+                                  TextureFilter::Nearest, TextureWrap::Clamp);
 
-        uint32_t errorPixels[4] = {
-            0xFFFF00FFu, 0xFF000000u,
-            0xFF000000u, 0xFFFF00FFu
-        };
+        uint32_t errorPixels[4] = {0xFFFF00FFu, 0xFF000000u, 0xFF000000u, 0xFFFF00FFu};
 
-        mErrorTexture = CreateTextureFromData(
-            2,
-            2,
-            errorPixels,
-            TextureFormat::RGBA8,
-            2 * static_cast<int>(sizeof(uint32_t)),
-            TextureFilter::Nearest,
-            TextureWrap::Clamp
-        );
+        mErrorTexture =
+            CreateTextureFromData(2, 2, errorPixels, TextureFormat::RGBA8, 2 * static_cast<int>(sizeof(uint32_t)),
+                                  TextureFilter::Nearest, TextureWrap::Clamp);
 
         return (mWhiteTexture != nullptr && mErrorTexture != nullptr) ? 0 : 3;
     }
 
-    int Software_Renderer::Shutdown(SDL_Window*) {
+    int Software_Renderer::Shutdown(SDL_Window *) {
         if (mRenderer == nullptr && mOwnedTextures.empty() && mImGuiContext == nullptr) {
             return 0;
         }
 
         auto textures = mOwnedTextures;
-        for (Texture* texture : textures) {
+        for (Texture *texture : textures) {
             DestroyTexture(texture);
         }
         mOwnedTextures.clear();
@@ -162,41 +146,28 @@ namespace CE::Renderer::Software {
     }
 
     SDL_FPoint Software_Renderer::ApplyCamera(float x, float y) const {
-        return SDL_FPoint{
-            (x - mCamera.x) * mCamera.zoom,
-            (y - mCamera.y) * mCamera.zoom
-        };
+        return SDL_FPoint{(x - mCamera.x) * mCamera.zoom, (y - mCamera.y) * mCamera.zoom};
     }
 
     bool Software_Renderer::SetDrawColour(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         return mRenderer != nullptr && SDL_SetRenderDrawColor(mRenderer, r, g, b, a);
     }
 
-    void Software_Renderer::DrawRect(float x, float y, float w, float h,
-                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+    void Software_Renderer::DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                      float rotation) {
-        DrawTex(
-            mWhiteTexture,
-            x,
-            y,
-            w,
-            h,
-            Colour{r, g, b, a},
-            rotation
-        );
+        DrawTex(mWhiteTexture, x, y, w, h, Colour{r, g, b, a}, rotation);
     }
 
-    void Software_Renderer::DrawCircle(float cx, float cy, float radius,
-                                       int segments,
-                                       uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
+                                       uint8_t a) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
-        
+
         if (mRenderer == nullptr || radius <= 0.0f) {
             return;
         }
@@ -208,26 +179,17 @@ namespace CE::Renderer::Software {
 
         SDL_Vertex vertices[3];
         vertices[0].position = centre;
-        vertices[0].color = SDL_FColor{
-            r / 255.0f,
-            g / 255.0f,
-            b / 255.0f,
-            a / 255.0f
-        };
+        vertices[0].color = SDL_FColor{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
         vertices[0].tex_coord = SDL_FPoint{0.0f, 0.0f};
 
         for (int i = 0; i < segmentCount; ++i) {
             const float angle0 = angleStep * static_cast<float>(i);
             const float angle1 = angleStep * static_cast<float>(i + 1);
 
-            vertices[1].position = SDL_FPoint{
-                centre.x + std::cos(angle0) * scaledRadius,
-                centre.y + std::sin(angle0) * scaledRadius
-            };
-            vertices[2].position = SDL_FPoint{
-                centre.x + std::cos(angle1) * scaledRadius,
-                centre.y + std::sin(angle1) * scaledRadius
-            };
+            vertices[1].position =
+                SDL_FPoint{centre.x + std::cos(angle0) * scaledRadius, centre.y + std::sin(angle0) * scaledRadius};
+            vertices[2].position =
+                SDL_FPoint{centre.x + std::cos(angle1) * scaledRadius, centre.y + std::sin(angle1) * scaledRadius};
             vertices[1].color = vertices[0].color;
             vertices[2].color = vertices[0].color;
             vertices[1].tex_coord = SDL_FPoint{0.0f, 0.0f};
@@ -237,17 +199,16 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DrawLine(float x1, float y1, float x2, float y2,
-                                     float thickness,
-                                     uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g,
+                                     uint8_t b, uint8_t a) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
-        
+
         if (mRenderer == nullptr) {
             return;
         }
@@ -275,19 +236,14 @@ namespace CE::Renderer::Software {
         const float half = scaledThickness * 0.5f;
 
         SDL_Vertex verts[4];
-        const SDL_FColor color{
-            r / 255.0f,
-            g / 255.0f,
-            b / 255.0f,
-            a / 255.0f
-        };
+        const SDL_FColor color{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 
         verts[0].position = SDL_FPoint{p1.x + nx * half, p1.y + ny * half};
         verts[1].position = SDL_FPoint{p1.x - nx * half, p1.y - ny * half};
         verts[2].position = SDL_FPoint{p2.x - nx * half, p2.y - ny * half};
         verts[3].position = SDL_FPoint{p2.x + nx * half, p2.y + ny * half};
 
-        for (SDL_Vertex& vert : verts) {
+        for (SDL_Vertex &vert : verts) {
             vert.color = color;
             vert.tex_coord = SDL_FPoint{0.0f, 0.0f};
         }
@@ -297,19 +253,17 @@ namespace CE::Renderer::Software {
     }
 
     void Software_Renderer::SetClearColor(float r, float g, float b, float a) {
-        auto clamp = [](float value) -> uint8_t {
-            return static_cast<uint8_t>(std::clamp(value, 0.0f, 255.0f));
-        };
+        auto clamp = [](float value) -> uint8_t { return static_cast<uint8_t>(std::clamp(value, 0.0f, 255.0f)); };
 
         mClearColor = SDL_Color{clamp(r), clamp(g), clamp(b), clamp(a)};
     }
 
-    Texture* Software_Renderer::CreateTextureFromSurface(SDL_Surface* surface) {
+    Texture *Software_Renderer::CreateTextureFromSurface(SDL_Surface *surface) {
         if (mRenderer == nullptr || surface == nullptr) {
             return nullptr;
         }
 
-        SDL_Surface* rgbaSurface = surface;
+        SDL_Surface *rgbaSurface = surface;
         if (surface->format != SDL_PIXELFORMAT_RGBA32) {
             rgbaSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
             if (rgbaSurface == nullptr) {
@@ -317,13 +271,8 @@ namespace CE::Renderer::Software {
             }
         }
 
-        SDL_Texture* sdlTexture = SDL_CreateTexture(
-            mRenderer,
-            SDL_PIXELFORMAT_RGBA32,
-            SDL_TEXTUREACCESS_STATIC,
-            rgbaSurface->w,
-            rgbaSurface->h
-        );
+        SDL_Texture *sdlTexture = SDL_CreateTexture(mRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC,
+                                                    rgbaSurface->w, rgbaSurface->h);
 
         if (sdlTexture == nullptr) {
             if (rgbaSurface != surface) {
@@ -335,14 +284,12 @@ namespace CE::Renderer::Software {
         SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_BLEND);
         SDL_UpdateTexture(sdlTexture, nullptr, rgbaSurface->pixels, rgbaSurface->pitch);
 
-        auto* data = new SoftwareTextureData{.texture = sdlTexture};
-        auto* texture = new Texture{
-            .handle = data,
-            .width = rgbaSurface->w,
-            .height = rgbaSurface->h,
-            .format = TextureFormat::RGBA8,
-            .backend = RendererBackend::Software
-        };
+        auto *data = new SoftwareTextureData{.texture = sdlTexture};
+        auto *texture = new Texture{.handle = data,
+                                    .width = rgbaSurface->w,
+                                    .height = rgbaSurface->h,
+                                    .format = TextureFormat::RGBA8,
+                                    .backend = RendererBackend::Software};
 
         mOwnedTextures.insert(texture);
 
@@ -353,12 +300,12 @@ namespace CE::Renderer::Software {
         return texture;
     }
 
-    Texture* Software_Renderer::LoadTex(const char* path) {
+    Texture *Software_Renderer::LoadTex(const char *path) {
         if (mRenderer == nullptr || path == nullptr || mVFS == nullptr) {
             return GetErrorTexture();
         }
 
-        VirtualFile* file = mVFS->OpenFile(path);
+        VirtualFile *file = mVFS->OpenFile(path);
         if (file == nullptr) {
             return GetErrorTexture();
         }
@@ -368,37 +315,26 @@ namespace CE::Renderer::Software {
             return GetErrorTexture();
         }
 
-        SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
+        SDL_Surface *surface = IMG_Load_IO(file->sdl_stream, false);
         mVFS->CloseFile(file);
         if (surface == nullptr) {
             return GetErrorTexture();
         }
 
-        Texture* texture = CreateTextureFromSurface(surface);
+        Texture *texture = CreateTextureFromSurface(surface);
         SDL_DestroySurface(surface);
         return texture ? texture : GetErrorTexture();
     }
 
-    Texture* Software_Renderer::CreateTextureFromData(int width,
-                                                      int height,
-                                                      const void* pixels,
-                                                      TextureFormat format,
-                                                      int pitch,
-                                                      TextureFilter,
-                                                      TextureWrap,
-                                                      TextureUploadBatch* batch) {
+    Texture *Software_Renderer::CreateTextureFromData(int width, int height, const void *pixels, TextureFormat format,
+                                                      int pitch, TextureFilter, TextureWrap,
+                                                      TextureUploadBatch *batch) {
         if (mRenderer == nullptr || pixels == nullptr || width <= 0 || height <= 0) {
             return nullptr;
         }
 
         const SDL_PixelFormat pixelFormat = ToSDLPixelFormat(format);
-        SDL_Texture* sdlTexture = SDL_CreateTexture(
-            mRenderer,
-            pixelFormat,
-            SDL_TEXTUREACCESS_STATIC,
-            width,
-            height
-        );
+        SDL_Texture *sdlTexture = SDL_CreateTexture(mRenderer, pixelFormat, SDL_TEXTUREACCESS_STATIC, width, height);
         if (sdlTexture == nullptr) {
             return nullptr;
         }
@@ -406,7 +342,7 @@ namespace CE::Renderer::Software {
         SDL_SetTextureBlendMode(sdlTexture, SDL_BLENDMODE_BLEND);
 
         const int resolvedPitch = pitch > 0 ? pitch : width * BytesPerPixel(format);
-        const void* uploadPixels = pixels;
+        const void *uploadPixels = pixels;
         int uploadPitch = resolvedPitch;
         std::vector<uint32_t> expandedPixels;
 
@@ -414,13 +350,12 @@ namespace CE::Renderer::Software {
             expandedPixels.resize(static_cast<size_t>(width) * static_cast<size_t>(height));
 
             for (int row = 0; row < height; ++row) {
-                const auto* srcRow = static_cast<const uint8_t*>(pixels) + static_cast<size_t>(row) * static_cast<size_t>(resolvedPitch);
+                const auto *srcRow = static_cast<const uint8_t *>(pixels) +
+                                     static_cast<size_t>(row) * static_cast<size_t>(resolvedPitch);
                 for (int col = 0; col < width; ++col) {
                     const uint8_t value = srcRow[col];
                     expandedPixels[static_cast<size_t>(row) * static_cast<size_t>(width) + static_cast<size_t>(col)] =
-                        0xFF000000u |
-                        (static_cast<uint32_t>(value) << 16) |
-                        (static_cast<uint32_t>(value) << 8) |
+                        0xFF000000u | (static_cast<uint32_t>(value) << 16) | (static_cast<uint32_t>(value) << 8) |
                         static_cast<uint32_t>(value);
                 }
             }
@@ -434,96 +369,61 @@ namespace CE::Renderer::Software {
             return nullptr;
         }
 
-        auto* data = new SoftwareTextureData{.texture = sdlTexture};
-        auto* texture = new Texture{
-            .handle = data,
-            .width = width,
-            .height = height,
-            .format = format,
-            .backend = RendererBackend::Software
-        };
+        auto *data = new SoftwareTextureData{.texture = sdlTexture};
+        auto *texture = new Texture{
+            .handle = data, .width = width, .height = height, .format = format, .backend = RendererBackend::Software};
 
         mOwnedTextures.insert(texture);
         return texture;
     }
 
-    bool Software_Renderer::RenderTexture(Texture* texture,
-                                          float x, float y,
-                                          float w, float h,
-                                          const SDL_FRect* srcRect,
-                                          Colour colour,
-                                          float rotation,
+    bool Software_Renderer::RenderTexture(Texture *texture, float x, float y, float w, float h,
+                                          const SDL_FRect *srcRect, Colour colour, float rotation,
                                           SDL_FlipMode flipMode) {
         if (mRenderer == nullptr || texture == nullptr || texture->handle == nullptr) {
             return false;
         }
 
-        auto* data = static_cast<SoftwareTextureData*>(texture->handle);
+        auto *data = static_cast<SoftwareTextureData *>(texture->handle);
         if (data->texture == nullptr) {
             return false;
         }
 
         const SDL_FPoint pos = ApplyCamera(x, y);
-        SDL_FRect dstRect{
-            pos.x,
-            pos.y,
-            w * mCamera.zoom,
-            h * mCamera.zoom
-        };
+        SDL_FRect dstRect{pos.x, pos.y, w * mCamera.zoom, h * mCamera.zoom};
 
         SDL_SetTextureColorMod(data->texture, colour.r, colour.g, colour.b);
         SDL_SetTextureAlphaMod(data->texture, colour.a);
 
-        const SDL_FPoint centre{
-            dstRect.w * 0.5f,
-            dstRect.h * 0.5f
-        };
+        const SDL_FPoint centre{dstRect.w * 0.5f, dstRect.h * 0.5f};
 
-        return SDL_RenderTextureRotated(
-            mRenderer,
-            data->texture,
-            srcRect,
-            &dstRect,
-            rotation,
-            &centre,
-            flipMode
-        );
+        return SDL_RenderTextureRotated(mRenderer, data->texture, srcRect, &dstRect, rotation, &centre, flipMode);
     }
 
-    void Software_Renderer::DrawTex(Texture* texture, float x, float y,
-                                    float w, float h, Colour colour,
-                                    float rotation,
+    void Software_Renderer::DrawTex(Texture *texture, float x, float y, float w, float h, Colour colour, float rotation,
                                     TextureFlip flip) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
 
-        const SDL_FlipMode flipMode = ToSDLFlipMode(
-            HasTextureFlip(flip, TextureFlip::Horizontal),
-            HasTextureFlip(flip, TextureFlip::Vertical)
-        );
+        const SDL_FlipMode flipMode =
+            ToSDLFlipMode(HasTextureFlip(flip, TextureFlip::Horizontal), HasTextureFlip(flip, TextureFlip::Vertical));
 
         if (!RenderTexture(texture, x, y, w, h, nullptr, colour, rotation, flipMode) && texture != GetErrorTexture()) {
             RenderTexture(GetErrorTexture(), x, y, w, h, nullptr, colour, rotation, flipMode);
         }
     }
 
-    void Software_Renderer::DrawTexUV(Texture* tex,
-                                      float x, float y,
-                                      float w, float h,
-                                      float u0, float v0,
-                                      float u1, float v1,
-                                      Colour colour,
-                                      float rotation,
-                                      TextureFlip flip) {
+    void Software_Renderer::DrawTexUV(Texture *tex, float x, float y, float w, float h, float u0, float v0, float u1,
+                                      float v1, Colour colour, float rotation, TextureFlip flip) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
@@ -535,7 +435,7 @@ namespace CE::Renderer::Software {
             return;
         }
 
-        auto* data = static_cast<SoftwareTextureData*>(tex->handle);
+        auto *data = static_cast<SoftwareTextureData *>(tex->handle);
         if (data->texture == nullptr) {
             return;
         }
@@ -546,17 +446,11 @@ namespace CE::Renderer::Software {
         const float maxU = std::max(u0, u1);
         const float minV = std::min(v0, v1);
         const float maxV = std::max(v0, v1);
-        const bool requiresTiling =
-            minU < 0.0f || maxU > 1.0f ||
-            minV < 0.0f || maxV > 1.0f;
+        const bool requiresTiling = minU < 0.0f || maxU > 1.0f || minV < 0.0f || maxV > 1.0f;
 
         if (!requiresTiling) {
-            SDL_FRect srcRect{
-                minU * tex->width,
-                minV * tex->height,
-                std::abs(u1 - u0) * tex->width,
-                std::abs(v1 - v0) * tex->height
-            };
+            SDL_FRect srcRect{minU * tex->width, minV * tex->height, std::abs(u1 - u0) * tex->width,
+                              std::abs(v1 - v0) * tex->height};
 
             if (srcRect.w <= 0.0f || srcRect.h <= 0.0f) {
                 return;
@@ -578,12 +472,7 @@ namespace CE::Renderer::Software {
             return;
         }
 
-        const SDL_FColor vertexColour{
-            colour.r / 255.0f,
-            colour.g / 255.0f,
-            colour.b / 255.0f,
-            colour.a / 255.0f
-        };
+        const SDL_FColor vertexColour{colour.r / 255.0f, colour.g / 255.0f, colour.b / 255.0f, colour.a / 255.0f};
         const float centreX = x + w * 0.5f;
         const float centreY = y + h * 0.5f;
         const float sinA = std::sin(rotation);
@@ -638,13 +527,9 @@ namespace CE::Renderer::Software {
                 const float srcV1 = srcV0 + (totalV > 0.0f ? spanV : -spanV);
 
                 SDL_FPoint corners[4] = {
-                    {dstLeft,  dstTop},
-                    {dstRight, dstTop},
-                    {dstRight, dstBottom},
-                    {dstLeft,  dstBottom}
-                };
+                    {dstLeft, dstTop}, {dstRight, dstTop}, {dstRight, dstBottom}, {dstLeft, dstBottom}};
 
-                for (SDL_FPoint& corner : corners) {
+                for (SDL_FPoint &corner : corners) {
                     RotateCorner(corner, centreX, centreY, sinA, cosA);
                     corner = ApplyCamera(corner.x, corner.y);
                 }
@@ -660,7 +545,7 @@ namespace CE::Renderer::Software {
                 verts[2].tex_coord = {srcU1, srcV1};
                 verts[3].tex_coord = {srcU0, srcV1};
 
-                for (SDL_Vertex& vert : verts) {
+                for (SDL_Vertex &vert : verts) {
                     vert.color = vertexColour;
                 }
 
@@ -676,12 +561,12 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DestroyTexture(Texture* texture) {
+    void Software_Renderer::DestroyTexture(Texture *texture) {
         if (texture == nullptr) {
             return;
         }
 
-        auto* data = static_cast<SoftwareTextureData*>(texture->handle);
+        auto *data = static_cast<SoftwareTextureData *>(texture->handle);
         if (data != nullptr) {
             if (data->texture != nullptr) {
                 SDL_DestroyTexture(data->texture);
@@ -692,7 +577,7 @@ namespace CE::Renderer::Software {
         delete texture;
     }
 
-    void Software_Renderer::UnloadTex(Texture* texture) {
+    void Software_Renderer::UnloadTex(Texture *texture) {
         if (texture == nullptr) {
             return;
         }
@@ -706,15 +591,12 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DrawTriangle(float x0, float y0,
-                                         float x1, float y1,
-                                         float x2, float y2,
-                                         uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-                                         float) {
+    void Software_Renderer::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r,
+                                         uint8_t g, uint8_t b, uint8_t a, float) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
@@ -723,18 +605,13 @@ namespace CE::Renderer::Software {
         }
 
         SDL_Vertex verts[3];
-        const SDL_FColor color{
-            r / 255.0f,
-            g / 255.0f,
-            b / 255.0f,
-            a / 255.0f
-        };
+        const SDL_FColor color{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 
         verts[0].position = ApplyCamera(x0, y0);
         verts[1].position = ApplyCamera(x1, y1);
         verts[2].position = ApplyCamera(x2, y2);
 
-        for (SDL_Vertex& vert : verts) {
+        for (SDL_Vertex &vert : verts) {
             vert.color = color;
             vert.tex_coord = SDL_FPoint{0.0f, 0.0f};
         }
@@ -742,13 +619,12 @@ namespace CE::Renderer::Software {
         SDL_RenderGeometry(mRenderer, nullptr, verts, 3, nullptr, 0);
     }
 
-    void Software_Renderer::DrawRectLines(float x, float y, float w, float h,
-                                          float thickness,
-                                          uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g,
+                                          uint8_t b, uint8_t a) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
@@ -758,13 +634,12 @@ namespace CE::Renderer::Software {
         DrawLine(x, y + h, x, y, thickness, r, g, b, a);
     }
 
-    void Software_Renderer::DrawCircleLines(float cx, float cy, float radius,
-                                            int segments, float thickness,
-                                            uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r,
+                                            uint8_t g, uint8_t b, uint8_t a) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
-        
+
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
@@ -775,18 +650,12 @@ namespace CE::Renderer::Software {
             const float angle0 = angleStep * static_cast<float>(i);
             const float angle1 = angleStep * static_cast<float>(i + 1);
 
-            DrawLine(
-                cx + std::cos(angle0) * radius,
-                cy + std::sin(angle0) * radius,
-                cx + std::cos(angle1) * radius,
-                cy + std::sin(angle1) * radius,
-                thickness,
-                r, g, b, a
-            );
+            DrawLine(cx + std::cos(angle0) * radius, cy + std::sin(angle0) * radius, cx + std::cos(angle1) * radius,
+                     cy + std::sin(angle1) * radius, thickness, r, g, b, a);
         }
     }
 
-    int Software_Renderer::BeginFrame(SDL_Window*) {
+    int Software_Renderer::BeginFrame(SDL_Window *) {
         if (mRenderer == nullptr) {
             return 1;
         }
@@ -802,29 +671,29 @@ namespace CE::Renderer::Software {
         return 0;
     }
 
-    int Software_Renderer::EndFrame(SDL_Window*) {
+    int Software_Renderer::EndFrame(SDL_Window *) {
         if (mRenderer == nullptr) {
             return 1;
         }
 
         if (!ImGui::GetCurrentContext() && mImGuiContext != nullptr) {
-            ImGui::SetCurrentContext(static_cast<ImGuiContext*>(mImGuiContext));
+            ImGui::SetCurrentContext(static_cast<ImGuiContext *>(mImGuiContext));
         }
 
         SDL_RenderPresent(mRenderer);
         return 0;
     }
 
-    Texture* Software_Renderer::GetErrorTexture() {
+    Texture *Software_Renderer::GetErrorTexture() {
         return mErrorTexture;
     }
 
-    void* Software_Renderer::GetNativeTextureHandle(Texture* texture) {
+    void *Software_Renderer::GetNativeTextureHandle(Texture *texture) {
         if (texture == nullptr || texture->handle == nullptr) {
             return nullptr;
         }
 
-        auto* data = static_cast<SoftwareTextureData*>(texture->handle);
+        auto *data = static_cast<SoftwareTextureData *>(texture->handle);
         return data->texture;
     }
 
@@ -844,7 +713,7 @@ namespace CE::Renderer::Software {
         return 0;
     }
 
-    Camera2D* Software_Renderer::GetCamera() {
+    Camera2D *Software_Renderer::GetCamera() {
         return &mCamera;
     }
 
@@ -859,14 +728,14 @@ namespace CE::Renderer::Software {
         if (mImGuiContext == nullptr) {
             mImGuiContext = ImGui::CreateContext();
         }
-        ImGui::SetCurrentContext(static_cast<ImGuiContext*>(mImGuiContext));
+        ImGui::SetCurrentContext(static_cast<ImGuiContext *>(mImGuiContext));
     }
 
     bool Software_Renderer::CreateImGuiFontTexture() {
         EnsureImGuiContext();
 
-        ImGuiIO& io = ImGui::GetIO();
-        unsigned char* pixels = nullptr;
+        ImGuiIO &io = ImGui::GetIO();
+        unsigned char *pixels = nullptr;
         int width = 0;
         int height = 0;
         io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -880,28 +749,23 @@ namespace CE::Renderer::Software {
             mImGuiFontTexture = nullptr;
         }
 
-        mImGuiFontTexture = CreateTextureFromData(
-            width,
-            height,
-            pixels,
-            TextureFormat::RGBA8,
-            width * static_cast<int>(sizeof(uint32_t)),
-            TextureFilter::Linear,
-            TextureWrap::Clamp
-        );
+        mImGuiFontTexture = CreateTextureFromData(width, height, pixels, TextureFormat::RGBA8,
+                                                  width * static_cast<int>(sizeof(uint32_t)), TextureFilter::Linear,
+                                                  TextureWrap::Clamp);
 
         if (mImGuiFontTexture == nullptr) {
             io.Fonts->SetTexID(ImTextureID_Invalid);
             return false;
         }
 
-        io.Fonts->SetTexID(static_cast<ImTextureID>(reinterpret_cast<uintptr_t>(GetNativeTextureHandle(mImGuiFontTexture))));
+        io.Fonts->SetTexID(
+            static_cast<ImTextureID>(reinterpret_cast<uintptr_t>(GetNativeTextureHandle(mImGuiFontTexture))));
         return true;
     }
 
     void Software_Renderer::DestroyImGuiFontTexture() {
         if (mImGuiContext != nullptr) {
-            ImGui::SetCurrentContext(static_cast<ImGuiContext*>(mImGuiContext));
+            ImGui::SetCurrentContext(static_cast<ImGuiContext *>(mImGuiContext));
             ImGui::GetIO().Fonts->SetTexID(ImTextureID_Invalid);
         }
 
@@ -911,18 +775,18 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::ImGuiInit(SDL_Window* window) {
+    void Software_Renderer::ImGuiInit(SDL_Window *window) {
         EnsureImGuiContext();
 
         float scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         io.BackendRendererUserData = this;
         io.BackendRendererName = "ce_software_sdl";
 
         ImGui::StyleColorsDark();
-        ImGuiStyle& style = ImGui::GetStyle();
+        ImGuiStyle &style = ImGui::GetStyle();
         style.ScaleAllSizes(scale);
         style.FontScaleDpi = scale;
 
@@ -940,17 +804,17 @@ namespace CE::Renderer::Software {
             return;
         }
 
-        ImGuiContext* prevContext = ImGui::GetCurrentContext();
-        ImGui::SetCurrentContext(static_cast<ImGuiContext*>(mImGuiContext));
+        ImGuiContext *prevContext = ImGui::GetCurrentContext();
+        ImGui::SetCurrentContext(static_cast<ImGuiContext *>(mImGuiContext));
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO &io = ImGui::GetIO();
 
         DestroyImGuiFontTexture();
         ImGui_ImplSDL3_Shutdown();
         io.BackendRendererName = nullptr;
         io.BackendRendererUserData = nullptr;
         io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasTextures | ImGuiBackendFlags_RendererHasVtxOffset);
-        ImGui::DestroyContext(static_cast<ImGuiContext*>(mImGuiContext));
+        ImGui::DestroyContext(static_cast<ImGuiContext *>(mImGuiContext));
         mImGuiContext = nullptr;
 
         ImGui::SetCurrentContext(prevContext);
@@ -961,7 +825,7 @@ namespace CE::Renderer::Software {
 
         auto indices = CE::SDL_Events::GetWindowEventIndices(SDL_GetWindowID(SDL_GetRenderWindow(mRenderer)));
         for (size_t i : indices) {
-            const SDL_Event& e = CE::SDL_Events::gEvents[i];
+            const SDL_Event &e = CE::SDL_Events::gEvents[i];
             ImGui_ImplSDL3_ProcessEvent(&e);
         }
 
@@ -973,7 +837,7 @@ namespace CE::Renderer::Software {
         ImGui::NewFrame();
     }
 
-    void Software_Renderer::RenderImGuiDrawData(ImDrawData* drawData) {
+    void Software_Renderer::RenderImGuiDrawData(ImDrawData *drawData) {
         if (mRenderer == nullptr || drawData == nullptr) {
             return;
         }
@@ -982,9 +846,9 @@ namespace CE::Renderer::Software {
         const ImVec2 clipScale = drawData->FramebufferScale;
 
         for (int n = 0; n < drawData->CmdListsCount; ++n) {
-            const ImDrawList* cmdList = drawData->CmdLists[n];
+            const ImDrawList *cmdList = drawData->CmdLists[n];
 
-            for (const ImDrawCmd& cmd : cmdList->CmdBuffer) {
+            for (const ImDrawCmd &cmd : cmdList->CmdBuffer) {
                 if (cmd.UserCallback != nullptr) {
                     if (cmd.UserCallback == ImDrawCallback_ResetRenderState) {
                         SDL_SetRenderClipRect(mRenderer, nullptr);
@@ -994,25 +858,15 @@ namespace CE::Renderer::Software {
                     continue;
                 }
 
-                ImVec2 clipMin(
-                    (cmd.ClipRect.x - clipOff.x) * clipScale.x,
-                    (cmd.ClipRect.y - clipOff.y) * clipScale.y
-                );
-                ImVec2 clipMax(
-                    (cmd.ClipRect.z - clipOff.x) * clipScale.x,
-                    (cmd.ClipRect.w - clipOff.y) * clipScale.y
-                );
+                ImVec2 clipMin((cmd.ClipRect.x - clipOff.x) * clipScale.x, (cmd.ClipRect.y - clipOff.y) * clipScale.y);
+                ImVec2 clipMax((cmd.ClipRect.z - clipOff.x) * clipScale.x, (cmd.ClipRect.w - clipOff.y) * clipScale.y);
 
                 if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y) {
                     continue;
                 }
 
-                SDL_Rect clipRect{
-                    static_cast<int>(clipMin.x),
-                    static_cast<int>(clipMin.y),
-                    static_cast<int>(clipMax.x - clipMin.x),
-                    static_cast<int>(clipMax.y - clipMin.y)
-                };
+                SDL_Rect clipRect{static_cast<int>(clipMin.x), static_cast<int>(clipMin.y),
+                                  static_cast<int>(clipMax.x - clipMin.x), static_cast<int>(clipMax.y - clipMin.y)};
                 SDL_SetRenderClipRect(mRenderer, &clipRect);
 
                 std::vector<SDL_Vertex> vertices;
@@ -1022,7 +876,7 @@ namespace CE::Renderer::Software {
 
                 for (unsigned int elem = 0; elem < cmd.ElemCount; ++elem) {
                     const ImDrawIdx idx = cmdList->IdxBuffer[cmd.IdxOffset + elem];
-                    const ImDrawVert& src = cmdList->VtxBuffer[cmd.VtxOffset + idx];
+                    const ImDrawVert &src = cmdList->VtxBuffer[cmd.VtxOffset + idx];
 
                     SDL_Vertex vertex;
                     vertex.position.x = src.pos.x;
@@ -1040,15 +894,16 @@ namespace CE::Renderer::Software {
                     vertices.push_back(vertex);
                 }
 
-                SDL_Texture* texture = reinterpret_cast<SDL_Texture*>(static_cast<uintptr_t>(cmd.GetTexID()));
-                SDL_RenderGeometry(mRenderer, texture, vertices.data(), static_cast<int>(vertices.size()), indices.data(), static_cast<int>(indices.size()));
+                SDL_Texture *texture = reinterpret_cast<SDL_Texture *>(static_cast<uintptr_t>(cmd.GetTexID()));
+                SDL_RenderGeometry(mRenderer, texture, vertices.data(), static_cast<int>(vertices.size()),
+                                   indices.data(), static_cast<int>(indices.size()));
             }
         }
 
         SDL_SetRenderClipRect(mRenderer, nullptr);
     }
 
-    void Software_Renderer::ImGuiEndFrame(SDL_Window*) {
+    void Software_Renderer::ImGuiEndFrame(SDL_Window *) {
         EnsureImGuiContext();
         ImGui::Render();
         RenderImGuiDrawData(ImGui::GetDrawData());
@@ -1061,4 +916,4 @@ namespace CE::Renderer::Software {
     void Software_Renderer::EndMode2D() {
         m2DFrameActive = false;
     }
-}
+} // namespace CE::Renderer::Software

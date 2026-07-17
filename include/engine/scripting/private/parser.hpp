@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <vector>
 
@@ -11,4 +11,4 @@ namespace CE::Scripting::Impl::Parser {
      * @return Returns an AST::ASTModule or throws CE::Runtime::Impl::Execptions::ParserError on errors
      */
     AST::ASTModule ParseLexerOutput(std::vector<Lexer::Token> tokens);
-}
+} // namespace CE::Scripting::Impl::Parser

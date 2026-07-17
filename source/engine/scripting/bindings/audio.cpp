@@ -1,7 +1,7 @@
-#include "engine/scripting/angelscript.hpp"
-
 #include "engine/assets/audio.hpp"
+
 #include "engine/common/tracelog.hpp"
+#include "engine/scripting/angelscript.hpp"
 
 namespace CE::Scripting {
     namespace {
@@ -13,7 +13,7 @@ namespace CE::Scripting {
         constexpr int kEffectTypeReverb = 2;
         constexpr int kEffectTypeDelay = 3;
         constexpr int kEffectTypeChorus = 4;
-    }
+    } // namespace
 
     bool Runtime::RegisterAudioBindings() {
         if (mScriptEngine == nullptr) {
@@ -61,232 +61,171 @@ namespace CE::Scripting {
             return false;
         }
 
-        result = mScriptEngine->RegisterObjectType(
-            "AudioEffect",
-            sizeof(AudioEffectDesc),
-            asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<AudioEffectDesc>()
-        );
+        result = mScriptEngine->RegisterObjectType("AudioEffect", sizeof(AudioEffectDesc),
+                                                   asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<AudioEffectDesc>());
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "bool enabled", asOFFSET(AudioEffectDesc, enabled));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "bool enabled", asOFFSET(AudioEffectDesc, enabled));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "EffectType type", asOFFSET(AudioEffectDesc, type));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "EffectType type", asOFFSET(AudioEffectDesc, type));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float cutoffHz", asOFFSET(AudioEffectDesc, cutoffHz));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float cutoffHz", asOFFSET(AudioEffectDesc, cutoffHz));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float wetMix", asOFFSET(AudioEffectDesc, wetMix));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float wetMix", asOFFSET(AudioEffectDesc, wetMix));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float feedback", asOFFSET(AudioEffectDesc, feedback));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float feedback", asOFFSET(AudioEffectDesc, feedback));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float delayMs", asOFFSET(AudioEffectDesc, delayMs));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float delayMs", asOFFSET(AudioEffectDesc, delayMs));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float depthMs", asOFFSET(AudioEffectDesc, depthMs));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float depthMs", asOFFSET(AudioEffectDesc, depthMs));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float rateHz", asOFFSET(AudioEffectDesc, rateHz));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float rateHz", asOFFSET(AudioEffectDesc, rateHz));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float roomSize", asOFFSET(AudioEffectDesc, roomSize));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float roomSize", asOFFSET(AudioEffectDesc, roomSize));
         if (result < 0) {
             return false;
         }
-        result = mScriptEngine->RegisterObjectProperty("AudioEffect", "float damping", asOFFSET(AudioEffectDesc, damping));
+        result =
+            mScriptEngine->RegisterObjectProperty("AudioEffect", "float damping", asOFFSET(AudioEffectDesc, damping));
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
             "void LoadSound(const string &in path, const string &in name, AudioType type)",
-            asMETHOD(Runtime, LoadSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            asMETHOD(Runtime, LoadSound), asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void UnloadSound(const string &in name)",
+                                                       asMETHOD(Runtime, UnloadSound), asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("uint CreateInstance(const string &in name)",
+                                                       asMETHOD(Runtime, CreateSoundInstance), asCALL_THISCALL_ASGLOBAL,
+                                                       this);
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void UnloadSound(const string &in name)",
-            asMETHOD(Runtime, UnloadSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            "void DeleteInstance(uint handle)", asMETHOD(Runtime, DeleteSoundInstance), asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void Play(uint handle)", asMETHOD(Runtime, PlaySound),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void Pause(uint handle)", asMETHOD(Runtime, PauseSound),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void Resume(uint handle)", asMETHOD(Runtime, ResumeSound),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void Stop(uint handle)", asMETHOD(Runtime, StopSound),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void Seek(uint handle, float seconds)",
+                                                       asMETHOD(Runtime, SeekSound), asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("void SetBus(uint handle, const string &in bus)",
+                                                       asMETHOD(Runtime, SetSoundBus), asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result = mScriptEngine->RegisterGlobalFunction("string GetBus(uint handle)", asMETHOD(Runtime, GetSoundBus),
+                                                       asCALL_THISCALL_ASGLOBAL, this);
+        if (result < 0) {
+            return false;
+        }
+
+        result =
+            mScriptEngine->RegisterGlobalFunction("void SetVolume(uint handle, int volume)",
+                                                  asMETHOD(Runtime, SetSoundVolume), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "uint CreateInstance(const string &in name)",
-            asMETHOD(Runtime, CreateSoundInstance),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            "void SetMasterVolume(float volume)", asMETHOD(Runtime, SetMasterVolume), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
-            "void DeleteInstance(uint handle)",
-            asMETHOD(Runtime, DeleteSoundInstance),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            "void SetMusicVolume(float volume)", asMETHOD(Runtime, SetMusicVolume), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void Play(uint handle)",
-            asMETHOD(Runtime, PlaySound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void Pause(uint handle)",
-            asMETHOD(Runtime, PauseSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void Resume(uint handle)",
-            asMETHOD(Runtime, ResumeSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void Stop(uint handle)",
-            asMETHOD(Runtime, StopSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void Seek(uint handle, float seconds)",
-            asMETHOD(Runtime, SeekSound),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetBus(uint handle, const string &in bus)",
-            asMETHOD(Runtime, SetSoundBus),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "string GetBus(uint handle)",
-            asMETHOD(Runtime, GetSoundBus),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetVolume(uint handle, int volume)",
-            asMETHOD(Runtime, SetSoundVolume),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetMasterVolume(float volume)",
-            asMETHOD(Runtime, SetMasterVolume),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetMusicVolume(float volume)",
-            asMETHOD(Runtime, SetMusicVolume),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
-        if (result < 0) {
-            return false;
-        }
-
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void SetSFXVolume(float volume)",
-            asMETHOD(Runtime, SetSFXVolume),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("void SetSFXVolume(float volume)",
+                                                       asMETHOD(Runtime, SetSFXVolume), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
         result = mScriptEngine->RegisterGlobalFunction(
             "void AddEffect(uint handle, const string &in name, const AudioEffect &in effect)",
-            asMETHOD(Runtime, AddEffect),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+            asMETHOD(Runtime, AddEffect), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void RemoveEffect(uint handle, const string &in name)",
-            asMETHOD(Runtime, RemoveEffect),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("void RemoveEffect(uint handle, const string &in name)",
+                                                       asMETHOD(Runtime, RemoveEffect), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
 
-        result = mScriptEngine->RegisterGlobalFunction(
-            "void ClearEffects(uint handle)",
-            asMETHOD(Runtime, ClearEffects),
-            asCALL_THISCALL_ASGLOBAL,
-            this
-        );
+        result = mScriptEngine->RegisterGlobalFunction("void ClearEffects(uint handle)",
+                                                       asMETHOD(Runtime, ClearEffects), asCALL_THISCALL_ASGLOBAL, this);
         if (result < 0) {
             return false;
         }
@@ -295,7 +234,7 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::LoadSound(const std::string& path, const std::string& name, int type) {
+    void Runtime::LoadSound(const std::string &path, const std::string &name, int type) {
         if (!mAudioManager) {
             return;
         }
@@ -307,14 +246,14 @@ namespace CE::Scripting {
         mAudioManager->LoadSound(path, name, resolved);
     }
 
-    void Runtime::UnloadSound(const std::string& name) {
+    void Runtime::UnloadSound(const std::string &name) {
         if (!mAudioManager) {
             return;
         }
         mAudioManager->UnloadSound(name);
     }
 
-    uint32_t Runtime::CreateSoundInstance(const std::string& name) {
+    uint32_t Runtime::CreateSoundInstance(const std::string &name) {
         if (!mAudioManager) {
             return 0;
         }
@@ -363,7 +302,7 @@ namespace CE::Scripting {
         mAudioManager->SeekSound(handle, seconds);
     }
 
-    void Runtime::SetSoundBus(uint32_t handle, const std::string& bus) {
+    void Runtime::SetSoundBus(uint32_t handle, const std::string &bus) {
         if (!mAudioManager) {
             return;
         }
@@ -405,7 +344,7 @@ namespace CE::Scripting {
         mAudioManager->SetSFXVolume(volume);
     }
 
-    void Runtime::AddEffect(uint32_t handle, const std::string& name, const AudioEffectDesc& effect) {
+    void Runtime::AddEffect(uint32_t handle, const std::string &name, const AudioEffectDesc &effect) {
         if (!mAudioManager) {
             return;
         }
@@ -425,7 +364,7 @@ namespace CE::Scripting {
         mAudioManager->AddEffect(handle, name, filter);
     }
 
-    void Runtime::RemoveEffect(uint32_t handle, const std::string& name) {
+    void Runtime::RemoveEffect(uint32_t handle, const std::string &name) {
         if (!mAudioManager) {
             return;
         }
@@ -438,4 +377,4 @@ namespace CE::Scripting {
         }
         mAudioManager->ClearEffects(handle);
     }
-}
+} // namespace CE::Scripting

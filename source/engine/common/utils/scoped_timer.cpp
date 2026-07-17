@@ -1,4 +1,5 @@
 #include "engine/common/utils/scoped_timer.hpp"
+
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Utils {
@@ -6,33 +7,20 @@ namespace CE::Utils {
         mTimeStart = std::chrono::steady_clock::now();
         mLabel = label;
     }
-    
+
     ScopedTimer::~ScopedTimer() {
         auto end = std::chrono::steady_clock::now();
 
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            end - mTimeStart).count();
+        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - mTimeStart).count();
 
         if (ns >= 1'000'000'000) {
-            CE_LOG(LogLevel::Debug,
-                "{} took: {:.3f} s",
-                mLabel,
-                ns / 1e9);
+            CE_LOG(LogLevel::Debug, "{} took: {:.3f} s", mLabel, ns / 1e9);
         } else if (ns >= 1'000'000) {
-            CE_LOG(LogLevel::Debug,
-                "{} took: {:.3f} ms",
-                mLabel,
-                ns / 1e6);
+            CE_LOG(LogLevel::Debug, "{} took: {:.3f} ms", mLabel, ns / 1e6);
         } else if (ns >= 1'000) {
-            CE_LOG(LogLevel::Debug,
-                "{} took: {:.3f} us",
-                mLabel,
-                ns / 1e3);
+            CE_LOG(LogLevel::Debug, "{} took: {:.3f} us", mLabel, ns / 1e3);
         } else {
-            CE_LOG(LogLevel::Debug,
-                "{} took: {} ns",
-                mLabel,
-                ns);
+            CE_LOG(LogLevel::Debug, "{} took: {} ns", mLabel, ns);
         }
     }
-}
+} // namespace CE::Utils

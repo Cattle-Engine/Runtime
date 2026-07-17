@@ -3,7 +3,7 @@
 #include <string>
 
 #ifndef CE_DATA_FILE_NAME
-    #define CE_DATA_FILE_NAME "data.tcf"
+#define CE_DATA_FILE_NAME "data.tcf"
 #endif
 
 namespace CE {
@@ -22,7 +22,7 @@ namespace CE {
         std::string windowIcon;
 
         std::string startupFileName;
-        const char* dataFileName;
+        const char *dataFileName;
 
         int minWindowWidth;
         int minWindowHeight;
@@ -33,4 +33,4 @@ namespace CE {
         bool pauseRenderingWhenFocusLostInWindowedMode;
         bool pauseUpdateWhenFocusLost;
     };
-}
+} // namespace CE

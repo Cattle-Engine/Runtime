@@ -3,12 +3,12 @@
 #include <string>
 
 namespace CE::Platforms::Windows {
-    std::string GetCachePath(const char* game_name);
-    std::string GetConfigPath(const char* game_name);
-    std::string GetSavePath(const char* game_name);
+    std::string GetCachePath(const char *game_name);
+    std::string GetConfigPath(const char *game_name);
+    std::string GetSavePath(const char *game_name);
     bool SupportsANSI();
     bool EnableANSI();
 
-    void* AlignedAllocate(std::size_t size, std::size_t alignment);
-    void AlignedFree(void* ptr) noexcept;
-}
+    void *AlignedAllocate(std::size_t size, std::size_t alignment);
+    void AlignedFree(void *ptr) noexcept;
+} // namespace CE::Platforms::Windows

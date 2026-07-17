@@ -1,9 +1,9 @@
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "engine/rendering/common/transform3d_to_matrix.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace CE::Renderer::Common {
-    glm::mat4 Transform3DToMatrix(const Transform3D& t) {
+    glm::mat4 Transform3DToMatrix(const Transform3D &t) {
         glm::mat4 transform(1.0f);
 
         transform = glm::translate(transform, t.position);
@@ -16,4 +16,4 @@ namespace CE::Renderer::Common {
 
         return transform;
     }
-}
+} // namespace CE::Renderer::Common

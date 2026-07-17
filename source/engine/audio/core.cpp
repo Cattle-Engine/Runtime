@@ -1,18 +1,18 @@
-#include "engine/audio/audio.hpp"
-#include "engine/common/tracelog.hpp"
-
 #include <atomic>
 #include <stdexcept>
+
+#include "engine/audio/audio.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::Core::Audio {
     namespace {
         std::atomic_int gMixInitRefCount{0};
     }
 
-    AudioSystem::AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero) : mVFS(vfs) {
+    AudioSystem::AudioSystem(VFS::VFS &vfs, int instanceid, uint32_t device_id, bool stero) : mVFS(vfs) {
         mInstanceID = instanceid;
         if (gMixInitRefCount.fetch_add(1) == 0) {
-            if(!MIX_Init()) {
+            if (!MIX_Init()) {
                 CE_LOG(LogLevel::Fatal, "[Audio {}] Failed to create audio subsystem!", mInstanceID);
                 CE_LOG(LogLevel::Fatal, "[Audio {}] Error from SDL: {}", mInstanceID, SDL_GetError());
                 gMixInitRefCount.fetch_sub(1);
@@ -25,7 +25,7 @@ namespace CE::Core::Audio {
     AudioSystem::~AudioSystem() {
         StopAll();
 
-        for (MIX_Track* track : mTracks) {
+        for (MIX_Track *track : mTracks) {
             {
                 std::lock_guard<std::mutex> lock(mDSPMutex);
                 mTrackStates.erase(track);
@@ -47,7 +47,7 @@ namespace CE::Core::Audio {
     void AudioSystem::SetAudioDevice(uint32_t device_id, bool stero) {
         StopAll();
 
-        for (MIX_Track* track : mTracks) {
+        for (MIX_Track *track : mTracks) {
             {
                 std::lock_guard<std::mutex> lock(mDSPMutex);
                 mTrackStates.erase(track);
@@ -84,7 +84,7 @@ namespace CE::Core::Audio {
     std::vector<AudioDeviceInfo> AudioSystem::ListAudioDevices() {
         std::vector<AudioDeviceInfo> devices;
         int count = 0;
-        SDL_AudioDeviceID* ids = SDL_GetAudioPlaybackDevices(&count);
+        SDL_AudioDeviceID *ids = SDL_GetAudioPlaybackDevices(&count);
         for (int i = 0; i < count; i++) {
             AudioDeviceInfo info;
             info.Id = static_cast<uint32_t>(ids[i]);
@@ -94,4 +94,4 @@ namespace CE::Core::Audio {
         SDL_free(ids);
         return devices;
     }
-}
+} // namespace CE::Core::Audio

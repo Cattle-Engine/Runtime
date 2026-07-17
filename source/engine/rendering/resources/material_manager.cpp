@@ -1,10 +1,12 @@
 #include "engine/rendering/resources/material_manager.hpp"
+
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
-    MaterialManager::MaterialManager(TextureManager& texture_manager, IRenderer& renderer) : mTextureManager(texture_manager), mRenderer(renderer) {}
+    MaterialManager::MaterialManager(TextureManager &texture_manager, IRenderer &renderer)
+        : mTextureManager(texture_manager), mRenderer(renderer) {}
 
-    MaterialManager::MaterialEntry* MaterialManager::GetMaterialEntry(MaterialHandle handle) {
+    MaterialManager::MaterialEntry *MaterialManager::GetMaterialEntry(MaterialHandle handle) {
         auto list = mMaterials.find(handle);
         if (list != mMaterials.end()) {
             return &list->second;
@@ -13,7 +15,7 @@ namespace CE::Renderer::Resources {
     }
 
     MaterialHandle MaterialManager::CreateMaterial(TextureHandle tex_handle) {
-        MaterialEntry entry; 
+        MaterialEntry entry;
         entry.AlbedoTex = mTextureManager.Acquire(tex_handle);
 
         if (!entry.AlbedoTex.IsValid()) {
@@ -24,7 +26,7 @@ namespace CE::Renderer::Resources {
             entry.IsError = false;
             entry.Resource.albedo = entry.AlbedoTex.Get();
         }
-    
+
         MaterialHandle handle = mNextHandleID++;
         mMaterials.emplace(handle, std::move(entry));
         return handle;
@@ -50,7 +52,6 @@ namespace CE::Renderer::Resources {
             entry->Resource.isTransparent = transparent;
         }
     }
-
 
     void MaterialManager::SetMaterialMetallic(MaterialHandle matt_handle, float metallic) {
         auto entry = GetMaterialEntry(matt_handle);
@@ -82,7 +83,7 @@ namespace CE::Renderer::Resources {
             } else {
                 entry->Resource.metallicRoughnessTex = nullptr;
             }
-        } 
+        }
     }
 
     void MaterialManager::SetNormalTexture(MaterialHandle matt_handle, TextureHandle tex_handle) {
@@ -95,7 +96,7 @@ namespace CE::Renderer::Resources {
             } else {
                 entry->Resource.normal = nullptr;
             }
-        } 
+        }
     }
 
     void MaterialManager::DestroyMaterial(MaterialHandle handle) {
@@ -106,14 +107,14 @@ namespace CE::Renderer::Resources {
         mMaterials.erase(it);
     }
 
-    Material* MaterialManager::GetMaterial(MaterialHandle handle) {
+    Material *MaterialManager::GetMaterial(MaterialHandle handle) {
         auto material = GetMaterialEntry(handle);
 
         if (material) {
             return &material->Resource;
         } else {
             return nullptr;
-        }   
+        }
     }
 
     void MaterialManager::DestroyAllMaterials() {
@@ -123,4 +124,4 @@ namespace CE::Renderer::Resources {
     size_t MaterialManager::Debug_LoadedMaterialsCount() const {
         return mMaterials.size();
     }
-}
+} // namespace CE::Renderer::Resources
