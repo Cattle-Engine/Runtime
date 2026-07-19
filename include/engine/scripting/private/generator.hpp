@@ -25,5 +25,9 @@ namespace CE::Scripting::Impl::Codegen {
         std::string EmitTypeRef(const AST::ASTTypeRef &type, const std::string &module_path,
                                 const std::string &name_space) const;
         static std::string JoinTokens(const std::vector<Lexer::Token> &tokens);
+        AST::ASTTypeRef InferExpressionType(const std::vector<Lexer::Token> &tokens,
+                                             const AST::ASTFunction *function,
+                                             const std::string &module_path,
+                                             const std::string &name_space) const;
     };
 } // namespace CE::Scripting::Impl::Codegen

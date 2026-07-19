@@ -63,12 +63,20 @@ namespace CE::Scripting::Impl::Semantics {
         std::vector<const Symbol *> ResolveOverloads(const std::string &module_path,
                                                      const std::string &qualified_name) const;
 
+        AST::ASTTypeRef GetMemberType(const std::string &class_name, const std::string &member_name,
+                                      const std::string &module_path) const;
+        AST::ASTTypeRef GetGlobalType(const Symbol *symbol) const;
+
         const std::vector<std::string> &GetEmissionOrder() const {
             return mEmissionOrder;
         }
         const std::unordered_map<std::string, AST::ASTModule> &GetParsedModules() const {
             return mParsedModules;
         }
+
+        const Symbol *FindDeclarationSymbol(const std::string &qualified_name,
+                                            const std::string &module_path,
+                                            const AST::ASTDeclaration &decl) const;
 
       private:
         struct ExportInfo {
@@ -96,6 +104,6 @@ namespace CE::Scripting::Impl::Semantics {
 
         std::string GenerateInternalName(const AST::ASTDeclaration &decl, const std::string &namespace_path,
                                          const std::string &module_hash);
-        std::string GenerateSignatureHash(const AST::ASTFunction func);
+        std::string GenerateSignatureHash(const AST::ASTFunction func) const;
     };
 } // namespace CE::Scripting::Impl::Semantics

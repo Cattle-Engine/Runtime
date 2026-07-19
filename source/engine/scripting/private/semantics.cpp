@@ -9,13 +9,43 @@
 #include "engine/scripting/private/exceptions.hpp"
 #include "engine/scripting/private/lexer.hpp"
 
-namespace {
-    constexpr char kInternalFunctionPrefix[] = "__ce_mod_f_";
-    constexpr char kInternalGlobalPrefix[] = "__ce_mod_g_";
-    constexpr char kInternalTypePrefix[] = "__ce_mod_t_";
-} // namespace
-
 namespace CE::Scripting::Impl::Semantics {
+    namespace {
+        constexpr char kInternalFunctionPrefix[] = "__ce_mod_f_";
+        constexpr char kInternalGlobalPrefix[] = "__ce_mod_g_";
+        constexpr char kInternalTypePrefix[] = "__ce_mod_t_";
+
+        std::string StripNamespace(const std::string &name) {
+            size_t pos = name.rfind("::");
+            if (pos != std::string::npos) {
+                return name.substr(pos + 2);
+            }
+            return name;
+        }
+
+        const AST::ASTDeclaration *FindDeclarationInDecls(const std::vector<AST::ASTDeclaration> &decls,
+                                                          const std::string &target_qualified_name,
+                                                          const std::string &current_namespace) {
+            for (const auto &decl : decls) {
+                std::string full_name = current_namespace.empty() ? decl.Name : current_namespace + "::" + decl.Name;
+                if (decl.Type == AST::ASTDeclaration::Kind::Namespace) {
+                    auto ns = std::get<std::shared_ptr<AST::ASTNamespace>>(decl.Data);
+                    if (const auto *found = FindDeclarationInDecls(ns->Declarations, target_qualified_name, full_name)) {
+                        return found;
+                    }
+                } else {
+                    if (full_name == target_qualified_name) {
+                        return &decl;
+                    }
+                }
+            }
+            return nullptr;
+        }
+
+        const AST::ASTDeclaration *FindDeclarationInModule(const AST::ASTModule &module, const std::string &qualified_name) {
+            return FindDeclarationInDecls(module.Declarations, qualified_name, "");
+        }
+    } // namespace
     void AddFunctionOverloads(std::vector<const Symbol *> &result, const SymbolTable &table, const std::string &name) {
         auto overloads = table.FindOverloads(name);
 
@@ -75,7 +105,7 @@ namespace CE::Scripting::Impl::Semantics {
     // Symantic parser functions
     SymanticAnalyser::SymanticAnalyser(VFS::VFS &vfs) : mVFS(vfs) {}
 
-    std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) {
+    std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) const {
         std::string signature;
 
         for (const auto &param : func.Parameters) {
@@ -100,11 +130,10 @@ namespace CE::Scripting::Impl::Semantics {
             auto func = std::get<AST::ASTFunction>(decl.Data);
 
             std::string signature_hash = GenerateSignatureHash(func);
-            std::string return_type_hash = Utils::Hash2String(Utils::Hash64(func.ReturnType.Name));
 
             prefix = kInternalFunctionPrefix;
             suffix =
-                module_hash + "_" + namespace_hash + "_" + symbol_hash + "_" + signature_hash + "_" + return_type_hash;
+                module_hash + "_" + namespace_hash + "_" + symbol_hash + "_" + signature_hash + "_";
             break;
         }
 
@@ -486,7 +515,18 @@ namespace CE::Scripting::Impl::Semantics {
                 const auto &expected = parameters[i];
                 const auto &actual = arguments[i];
 
-                if (expected.Name != actual.Name) {
+                std::string expected_name = StripNamespace(expected.Name);
+                std::string actual_name = StripNamespace(actual.Name);
+
+                if (actual_name == "null") {
+                    if (!expected.IsHandle) {
+                        valid = false;
+                        break;
+                    }
+                    continue; // Skip rest of checks for null matching a handle
+                }
+
+                if (expected_name != actual_name) {
                     valid = false;
                     break;
                 }
@@ -523,5 +563,176 @@ namespace CE::Scripting::Impl::Semantics {
         }
 
         return match;
+    }
+
+    AST::ASTTypeRef SymanticAnalyser::GetGlobalType(const Symbol *symbol) const {
+        auto mod_it = mParsedModules.find(symbol->SourceModule);
+        if (mod_it != mParsedModules.end()) {
+            const auto *decl = FindDeclarationInModule(mod_it->second, symbol->QualifiedName);
+            if (decl && decl->Type == AST::ASTDeclaration::Kind::Global) {
+                const auto &global = std::get<AST::ASTGlobal>(decl->Data);
+                return global.Type;
+            }
+        }
+        return {};
+    }
+
+    AST::ASTTypeRef SymanticAnalyser::GetMemberType(const std::string &class_name, const std::string &member_name,
+                                                    const std::string &module_path) const {
+        // 1. Check hardcoded engine types first
+        std::string clean_class = StripNamespace(class_name);
+        if (clean_class == "Colour") {
+            if (member_name == "r" || member_name == "g" || member_name == "b" || member_name == "a") {
+                AST::ASTTypeRef t;
+                t.Name = "uint8";
+                return t;
+            }
+        } else if (clean_class == "Vec3") {
+            if (member_name == "x" || member_name == "y" || member_name == "z") {
+                AST::ASTTypeRef t;
+                t.Name = "float";
+                return t;
+            }
+        } else if (clean_class == "Transform3D") {
+            if (member_name == "position" || member_name == "rotation" || member_name == "scale") {
+                AST::ASTTypeRef t;
+                t.Name = "CE::Graphics::ThreeD::Vec3";
+                return t;
+            }
+        } else if (clean_class == "Camera3D") {
+            if (member_name == "position" || member_name == "target" || member_name == "up") {
+                AST::ASTTypeRef t;
+                t.Name = "CE::Graphics::ThreeD::Vec3";
+                return t;
+            } else if (member_name == "fov" || member_name == "nearClip" || member_name == "farClip") {
+                AST::ASTTypeRef t;
+                t.Name = "float";
+                return t;
+            } else if (member_name == "projection") {
+                AST::ASTTypeRef t;
+                t.Name = "CE::Graphics::ThreeD::CameraProjection";
+                return t;
+            }
+        } else if (clean_class == "AudioEffect") {
+            if (member_name == "enabled") {
+                AST::ASTTypeRef t;
+                t.Name = "bool";
+                return t;
+            } else if (member_name == "type") {
+                AST::ASTTypeRef t;
+                t.Name = "CE::Audio::AudioEffectType";
+                return t;
+            } else if (member_name == "wetMix" || member_name == "roomSize" || member_name == "damping") {
+                AST::ASTTypeRef t;
+                t.Name = "float";
+                return t;
+            }
+        }
+
+        // 2. Check script-defined classes
+        const Symbol *class_sym = ResolveSymbol(module_path, class_name);
+        if (class_sym && class_sym->Kind == AST::ASTDeclaration::Kind::Type) {
+            auto mod_it = mParsedModules.find(class_sym->SourceModule);
+            if (mod_it != mParsedModules.end()) {
+                const auto *decl = FindDeclarationInModule(mod_it->second, class_sym->QualifiedName);
+                if (decl && decl->Type == AST::ASTDeclaration::Kind::Type) {
+                    const auto &ast_type = std::get<AST::ASTType>(decl->Data);
+                    const auto &tokens = ast_type.Body;
+                    for (size_t i = 0; i < tokens.size(); ++i) {
+                        size_t j = i;
+                        bool is_const = false;
+                        if (tokens[j].Type == Lexer::Token::TokenType::KeywordConst) {
+                            is_const = true;
+                            j++;
+                        }
+                        if (j < tokens.size() && tokens[j].Type == Lexer::Token::TokenType::Identifier) {
+                            std::string type_name = tokens[j].Value;
+                            j++;
+                            while (j + 1 < tokens.size() && tokens[j].Type == Lexer::Token::TokenType::ScopeResolution &&
+                                   tokens[j + 1].Type == Lexer::Token::TokenType::Identifier) {
+                                type_name += "::" + tokens[j + 1].Value;
+                                j += 2;
+                            }
+                            bool is_handle = false;
+                            bool is_ref = false;
+                            uint32_t array_depth = 0;
+                            while (j < tokens.size()) {
+                                if (tokens[j].Type == Lexer::Token::TokenType::Handle) {
+                                    is_handle = true;
+                                    j++;
+                                } else if (tokens[j].Type == Lexer::Token::TokenType::Reference) {
+                                    is_ref = true;
+                                    j++;
+                                } else if (tokens[j].Type == Lexer::Token::TokenType::OpenBracket) {
+                                    if (j + 1 < tokens.size() && tokens[j + 1].Type == Lexer::Token::TokenType::CloseBracket) {
+                                        array_depth++;
+                                        j += 2;
+                                    } else {
+                                        break;
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            if (j < tokens.size() && tokens[j].Type == Lexer::Token::TokenType::Identifier) {
+                                std::string name = tokens[j].Value;
+                                j++;
+                                if (j < tokens.size() && (tokens[j].Type == Lexer::Token::TokenType::Semicolon ||
+                                                          tokens[j].Type == Lexer::Token::TokenType::Assignment ||
+                                                          tokens[j].Type == Lexer::Token::TokenType::OpenParen)) {
+                                    if (tokens[j].Type != Lexer::Token::TokenType::OpenParen) {
+                                        if (name == member_name) {
+                                            AST::ASTTypeRef t;
+                                            t.Name = type_name;
+                                            t.IsConst = is_const;
+                                            t.IsHandle = is_handle;
+                                            t.IsReference = is_ref;
+                                            t.ArrayDepth = array_depth;
+                                            return t;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return {};
+    }
+
+    const Symbol *SymanticAnalyser::FindDeclarationSymbol(
+        const std::string &qualified_name,
+        const std::string &module_path,
+        const AST::ASTDeclaration &decl) const {
+
+            auto module = mModuleSymbols.find(module_path);
+
+            if (module == mModuleSymbols.end())
+                return nullptr;
+
+            auto overloads = module->second.FindOverloads(qualified_name);
+
+            if (decl.Type != AST::ASTDeclaration::Kind::Function) {
+                for (const auto *symbol : overloads) {
+                    if (symbol->Kind == decl.Type)
+                        return symbol;
+                }
+
+                return nullptr;
+            }
+
+
+            const auto &function = std::get<AST::ASTFunction>(decl.Data);
+
+            std::string signature_hash = GenerateSignatureHash(function);
+
+            for (const auto *symbol : overloads) {
+                if (symbol->InternalName.find(signature_hash) != std::string::npos)
+                    return symbol;
+            }
+
+            return nullptr;
     }
 } // namespace CE::Scripting::Impl::Semantics

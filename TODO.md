@@ -28,6 +28,8 @@ Going to do symbol mangling so this.
 
 This for a generated function
 ```__ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>_<returnType>```
+UPDATE FOR GENERATED FUNCTION HASHES:
+```ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>
 
 This for generated globals (vars)
 ```__ce_mod_g_<moduleHash>_<namespaceHash>_<symbolHash>_<typeHash>```
