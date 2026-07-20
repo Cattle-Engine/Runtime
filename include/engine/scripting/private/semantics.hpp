@@ -74,8 +74,7 @@ namespace CE::Scripting::Impl::Semantics {
             return mParsedModules;
         }
 
-        const Symbol *FindDeclarationSymbol(const std::string &qualified_name,
-                                            const std::string &module_path,
+        const Symbol *FindDeclarationSymbol(const std::string &qualified_name, const std::string &module_path,
                                             const AST::ASTDeclaration &decl) const;
 
       private:

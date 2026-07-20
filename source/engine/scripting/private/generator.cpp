@@ -104,17 +104,22 @@ namespace CE::Scripting::Impl::Codegen {
                 size_t br_depth = 0;
                 size_t matching_close = 0;
                 for (size_t k = end + 1; k < tokens.size(); ++k) {
-                    if (tokens[k].Type == Lexer::Token::TokenType::OpenParen) p_depth++;
+                    if (tokens[k].Type == Lexer::Token::TokenType::OpenParen)
+                        p_depth++;
                     else if (tokens[k].Type == Lexer::Token::TokenType::CloseParen) {
                         p_depth--;
                         if (p_depth == 0) {
                             matching_close = k;
                             break;
                         }
-                    } else if (tokens[k].Type == Lexer::Token::TokenType::OpenBracket) b_depth++;
-                    else if (tokens[k].Type == Lexer::Token::TokenType::CloseBracket) b_depth--;
-                    else if (tokens[k].Type == Lexer::Token::TokenType::OpenBrace) br_depth++;
-                    else if (tokens[k].Type == Lexer::Token::TokenType::CloseBrace) br_depth--;
+                    } else if (tokens[k].Type == Lexer::Token::TokenType::OpenBracket)
+                        b_depth++;
+                    else if (tokens[k].Type == Lexer::Token::TokenType::CloseBracket)
+                        b_depth--;
+                    else if (tokens[k].Type == Lexer::Token::TokenType::OpenBrace)
+                        br_depth++;
+                    else if (tokens[k].Type == Lexer::Token::TokenType::CloseBrace)
+                        br_depth--;
                 }
 
                 if (matching_close > 0) {
@@ -127,14 +132,21 @@ namespace CE::Scripting::Impl::Codegen {
                     br_depth = 0;
                     for (size_t k = end + 2; k < matching_close; ++k) {
                         const auto &tk = tokens[k];
-                        if (tk.Type == Lexer::Token::TokenType::OpenParen) p_depth++;
-                        else if (tk.Type == Lexer::Token::TokenType::CloseParen) p_depth--;
-                        else if (tk.Type == Lexer::Token::TokenType::OpenBracket) b_depth++;
-                        else if (tk.Type == Lexer::Token::TokenType::CloseBracket) b_depth--;
-                        else if (tk.Type == Lexer::Token::TokenType::OpenBrace) br_depth++;
-                        else if (tk.Type == Lexer::Token::TokenType::CloseBrace) br_depth--;
+                        if (tk.Type == Lexer::Token::TokenType::OpenParen)
+                            p_depth++;
+                        else if (tk.Type == Lexer::Token::TokenType::CloseParen)
+                            p_depth--;
+                        else if (tk.Type == Lexer::Token::TokenType::OpenBracket)
+                            b_depth++;
+                        else if (tk.Type == Lexer::Token::TokenType::CloseBracket)
+                            b_depth--;
+                        else if (tk.Type == Lexer::Token::TokenType::OpenBrace)
+                            br_depth++;
+                        else if (tk.Type == Lexer::Token::TokenType::CloseBrace)
+                            br_depth--;
 
-                        if (tk.Type == Lexer::Token::TokenType::Comma && p_depth == 0 && b_depth == 0 && br_depth == 0) {
+                        if (tk.Type == Lexer::Token::TokenType::Comma && p_depth == 0 && b_depth == 0 &&
+                            br_depth == 0) {
                             call_args.push_back(current_arg);
                             current_arg.clear();
                         } else {
@@ -177,8 +189,7 @@ namespace CE::Scripting::Impl::Codegen {
     }
 
     AST::ASTTypeRef Generator::InferExpressionType(const std::vector<Lexer::Token> &tokens,
-                                                   const AST::ASTFunction *function,
-                                                   const std::string &module_path,
+                                                   const AST::ASTFunction *function, const std::string &module_path,
                                                    const std::string &name_space) const {
         if (tokens.empty())
             return {};
@@ -240,9 +251,8 @@ namespace CE::Scripting::Impl::Codegen {
 
         // 2. Check if the entire token stream is a function call:
         size_t name_end = 0;
-        while (name_end < tokens.size() &&
-               (tokens[name_end].Type == Lexer::Token::TokenType::Identifier ||
-                tokens[name_end].Type == Lexer::Token::TokenType::ScopeResolution)) {
+        while (name_end < tokens.size() && (tokens[name_end].Type == Lexer::Token::TokenType::Identifier ||
+                                            tokens[name_end].Type == Lexer::Token::TokenType::ScopeResolution)) {
             name_end++;
         }
         if (name_end < tokens.size() && tokens[name_end].Type == Lexer::Token::TokenType::OpenParen) {
@@ -271,12 +281,18 @@ namespace CE::Scripting::Impl::Codegen {
                 size_t br_depth = 0;
                 for (size_t k = name_end + 1; k < matching_close; ++k) {
                     const auto &tk = tokens[k];
-                    if (tk.Type == Lexer::Token::TokenType::OpenParen) p_depth++;
-                    else if (tk.Type == Lexer::Token::TokenType::CloseParen) p_depth--;
-                    else if (tk.Type == Lexer::Token::TokenType::OpenBracket) b_depth++;
-                    else if (tk.Type == Lexer::Token::TokenType::CloseBracket) b_depth--;
-                    else if (tk.Type == Lexer::Token::TokenType::OpenBrace) br_depth++;
-                    else if (tk.Type == Lexer::Token::TokenType::CloseBrace) br_depth--;
+                    if (tk.Type == Lexer::Token::TokenType::OpenParen)
+                        p_depth++;
+                    else if (tk.Type == Lexer::Token::TokenType::CloseParen)
+                        p_depth--;
+                    else if (tk.Type == Lexer::Token::TokenType::OpenBracket)
+                        b_depth++;
+                    else if (tk.Type == Lexer::Token::TokenType::CloseBracket)
+                        b_depth--;
+                    else if (tk.Type == Lexer::Token::TokenType::OpenBrace)
+                        br_depth++;
+                    else if (tk.Type == Lexer::Token::TokenType::CloseBrace)
+                        br_depth--;
 
                     if (tk.Type == Lexer::Token::TokenType::Comma && p_depth == 0 && b_depth == 0 && br_depth == 0) {
                         nested_args.push_back(current_nested);
@@ -295,8 +311,8 @@ namespace CE::Scripting::Impl::Codegen {
                 const auto *func_symbol = mAnalyser.ResolveFunction(module_path, func_name, nested_types);
                 if (!func_symbol) {
                     std::string scoped_func = func_name.find("::") == std::string::npos && !name_space.empty()
-                                                 ? name_space + "::" + func_name
-                                                 : func_name;
+                                                  ? name_space + "::" + func_name
+                                                  : func_name;
                     func_symbol = mAnalyser.ResolveSymbol(module_path, func_name);
                     if (!func_symbol && scoped_func != func_name)
                         func_symbol = mAnalyser.ResolveSymbol(module_path, scoped_func);
@@ -314,12 +330,18 @@ namespace CE::Scripting::Impl::Codegen {
         size_t br_depth = 0;
         for (size_t k = 0; k < tokens.size(); ++k) {
             const auto &tk = tokens[k];
-            if (tk.Type == Lexer::Token::TokenType::OpenParen) p_depth++;
-            else if (tk.Type == Lexer::Token::TokenType::CloseParen) p_depth--;
-            else if (tk.Type == Lexer::Token::TokenType::OpenBracket) b_depth++;
-            else if (tk.Type == Lexer::Token::TokenType::CloseBracket) b_depth--;
-            else if (tk.Type == Lexer::Token::TokenType::OpenBrace) br_depth++;
-            else if (tk.Type == Lexer::Token::TokenType::CloseBrace) br_depth--;
+            if (tk.Type == Lexer::Token::TokenType::OpenParen)
+                p_depth++;
+            else if (tk.Type == Lexer::Token::TokenType::CloseParen)
+                p_depth--;
+            else if (tk.Type == Lexer::Token::TokenType::OpenBracket)
+                b_depth++;
+            else if (tk.Type == Lexer::Token::TokenType::CloseBracket)
+                b_depth--;
+            else if (tk.Type == Lexer::Token::TokenType::OpenBrace)
+                br_depth++;
+            else if (tk.Type == Lexer::Token::TokenType::CloseBrace)
+                br_depth--;
 
             if (tk.Value == "." && p_depth == 0 && b_depth == 0 && br_depth == 0) {
                 last_dot_idx = k;
@@ -417,10 +439,7 @@ namespace CE::Scripting::Impl::Codegen {
             return result;
         }
         const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
-        const auto *symbol = mAnalyser.FindDeclarationSymbol(
-            qualified,
-            module_path,
-            declaration);
+        const auto *symbol = mAnalyser.FindDeclarationSymbol(qualified, module_path, declaration);
         if (!symbol)
             return {};
         if (declaration.Type == AST::ASTDeclaration::Kind::Function) {

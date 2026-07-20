@@ -30,7 +30,8 @@ namespace CE::Scripting::Impl::Semantics {
                 std::string full_name = current_namespace.empty() ? decl.Name : current_namespace + "::" + decl.Name;
                 if (decl.Type == AST::ASTDeclaration::Kind::Namespace) {
                     auto ns = std::get<std::shared_ptr<AST::ASTNamespace>>(decl.Data);
-                    if (const auto *found = FindDeclarationInDecls(ns->Declarations, target_qualified_name, full_name)) {
+                    if (const auto *found =
+                            FindDeclarationInDecls(ns->Declarations, target_qualified_name, full_name)) {
                         return found;
                     }
                 } else {
@@ -42,7 +43,8 @@ namespace CE::Scripting::Impl::Semantics {
             return nullptr;
         }
 
-        const AST::ASTDeclaration *FindDeclarationInModule(const AST::ASTModule &module, const std::string &qualified_name) {
+        const AST::ASTDeclaration *FindDeclarationInModule(const AST::ASTModule &module,
+                                                           const std::string &qualified_name) {
             return FindDeclarationInDecls(module.Declarations, qualified_name, "");
         }
     } // namespace
@@ -132,8 +134,7 @@ namespace CE::Scripting::Impl::Semantics {
             std::string signature_hash = GenerateSignatureHash(func);
 
             prefix = kInternalFunctionPrefix;
-            suffix =
-                module_hash + "_" + namespace_hash + "_" + symbol_hash + "_" + signature_hash + "_";
+            suffix = module_hash + "_" + namespace_hash + "_" + symbol_hash + "_" + signature_hash + "_";
             break;
         }
 
@@ -648,7 +649,8 @@ namespace CE::Scripting::Impl::Semantics {
                         if (j < tokens.size() && tokens[j].Type == Lexer::Token::TokenType::Identifier) {
                             std::string type_name = tokens[j].Value;
                             j++;
-                            while (j + 1 < tokens.size() && tokens[j].Type == Lexer::Token::TokenType::ScopeResolution &&
+                            while (j + 1 < tokens.size() &&
+                                   tokens[j].Type == Lexer::Token::TokenType::ScopeResolution &&
                                    tokens[j + 1].Type == Lexer::Token::TokenType::Identifier) {
                                 type_name += "::" + tokens[j + 1].Value;
                                 j += 2;
@@ -664,7 +666,8 @@ namespace CE::Scripting::Impl::Semantics {
                                     is_ref = true;
                                     j++;
                                 } else if (tokens[j].Type == Lexer::Token::TokenType::OpenBracket) {
-                                    if (j + 1 < tokens.size() && tokens[j + 1].Type == Lexer::Token::TokenType::CloseBracket) {
+                                    if (j + 1 < tokens.size() &&
+                                        tokens[j + 1].Type == Lexer::Token::TokenType::CloseBracket) {
                                         array_depth++;
                                         j += 2;
                                     } else {
@@ -702,37 +705,35 @@ namespace CE::Scripting::Impl::Semantics {
         return {};
     }
 
-    const Symbol *SymanticAnalyser::FindDeclarationSymbol(
-        const std::string &qualified_name,
-        const std::string &module_path,
-        const AST::ASTDeclaration &decl) const {
+    const Symbol *SymanticAnalyser::FindDeclarationSymbol(const std::string &qualified_name,
+                                                          const std::string &module_path,
+                                                          const AST::ASTDeclaration &decl) const {
 
-            auto module = mModuleSymbols.find(module_path);
+        auto module = mModuleSymbols.find(module_path);
 
-            if (module == mModuleSymbols.end())
-                return nullptr;
+        if (module == mModuleSymbols.end())
+            return nullptr;
 
-            auto overloads = module->second.FindOverloads(qualified_name);
+        auto overloads = module->second.FindOverloads(qualified_name);
 
-            if (decl.Type != AST::ASTDeclaration::Kind::Function) {
-                for (const auto *symbol : overloads) {
-                    if (symbol->Kind == decl.Type)
-                        return symbol;
-                }
-
-                return nullptr;
-            }
-
-
-            const auto &function = std::get<AST::ASTFunction>(decl.Data);
-
-            std::string signature_hash = GenerateSignatureHash(function);
-
+        if (decl.Type != AST::ASTDeclaration::Kind::Function) {
             for (const auto *symbol : overloads) {
-                if (symbol->InternalName.find(signature_hash) != std::string::npos)
+                if (symbol->Kind == decl.Type)
                     return symbol;
             }
 
             return nullptr;
+        }
+
+        const auto &function = std::get<AST::ASTFunction>(decl.Data);
+
+        std::string signature_hash = GenerateSignatureHash(function);
+
+        for (const auto *symbol : overloads) {
+            if (symbol->InternalName.find(signature_hash) != std::string::npos)
+                return symbol;
+        }
+
+        return nullptr;
     }
 } // namespace CE::Scripting::Impl::Semantics
