@@ -1,8 +1,10 @@
 #include "engine/scripting/private/semantics.hpp"
 
 #include <algorithm>
+#include <unordered_set>
 
 #include "engine/common/utils/hasher.hpp"
+#include "engine/common/tracelog.hpp"
 #include "engine/scripting/private//parser.hpp"
 #include "engine/scripting/private/ast.hpp"
 #include "engine/scripting/private/common.hpp"
@@ -407,101 +409,140 @@ namespace CE::Scripting::Impl::Semantics {
 
     std::vector<const Symbol *> SymanticAnalyser::ResolveOverloads(const std::string &module_path,
                                                                    const std::string &qualified_name) const {
-        std::vector<const Symbol *> result;
-
-        auto add = [&](const std::string &name, const std::string &path) {
-            auto module = mModuleSymbols.find(path);
-
-            if (module == mModuleSymbols.end())
-                return;
-
-            auto overloads = module->second.FindOverloads(name);
-
-            for (const auto *symbol : overloads) {
-                if (symbol->Kind == AST::ASTDeclaration::Kind::Function)
-                    result.push_back(symbol);
-            }
-        };
-
-        add(qualified_name, module_path);
-
-        if (!result.empty())
-            return result;
-
-        auto using_it = mModuleUsing.find(module_path);
-
-        if (using_it != mModuleUsing.end()) {
-            for (const auto &export_info : using_it->second) {
-
-                std::string exported_name = export_info.Namespace.empty()
-                                                ? export_info.OriginalName
-                                                : export_info.Namespace + "::" + export_info.OriginalName;
-
-                if (qualified_name == export_info.OriginalName || qualified_name == exported_name) {
-                    add(export_info.OriginalName, export_info.Modulepath);
-                }
+    std::vector<const Symbol *> result;
+    std::unordered_set<const Symbol *> seen;  // prevent duplicates
+    
+    auto add = [&](const std::string &name, const std::string &path) {
+        auto module = mModuleSymbols.find(path);
+        
+        if (module == mModuleSymbols.end())
+            return;
+        
+        auto overloads = module->second.FindOverloads(name);
+        
+        for (const auto *symbol : overloads) {
+            if (symbol->Kind == AST::ASTDeclaration::Kind::Function && seen.insert(symbol).second) {
+                result.push_back(symbol);
             }
         }
-
-        if (!result.empty())
-            return result;
-
-        auto parsed = mParsedModules.find(module_path);
-
-        if (parsed == mParsedModules.end())
-            return result;
-
-        for (const auto &import : parsed->second.Imports) {
-            if (import.IsUsing)
-                continue;
-
-            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS &>(mVFS));
-
-            auto exports = mModuleExports.find(imported_path);
-
-            if (exports == mModuleExports.end())
-                continue;
-
-            for (const auto &export_info : exports->second) {
-                if (export_info.Type != AST::ASTDeclaration::Kind::Function)
-                    continue;
-
-                if (!import.IsFileImport && import.Symbol && export_info.OriginalName != *import.Symbol) {
-                    continue;
-                }
-
-                std::string exported_name = export_info.Namespace.empty()
-                                                ? export_info.OriginalName
-                                                : export_info.Namespace + "::" + export_info.OriginalName;
-
-                std::string module_qualified_name;
-
-                for (size_t i = 0; i < import.Path.size(); ++i) {
-                    if (i > 0)
-                        module_qualified_name += "::";
-
-                    module_qualified_name += import.Path[i];
-                }
-
-                if (!module_qualified_name.empty())
-                    module_qualified_name += "::";
-
-                module_qualified_name += export_info.OriginalName;
-
-                if (qualified_name == export_info.OriginalName || qualified_name == exported_name ||
-                    qualified_name == module_qualified_name) {
-                    add(export_info.OriginalName, export_info.Modulepath);
-                }
-            }
-        }
-
+    };
+    
+    add(qualified_name, module_path);
+    
+    if (!result.empty())
         return result;
+    
+    auto using_it = mModuleUsing.find(module_path);
+    
+    if (using_it != mModuleUsing.end()) {
+        for (const auto &export_info : using_it->second) {
+            
+            std::string exported_name = export_info.Namespace.empty()
+            ? export_info.OriginalName
+            : export_info.Namespace + "::" + export_info.OriginalName;
+            if (qualified_name == export_info.OriginalName || qualified_name == exported_name) {
+                add(exported_name, export_info.Modulepath);
+            }
+        }
     }
+    
+    if (!result.empty())
+        return result;
+    
+    auto parsed = mParsedModules.find(module_path);
+    
+    if (parsed == mParsedModules.end())
+        return result;
+    
+    // debug loop show imports and exports
+    for (const auto &import : parsed->second.Imports) {
+        const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS &>(mVFS));
+        
+        CE_LOG(LogLevel::Debug,
+                "Import {} -> {}",
+                import.Path.empty() ? "empty" : import.Path[0],
+                imported_path);
+        
+        auto exports = mModuleExports.find(imported_path);
+        
+        if (exports == mModuleExports.end()) {
+            CE_LOG(LogLevel::Debug, "No exports found");
+            continue;
+        }
+        
+        for (const auto &e : exports->second) {
+            CE_LOG(LogLevel::Debug,
+                    "Export: {}::{}",
+                    e.Namespace,
+                    e.OriginalName);
+        }
+    }
+    
+    for (const auto &import : parsed->second.Imports) {
+        if (import.IsUsing)
+            continue;
+        
+        const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS &>(mVFS));
+        
+        auto exports = mModuleExports.find(imported_path);
+        
+        if (exports == mModuleExports.end())
+            continue;
+        
+        for (const auto &export_info : exports->second) {
+            if (export_info.Type != AST::ASTDeclaration::Kind::Function)
+                continue;
+            
+            if (!import.IsFileImport && import.Symbol && export_info.OriginalName != *import.Symbol) {
+                continue;
+            }
+            
+            std::string exported_name = export_info.Namespace.empty()
+            ? export_info.OriginalName
+            : export_info.Namespace + "::" + export_info.OriginalName;
+            
+            std::string module_qualified_name;
+            
+            for (size_t i = 0; i < import.Path.size(); ++i) {
+                if (i > 0)
+                    module_qualified_name += "::";
+                
+                module_qualified_name += import.Path[i];
+            }
+            
+            if (!module_qualified_name.empty())
+                module_qualified_name += "::";
+            
+            module_qualified_name += export_info.OriginalName;
+            
+            if (qualified_name == export_info.OriginalName ||
+                qualified_name == exported_name ||
+                qualified_name == module_qualified_name) {
+                
+                CE_LOG(LogLevel::Debug, "Found matching export, calling add({}, {})", 
+                        exported_name, export_info.Modulepath);
+                
+                add(exported_name, export_info.Modulepath);
+            
+            CE_LOG(LogLevel::Debug, "After add, result size: {}", result.size());
+                }
+        }
+    }
+    
+    return result;
+}
 
     const Symbol *SymanticAnalyser::ResolveFunction(const std::string &module_path, const std::string &name,
                                                     const std::vector<AST::ASTTypeRef> &arguments) const {
         auto overloads = ResolveOverloads(module_path, name);
+        
+        CE_LOG(LogLevel::Debug, "[Semantic Parser] Resolving: {}", name);
 
+        CE_LOG(LogLevel::Debug, "Overloads found: {}", overloads.size());
+        for (auto *x : overloads) {
+            CE_LOG(LogLevel::Debug, "candidate: {}", x->QualifiedName);
+        }
+        
         const Symbol *match = nullptr;
 
         for (const auto *symbol : overloads) {
@@ -524,7 +565,7 @@ namespace CE::Scripting::Impl::Semantics {
                         valid = false;
                         break;
                     }
-                    continue; // Skip rest of checks for null matching a handle
+                    continue; // skip rest of checks for null matching a handle
                 }
 
                 if (expected_name != actual_name) {
