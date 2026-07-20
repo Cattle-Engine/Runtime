@@ -17,6 +17,10 @@ __pycache__/
 *.pyc
 /assets/*#
 /.vs/*
+.kdev4/
+*.kdev4
+/.cache
+/.vscode
 /CMakeSettings.json
 
 # Compiled Object files
