@@ -22,6 +22,7 @@
 - [X] AngelScript imports:
 - [X] Fix skybox not rendering when no mesh's are drawn
 - [X] Add XXHash to licence stuff
+- [X] Actually make function overloading work (semantic parser just throws it away)
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -66,7 +67,6 @@ export int foo_func() {
 }
 ```
 
-- [ ] Actually make function overloading work (semantic parser just throws it away)
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
