@@ -20,4 +20,4 @@ namespace CE {
     }
 } // namespace CE
 
-#define CE_LOG(level, ...) CE::LogImpl(level, std::format(__VA_ARGS__), std::source_location::current())
+#define CE_LOG(level, ...) ::CE::LogImpl(level, std::format(__VA_ARGS__), std::source_location::current())

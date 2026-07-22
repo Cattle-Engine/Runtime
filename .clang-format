@@ -26,7 +26,7 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: true
 PackConstructorInitializers: NextLine
 
 DerivePointerAlignment: false
-PointerAlignment: Right
+PointerAlignment: Left
 
 IncludeBlocks: Regroup
 IncludeCategories:
