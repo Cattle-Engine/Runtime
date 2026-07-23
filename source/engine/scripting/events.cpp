@@ -1,6 +1,5 @@
 #include <format>
 
-#include "engine/common/tracelog.hpp"
 #include "engine/scripting/angelscript.hpp"
 
 namespace CE::Scripting {

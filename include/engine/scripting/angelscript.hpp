@@ -68,6 +68,7 @@ namespace CE::Scripting {
                 CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
                 bool output_debug_info, std::string output_debug_as_info_path,
                 Assets::Audio::AudioManager* audio_manager = nullptr);
+        ~Runtime();
 
         bool RunStartup();
         // runs the function update() during 2D rendering pass
@@ -105,6 +106,8 @@ namespace CE::Scripting {
             asIScriptFunction* function = nullptr;
         };
 
+        bool InvokeStateCallback(asIScriptFunction* callback, const std::string& state, const std::string& eventName);
+        void ReleaseStateCallbacks();
         static void MessageCallback(const asSMessageInfo* msg, void* param);
         bool Fail(const std::string& message);
 

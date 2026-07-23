@@ -56,6 +56,24 @@ namespace CE::Scripting {
         OutputDebugASInfoPath = output_debug_as_info_path;
     }
 
+    Runtime::~Runtime() {
+        ReleaseStateCallbacks();
+        if (mUpdateCtx != nullptr) {
+            mUpdateCtx->Release();
+            mUpdateCtx = nullptr;
+        }
+
+        if (mContext != nullptr) {
+            mContext->Release();
+            mContext = nullptr;
+        }
+
+        if (mScriptEngine != nullptr) {
+            mScriptEngine->ShutDownAndRelease();
+            mScriptEngine = nullptr;
+        }
+    }
+
     bool Runtime::Fail(const std::string& message) {
         mLastError = message;
         CE_LOG(LogLevel::Fatal, "[AngelScript] {}", message);
