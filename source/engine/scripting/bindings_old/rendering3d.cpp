@@ -104,8 +104,7 @@ namespace CE::Scripting {
         mScriptEngine->RegisterObjectType("MaterialHandle", sizeof(MaterialHandle),
                                           asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<MaterialHandle>());
 
-        result =
-            mScriptEngine->RegisterObjectProperty("MaterialHandle", "uint64 handle", asOFFSET(MaterialHandle, handle));
+        result = mScriptEngine->RegisterObjectProperty("MaterialHandle", "uint64 handle", asOFFSET(MaterialHandle, handle));
         if (result < 0) {
             return false;
         }

@@ -11,10 +11,13 @@ do { \
 } while (false)
 
 // This also MUST only be called from IScriptBinding
-#define CE_REGISTER_GLOBAL(decl, method)                                                                               \
-do {                                                                                                               \
-    if (mScriptEngine.RegisterGlobalFunction(decl, asMETHOD(Runtime, method), asCALL_THISCALL_ASGLOBAL, this) <   \
-        0) {                                                                                                       \
-            return false;                                                                                              \
-        }                                                                                                              \
+#define CE_REGISTER_GLOBAL(type, obj, decl, method)                                            \
+do {                                                                                            \
+    if (mScriptEngine.RegisterGlobalFunction(                                                   \
+            decl,                                                                               \
+            asMETHOD(type, method),                                                             \
+            asCALL_THISCALL_ASGLOBAL,                                                           \
+            obj) < 0) {                                                                         \
+        return false;                                                                           \
+    }                                                                                           \
 } while (false)
