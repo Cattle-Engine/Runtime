@@ -74,7 +74,7 @@ namespace CE::Scripting {
             bool RunUpdate();
             bool Init();
 
-            const std::string& GetLastError();
+            const std::string& GetLastError() const;
 
             /**
              * Exposed publicly because all the IScriptBinding impls require access to at-least one of these.

@@ -230,8 +230,7 @@ namespace CE::Scripting {
         }
 
         const std::string message =
-            std::format("[AngelScript] {}:{}:{} {}: {}", msg->section ? msg->section : "<unknown>", msg->row, msg->col,
-                        ToString(msg->type), msg->message ? msg->message : "");
+            std::format("[AngelScript] {}:{}:{} {}: {}", msg->section ? msg->section : "<unknown>", msg->row, msg->col,ToString(msg->type), msg->message ? msg->message : "");
 
         switch (msg->type) {
         case asMSGTYPE_ERROR:
