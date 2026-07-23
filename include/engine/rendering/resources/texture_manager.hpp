@@ -9,7 +9,26 @@
 #include "engine/rendering/renderer.hpp"
 
 namespace CE::Renderer::Resources {
-    using TextureHandle = uint64_t;
+    struct TextureHandle {
+      TextureHandle() : id(0) {}
+      TextureHandle(const TextureHandle& other) : id(other.id) {}
+      
+      uint64_t id = 0;
+      
+      explicit operator bool() const {
+        return id != 0;
+      }
+      
+      bool operator==(const TextureHandle& other) const {
+        return id == other.id;
+      }
+    };
+    
+    struct TextureHandleHash {
+      std::size_t operator()(const TextureHandle& handle) const {
+        return std::hash<uint64_t>{}(handle.id);
+      }
+    };
 
     class TextureManager; // Forward declaration
 
@@ -37,7 +56,7 @@ namespace CE::Renderer::Resources {
 
       private:
         TextureManager* mManager = nullptr;
-        TextureHandle mHandle = 0;
+        TextureHandle mHandle{};
         Texture* mTexture = nullptr;
     };
 
@@ -109,7 +128,7 @@ namespace CE::Renderer::Resources {
         IRenderer& mRenderer;
         VFS::VFS& mVFS;
         uint64_t mNextHandleID = 0;
-        std::unordered_map<TextureHandle, TextureEntry> mTextureCache;
+        std::unordered_map<TextureHandle, TextureEntry, TextureHandleHash> mTextureCache;
         std::unordered_map<std::string, TextureHandle> mPathCache;
         std::vector<TextureHandle> mPendingUnload;
     };

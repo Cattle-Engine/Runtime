@@ -31,7 +31,7 @@ namespace CE::Renderer::Resources {
             mHandle = other.mHandle;
             mTexture = other.mTexture;
             other.mManager = nullptr;
-            other.mHandle = 0;
+            other.mHandle.id = 0;
             other.mTexture = nullptr;
         }
         return *this;
@@ -41,7 +41,7 @@ namespace CE::Renderer::Resources {
             mManager->Return(mHandle);
 
         mManager = nullptr;
-        mHandle = 0;
+        mHandle.id = 0;
         mTexture = nullptr;
     }
 } // namespace CE::Renderer::Resources
@@ -101,8 +101,8 @@ namespace CE::Renderer::Resources {
                 texentry.IsError = false;
             }
         }
-
-        TextureHandle handle = mNextHandleID++;
+        TextureHandle handle;
+        handle.id = mNextHandleID++;
         texentry.Path = path;
         texentry.RefCount = 0;
 
@@ -116,7 +116,7 @@ namespace CE::Renderer::Resources {
         auto it = mTextureCache.find(handle);
 
         if (it == mTextureCache.end()) {
-            CE_LOG(LogLevel::Error, "[Texture Manager] Tried to unload missing texture: {}", handle);
+            CE_LOG(LogLevel::Error, "[Texture Manager] Tried to unload missing texture: {}", handle.id);
             return;
         }
 
@@ -247,12 +247,12 @@ namespace CE::Renderer::Resources {
             entry.IsError = false;
             entry.Resource = tex;
         }
-
-        TextureHandle handle = mNextHandleID++;
+        TextureHandle handle;
+        handle.id = mNextHandleID++;
         if (!cache_key.empty()) {
             entry.Path = cache_key;
         } else {
-            entry.Path = std::format("{}_{}", kGeneratedTexturePathName, handle);
+            entry.Path = std::format("{}_{}", kGeneratedTexturePathName, handle.id);
         }
 
         entry.IsPendingUnload = false;

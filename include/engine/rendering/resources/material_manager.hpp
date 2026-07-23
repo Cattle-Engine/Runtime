@@ -4,11 +4,30 @@
 #include <unordered_map>
 
 #include "engine/rendering/renderer.hpp"
-#include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::Renderer::Resources {
-    using MaterialHandle = uint64_t;
+    struct MaterialHandle {
+        MaterialHandle() : id(0) {}
+        MaterialHandle(const MaterialHandle& other) : id(other.id) {}
+        
+        uint64_t id = 0;
+        
+        explicit operator bool() const {
+          return id != 0;
+        }
+        
+        bool operator==(const MaterialHandle& other) const {
+          return id == other.id;
+        }
+    };
+    
+    struct MaterialHandleHash {
+        size_t operator()(const MaterialHandle& handle) const {
+          return std::hash<uint64_t>{}(handle.id);
+        }
+    };
+    
     class MaterialManager {
       public:
         MaterialManager(TextureManager& texture_manager, IRenderer& renderer);
@@ -44,6 +63,6 @@ namespace CE::Renderer::Resources {
         uint64_t mNextHandleID = 0;
         TextureManager& mTextureManager;
         IRenderer& mRenderer;
-        std::unordered_map<MaterialHandle, MaterialEntry> mMaterials;
+        std::unordered_map<MaterialHandle, MaterialEntry, MaterialHandleHash> mMaterials;
     };
 } // namespace CE::Renderer::Resources

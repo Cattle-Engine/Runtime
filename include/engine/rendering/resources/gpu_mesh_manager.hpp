@@ -9,7 +9,26 @@
 #include <glm/glm.hpp>
 
 namespace CE::Renderer::Resources {
-    using MeshHandle = uint64_t;
+    struct MeshHandle {
+        MeshHandle() : id(0) {}
+        MeshHandle(const MeshHandle& other) : id(other.id) {}
+        
+        uint64_t id = 0;
+        
+        explicit operator bool() const {
+          return id != 0;
+        }
+        
+        bool operator==(const MeshHandle& other) const {
+          return id == other.id;
+        }
+    };
+    
+    struct MeshHandleHash {
+        size_t operator()(const MeshHandle& handle) const {
+          return std::hash<uint64_t>{}(handle.id);
+        }
+    };
 
     class GPUMeshManager {
       public:
@@ -35,7 +54,7 @@ namespace CE::Renderer::Resources {
 
         MaterialManager& mMaterialManager;
         IRenderer& mRenderer;
-        std::unordered_map<MeshHandle, MeshInfo> mGPUMeshes;
-        MeshHandle mNextHandle = 1;
+        std::unordered_map<MeshHandle, MeshInfo, MeshHandleHash> mGPUMeshes;
+        uint64_t mNextHandle = 1;
     };
 } // namespace CE::Renderer::Resources

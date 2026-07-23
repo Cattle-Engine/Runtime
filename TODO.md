@@ -23,6 +23,8 @@
 - [X] Fix skybox not rendering when no mesh's are drawn
 - [X] Add XXHash to licence stuff
 - [X] Actually make function overloading work (semantic parser just throws it away)
+- [X] Make material, texture and mesh handles all structs
+
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
 
@@ -66,10 +68,9 @@ export int foo_func() {
 }
 ```
 
-- [ ] Make material, texture and mesh handles all structs
+- [ ] Refactor the angelscript bindings to have something like IScriptBinding
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
-- [ ] Refactor the angelscript bindings to have something like IScriptBinding
 - [ ] Connect input binder to instance
 - [ ] Bindings for the input binder in angelscript
 - [ ] Add support for setting shader/s on a material

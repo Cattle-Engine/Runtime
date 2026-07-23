@@ -26,8 +26,8 @@ namespace CE::Renderer::Resources {
             entry.IsError = false;
             entry.Resource.albedo = entry.AlbedoTex.Get();
         }
-
-        MaterialHandle handle = mNextHandleID++;
+        MaterialHandle handle;
+        handle.id = mNextHandleID++;
         mMaterials.emplace(handle, std::move(entry));
         return handle;
     }
