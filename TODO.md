@@ -23,14 +23,13 @@
 - [X] Fix skybox not rendering when no mesh's are drawn
 - [X] Add XXHash to licence stuff
 - [X] Actually make function overloading work (semantic parser just throws it away)
-
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
 
 This for a generated function
 ```__ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>_<returnType>```
 UPDATE FOR GENERATED FUNCTION HASHES:
-```ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>
+```ce_mod_f_<moduleHash>_<namespaceHash>_<symbolHash>_<signatureHash>```
 
 This for generated globals (vars)
 ```__ce_mod_g_<moduleHash>_<namespaceHash>_<symbolHash>_<typeHash>```
@@ -47,7 +46,7 @@ For the entry point of an CE game will be:
 which shall be transformed into:
 ```void __ce_user_int()```
 
-// Main script
+Main script
 ```angelscript
 // This stuff is global like C++
 import test; // Imports a file called test, adds whatever has "export" inside the file
@@ -67,6 +66,7 @@ export int foo_func() {
 }
 ```
 
+- [ ] Make material, texture and mesh handles all structs
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
