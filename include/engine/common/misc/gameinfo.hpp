@@ -22,7 +22,7 @@ namespace CE {
         std::string windowIcon;
 
         std::string startupFileName;
-        const char *dataFileName;
+        const char* dataFileName;
 
         int minWindowWidth;
         int minWindowHeight;

@@ -15,5 +15,5 @@ namespace CE::Memory {
         std::atomic<std::size_t> peakAliveAllocations{0};
     };
 
-    Stats &GetStats();
+    Stats& GetStats();
 } // namespace CE::Memory

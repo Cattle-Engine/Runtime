@@ -19,7 +19,7 @@
 #include "SDL3_image/SDL_image.h"
 
 namespace CE {
-    Instance::Instance(const char *data_file_path, bool debugmode, Renderer::GPUDeviceHandle &gpudevice,
+    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
                        EngineArguements args)
         : gGameStateManager(gEventBus) {
         gProgramArguments = args;
@@ -91,7 +91,7 @@ namespace CE {
             gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
             gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
             gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
             CE_LOG(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
             gAudioManager.reset();
             gAudioSystem.reset();
@@ -133,7 +133,7 @@ namespace CE {
         auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
 
         for (size_t i : indices) {
-            const SDL_Event &e = CE::SDL_Events::gEvents[i];
+            const SDL_Event& e = CE::SDL_Events::gEvents[i];
 
             switch (e.type) {
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -244,19 +244,19 @@ namespace CE {
         return gInstanceID;
     }
 
-    void Instance::SetGameState(const std::string &state) {
+    void Instance::SetGameState(const std::string& state) {
         gGameStateManager.ChangeState(state);
     }
 
-    const std::string &Instance::GetGameState() const {
+    const std::string& Instance::GetGameState() const {
         return gGameStateManager.GetState();
     }
 
-    CE::Core::EventBus &Instance::GetEventBus() {
+    CE::Core::EventBus& Instance::GetEventBus() {
         return gEventBus;
     }
 
-    CE::Core::GameState::GameStateManager &Instance::GetGameStateManager() {
+    CE::Core::GameState::GameStateManager& Instance::GetGameStateManager() {
         return gGameStateManager;
     }
 
@@ -320,7 +320,7 @@ namespace CE {
             return;
         }
 
-        VirtualFile *vf = gVFS->OpenFile(path.c_str());
+        VirtualFile* vf = gVFS->OpenFile(path.c_str());
         if (!vf) {
             CE_LOG(LogLevel::Error, "[Instance {}] VFS could not open '{}'", gInstanceID, path);
             return;
@@ -330,19 +330,19 @@ namespace CE {
         gVFS->ReadFile(vf, fileBytes.data(), fileBytes.size());
         gVFS->CloseFile(vf);
 
-        SDL_IOStream *mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
+        SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
             CE_LOG(LogLevel::Error, "[Instance {}] SDL_IOFromConstMem failed: {}", gInstanceID, SDL_GetError());
             return;
         }
 
-        SDL_Surface *surface = IMG_Load_IO(mem, true);
+        SDL_Surface* surface = IMG_Load_IO(mem, true);
         if (!surface) {
             CE_LOG(LogLevel::Error, "[Instance {}] IMG_Load_IO failed for '{}': {}", gInstanceID, path, SDL_GetError());
             return;
         }
 
-        SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE_LOG(LogLevel::Error, "[Instance {}] SDL_ConvertSurface failed: {}", gInstanceID, SDL_GetError());

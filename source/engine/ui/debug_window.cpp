@@ -60,7 +60,7 @@ namespace CE::UI {
         return gOpen;
     }
 
-    void DebugWindow::UpdateFreeCam(Renderer::IRenderer &renderer, Input::Keyboard &keyboard, Input::Mouse &mouse,
+    void DebugWindow::UpdateFreeCam(Renderer::IRenderer& renderer, Input::Keyboard& keyboard, Input::Mouse& mouse,
                                     float deltaTime) {
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_CONTROL) &&
             keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT)) {
@@ -73,7 +73,7 @@ namespace CE::UI {
         if (!gFreeCam.enabled)
             return;
 
-        auto *cam = renderer.GetCamera3D();
+        auto* cam = renderer.GetCamera3D();
         if (!cam)
             return;
 
@@ -114,7 +114,7 @@ namespace CE::UI {
             cam->position -= worldUp * speed;
     }
 
-    void DebugWindow::DrawInstanceTab(GameInfo &gameinfo, Instance &instance) {
+    void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
         static std::string game_state = "";
         ImGui::Text("InstanceID: %i", instance.GetInstanceID());
 
@@ -171,7 +171,7 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawInputTab(Input::Keyboard &kbmanger, Input::Mouse &msmanager) {
+    void DebugWindow::DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
         ImGui::Text("Keyboard");
         ImGui::Spacing();
         ImGui::Text("Currently held keys: %s", kbmanger.GetPressedKeysString().c_str());
@@ -189,11 +189,11 @@ namespace CE::UI {
         ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
     }
 
-    void DebugWindow::DrawPerformanceTab(CE::Renderer::IRenderer &renderer,
-                                         CE::Renderer::Resources::TextureManager &texman,
-                                         CE::Renderer::Resources::ShaderManager &shaderman,
-                                         CE::Assets::Skyboxes::SkyBoxManager &skyboxman,
-                                         const CE::Settings::SettingsManager &settings, int fps, float deltaTime,
+    void DebugWindow::DrawPerformanceTab(CE::Renderer::IRenderer& renderer,
+                                         CE::Renderer::Resources::TextureManager& texman,
+                                         CE::Renderer::Resources::ShaderManager& shaderman,
+                                         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                                         const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
                                          float frameTime) {
         (void)renderer;
         (void)texman;
@@ -218,7 +218,7 @@ namespace CE::UI {
 
         ImGui::Text("Memory");
 
-        auto &memory = Memory::GetStats();
+        auto& memory = Memory::GetStats();
         static bool enable = Memory::IsTrackingEnabled();
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
@@ -291,10 +291,10 @@ namespace CE::UI {
         CE::Memory::EnableTracking(enable);
     }
 
-    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager &settings,
-                                      CE::Assets::Audio::AudioManager *audioman) {
-        auto &s = settings.Settings;
-        auto &state = gSettingsState;
+    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings,
+                                      CE::Assets::Audio::AudioManager* audioman) {
+        auto& s = settings.Settings;
+        auto& state = gSettingsState;
 
         ImGui::Text("Window");
         ImGui::Spacing();
@@ -378,10 +378,10 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawRendererTab(CE::Renderer::IRenderer &renderer, const Settings::SettingsManager &settings,
-                                      Renderer::Resources::TextureManager &texman,
-                                      CE::Renderer::Resources::ShaderManager &shaderman,
-                                      Assets::Skyboxes::SkyBoxManager &skyboxman, Assets::Fonts::FontManager &fontman) {
+    void DebugWindow::DrawRendererTab(CE::Renderer::IRenderer& renderer, const Settings::SettingsManager& settings,
+                                      Renderer::Resources::TextureManager& texman,
+                                      CE::Renderer::Resources::ShaderManager& shaderman,
+                                      Assets::Skyboxes::SkyBoxManager& skyboxman, Assets::Fonts::FontManager& fontman) {
         ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
 
         Utils::SpaceSep();
@@ -398,7 +398,7 @@ namespace CE::UI {
 
         Utils::SpaceSep();
 
-        Renderer::Camera2D *camera = renderer.GetCamera();
+        Renderer::Camera2D* camera = renderer.GetCamera();
 
         ImGui::Text("Camera2D");
         ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
@@ -431,7 +431,7 @@ namespace CE::UI {
         ImGui::InputFloat("Near", &camera3->nearClip);
         ImGui::InputFloat("Far", &camera3->farClip);
 
-        ImGui::Combo("Projection", (int *)&camera3->projection, "Perspective\0Orthographic\0");
+        ImGui::Combo("Projection", (int*)&camera3->projection, "Perspective\0Orthographic\0");
 
         ImGui::InputFloat("Ortho Size", &camera3->orthoSize);
 
@@ -483,7 +483,7 @@ namespace CE::UI {
 
             auto skyboxes = skyboxman.Debug_GetSkyBoxes();
             if (ImGui::TreeNode("Loaded Skyboxes")) {
-                for (const auto &skybox : skyboxes) {
+                for (const auto& skybox : skyboxes) {
                     ImGui::PushID(skybox.name.c_str());
                     if (ImGui::TreeNode(skybox.name.c_str())) {
                         ImGui::Text("Active: %s", skybox.isActive ? "Yes" : "No");
@@ -504,10 +504,10 @@ namespace CE::UI {
                             continue;
                         }
 
-                        auto previewFace = [&](const char *label, const std::shared_ptr<CE::Renderer::Texture> &face) {
+                        auto previewFace = [&](const char* label, const std::shared_ptr<CE::Renderer::Texture>& face) {
                             ImGui::Text("%s", label);
                             if (face) {
-                                void *nativeTexture = renderer.GetNativeTextureHandle(face.get());
+                                void* nativeTexture = renderer.GetNativeTextureHandle(face.get());
                                 if (nativeTexture) {
                                     ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(96, 96));
                                 } else {
@@ -560,7 +560,7 @@ namespace CE::UI {
 
             auto shaders = shaderman.Debug_GetShaders();
             if (ImGui::TreeNode("Shader List")) {
-                for (const auto &shader : shaders) {
+                for (const auto& shader : shaders) {
                     ImGui::PushID(shader.id);
                     if (ImGui::TreeNode("Shader")) {
                         ImGui::Text("Compiled: %s", shader.isCompiled ? "Yes" : "No");
@@ -600,11 +600,11 @@ namespace CE::UI {
             if (gAtlasSizeBuf < 1)
                 gAtlasSizeBuf = 1;
 
-            auto *tex = fontman.Debug_GetAtlasTex(gAtlasFamilyBuf.data(), gAtlasSizeBuf);
+            auto* tex = fontman.Debug_GetAtlasTex(gAtlasFamilyBuf.data(), gAtlasSizeBuf);
 
             if (tex) {
                 ImGui::Text("Atlas Preview:");
-                void *nativeTexture = renderer.GetNativeTextureHandle(tex);
+                void* nativeTexture = renderer.GetNativeTextureHandle(tex);
                 if (nativeTexture) {
                     ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(256, 256));
                 } else {
@@ -618,7 +618,7 @@ namespace CE::UI {
 
             if (ImGui::TreeNode("Atlas List")) {
 
-                for (const auto &a : atlases) {
+                for (const auto& a : atlases) {
 
                     ImGui::PushID(a.key.c_str());
 
@@ -648,11 +648,11 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager *audioman, CE::Settings::SettingsManager &settings) {
+    void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings) {
         ImGui::Text("Audio");
         ImGui::Spacing();
 
-        auto &s = settings.Settings;
+        auto& s = settings.Settings;
 
         bool dirty = false;
         dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
@@ -688,7 +688,7 @@ namespace CE::UI {
             ImGui::TableSetupColumn("Actions");
             ImGui::TableHeadersRow();
 
-            for (const auto &row : snapshot) {
+            for (const auto& row : snapshot) {
                 ImGui::PushID(static_cast<int>(row.Handle));
                 ImGui::TableNextRow();
 
@@ -729,12 +729,12 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::Draw(CE::Renderer::IRenderer &renderer, CE::Renderer::Resources::TextureManager &texman,
-                           CE::Renderer::Resources::ShaderManager &shaderman,
-                           CE::Assets::Skyboxes::SkyBoxManager &skyboxman, CE::Assets::Fonts::FontManager &fontman,
-                           CE::GameInfo &gameinfo, CE::Settings::SettingsManager &settings,
-                           CE::Assets::Audio::AudioManager *audioman, Input::Keyboard &kbmanger, CE::Instance &instance,
-                           Input::Mouse &msmanager, int fps, float deltaTime, float frameTime) {
+    void DebugWindow::Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
+                           CE::Renderer::Resources::ShaderManager& shaderman,
+                           CE::Assets::Skyboxes::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
+                           CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
+                           CE::Assets::Audio::AudioManager* audioman, Input::Keyboard& kbmanger, CE::Instance& instance,
+                           Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
         if (!gOpen) {
             return;
         }
@@ -779,11 +779,11 @@ namespace CE::UI {
         ImGui::End();
     }
 
-    void DrawDebugUI(CE::Renderer::IRenderer &renderer, CE::Renderer::Resources::TextureManager &texman,
-                     CE::Renderer::Resources::ShaderManager &shaderman, CE::Assets::Skyboxes::SkyBoxManager &skyboxman,
-                     CE::Assets::Fonts::FontManager &fontman, CE::GameInfo &gameinfo,
-                     CE::Settings::SettingsManager &settings, CE::Assets::Audio::AudioManager *audioman,
-                     Input::Keyboard &kbmanger, CE::Instance &instance, Input::Mouse &msmanager, int fps,
+    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
+                     CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                     CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
+                     CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman,
+                     Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps,
                      float deltaTime, float frameTime) {
         static DebugWindow window;
         window.Draw(renderer, texman, shaderman, skyboxman, fontman, gameinfo, settings, audioman, kbmanger, instance,

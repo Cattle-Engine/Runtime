@@ -3,7 +3,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE {
-    bool ApplyFullscreenMode(SDL_Window *window, int width, int height) {
+    bool ApplyFullscreenMode(SDL_Window* window, int width, int height) {
         if (window == nullptr) {
             CE_LOG(CE::LogLevel::Error, "[Window] Cannot apply fullscreen mode to a null window");
             return false;
@@ -16,7 +16,7 @@ namespace CE {
             return SDL_SetWindowFullscreenMode(window, nullptr) && SDL_SetWindowFullscreen(window, true);
         }
 
-        const SDL_DisplayMode *desktopMode = SDL_GetDesktopDisplayMode(displayID);
+        const SDL_DisplayMode* desktopMode = SDL_GetDesktopDisplayMode(displayID);
 
         SDL_DisplayMode fullscreenMode = {};
         const float refreshRate = desktopMode != nullptr ? desktopMode->refresh_rate : 0.0f;

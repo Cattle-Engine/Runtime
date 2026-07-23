@@ -16,15 +16,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         CE_LOG(LogLevel::Info, "[SDL_GPU Device Creator] Built-in GPU drivers ({}):", driverCount);
         for (int i = 0; i < driverCount; ++i) {
-            const char *driver = SDL_GetGPUDriver(i);
+            const char* driver = SDL_GetGPUDriver(i);
             CE_LOG(LogLevel::Info, "  - {}", (driver ? driver : "(null)"));
         }
     }
 
-    static bool HasGPUDriver(const char *name) {
+    static bool HasGPUDriver(const char* name) {
         const int driverCount = SDL_GetNumGPUDrivers();
         for (int i = 0; i < driverCount; ++i) {
-            const char *driver = SDL_GetGPUDriver(i);
+            const char* driver = SDL_GetGPUDriver(i);
             if (driver && name && SDL_strcasecmp(driver, name) == 0) {
                 return true;
             }
@@ -33,7 +33,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo) {
-        SDL_GPUDevice *gdevice = nullptr;
+        SDL_GPUDevice* gdevice = nullptr;
         Renderer::GPUDevice deviceinfo;
 
         static bool sLoggedDrivers = false;
@@ -96,7 +96,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (device == nullptr || device->device == nullptr) {
             return;
         }
-        SDL_WaitForGPUIdle(static_cast<SDL_GPUDevice *>(device->device));
-        SDL_DestroyGPUDevice(static_cast<SDL_GPUDevice *>(device->device));
+        SDL_WaitForGPUIdle(static_cast<SDL_GPUDevice*>(device->device));
+        SDL_DestroyGPUDevice(static_cast<SDL_GPUDevice*>(device->device));
     }
 } // namespace CE::Renderer::SDL_GPU_Renderer

@@ -98,5 +98,5 @@ namespace CE::Scripting::Impl::AST {
      *
      * @return Returns a uint64_t of the hashed model
      */
-    uint64_t HashModule(const ASTModule &module);
+    uint64_t HashModule(const ASTModule& module);
 } // namespace CE::Scripting::Impl::AST

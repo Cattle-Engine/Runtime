@@ -9,17 +9,17 @@ namespace {
 }
 
 namespace CE::Scripting {
-    void Runtime::LoadTexture(const std::string &path, TextureHandle &texture) {
+    void Runtime::LoadTexture(const std::string& path, TextureHandle& texture) {
         texture.handle = mTextureManager.Load(path);
     }
 
-    void Runtime::UnloadTexture(const TextureHandle &texture) {
+    void Runtime::UnloadTexture(const TextureHandle& texture) {
         mTextureManager.Unload(texture.handle);
     }
 
-    void Runtime::DrawTexture(const TextureHandle &texture, int x, int y, bool flipX, bool flipY, float tileX,
+    void Runtime::DrawTexture(const TextureHandle& texture, int x, int y, bool flipX, bool flipY, float tileX,
                               float tileY) {
-        CE::Renderer::Texture *tex = mTextureManager.GetTexture(texture.handle);
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex)
             return;
 
@@ -39,9 +39,9 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, kWhite, 0.0f, flip);
     }
 
-    void Runtime::DrawTextureEx(const TextureHandle &texture, int x, int y, const Renderer::Colour &colour, bool flipX,
+    void Runtime::DrawTextureEx(const TextureHandle& texture, int x, int y, const Renderer::Colour& colour, bool flipX,
                                 bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture *tex = mTextureManager.GetTexture(texture.handle);
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex)
             return;
 
@@ -61,9 +61,9 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, colour, 0.0f, flip);
     }
 
-    void Runtime::DrawTextureRot(const TextureHandle &texture, int x, int y, float rotation, bool flipX, bool flipY,
+    void Runtime::DrawTextureRot(const TextureHandle& texture, int x, int y, float rotation, bool flipX, bool flipY,
                                  float tileX, float tileY) {
-        CE::Renderer::Texture *tex = mTextureManager.GetTexture(texture.handle);
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex)
             return;
 
@@ -83,9 +83,9 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, kWhite, rotation, flip);
     }
 
-    void Runtime::DrawTextureRotEx(const TextureHandle &texture, int x, int y, float rotation,
-                                   const Renderer::Colour &colour, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture *tex = mTextureManager.GetTexture(texture.handle);
+    void Runtime::DrawTextureRotEx(const TextureHandle& texture, int x, int y, float rotation,
+                                   const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex)
             return;
 
@@ -105,9 +105,9 @@ namespace CE::Scripting {
         mRenderer.DrawTex(tex, static_cast<float>(x), static_cast<float>(y), width, height, colour, rotation, flip);
     }
 
-    void Runtime::DrawTexturePro(const TextureHandle &texture, int x, int y, int w, int h, float rotation,
-                                 const Renderer::Colour &colour, bool flipX, bool flipY, float tileX, float tileY) {
-        CE::Renderer::Texture *tex = mTextureManager.GetTexture(texture.handle);
+    void Runtime::DrawTexturePro(const TextureHandle& texture, int x, int y, int w, int h, float rotation,
+                                 const Renderer::Colour& colour, bool flipX, bool flipY, float tileX, float tileY) {
+        CE::Renderer::Texture* tex = mTextureManager.GetTexture(texture.handle);
         if (!tex)
             return;
 

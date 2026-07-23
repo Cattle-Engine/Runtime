@@ -81,7 +81,7 @@ namespace CE::Ini {
             return std::string(v);
         }
 
-        static void append_comment_lines(std::string &out, std::string_view comment, char prefix) {
+        static void append_comment_lines(std::string& out, std::string_view comment, char prefix) {
             size_t pos = 0;
             while (pos <= comment.size()) {
                 size_t end = comment.find('\n', pos);
@@ -188,7 +188,7 @@ namespace CE::Ini {
             return v;
         }
 
-        static bool parse_impl(std::string_view text, IniFile &out, ParseError *err, Options opt) {
+        static bool parse_impl(std::string_view text, IniFile& out, ParseError* err, Options opt) {
             out.clear();
 
             if (text.size() >= 3 && static_cast<unsigned char>(text[0]) == 0xEF &&
@@ -299,7 +299,7 @@ namespace CE::Ini {
             return true;
         }
 
-        static bool parse_int64(std::string_view s, int64_t &out) {
+        static bool parse_int64(std::string_view s, int64_t& out) {
             s = trim(s);
             if (s.empty())
                 return false;
@@ -315,13 +315,13 @@ namespace CE::Ini {
             return true;
         }
 
-        static bool parse_double(std::string_view s, double &out) {
+        static bool parse_double(std::string_view s, double& out) {
             s = trim(s);
             if (s.empty())
                 return false;
 
             std::string tmp(s);
-            char *end = nullptr;
+            char* end = nullptr;
             errno = 0;
             double v = std::strtod(tmp.c_str(), &end);
             if (errno != 0 || !end || *end != '\0')
@@ -331,7 +331,7 @@ namespace CE::Ini {
             return true;
         }
 
-        static bool parse_bool(std::string_view s, bool &out) {
+        static bool parse_bool(std::string_view s, bool& out) {
             s = trim(s);
             std::string tmp(s);
             std::transform(tmp.begin(), tmp.end(), tmp.begin(),
@@ -363,7 +363,7 @@ namespace CE::Ini {
         return get_ptr(section, key) != nullptr;
     }
 
-    const std::string *IniFile::get_ptr(std::string_view section, std::string_view key) const {
+    const std::string* IniFile::get_ptr(std::string_view section, std::string_view key) const {
         if (key.empty())
             return nullptr;
 
@@ -381,14 +381,14 @@ namespace CE::Ini {
     }
 
     std::string IniFile::get_string(std::string_view section, std::string_view key, std::string_view def) const {
-        const std::string *p = get_ptr(section, key);
+        const std::string* p = get_ptr(section, key);
         if (!p)
             return std::string(def);
         return *p;
     }
 
     int64_t IniFile::get_int(std::string_view section, std::string_view key, int64_t def) const {
-        const std::string *p = get_ptr(section, key);
+        const std::string* p = get_ptr(section, key);
         if (!p)
             return def;
 
@@ -399,7 +399,7 @@ namespace CE::Ini {
     }
 
     double IniFile::get_float(std::string_view section, std::string_view key, double def) const {
-        const std::string *p = get_ptr(section, key);
+        const std::string* p = get_ptr(section, key);
         if (!p)
             return def;
 
@@ -410,7 +410,7 @@ namespace CE::Ini {
     }
 
     bool IniFile::get_bool(std::string_view section, std::string_view key, bool def) const {
-        const std::string *p = get_ptr(section, key);
+        const std::string* p = get_ptr(section, key);
         if (!p)
             return def;
 
@@ -487,7 +487,7 @@ namespace CE::Ini {
         key_comments[std::string(section)][std::string(key)] = std::string(comment);
     }
 
-    bool parse_memory(const void *data, size_t size, IniFile &out, ParseError *err, Options opt) {
+    bool parse_memory(const void* data, size_t size, IniFile& out, ParseError* err, Options opt) {
         if (!data && size != 0) {
             if (err) {
                 err->line = 0;
@@ -497,15 +497,15 @@ namespace CE::Ini {
             return false;
         }
 
-        std::string_view sv(static_cast<const char *>(data), size);
+        std::string_view sv(static_cast<const char*>(data), size);
         return parse_impl(sv, out, err, opt);
     }
 
-    bool parse(std::string_view text, IniFile &out, ParseError *err, Options opt) {
+    bool parse(std::string_view text, IniFile& out, ParseError* err, Options opt) {
         return parse_impl(text, out, err, opt);
     }
 
-    bool load_file(const std::filesystem::path &path, IniFile &out, ParseError *err, Options opt) {
+    bool load_file(const std::filesystem::path& path, IniFile& out, ParseError* err, Options opt) {
         std::ifstream f(path, std::ios::binary);
         if (!f) {
             if (err) {
@@ -545,10 +545,10 @@ namespace CE::Ini {
         return parse_impl(std::string_view(buf), out, err, opt);
     }
 
-    std::string serialize(const IniFile &ini, WriteOptions opt) {
+    std::string serialize(const IniFile& ini, WriteOptions opt) {
         std::string out;
 
-        for (const auto &c : ini.header_comments)
+        for (const auto& c : ini.header_comments)
             append_comment_lines(out, c, opt.comment_prefix);
 
         const auto append_kv = [&](std::string_view key, std::string_view value) {
@@ -565,7 +565,7 @@ namespace CE::Ini {
             out.push_back('\n');
         };
 
-        const auto append_section = [&](const std::string &name, const Section &sec) {
+        const auto append_section = [&](const std::string& name, const Section& sec) {
             auto scit = ini.section_comments.find(name);
             if (scit != ini.section_comments.end())
                 append_comment_lines(out, scit->second, opt.comment_prefix);
@@ -574,14 +574,14 @@ namespace CE::Ini {
             out.append(name);
             out.append("]\n");
 
-            const Section *comments = nullptr;
+            const Section* comments = nullptr;
             auto cit = ini.key_comments.find(name);
             if (cit != ini.key_comments.end())
                 comments = &cit->second;
 
             std::vector<std::string_view> keys;
             keys.reserve(sec.size());
-            for (const auto &kv : sec)
+            for (const auto& kv : sec)
                 keys.push_back(kv.first);
             if (opt.sort)
                 std::sort(keys.begin(), keys.end());
@@ -600,14 +600,14 @@ namespace CE::Ini {
         };
 
         if (!ini.global.empty()) {
-            const Section *comments = nullptr;
+            const Section* comments = nullptr;
             auto cit = ini.key_comments.find(std::string());
             if (cit != ini.key_comments.end())
                 comments = &cit->second;
 
             std::vector<std::string_view> keys;
             keys.reserve(ini.global.size());
-            for (const auto &kv : ini.global)
+            for (const auto& kv : ini.global)
                 keys.push_back(kv.first);
             if (opt.sort)
                 std::sort(keys.begin(), keys.end());
@@ -633,7 +633,7 @@ namespace CE::Ini {
 
             std::vector<std::string_view> section_names;
             section_names.reserve(ini.sections.size());
-            for (const auto &kv : ini.sections)
+            for (const auto& kv : ini.sections)
                 section_names.push_back(kv.first);
             if (opt.sort)
                 std::sort(section_names.begin(), section_names.end());
@@ -643,7 +643,7 @@ namespace CE::Ini {
                 if (!first)
                     out.push_back('\n');
                 first = false;
-                const Section &sec = ini.sections.at(std::string(sname));
+                const Section& sec = ini.sections.at(std::string(sname));
                 append_section(std::string(sname), sec);
             }
         }
@@ -653,7 +653,7 @@ namespace CE::Ini {
 
         return out;
     }
-    bool save_file(const std::filesystem::path &path, const IniFile &ini, WriteOptions opt) {
+    bool save_file(const std::filesystem::path& path, const IniFile& ini, WriteOptions opt) {
         std::filesystem::create_directories(path.parent_path());
 
         std::ofstream f(path, std::ios::binary | std::ios::trunc);

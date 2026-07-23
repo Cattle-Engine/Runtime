@@ -1,8 +1,8 @@
 #include "engine/scripting/angelscript.hpp"
 
 namespace CE::Scripting::Utils {
-    std::string LoadScript(VFS::VFS &vfs, const char *path) {
-        VirtualFile *f = vfs.OpenFile(path);
+    std::string LoadScript(VFS::VFS& vfs, const char* path) {
+        VirtualFile* f = vfs.OpenFile(path);
         if (!f)
             return "";
 

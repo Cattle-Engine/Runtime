@@ -19,7 +19,7 @@ namespace CE::Renderer {
     class IRenderer;
 
     struct GPUDevice {
-        void *device;
+        void* device;
         RendererBackend backend;
     };
 
@@ -41,7 +41,7 @@ namespace CE::Renderer {
     inline RendererBackend renderer = RendererBackend::None;
     inline std::string rendererName = "None";
 
-    IRenderer *CreateRenderer(RendererBackend backend, VFS::VFS *vfs);
+    IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     void DestroyGPUDevice(GPUDeviceHandle device);
 
@@ -107,15 +107,15 @@ namespace CE::Renderer {
     };
 
     struct GPUMesh {
-        void *handle = nullptr;
-        void *vertex_buffer = nullptr;
-        void *index_buffer = nullptr;
+        void* handle = nullptr;
+        void* vertex_buffer = nullptr;
+        void* index_buffer = nullptr;
         uint32_t vertex_count;
         uint32_t indice_count;
     };
 
     struct TextureUploadBatch {
-        void *handle = nullptr;
+        void* handle = nullptr;
     };
 
     struct Vertex {
@@ -125,7 +125,7 @@ namespace CE::Renderer {
     };
 
     struct Texture {
-        void *handle;
+        void* handle;
         int width;
         int height;
         TextureFormat format;
@@ -133,14 +133,14 @@ namespace CE::Renderer {
     };
 
     struct Shader {
-        void *handle;
+        void* handle;
         RendererBackend backend;
     };
 
     struct Material {
-        Texture *albedo = nullptr;
-        Texture *normal = nullptr;
-        Texture *metallicRoughnessTex = nullptr;
+        Texture* albedo = nullptr;
+        Texture* normal = nullptr;
+        Texture* metallicRoughnessTex = nullptr;
         Colour tint;
         float roughness = 1.0f;
         float metallic = 0.0f;
@@ -194,16 +194,16 @@ namespace CE::Renderer {
       public:
         virtual void PreWinInit() = 0;
 
-        virtual int Init(SDL_Window *window, bool debug, GPUDeviceHandle gdevice) = 0;
-        virtual int Shutdown(SDL_Window *window) = 0;
+        virtual int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) = 0;
+        virtual int Shutdown(SDL_Window* window) = 0;
 
         virtual void ChangeCameraPos2D(float X, float Y, float zoom) = 0;
-        virtual void ChangeCameraPos3D(const Transform3D &transform) = 0;
-        virtual void SetCamera3D(const Camera3D &camera) {
+        virtual void ChangeCameraPos3D(const Transform3D& transform) = 0;
+        virtual void SetCamera3D(const Camera3D& camera) {
             mCamera3DState = camera;
             ChangeCameraPos3D({camera.position, camera.rotation, glm::vec3(1.0f)});
         }
-        virtual void SetSkyBox(const CubeMap &cubemap) {
+        virtual void SetSkyBox(const CubeMap& cubemap) {
             mSkyBoxState = cubemap;
         }
 
@@ -219,72 +219,72 @@ namespace CE::Renderer {
         virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
                               uint8_t a) = 0;
         virtual void SetClearColor(float r, float g, float b, float a) = 0;
-        virtual Texture *LoadTex(const char *path) = 0;
-        virtual Texture *CreateTextureFromData(int width, int height, const void *pixels, TextureFormat format,
+        virtual Texture* LoadTex(const char* path) = 0;
+        virtual Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
                                                int pitch = 0, TextureFilter filter = TextureFilter::Linear,
                                                TextureWrap wrap = TextureWrap::Clamp,
-                                               TextureUploadBatch *batch = nullptr) = 0;
-        virtual void DrawTex(Texture *texture, float x, float y, float w, float h, Colour colour, float rotation,
+                                               TextureUploadBatch* batch = nullptr) = 0;
+        virtual void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
                              TextureFlip flip = TextureFlip::None) = 0;
-        virtual void DrawTexUV(Texture *tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
+        virtual void DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                                Colour colour, float rotation, TextureFlip flip = TextureFlip::None) = 0;
-        virtual void UnloadTex(Texture *texture) = 0;
+        virtual void UnloadTex(Texture* texture) = 0;
         virtual void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g,
                                   uint8_t b, uint8_t a, float rotation) = 0;
         virtual void DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g, uint8_t b,
                                    uint8_t a) = 0;
         virtual void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r,
                                      uint8_t g, uint8_t b, uint8_t a) = 0;
-        virtual int BeginFrame(SDL_Window *window) = 0;
-        virtual int EndFrame(SDL_Window *window) = 0;
+        virtual int BeginFrame(SDL_Window* window) = 0;
+        virtual int EndFrame(SDL_Window* window) = 0;
 
-        virtual Texture *GetErrorTexture() = 0;
-        virtual void *GetNativeTextureHandle(Texture *texture) = 0;
+        virtual Texture* GetErrorTexture() = 0;
+        virtual void* GetNativeTextureHandle(Texture* texture) = 0;
 
         virtual int Debug_GetVertCount() = 0;
         virtual int Debug_GetIndexCount() = 0;
         virtual int Debug_GetTexIndexCount() = 0;
         virtual int Debug_GetTexVertCount() = 0;
-        virtual Camera2D *GetCamera() = 0;
-        virtual Camera3D *GetCamera3D() {
+        virtual Camera2D* GetCamera() = 0;
+        virtual Camera3D* GetCamera3D() {
             return &mCamera3DState;
         }
 
         virtual void SetVSync(bool setting) = 0;
 
-        virtual Shader *CreateShaderProgram() = 0;
-        virtual Shader *LoadShader(const char *path, int fragmentSamplerCount = 4) = 0;
-        virtual bool LoadShaderStage(Shader *shaderProgram, const char *path, ShaderStage stage,
+        virtual Shader* CreateShaderProgram() = 0;
+        virtual Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) = 0;
+        virtual bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage,
                                      int samplerCount = 1) = 0;
-        virtual bool UseDefaultShaderStage(Shader *shaderProgram, ShaderStage stage) = 0;
-        virtual bool CompileShaderProgram(Shader *shaderProgram) = 0;
-        virtual void UnloadShader(Shader *shader) = 0;
-        virtual void BindShader(Shader *shader) = 0;
+        virtual bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) = 0;
+        virtual bool CompileShaderProgram(Shader* shaderProgram) = 0;
+        virtual void UnloadShader(Shader* shader) = 0;
+        virtual void BindShader(Shader* shader) = 0;
         virtual void UnbindShader() = 0;
-        virtual void SetShaderFloat(const char *name, float value) = 0;
-        virtual void SetShaderVec2(const char *name, float x, float y) = 0;
-        virtual void SetShaderVec3(const char *name, float x, float y, float z) = 0;
-        virtual void SetShaderVec4(const char *name, float x, float y, float z, float w) = 0;
-        virtual void SetShaderMat4(const char *name, const float *mat4) = 0;
-        virtual void SetShaderInt(const char *name, int value) = 0;
-        virtual void SetShaderTexture(const char *name, Texture *texture, int slot) = 0;
+        virtual void SetShaderFloat(const char* name, float value) = 0;
+        virtual void SetShaderVec2(const char* name, float x, float y) = 0;
+        virtual void SetShaderVec3(const char* name, float x, float y, float z) = 0;
+        virtual void SetShaderVec4(const char* name, float x, float y, float z, float w) = 0;
+        virtual void SetShaderMat4(const char* name, const float* mat4) = 0;
+        virtual void SetShaderInt(const char* name, int value) = 0;
+        virtual void SetShaderTexture(const char* name, Texture* texture, int slot) = 0;
 
-        virtual GPUMesh *CreateGPUMesh(MeshData &mesh) = 0;
-        virtual void DestroyGPUMesh(GPUMesh *mesh) = 0;
-        virtual void DrawMesh(GPUMesh *mesh, Material &material, const Transform3D &transform, bool error_tex) = 0;
-        virtual void DrawMeshMat4(GPUMesh *mesh, Material &material, const glm::mat4 &transform, bool error_tex) = 0;
-        virtual TextureUploadBatch *BeginBatchTextureUpload() {
+        virtual GPUMesh* CreateGPUMesh(MeshData& mesh) = 0;
+        virtual void DestroyGPUMesh(GPUMesh* mesh) = 0;
+        virtual void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) = 0;
+        virtual void DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform, bool error_tex) = 0;
+        virtual TextureUploadBatch* BeginBatchTextureUpload() {
             return nullptr;
         }
-        virtual void EndBatchTextureUpload(TextureUploadBatch *batch) {
+        virtual void EndBatchTextureUpload(TextureUploadBatch* batch) {
             (void)batch;
         }
 
-        void SetLightingState(const LightingState &lighting) {
+        void SetLightingState(const LightingState& lighting) {
             mLightingState = lighting;
         }
 
-        [[nodiscard]] const LightingState &GetLightingState() const {
+        [[nodiscard]] const LightingState& GetLightingState() const {
             return mLightingState;
         }
 
@@ -292,19 +292,19 @@ namespace CE::Renderer {
             mLightingState.sun.enabled = enabled;
         }
 
-        void SetSunDirection(const glm::vec3 &direction) {
+        void SetSunDirection(const glm::vec3& direction) {
             if (glm::length(direction) > 0.0001f) {
                 mLightingState.sun.direction = glm::normalize(direction);
             }
         }
 
-        void SetSunPosition(const glm::vec3 &position) {
+        void SetSunPosition(const glm::vec3& position) {
             if (glm::length(position) > 0.0001f) {
                 mLightingState.sun.direction = glm::normalize(-position);
             }
         }
 
-        void SetSunTint(const glm::vec3 &colour) {
+        void SetSunTint(const glm::vec3& colour) {
             mLightingState.sun.colour = colour;
         }
 
@@ -312,16 +312,16 @@ namespace CE::Renderer {
             mLightingState.sun.intensity = intensity;
         }
 
-        void SetAmbientLight(const glm::vec3 &colour, float intensity) {
+        void SetAmbientLight(const glm::vec3& colour, float intensity) {
             mLightingState.ambient.colour = colour;
             mLightingState.ambient.intensity = intensity;
         }
 
-        [[nodiscard]] const Camera3D &GetCamera3DState() const {
+        [[nodiscard]] const Camera3D& GetCamera3DState() const {
             return mCamera3DState;
         }
 
-        [[nodiscard]] const CubeMap &GetSkyBoxState() const {
+        [[nodiscard]] const CubeMap& GetSkyBoxState() const {
             return mSkyBoxState;
         }
 
@@ -336,7 +336,7 @@ namespace CE::Renderer {
             SetCamera3D(mCamera3DState);
         }
 
-        void SetCamera3DTarget(const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f)) {
+        void SetCamera3DTarget(const glm::vec3& target, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f)) {
             mCamera3DState.target = target;
             mCamera3DState.up = up;
             mCamera3DState.useTarget = true;
@@ -349,7 +349,7 @@ namespace CE::Renderer {
         }
 
         virtual void ImGuiStartFrame() = 0;
-        virtual void ImGuiEndFrame(SDL_Window *window) = 0;
+        virtual void ImGuiEndFrame(SDL_Window* window) = 0;
         virtual ~IRenderer() = default;
 
       protected:

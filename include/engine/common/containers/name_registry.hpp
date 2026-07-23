@@ -12,7 +12,7 @@ namespace CE::Common::Containers {
             mNames[std::move(name)] = value;
         }
 
-        const T &Get(std::string_view name) const {
+        const T& Get(std::string_view name) const {
             static const T emptyValue{};
 
             auto it = mNames.find(std::string(name));

@@ -4,7 +4,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Input::Bindings {
-    const std::vector<Binding> &BindingManager::GetBinding(const std::string &name) {
+    const std::vector<Binding>& BindingManager::GetBinding(const std::string& name) {
         static std::vector<Binding> empty;
 
         auto it = mBindings.find(name);
@@ -14,9 +14,9 @@ namespace CE::Input::Bindings {
         return it->second;
     }
 
-    std::string BindingManager::Binding2String(const Binding &b) {
+    std::string BindingManager::Binding2String(const Binding& b) {
         return std::visit(
-            [](auto &&key) -> std::string {
+            [](auto&& key) -> std::string {
                 using T = std::decay_t<decltype(key)>;
 
                 if constexpr (std::is_same_v<T, KeyboardKeys>)
@@ -29,13 +29,13 @@ namespace CE::Input::Bindings {
             b);
     }
 
-    void BindingManager::LoadBindings(const std::string &path) {
+    void BindingManager::LoadBindings(const std::string& path) {
         mBindings.clear();
 
         CE::TDF::File file;
         file.load(mVFS, path);
 
-        for (const auto &[key, value] : file.entries) {
+        for (const auto& [key, value] : file.entries) {
 
             if (value.type != CE::TDF::Type::ArrString) {
                 continue;
@@ -45,7 +45,7 @@ namespace CE::Input::Bindings {
             std::vector<Binding> bindings;
             bindings.reserve(raw.size());
 
-            for (const auto &str : raw) {
+            for (const auto& str : raw) {
 
                 auto pos = str.find(':');
                 if (pos == std::string::npos) {
@@ -65,13 +65,13 @@ namespace CE::Input::Bindings {
         }
     }
 
-    void BindingManager::FlushBindings(const std::string &path) {
+    void BindingManager::FlushBindings(const std::string& path) {
         CE::TDF::File file;
 
-        for (const auto &[name, bindings] : mBindings) {
+        for (const auto& [name, bindings] : mBindings) {
             std::vector<std::string> encoded;
             encoded.reserve(bindings.size());
-            for (const auto &b : bindings) {
+            for (const auto& b : bindings) {
                 encoded.push_back(Binding2String(b));
             }
 
@@ -81,10 +81,10 @@ namespace CE::Input::Bindings {
         file.save(mVFS, path, 1);
     }
 
-    void BindingManager::AddBinding(const std::string &name, Binding binding) {
-        auto &list = mBindings[name];
+    void BindingManager::AddBinding(const std::string& name, Binding binding) {
+        auto& list = mBindings[name];
 
-        for (const auto &b : list) {
+        for (const auto& b : list) {
             if (b == binding) {
                 return;
             }
@@ -93,34 +93,34 @@ namespace CE::Input::Bindings {
         list.push_back(std::move(binding));
     }
 
-    void BindingManager::RemoveBinding(const std::string &name, Binding binding) {
+    void BindingManager::RemoveBinding(const std::string& name, Binding binding) {
         auto it = mBindings.find(name);
 
         if (it == mBindings.end()) {
             return;
         }
 
-        auto &list = it->second;
+        auto& list = it->second;
 
-        std::erase_if(list, [&](const Binding &b) { return b == binding; });
+        std::erase_if(list, [&](const Binding& b) { return b == binding; });
 
         if (list.empty()) {
             mBindings.erase(it);
         }
     }
 
-    bool BindingManager::IsBindingPressed(const std::string &binding_name) {
+    bool BindingManager::IsBindingPressed(const std::string& binding_name) {
         auto it = mBindings.find(binding_name);
 
         if (it == mBindings.end()) {
             return false;
         }
 
-        const auto &list = it->second;
+        const auto& list = it->second;
 
-        for (const auto &binding : list) {
+        for (const auto& binding : list) {
             bool pressed = std::visit(
-                [this](auto &&key) -> bool {
+                [this](auto&& key) -> bool {
                     using T = std::decay_t<decltype(key)>;
 
                     if constexpr (std::is_same_v<T, KeyboardKeys>) {
@@ -140,18 +140,18 @@ namespace CE::Input::Bindings {
         return false;
     }
 
-    bool BindingManager::IsBindingDown(const std::string &binding_name) {
+    bool BindingManager::IsBindingDown(const std::string& binding_name) {
         auto it = mBindings.find(binding_name);
 
         if (it == mBindings.end()) {
             return false;
         }
 
-        const auto &list = it->second;
+        const auto& list = it->second;
 
-        for (const auto &binding : list) {
+        for (const auto& binding : list) {
             bool pressed = std::visit(
-                [this](auto &&key) -> bool {
+                [this](auto&& key) -> bool {
                     using T = std::decay_t<decltype(key)>;
 
                     if constexpr (std::is_same_v<T, KeyboardKeys>) {
@@ -171,18 +171,18 @@ namespace CE::Input::Bindings {
         return false;
     }
 
-    bool BindingManager::IsBindingReleased(const std::string &binding_name) {
+    bool BindingManager::IsBindingReleased(const std::string& binding_name) {
         auto it = mBindings.find(binding_name);
 
         if (it == mBindings.end()) {
             return false;
         }
 
-        const auto &list = it->second;
+        const auto& list = it->second;
 
-        for (const auto &binding : list) {
+        for (const auto& binding : list) {
             bool pressed = std::visit(
-                [this](auto &&key) -> bool {
+                [this](auto&& key) -> bool {
                     using T = std::decay_t<decltype(key)>;
 
                     if constexpr (std::is_same_v<T, KeyboardKeys>) {
@@ -202,12 +202,12 @@ namespace CE::Input::Bindings {
         return false;
     }
 
-    void BindingManager::RemoveEntireBinding(const std::string &name) {
+    void BindingManager::RemoveEntireBinding(const std::string& name) {
         mBindings.erase(name);
     }
     void BindingManager::ResetBindings() {
         mBindings.clear();
     }
-    BindingManager::BindingManager(VFS::VFS &vfs, Keyboard &keyboard_mgr, Mouse &mouse_mgr)
+    BindingManager::BindingManager(VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr)
         : mVFS(vfs), mKeyboardManager(keyboard_mgr), mMouseManager(mouse_mgr) {}
 } // namespace CE::Input::Bindings

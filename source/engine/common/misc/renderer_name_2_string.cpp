@@ -4,7 +4,7 @@
 #include "engine/rendering/renderer.hpp"
 
 namespace CE::Common {
-    void RendererName2String(const std::string renderername, RendererBackend &backend) {
+    void RendererName2String(const std::string renderername, RendererBackend& backend) {
         if (renderername == "None") {
             backend = RendererBackend::None;
         } else if (renderername == "Software") {

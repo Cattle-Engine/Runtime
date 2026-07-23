@@ -39,7 +39,7 @@ namespace CE::Input {
         auto indices = CE::SDL_Events::GetWindowEventIndices(gWindowID);
 
         for (size_t idx : indices) {
-            const SDL_Event &event = CE::SDL_Events::gEvents[idx];
+            const SDL_Event& event = CE::SDL_Events::gEvents[idx];
 
             switch (event.type) {
 
@@ -96,7 +96,7 @@ namespace CE::Input {
     }
 
     void Mouse::LockCursor(bool lock) {
-        SDL_Window *window = SDL_GetWindowFromID(static_cast<SDL_WindowID>(gWindowID));
+        SDL_Window* window = SDL_GetWindowFromID(static_cast<SDL_WindowID>(gWindowID));
 
         SDL_SetWindowRelativeMouseMode(window, lock);
     }

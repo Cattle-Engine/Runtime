@@ -21,15 +21,15 @@ namespace CE::Core::GameState {
 
     class GameStateManager {
       public:
-        explicit GameStateManager(EventBus &eventbus);
+        explicit GameStateManager(EventBus& eventbus);
 
         void ChangeState(std::string state);
-        void Emit(const std::string &eventName) const;
+        void Emit(const std::string& eventName) const;
         bool IsState(std::string_view state) const;
-        const std::string &GetState() const;
+        const std::string& GetState() const;
 
       private:
         std::string mCurrentState = "None";
-        EventBus &mEventBus;
+        EventBus& mEventBus;
     };
 } // namespace CE::Core::GameState

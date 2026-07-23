@@ -11,14 +11,14 @@ namespace CE::VFS {
 
     class VfsStreamBuf final : public std::streambuf {
       public:
-        VfsStreamBuf(VFS &vfs, VirtualFile *file, size_t buffer_size = 4096)
+        VfsStreamBuf(VFS& vfs, VirtualFile* file, size_t buffer_size = 4096)
             : vfs_(&vfs), file_(file), buffer_(buffer_size) {
             if (buffer_.empty())
                 buffer_.resize(1);
             reset_get_area();
         }
 
-        void set_file(VirtualFile *file) {
+        void set_file(VirtualFile* file) {
             file_ = file;
             reset_get_area();
         }
@@ -94,14 +94,14 @@ namespace CE::VFS {
             setg(buffer_.data(), buffer_.data(), buffer_.data());
         }
 
-        VFS *vfs_;
-        VirtualFile *file_;
+        VFS* vfs_;
+        VirtualFile* file_;
         std::vector<char> buffer_;
     };
 
     class VfsIStream final : public std::istream {
       public:
-        explicit VfsIStream(VFS &vfs, const char *virtual_path, size_t buffer_size = 4096)
+        explicit VfsIStream(VFS& vfs, const char* virtual_path, size_t buffer_size = 4096)
             : std::istream(nullptr), vfs_(&vfs), file_(vfs.OpenFile(virtual_path)), buf_(vfs, file_, buffer_size) {
             if (!file_) {
                 setstate(std::ios_base::failbit);
@@ -116,22 +116,22 @@ namespace CE::VFS {
             file_ = nullptr;
         }
 
-        VfsIStream(const VfsIStream &) = delete;
-        VfsIStream &operator=(const VfsIStream &) = delete;
-        VfsIStream(VfsIStream &&) = delete;
-        VfsIStream &operator=(VfsIStream &&) = delete;
+        VfsIStream(const VfsIStream&) = delete;
+        VfsIStream& operator=(const VfsIStream&) = delete;
+        VfsIStream(VfsIStream&&) = delete;
+        VfsIStream& operator=(VfsIStream&&) = delete;
 
         bool is_open() const {
             return file_ != nullptr;
         }
 
       private:
-        VFS *vfs_;
-        VirtualFile *file_;
+        VFS* vfs_;
+        VirtualFile* file_;
         VfsStreamBuf buf_;
     };
 
-    inline std::unique_ptr<VfsIStream> OpenIStream(VFS &vfs, const char *virtual_path, size_t buffer_size = 4096) {
+    inline std::unique_ptr<VfsIStream> OpenIStream(VFS& vfs, const char* virtual_path, size_t buffer_size = 4096) {
         auto stream = std::make_unique<VfsIStream>(vfs, virtual_path, buffer_size);
         if (!stream->is_open())
             return nullptr;

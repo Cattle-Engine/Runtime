@@ -8,9 +8,9 @@
 #include "engine/rendering/renderer.hpp"
 
 namespace CE::Bootstrap {
-    int Init_Video(std::unique_ptr<GameInfo> &gameinfo, const Settings::SettingsInfo &settings, bool debugvideo,
-                   std::unique_ptr<CE::Renderer::IRenderer> &renderer, RendererBackend &backend, SDL_Window *&window,
-                   std::unique_ptr<VFS::VFS> &vfs, Renderer::GPUDeviceHandle gpudevice) {
+    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, const Settings::SettingsInfo& settings, bool debugvideo,
+                   std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
+                   std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
 
         renderer =
             std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpudevice->backend, vfs.get()));

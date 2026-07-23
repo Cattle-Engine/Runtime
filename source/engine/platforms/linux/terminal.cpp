@@ -19,7 +19,7 @@ namespace CE::Platforms::Linux {
             return false;
         }
 
-        const char *term = std::getenv("TERM");
+        const char* term = std::getenv("TERM");
         if (!term || std::strcmp(term, "dumb") == 0) {
             return false;
         }

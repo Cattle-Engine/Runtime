@@ -48,51 +48,51 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour &colour, float rotation) {
+    void Runtime::DrawRectangle(float x, float y, float w, float h, const Renderer::Colour& colour, float rotation) {
         mRenderer.DrawRect(x, y, w, h, colour.r, colour.g, colour.b, colour.a, rotation);
     }
 
-    void Runtime::DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour &colour) {
+    void Runtime::DrawCircle(float x, float y, float radius, int segments, const Renderer::Colour& colour) {
         mRenderer.DrawCircle(x, y, radius, segments, colour.r, colour.g, colour.b, colour.a);
     }
 
-    void Runtime::DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour &colour) {
+    void Runtime::DrawLine(float x1, float y1, float x2, float y2, float thickness, const Renderer::Colour& colour) {
         mRenderer.DrawLine(x1, y1, x2, y2, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
     void Runtime::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2,
-                               const Renderer::Colour &colour, float rotation) {
+                               const Renderer::Colour& colour, float rotation) {
         mRenderer.DrawTriangle(x0, y0, x1, y1, x2, y2, colour.r, colour.g, colour.b, colour.a, rotation);
     }
 
     void Runtime::DrawRectangleLines(float x, float y, float w, float h, float thickness,
-                                     const Renderer::Colour &colour) {
+                                     const Renderer::Colour& colour) {
         mRenderer.DrawRectLines(x, y, w, h, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
     void Runtime::DrawCircleLines(float x, float y, float radius, int segments, float thickness,
-                                  const Renderer::Colour &colour) {
+                                  const Renderer::Colour& colour) {
         mRenderer.DrawCircleLines(x, y, radius, segments, thickness, colour.r, colour.g, colour.b, colour.a);
     }
 
-    bool Runtime::LoadFont(const std::string &path, const std::string &name, int size) {
+    bool Runtime::LoadFont(const std::string& path, const std::string& name, int size) {
         return mFontManager.Load(path, name, size);
     }
 
-    void Runtime::UnloadFont(const std::string &name) {
+    void Runtime::UnloadFont(const std::string& name) {
         mFontManager.Unload(name);
     }
 
-    void Runtime::DrawText(const std::string &text, int x, int y, float size) {
+    void Runtime::DrawText(const std::string& text, int x, int y, float size) {
         mFontManager.Draw(text, x, y, size, {0, 0, 0, 255});
     }
 
-    void Runtime::DrawTextEx(const std::string &text, const std::string &name, int x, int y, float size,
-                             const Renderer::Colour &colour) {
+    void Runtime::DrawTextEx(const std::string& text, const std::string& name, int x, int y, float size,
+                             const Renderer::Colour& colour) {
         mFontManager.DrawEx(text, name, x, y, size, colour);
     }
 
-    void Runtime::DrawTextCol(const std::string &text, int x, int y, float size, const Renderer::Colour &colour) {
+    void Runtime::DrawTextCol(const std::string& text, int x, int y, float size, const Renderer::Colour& colour) {
         mFontManager.Draw(text, x, y, size, colour);
     }
 } // namespace CE::Scripting

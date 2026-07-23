@@ -21,8 +21,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         };
     } // namespace
 
-    SDL_GPUGraphicsPipeline *SDL_GPU_Renderer::CreateGraphicsPipeline(SDL_Window *window, SDL_GPUShader *vertexShader,
-                                                                      SDL_GPUShader *fragmentShader) const {
+    SDL_GPUGraphicsPipeline* SDL_GPU_Renderer::CreateGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
+                                                                      SDL_GPUShader* fragmentShader) const {
         if (!gDevice || !window || !vertexShader || !fragmentShader) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateGraphicsPipeline received invalid input");
             return nullptr;
@@ -77,7 +77,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         pipelineCreateInfo.vertex_shader = vertexShader;
         pipelineCreateInfo.fragment_shader = fragmentShader;
 
-        SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
+        SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
         if (!pipeline) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create graphics pipeline: {}", SDL_GetError());
         }
@@ -85,7 +85,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return pipeline;
     }
 
-    int SDL_GPU_Renderer::CreateDefaultPipeline(SDL_Window *window) {
+    int SDL_GPU_Renderer::CreateDefaultPipeline(SDL_Window* window) {
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default vertex shader");
         gDefaultVertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, gVFS);
         if (!gDefaultVertexShader) {
@@ -133,7 +133,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        SDL_GPUGraphicsPipeline *pipeline = gPipeline;
+        SDL_GPUGraphicsPipeline* pipeline = gPipeline;
         if (gCurrentShader && gCurrentShader->Pipeline) {
             pipeline = gCurrentShader->Pipeline;
         }
@@ -144,8 +144,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::PushActiveShaderUniforms() {
-        const SDL_GPU_Renderer_Shader *program = gCurrentShader;
-        const glm::mat4 &mvp = (program && program->HasOverrideMVP) ? program->OverrideMVP : gMVP;
+        const SDL_GPU_Renderer_Shader* program = gCurrentShader;
+        const glm::mat4& mvp = (program && program->HasOverrideMVP) ? program->OverrideMVP : gMVP;
 
         SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &mvp, sizeof(mvp));
 
@@ -179,7 +179,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::BindShaderSamplers(SDL_GPUTexture *drawTexture, SDL_GPUSampler *drawSampler) {
+    void SDL_GPU_Renderer::BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler) {
         const size_t samplerCount = gCurrentShader ? std::max<size_t>(1, gCurrentShader->FragmentSamplerCount) : 1;
         std::vector<SDL_GPUTextureSamplerBinding> bindings(samplerCount);
 
@@ -194,9 +194,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (gCurrentShader) {
             for (size_t slot = 0; slot < samplerCount; ++slot) {
                 if (slot < gCurrentShader->BoundTextures.size()) {
-                    Texture *texture = gCurrentShader->BoundTextures[slot];
+                    Texture* texture = gCurrentShader->BoundTextures[slot];
                     if (texture && texture->handle) {
-                        auto *texData = static_cast<SDLGPUTexData *>(texture->handle);
+                        auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
                         if (texData && texData->gpuTex) {
                             bindings[slot].texture = texData->gpuTex;
                             bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;

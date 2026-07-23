@@ -53,20 +53,20 @@ namespace CE::Scripting::Impl {
 
     class ModuleImporter {
       public:
-        ModuleImporter(VFS::VFS &vfs);
+        ModuleImporter(VFS::VFS& vfs);
 
         /**
          * @brief Used to load 1 script file and resolve it's imports
          * @return Returns a std::string with everything resolved to be built to bytecode, throws if an error happened
          */
-        std::string LoadFile(const std::string &filepath);
-        ModuleInfo LoadModule(const std::string &name);
-        std::string GetGeneratedEntrypoint(const std::string &source_name) const;
+        std::string LoadFile(const std::string& filepath);
+        ModuleInfo LoadModule(const std::string& name);
+        std::string GetGeneratedEntrypoint(const std::string& source_name) const;
 
       private:
         std::string GenerateCombinedScripts();
 
-        VFS::VFS &mVFS;
+        VFS::VFS& mVFS;
         std::vector<std::string> mLoadModules;
         std::unordered_map<std::string, std::string> mEntrypoints;
     };

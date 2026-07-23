@@ -21,7 +21,7 @@ namespace CE::Scripting::Impl::Common {
      *
      * @return Returns the path as a std::string, if failed it shall return an empty std::string
      */
-    std::string Import2Path(const AST::ASTImport &import, VFS::VFS &vfs);
+    std::string Import2Path(const AST::ASTImport& import, VFS::VFS& vfs);
 
     /**
      * @brief Loads a script file from the VFS and returns it as a string
@@ -31,5 +31,5 @@ namespace CE::Scripting::Impl::Common {
      *
      * @return Returns a std::string
      */
-    std::string GetScriptFromVFS(const std::string &path, VFS::VFS &vfs);
+    std::string GetScriptFromVFS(const std::string& path, VFS::VFS& vfs);
 } // namespace CE::Scripting::Impl::Common

@@ -34,7 +34,7 @@ inline uint64_t GLOBALINSTANCESCOUNTER;
 namespace CE {
     class Instance {
       public:
-        Instance(const char *data_file_path, bool debugmode, Renderer::GPUDeviceHandle &gpudevice,
+        Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
                  EngineArguements args);
         int Update();
         bool ShouldExit();
@@ -45,10 +45,10 @@ namespace CE {
         void ReloadSettings(); // Reload settings, that's all it does :shrug:
         void SetWindowIcon(std::string path);
         int GetInstanceID();
-        void SetGameState(const std::string &state);
-        const std::string &GetGameState() const;
-        CE::Core::EventBus &GetEventBus();
-        CE::Core::GameState::GameStateManager &GetGameStateManager();
+        void SetGameState(const std::string& state);
+        const std::string& GetGameState() const;
+        CE::Core::EventBus& GetEventBus();
+        CE::Core::GameState::GameStateManager& GetGameStateManager();
         ~Instance();
 
       private:
@@ -83,7 +83,7 @@ namespace CE {
         std::unique_ptr<CE::Assets::Model3DImporter::ModelImporter> g3DModelImporter;
         std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
 
-        SDL_Window *gWindow = nullptr;
+        SDL_Window* gWindow = nullptr;
         RendererBackend gRendererBackend = RendererBackend::None;
         bool gDebug = false;
         bool gShouldExit = false;

@@ -9,7 +9,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Bootstrap::Engine {
-    int GetGameInfo(GameInfo &gameinfo, std::string &gdata_name, bool debug) {
+    int GetGameInfo(GameInfo& gameinfo, std::string& gdata_name, bool debug) {
         VFS::VFS tmp_vfs;
 
         tmp_vfs.MountArchive(gdata_name.c_str(), "/", LoadMode::OnDemand);

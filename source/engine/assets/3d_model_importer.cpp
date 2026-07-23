@@ -17,27 +17,27 @@
 namespace {
     using kModel = CE::Renderer::Resources::Model;
 
-    static SDL_Surface *CreateWhiteSurface() {
-        SDL_Surface *surface = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_RGBA32);
+    static SDL_Surface* CreateWhiteSurface() {
+        SDL_Surface* surface = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_RGBA32);
         if (!surface) {
             return nullptr;
         }
-        Uint32 *pixels = static_cast<Uint32 *>(surface->pixels);
+        Uint32* pixels = static_cast<Uint32*>(surface->pixels);
         pixels[0] = 0xFFFFFFFF;
         return surface;
     }
 
-    static SDL_Surface *DecodeCompressedTexture(const unsigned char *data, int size) {
-        SDL_IOStream *rw = SDL_IOFromConstMem(data, size);
+    static SDL_Surface* DecodeCompressedTexture(const unsigned char* data, int size) {
+        SDL_IOStream* rw = SDL_IOFromConstMem(data, size);
         if (!rw) {
             return CreateWhiteSurface();
         }
-        SDL_Surface *surface = IMG_Load_IO(rw, 1);
+        SDL_Surface* surface = IMG_Load_IO(rw, 1);
         if (!surface) {
             CE_LOG(CE::LogLevel::Error, "[3D Model Importer] IMG_Load_IO failed");
             return CreateWhiteSurface();
         }
-        SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to convert surface to RGBA32");
@@ -46,14 +46,14 @@ namespace {
         return converted;
     }
 
-    static SDL_Surface *DecodeRawTexture(const aiTexture *tex) {
-        SDL_Surface *surface =
+    static SDL_Surface* DecodeRawTexture(const aiTexture* tex) {
+        SDL_Surface* surface =
             SDL_CreateSurfaceFrom(tex->mWidth, tex->mHeight, SDL_PIXELFORMAT_BGRA32, tex->pcData, tex->mWidth * 4);
         if (!surface) {
             CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to create SDL_Surface from raw texture");
             return CreateWhiteSurface();
         }
-        SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE_LOG(CE::LogLevel::Error, "[3D Model Importer] Failed to convert raw surface to RGBA32");
@@ -65,16 +65,16 @@ namespace {
 
 namespace CE::Assets::Model3DImporter {
 
-    ModelImporter::ModelImporter(VFS::VFS &vfs, Renderer::Resources::GPUMeshManager &mesh_manager,
-                                 Renderer::Resources::MaterialManager &mat_manager,
-                                 Renderer::Resources::TextureManager &tex_man, Renderer::IRenderer &renderer)
+    ModelImporter::ModelImporter(VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
+                                 Renderer::Resources::MaterialManager& mat_manager,
+                                 Renderer::Resources::TextureManager& tex_man, Renderer::IRenderer& renderer)
         : mRenderer(renderer),
           mVFS(vfs),
           mGPUMeshManager(mesh_manager),
           mMaterialManager(mat_manager),
           mTextureManager(tex_man) {}
 
-    CE::Renderer::MeshData ModelImporter::ConvertMesh(aiMesh *mesh) {
+    CE::Renderer::MeshData ModelImporter::ConvertMesh(aiMesh* mesh) {
         CE::Renderer::MeshData out;
         out.vertices.reserve(mesh->mNumVertices);
 
@@ -90,7 +90,7 @@ namespace CE::Assets::Model3DImporter {
         }
 
         for (uint32_t i = 0; i < mesh->mNumFaces; i++) {
-            const aiFace &f = mesh->mFaces[i];
+            const aiFace& f = mesh->mFaces[i];
             for (uint32_t j = 0; j < f.mNumIndices; j++)
                 out.indices.push_back(f.mIndices[j]);
         }
@@ -114,12 +114,12 @@ namespace CE::Assets::Model3DImporter {
 
             for (size_t f = 0; f + 2 < out.indices.size(); f += 3) {
                 uint32_t i1 = out.indices[f], i2 = out.indices[f + 1], i3 = out.indices[f + 2];
-                const glm::vec3 &v1 = out.vertices[i1].position;
-                const glm::vec3 &v2 = out.vertices[i2].position;
-                const glm::vec3 &v3 = out.vertices[i3].position;
-                const glm::vec2 &w1 = out.vertices[i1].uv;
-                const glm::vec2 &w2 = out.vertices[i2].uv;
-                const glm::vec2 &w3 = out.vertices[i3].uv;
+                const glm::vec3& v1 = out.vertices[i1].position;
+                const glm::vec3& v2 = out.vertices[i2].position;
+                const glm::vec3& v3 = out.vertices[i3].position;
+                const glm::vec2& w1 = out.vertices[i1].uv;
+                const glm::vec2& w2 = out.vertices[i2].uv;
+                const glm::vec2& w3 = out.vertices[i3].uv;
 
                 float x1 = v2.x - v1.x, x2 = v3.x - v1.x;
                 float y1 = v2.y - v1.y, y2 = v3.y - v1.y;
@@ -141,7 +141,7 @@ namespace CE::Assets::Model3DImporter {
             }
 
             for (size_t i = 0; i < out.vertices.size(); ++i) {
-                const glm::vec3 &n = out.vertices[i].normal;
+                const glm::vec3& n = out.vertices[i].normal;
                 glm::vec3 t = tan1[i];
                 glm::vec3 tangent = glm::normalize(t - n * glm::dot(n, t));
                 float handedness = (glm::dot(glm::cross(n, tangent), tan2[i]) < 0.0f) ? -1.0f : 1.0f;
@@ -163,23 +163,23 @@ namespace CE::Assets::Model3DImporter {
         return out;
     }
 
-    SDL_Surface *ModelImporter::BuildMR(SDL_Surface *metallic, SDL_Surface *roughness) {
+    SDL_Surface* ModelImporter::BuildMR(SDL_Surface* metallic, SDL_Surface* roughness) {
         int w = metallic ? metallic->w : roughness->w;
         int h = metallic ? metallic->h : roughness->h;
-        SDL_Surface *out = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface* out = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
         SDL_LockSurface(out);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 float m = 0.0f, r = 1.0f;
                 if (metallic) {
-                    Uint8 *mp = (Uint8 *)metallic->pixels + y * metallic->pitch + x * 4;
+                    Uint8* mp = (Uint8*)metallic->pixels + y * metallic->pitch + x * 4;
                     m = mp[0] / 255.0f;
                 }
                 if (roughness) {
-                    Uint8 *rp = (Uint8 *)roughness->pixels + y * roughness->pitch + x * 4;
+                    Uint8* rp = (Uint8*)roughness->pixels + y * roughness->pitch + x * 4;
                     r = rp[0] / 255.0f;
                 }
-                Uint8 *op = (Uint8 *)out->pixels + y * out->pitch + x * 4;
+                Uint8* op = (Uint8*)out->pixels + y * out->pitch + x * 4;
                 op[0] = 0;
                 op[1] = (Uint8)(r * 255.0f);
                 op[2] = (Uint8)(m * 255.0f);
@@ -190,7 +190,7 @@ namespace CE::Assets::Model3DImporter {
         return out;
     }
 
-    glm::mat4 ConvertMatrix(const aiMatrix4x4 &m) {
+    glm::mat4 ConvertMatrix(const aiMatrix4x4& m) {
         glm::mat4 result;
         result[0][0] = m.a1;
         result[1][0] = m.a2;
@@ -211,10 +211,10 @@ namespace CE::Assets::Model3DImporter {
         return result;
     }
 
-    uint32_t ConvertNode(aiNode *node, kModel &model) {
+    uint32_t ConvertNode(aiNode* node, kModel& model) {
         uint32_t nodeIndex = static_cast<uint32_t>(model.Nodes.size());
         model.Nodes.emplace_back();
-        kModel::Node &outNode = model.Nodes[nodeIndex];
+        kModel::Node& outNode = model.Nodes[nodeIndex];
         outNode.Transform = ConvertMatrix(node->mTransformation);
         outNode.MeshIndices.reserve(node->mNumMeshes);
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)
@@ -225,31 +225,31 @@ namespace CE::Assets::Model3DImporter {
         return nodeIndex;
     }
 
-    SDL_Surface *ModelImporter::DecodeSurface(const aiScene *scene, const std::string &assimp_path,
-                                              const std::string &mdl_path,
-                                              std::unordered_map<std::string, SDL_Surface *> &surfaceCache) {
+    SDL_Surface* ModelImporter::DecodeSurface(const aiScene* scene, const std::string& assimp_path,
+                                              const std::string& mdl_path,
+                                              std::unordered_map<std::string, SDL_Surface*>& surfaceCache) {
         auto cacheIt = surfaceCache.find(assimp_path);
         if (cacheIt != surfaceCache.end()) {
             return cacheIt->second;
         }
 
-        SDL_Surface *result = nullptr;
+        SDL_Surface* result = nullptr;
 
         if (!assimp_path.empty() && assimp_path[0] == '*') {
             size_t path_string_pos = 0;
             try {
                 int index = std::stoi(assimp_path.substr(1), &path_string_pos);
-                const aiTexture *tex = scene->mTextures[index];
+                const aiTexture* tex = scene->mTextures[index];
                 if (tex->mHeight == 0) {
-                    result = DecodeCompressedTexture(reinterpret_cast<const unsigned char *>(tex->pcData),
+                    result = DecodeCompressedTexture(reinterpret_cast<const unsigned char*>(tex->pcData),
                                                      static_cast<int>(tex->mWidth));
                 } else {
                     result = DecodeRawTexture(tex);
                 }
-            } catch (const std::invalid_argument &) {
+            } catch (const std::invalid_argument&) {
                 CE_LOG(LogLevel::Error, "[3D Model Importer] std::stoi invalid argument for path: {}", assimp_path);
                 result = CreateWhiteSurface();
-            } catch (const std::out_of_range &) {
+            } catch (const std::out_of_range&) {
                 CE_LOG(LogLevel::Error, "[3D Model Importer] std::stoi out of range for path: {}", assimp_path);
                 result = CreateWhiteSurface();
             }
@@ -262,13 +262,13 @@ namespace CE::Assets::Model3DImporter {
                 CE_LOG(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
                 result = CreateWhiteSurface();
             } else {
-                VirtualFile *file = mVFS.OpenFile(virtual_path.c_str());
-                SDL_Surface *surface = IMG_Load_IO(file->sdl_stream, false);
+                VirtualFile* file = mVFS.OpenFile(virtual_path.c_str());
+                SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
                 if (!surface) {
                     CE_LOG(LogLevel::Error, "[3D Model Importer] Failed to load texture: {}", virtual_path);
                     result = CreateWhiteSurface();
                 } else if (surface->format != SDL_PIXELFORMAT_RGBA32) {
-                    SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+                    SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
                     SDL_DestroySurface(surface);
                     result = converted ? converted : CreateWhiteSurface();
                 } else {
@@ -282,10 +282,10 @@ namespace CE::Assets::Model3DImporter {
     }
 
     Renderer::Resources::MaterialHandle
-    ModelImporter::LoadAssimpMaterial(const aiScene *scene, const aiMaterial *mat, Renderer::Resources::Model &model,
-                                      const std::string &model_path, std::vector<TextureInfo> &gpuHandleCache,
-                                      std::unordered_map<std::string, SDL_Surface *> &surfaceCache,
-                                      Renderer::TextureUploadBatch *batch) {
+    ModelImporter::LoadAssimpMaterial(const aiScene* scene, const aiMaterial* mat, Renderer::Resources::Model& model,
+                                      const std::string& model_path, std::vector<TextureInfo>& gpuHandleCache,
+                                      std::unordered_map<std::string, SDL_Surface*>& surfaceCache,
+                                      Renderer::TextureUploadBatch* batch) {
         auto getTexPath = [&](aiTextureType type) -> std::string {
             aiString tex_path;
             if (mat->GetTexture(type, 0, &tex_path) == AI_SUCCESS)
@@ -293,12 +293,12 @@ namespace CE::Assets::Model3DImporter {
             return {};
         };
 
-        auto resolveHandle = [&](const std::string &assimp_path,
-                                 SDL_Surface *surface) -> Renderer::Resources::TextureHandle {
+        auto resolveHandle = [&](const std::string& assimp_path,
+                                 SDL_Surface* surface) -> Renderer::Resources::TextureHandle {
             if (assimp_path.empty())
                 return 0;
 
-            for (const auto &entry : gpuHandleCache) {
+            for (const auto& entry : gpuHandleCache) {
                 if (entry.path == assimp_path)
                     return entry.handle;
             }
@@ -318,14 +318,14 @@ namespace CE::Assets::Model3DImporter {
         std::string roughness_path = getTexPath(aiTextureType_DIFFUSE_ROUGHNESS);
         std::string metallic_path = getTexPath(aiTextureType_METALNESS);
 
-        SDL_Surface *albedo_surf =
+        SDL_Surface* albedo_surf =
             albedo_path.empty() ? CreateWhiteSurface() : DecodeSurface(scene, albedo_path, model_path, surfaceCache);
-        SDL_Surface *normal_surf =
+        SDL_Surface* normal_surf =
             normal_path.empty() ? CreateWhiteSurface() : DecodeSurface(scene, normal_path, model_path, surfaceCache);
-        SDL_Surface *roughness_surf = roughness_path.empty()
+        SDL_Surface* roughness_surf = roughness_path.empty()
                                           ? CreateWhiteSurface()
                                           : DecodeSurface(scene, roughness_path, model_path, surfaceCache);
-        SDL_Surface *metallic_surf = metallic_path.empty()
+        SDL_Surface* metallic_surf = metallic_path.empty()
                                          ? CreateWhiteSurface()
                                          : DecodeSurface(scene, metallic_path, model_path, surfaceCache);
 
@@ -338,7 +338,7 @@ namespace CE::Assets::Model3DImporter {
         Renderer::Resources::TextureHandle mr_handle = 0;
 
         bool mr_found = false;
-        for (const auto &entry : gpuHandleCache) {
+        for (const auto& entry : gpuHandleCache) {
             if (entry.path == mr_key) {
                 mr_handle = entry.handle;
                 mr_found = true;
@@ -347,7 +347,7 @@ namespace CE::Assets::Model3DImporter {
         }
 
         if (!mr_found) {
-            SDL_Surface *mr_surf = BuildMR(metallic_surf, roughness_surf);
+            SDL_Surface* mr_surf = BuildMR(metallic_surf, roughness_surf);
             mr_handle = mTextureManager.CreateTextureFromData(
                 mr_surf->w, mr_surf->h, mr_surf->pixels, Renderer::TextureFormat::RGBA8, mr_surf->pitch,
                 Renderer::TextureFilter::Linear, Renderer::TextureWrap::Repeat, mr_key, batch);
@@ -372,16 +372,16 @@ namespace CE::Assets::Model3DImporter {
         bool transparent = opacity < 1.0f;
 
         if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-            SDL_Surface *surf = albedo_surf;
+            SDL_Surface* surf = albedo_surf;
 
             if (surf) {
-                const Uint8 *pixels = static_cast<const Uint8 *>(surf->pixels);
+                const Uint8* pixels = static_cast<const Uint8*>(surf->pixels);
 
                 bool hasAlpha = false;
 
                 for (int y = 0; y < surf->h && !hasAlpha; ++y) {
                     for (int x = 0; x < surf->w; ++x) {
-                        const Uint8 *pixel = pixels + y * surf->pitch + x * 4;
+                        const Uint8* pixel = pixels + y * surf->pitch + x * 4;
 
                         if (pixel[3] < 255) {
                             hasAlpha = true;
@@ -417,7 +417,7 @@ namespace CE::Assets::Model3DImporter {
         }
 
         Assimp::Importer importer;
-        const aiScene *scene = nullptr;
+        const aiScene* scene = nullptr;
         {
             Utils::ScopedTimer timer("[3D Model Importer] Assimp file read");
             importer.SetIOHandler(new CE::Assets::VFSIOSystem(&mVFS));
@@ -431,7 +431,7 @@ namespace CE::Assets::Model3DImporter {
             return model;
         }
 
-        CE_LOG(LogLevel::Debug, "RootNode pointer: {}", (void *)scene->mRootNode);
+        CE_LOG(LogLevel::Debug, "RootNode pointer: {}", (void*)scene->mRootNode);
         CE_LOG(LogLevel::Debug, "Model: {}, mNumChildren: {}", path, scene->mRootNode->mNumChildren);
         for (unsigned int i = 0; i < std::min(scene->mRootNode->mNumChildren, 5u); ++i)
             CE_LOG(LogLevel::Debug, "Child {} Name: {}", i, scene->mRootNode->mChildren[i]->mName.C_Str());
@@ -454,10 +454,10 @@ namespace CE::Assets::Model3DImporter {
         {
             Utils::ScopedTimer timer("[3D Model Importer] Material loading");
 
-            std::unordered_map<std::string, SDL_Surface *> surfaceCache;
+            std::unordered_map<std::string, SDL_Surface*> surfaceCache;
             std::vector<TextureInfo> gpuHandleCache;
 
-            Renderer::TextureUploadBatch *batch = mRenderer.BeginBatchTextureUpload();
+            Renderer::TextureUploadBatch* batch = mRenderer.BeginBatchTextureUpload();
 
             for (uint32_t i = 0; i < scene->mNumMaterials; ++i) {
                 model.Materials.push_back(
@@ -466,7 +466,7 @@ namespace CE::Assets::Model3DImporter {
 
             mRenderer.EndBatchTextureUpload(batch);
 
-            for (auto &[key, surf] : surfaceCache) {
+            for (auto& [key, surf] : surfaceCache) {
                 SDL_DestroySurface(surf);
             }
         }
@@ -474,7 +474,7 @@ namespace CE::Assets::Model3DImporter {
         {
             Utils::ScopedTimer timer("[3D Model Importer] GPU mesh upload");
             model.Meshes.reserve(scene->mNumMeshes);
-            for (auto &mesh : mesh_data)
+            for (auto& mesh : mesh_data)
                 model.Meshes.push_back(mGPUMeshManager.CreateMeshHandle(mesh));
         }
 

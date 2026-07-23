@@ -16,7 +16,7 @@
 namespace fs = std::filesystem;
 
 namespace CE {
-    Engine::Engine(std::string datafilename, bool debug, const EngineArguements &args) {
+    Engine::Engine(std::string datafilename, bool debug, const EngineArguements& args) {
         CE_LOG(CE::LogLevel::Info, "Cattle Engine");
         CE_LOG(CE::LogLevel::Info, "CE Version: {}", CE::Version::GetBuildString());
 
@@ -79,7 +79,7 @@ namespace CE {
         try {
             InstanceHandle handle = std::make_unique<Instance>(file2use.c_str(), debug, mGPUHandle, mEngineArgs);
             mInstances[name] = std::move(handle);
-        } catch (std::runtime_error &e) {
+        } catch (std::runtime_error& e) {
             CE_LOG(CE::LogLevel::Fatal, "[Engine] Fatal error creating instance\n {}", e.what());
             return false;
         }
@@ -119,7 +119,7 @@ namespace CE {
         while (mRunning && !mInstances.empty()) {
             CE::SDL_Events::Update();
 
-            for (const auto &e : CE::SDL_Events::gEvents) {
+            for (const auto& e : CE::SDL_Events::gEvents) {
                 if (e.type == SDL_EVENT_QUIT) {
                     CE_LOG(LogLevel::Info, "[Engine] Quit event received");
                     mRunning = false;
@@ -149,7 +149,7 @@ namespace CE {
     }
 
     Engine::~Engine() {
-        for (auto &[name, instanceinfo] : mInstances) {
+        for (auto& [name, instanceinfo] : mInstances) {
             instanceinfo.reset();
         }
         mInstances.clear();

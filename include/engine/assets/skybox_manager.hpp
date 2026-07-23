@@ -22,7 +22,7 @@ namespace CE::Assets::Skyboxes {
             CE::Renderer::CubeMap cubeMap{};
         };
 
-        SkyBoxManager(CE::Renderer::IRenderer *renderer, CE::VFS::VFS *vfs);
+        SkyBoxManager(CE::Renderer::IRenderer* renderer, CE::VFS::VFS* vfs);
 
         void Load(std::string frontPath, std::string backPath, std::string leftPath, std::string rightPath,
                   std::string top_path, std::string bottom_path, std::string name);
@@ -50,11 +50,11 @@ namespace CE::Assets::Skyboxes {
             CE::Renderer::CubeMap CubeMapData{};
         };
 
-        std::shared_ptr<CE::Renderer::Texture> LoadFaceTexture(std::string path, bool &isErrorFace) const;
+        std::shared_ptr<CE::Renderer::Texture> LoadFaceTexture(std::string path, bool& isErrorFace) const;
 
-        CE::Renderer::IRenderer *gRenderer = nullptr;
-        CE::VFS::VFS *gVFS = nullptr;
-        CE::Renderer::Texture *gErrorTex = nullptr;
+        CE::Renderer::IRenderer* gRenderer = nullptr;
+        CE::VFS::VFS* gVFS = nullptr;
+        CE::Renderer::Texture* gErrorTex = nullptr;
         std::unordered_map<std::string, ManagedSkyBox> gSkyBoxes;
         std::string gBoundSkyBoxName;
     };

@@ -56,5 +56,5 @@ namespace CE::Scripting::Impl::Lexer {
      * @param data The script file
      * @param filename Used for logging purposes
      */
-    std::vector<Token> Lex(const std::string &data, const std::string &filename);
+    std::vector<Token> Lex(const std::string& data, const std::string& filename);
 } // namespace CE::Scripting::Impl::Lexer

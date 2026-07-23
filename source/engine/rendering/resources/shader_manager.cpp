@@ -11,7 +11,7 @@ namespace {
 } // namespace
 
 namespace CE::Renderer::Resources {
-    ShaderRef::ShaderRef(ShaderManager *mgr, ShaderHandle handle, Shader *shader)
+    ShaderRef::ShaderRef(ShaderManager* mgr, ShaderHandle handle, Shader* shader)
         : mManager(mgr), mHandle(handle), mShader(shader) {}
 
     ShaderRef::~ShaderRef() {
@@ -20,11 +20,11 @@ namespace CE::Renderer::Resources {
         }
     }
 
-    ShaderRef::ShaderRef(ShaderRef &&other) noexcept {
+    ShaderRef::ShaderRef(ShaderRef&& other) noexcept {
         *this = std::move(other);
     }
 
-    ShaderRef &ShaderRef::operator=(ShaderRef &&other) noexcept {
+    ShaderRef& ShaderRef::operator=(ShaderRef&& other) noexcept {
         if (this != &other) {
             if (mManager) {
                 mManager->Return(mHandle);
@@ -52,10 +52,10 @@ namespace CE::Renderer::Resources {
 } // namespace CE::Renderer::Resources
 
 namespace CE::Renderer::Resources {
-    ShaderManager::ShaderManager(VFS::VFS &vfs, IRenderer &renderer, TextureManager &tex_man)
+    ShaderManager::ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man)
         : mVFS(vfs), mRenderer(renderer), mTextureManager(tex_man) {}
 
-    ShaderManager::ShaderEntry *ShaderManager::GetShaderEntry(ShaderHandle handle) {
+    ShaderManager::ShaderEntry* ShaderManager::GetShaderEntry(ShaderHandle handle) {
         auto it = mShaders.find(handle);
         if (it != mShaders.end()) {
             return &it->second;
@@ -65,7 +65,7 @@ namespace CE::Renderer::Resources {
     }
 
     ShaderManager::~ShaderManager() {
-        for (auto &[name, entry] : mShaders) {
+        for (auto& [name, entry] : mShaders) {
             if (entry.Shader) {
                 mRenderer.UnloadShader(entry.Shader);
                 entry.Shader = nullptr;
@@ -92,7 +92,7 @@ namespace CE::Renderer::Resources {
         return handle;
     }
 
-    ShaderHandle ShaderManager::Load(const std::string &filepath, int fragment_sampler_count) {
+    ShaderHandle ShaderManager::Load(const std::string& filepath, int fragment_sampler_count) {
         ShaderHandle handle;
 
         if (filepath.empty()) {
@@ -124,9 +124,9 @@ namespace CE::Renderer::Resources {
         return handle;
     }
 
-    bool ShaderManager::LoadStage(ShaderHandle handle, const std::string &filepath, CE::Renderer::ShaderStage stage,
+    bool ShaderManager::LoadStage(ShaderHandle handle, const std::string& filepath, CE::Renderer::ShaderStage stage,
                                   int sampler_count) {
-        ShaderEntry *entry = GetShaderEntry(handle);
+        ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry) {
             CE_LOG(LogLevel::Error, "[Shader Manager] LoadStage Invalid handle!");
@@ -163,7 +163,7 @@ namespace CE::Renderer::Resources {
     }
 
     bool ShaderManager::UseDefaultStage(ShaderHandle handle, CE::Renderer::ShaderStage stage) {
-        ShaderEntry *entry = GetShaderEntry(handle);
+        ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
             CE_LOG(LogLevel::Error, "[Shader Manager] UseDefaultStage called for a missing shader: {}", handle.id);
@@ -189,7 +189,7 @@ namespace CE::Renderer::Resources {
     }
 
     bool ShaderManager::Compile(ShaderHandle handle) {
-        ShaderEntry *entry = GetShaderEntry(handle);
+        ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
             CE_LOG(LogLevel::Error, "[Shader Manager] Compile called for a missing shader: {}", handle.id);
@@ -203,7 +203,7 @@ namespace CE::Renderer::Resources {
     }
 
     bool ShaderManager::Bind(ShaderHandle handle) {
-        ShaderEntry *entry = GetShaderEntry(handle);
+        ShaderEntry* entry = GetShaderEntry(handle);
 
         if (!entry || !entry->Shader) {
             CE_LOG(LogLevel::Error, "[Shader Manager] Bind called for a missing shader: {}", handle.id);
@@ -261,40 +261,40 @@ namespace CE::Renderer::Resources {
 
     void ShaderManager::UnloadAll() {
         Unbind();
-        for (auto &[name, entry] : mShaders) {
+        for (auto& [name, entry] : mShaders) {
             entry.IsPendingUnload = true;
             mPendingUnloads.push_back(name);
         }
     }
 
-    void ShaderManager::SetFloat(const std::string &uniformName, float value) {
+    void ShaderManager::SetFloat(const std::string& uniformName, float value) {
         mRenderer.SetShaderFloat(uniformName.c_str(), value);
     }
 
-    void ShaderManager::SetVec2(const std::string &uniformName, float x, float y) {
+    void ShaderManager::SetVec2(const std::string& uniformName, float x, float y) {
         mRenderer.SetShaderVec2(uniformName.c_str(), x, y);
     }
 
-    void ShaderManager::SetVec3(const std::string &uniformName, float x, float y, float z) {
+    void ShaderManager::SetVec3(const std::string& uniformName, float x, float y, float z) {
         mRenderer.SetShaderVec3(uniformName.c_str(), x, y, z);
     }
 
-    void ShaderManager::SetVec4(const std::string &uniformName, float x, float y, float z, float w) {
+    void ShaderManager::SetVec4(const std::string& uniformName, float x, float y, float z, float w) {
         mRenderer.SetShaderVec4(uniformName.c_str(), x, y, z, w);
     }
 
-    void ShaderManager::SetMat4(const std::string &uniformName, const float *value) {
+    void ShaderManager::SetMat4(const std::string& uniformName, const float* value) {
         mRenderer.SetShaderMat4(uniformName.c_str(), value);
     }
 
-    void ShaderManager::SetInt(const std::string &uniformName, int value) {
+    void ShaderManager::SetInt(const std::string& uniformName, int value) {
         mRenderer.SetShaderInt(uniformName.c_str(), value);
     }
 
-    bool ShaderManager::SetTexture(const std::string &uniformName,
+    bool ShaderManager::SetTexture(const std::string& uniformName,
                                    const Renderer::Resources::TextureHandle texturehandle, int slot) {
         auto entry = GetShaderEntry(mBoundShaderID);
-        Texture *tex = nullptr;
+        Texture* tex = nullptr;
 
         if (!entry) {
             CE_LOG(LogLevel::Error, "[Shader Manager] Tried to call SetTexture with no shader bound!");
@@ -319,7 +319,7 @@ namespace CE::Renderer::Resources {
 
     int ShaderManager::Debug_LoadedShadersNoError() const {
         int count = 0;
-        for (const auto &[id, entry] : mShaders) {
+        for (const auto& [id, entry] : mShaders) {
             (void)id;
             if (!entry.IsErrorShader) {
                 count++;
@@ -330,7 +330,7 @@ namespace CE::Renderer::Resources {
 
     int ShaderManager::Debug_LoadedShadersError() const {
         int count = 0;
-        for (const auto &[id, entry] : mShaders) {
+        for (const auto& [id, entry] : mShaders) {
             (void)id;
             if (entry.IsErrorShader) {
                 count++;
@@ -343,7 +343,7 @@ namespace CE::Renderer::Resources {
         std::vector<DebugShaderInfo> debugShaders;
         debugShaders.reserve(this->mShaders.size());
 
-        for (const auto &[id, shaderInfo] : this->mShaders) {
+        for (const auto& [id, shaderInfo] : this->mShaders) {
             DebugShaderInfo debugInfo{};
             debugInfo.id = id.id;
             debugInfo.vertexPath = shaderInfo.VertexPath;
@@ -408,7 +408,7 @@ namespace CE::Renderer::Resources {
             if (it == mShaders.end())
                 continue;
 
-            ShaderEntry &entry = it->second;
+            ShaderEntry& entry = it->second;
 
             if (entry.RefCount == 0) {
                 if (entry.Shader) {

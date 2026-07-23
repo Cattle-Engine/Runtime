@@ -12,7 +12,7 @@
 namespace CE {
     class Engine {
       public:
-        Engine(std::string datafilename, bool debug, const EngineArguements &args);
+        Engine(std::string datafilename, bool debug, const EngineArguements& args);
         ~Engine();
         bool CreateInstance(std::string name, bool debug, std::optional<std::string> datafilename = std::nullopt);
         bool DestroyInstance(std::string name);

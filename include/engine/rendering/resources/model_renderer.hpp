@@ -28,15 +28,15 @@ namespace CE::Renderer::Resources {
 
     class ModelRenderer {
       public:
-        ModelRenderer(MaterialManager &mat_manager, GPUMeshManager &gpu_mesh_man, IRenderer &renderer);
-        void RenderModel(const Model &model, const Renderer::Transform3D &transform);
-        void DestroyModel(Model &model);
+        ModelRenderer(MaterialManager& mat_manager, GPUMeshManager& gpu_mesh_man, IRenderer& renderer);
+        void RenderModel(const Model& model, const Renderer::Transform3D& transform);
+        void DestroyModel(Model& model);
 
       private:
-        void RenderNode(const Model &model, uint32_t nodeIndex, const glm::mat4 &parentTransform);
+        void RenderNode(const Model& model, uint32_t nodeIndex, const glm::mat4& parentTransform);
 
-        MaterialManager &mMaterialManager;
-        GPUMeshManager &mGPUMeshManager;
-        IRenderer &mRenderer;
+        MaterialManager& mMaterialManager;
+        GPUMeshManager& mGPUMeshManager;
+        IRenderer& mRenderer;
     };
 } // namespace CE::Renderer::Resources

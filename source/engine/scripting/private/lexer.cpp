@@ -3,7 +3,7 @@
 #include "engine/scripting/private/exceptions.hpp"
 
 namespace CE::Scripting::Impl::Lexer {
-    std::vector<Token> Lex(const std::string &data, const std::string &filename) {
+    std::vector<Token> Lex(const std::string& data, const std::string& filename) {
         std::vector<Token> tokens;
 
         size_t position = 0;

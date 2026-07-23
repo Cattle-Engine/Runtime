@@ -12,13 +12,13 @@ namespace CE::Renderer::Primitives3D {
         struct MeshBuilder {
             MeshData data;
 
-            uint32_t AddVertex(const glm::vec3 &position, const glm::vec3 &normal, const glm::vec2 &uv) {
+            uint32_t AddVertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2& uv) {
                 data.vertices.push_back(Vertex3D{position, normal, kWhite, uv});
                 return static_cast<uint32_t>(data.vertices.size() - 1);
             }
 
-            void AddQuad(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c, const glm::vec3 &d,
-                         const glm::vec3 &normal) {
+            void AddQuad(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d,
+                         const glm::vec3& normal) {
                 const uint32_t start = static_cast<uint32_t>(data.vertices.size());
                 AddVertex(a, normal, {0.0f, 0.0f});
                 AddVertex(b, normal, {1.0f, 0.0f});
@@ -34,14 +34,14 @@ namespace CE::Renderer::Primitives3D {
                     radius * std::sin(phi) * std::sin(theta)};
         }
 
-        void ApplyColour(MeshData &data, const Colour &colour) {
-            for (auto &vertex : data.vertices) {
+        void ApplyColour(MeshData& data, const Colour& colour) {
+            for (auto& vertex : data.vertices) {
                 vertex.color = colour;
             }
         }
     } // namespace
 
-    void SetMeshColour(MeshData &mesh, const Colour &colour) {
+    void SetMeshColour(MeshData& mesh, const Colour& colour) {
         ApplyColour(mesh, colour);
     }
 
@@ -49,7 +49,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateCube(size, kWhite);
     }
 
-    MeshData CreateCube(glm::vec3 size, const Colour &colour) {
+    MeshData CreateCube(glm::vec3 size, const Colour& colour) {
         MeshBuilder builder;
         const glm::vec3 half = size * 0.5f;
 
@@ -76,7 +76,7 @@ namespace CE::Renderer::Primitives3D {
         return CreatePlane(size, kWhite);
     }
 
-    MeshData CreatePlane(glm::vec2 size, const Colour &colour) {
+    MeshData CreatePlane(glm::vec2 size, const Colour& colour) {
         MeshBuilder builder;
         const glm::vec2 half = size * 0.5f;
 
@@ -93,7 +93,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateSphere(radius, segments, rings, kWhite);
     }
 
-    MeshData CreateSphere(float radius, int segments, int rings, const Colour &colour) {
+    MeshData CreateSphere(float radius, int segments, int rings, const Colour& colour) {
         MeshData data;
         segments = std::max(3, segments);
         rings = std::max(2, rings);
@@ -130,7 +130,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateCylinder(radius, height, segments, kWhite);
     }
 
-    MeshData CreateCylinder(float radius, float height, int segments, const Colour &colour) {
+    MeshData CreateCylinder(float radius, float height, int segments, const Colour& colour) {
         MeshData data;
         segments = std::max(3, segments);
         const float halfHeight = height * 0.5f;
@@ -194,7 +194,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateCone(radius, height, segments, kWhite);
     }
 
-    MeshData CreateCone(float radius, float height, int segments, const Colour &colour) {
+    MeshData CreateCone(float radius, float height, int segments, const Colour& colour) {
         MeshData data;
         segments = std::max(3, segments);
         const float halfHeight = height * 0.5f;
@@ -230,7 +230,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateTorus(radius, tubeRadius, segments, tubeSegments, kWhite);
     }
 
-    MeshData CreateTorus(float radius, float tubeRadius, int segments, int tubeSegments, const Colour &colour) {
+    MeshData CreateTorus(float radius, float tubeRadius, int segments, int tubeSegments, const Colour& colour) {
         MeshData data;
         segments = std::max(3, segments);
         tubeSegments = std::max(3, tubeSegments);
@@ -273,7 +273,7 @@ namespace CE::Renderer::Primitives3D {
         return CreateCapsule(radius, height, segments, kWhite);
     }
 
-    MeshData CreateCapsule(float radius, float height, int segments, const Colour &colour) {
+    MeshData CreateCapsule(float radius, float height, int segments, const Colour& colour) {
         segments = std::max(6, segments);
         const int rings = std::max(4, segments / 2);
         const float cylinderHeight = std::max(0.0f, height - radius * 2.0f);
@@ -283,10 +283,10 @@ namespace CE::Renderer::Primitives3D {
         MeshData bottom = CreateSphere(radius, segments, rings, colour);
         MeshData body = CreateCylinder(radius, cylinderHeight, segments, colour);
 
-        for (auto &vertex : top.vertices) {
+        for (auto& vertex : top.vertices) {
             vertex.position.y += cylinderHeight * 0.5f;
         }
-        for (auto &vertex : bottom.vertices) {
+        for (auto& vertex : bottom.vertices) {
             vertex.position.y = -vertex.position.y - cylinderHeight * 0.5f;
             vertex.normal.y = -vertex.normal.y;
         }
@@ -294,7 +294,7 @@ namespace CE::Renderer::Primitives3D {
         data.vertices.reserve(top.vertices.size() + bottom.vertices.size() + body.vertices.size());
         data.indices.reserve(top.indices.size() + bottom.indices.size() + body.indices.size());
 
-        auto appendMesh = [&data](const MeshData &source) {
+        auto appendMesh = [&data](const MeshData& source) {
             const uint32_t base = static_cast<uint32_t>(data.vertices.size());
             data.vertices.insert(data.vertices.end(), source.vertices.begin(), source.vertices.end());
             for (uint32_t index : source.indices) {

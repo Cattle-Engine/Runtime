@@ -17,44 +17,44 @@ namespace {
 #else
         false;
 #endif
-    using Manip = std::ostream &(*)(std::ostream &);
+    using Manip = std::ostream& (*)(std::ostream&);
 } // namespace
 
 namespace CE {
 
     inline bool g_UseANSI = Platforms::EnableANSI();
 
-    inline std::ostream &reset(std::ostream &os) {
+    inline std::ostream& reset(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[0m";
         return os;
     }
 
-    inline std::ostream &red(std::ostream &os) {
+    inline std::ostream& red(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[31m";
         return os;
     }
 
-    inline std::ostream &yellow(std::ostream &os) {
+    inline std::ostream& yellow(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[33m";
         return os;
     }
 
-    inline std::ostream &blue(std::ostream &os) {
+    inline std::ostream& blue(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[34m";
         return os;
     }
 
-    inline std::ostream &bold_red(std::ostream &os) {
+    inline std::ostream& bold_red(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[1;31m";
         return os;
     }
 
-    inline std::ostream &endl(std::ostream &os) {
+    inline std::ostream& endl(std::ostream& os) {
         if (g_UseANSI)
             os << "\x1b[0m";
         os << '\n';
@@ -79,7 +79,7 @@ namespace CE {
         return ss.str();
     }
 
-    std::string GetLocation(const std::source_location &loc) {
+    std::string GetLocation(const std::source_location& loc) {
         std::string_view file = loc.file_name();
 
         size_t source_pos = file.rfind("source/");
@@ -101,11 +101,11 @@ namespace CE {
         return {};
     }
 
-    void LogImpl(LogLevel level, const std::string &message, std::source_location loc) {
+    void LogImpl(LogLevel level, const std::string& message, std::source_location loc) {
         if (level == LogLevel::Debug && !kIsDebug)
             return;
 
-        std::ostream &os = std::cout;
+        std::ostream& os = std::cout;
 
         Manip colour = nullptr;
         std::string tag;

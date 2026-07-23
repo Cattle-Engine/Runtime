@@ -4,13 +4,13 @@
 
 namespace CE::Scripting::Impl::Codegen {
     namespace {
-        bool IsIdentifier(const Lexer::Token &token) {
+        bool IsIdentifier(const Lexer::Token& token) {
             return token.Type == Lexer::Token::TokenType::Identifier;
         }
 
-        bool NeedsSpace(const Lexer::Token &previous, const Lexer::Token &current) {
-            const std::string &a = previous.Value;
-            const std::string &b = current.Value;
+        bool NeedsSpace(const Lexer::Token& previous, const Lexer::Token& current) {
+            const std::string& a = previous.Value;
+            const std::string& b = current.Value;
             if (b == ";" || b == "," || b == ")" || b == "]" || b == "." || b == "::" || a == "(" || a == "[" ||
                 a == "." || a == "::" || a == "@")
                 return false;
@@ -26,9 +26,9 @@ namespace CE::Scripting::Impl::Codegen {
         }
     } // namespace
 
-    std::string Generator::JoinTokens(const std::vector<Lexer::Token> &tokens) {
+    std::string Generator::JoinTokens(const std::vector<Lexer::Token>& tokens) {
         std::string result;
-        for (const auto &token : tokens) {
+        for (const auto& token : tokens) {
             if (token.Type == Lexer::Token::TokenType::EndOfFile)
                 continue;
             if (!result.empty() && NeedsSpace(tokens[&token - tokens.data() - 1], token))
@@ -38,16 +38,16 @@ namespace CE::Scripting::Impl::Codegen {
         return result;
     }
 
-    std::string Generator::EmitTypeRef(const AST::ASTTypeRef &type, const std::string &module_path,
-                                       const std::string &name_space) const {
+    std::string Generator::EmitTypeRef(const AST::ASTTypeRef& type, const std::string& module_path,
+                                       const std::string& name_space) const {
         std::string name = type.Name;
         if (!type.IsAuto) {
             const std::string qualified =
                 name.find("::") != std::string::npos || name_space.empty() ? name : name_space + "::" + name;
-            if (const auto *symbol = mAnalyser.ResolveSymbol(module_path, qualified)) {
+            if (const auto* symbol = mAnalyser.ResolveSymbol(module_path, qualified)) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Type)
                     name = symbol->InternalName;
-            } else if (const auto *symbol = mAnalyser.ResolveSymbol(module_path, name)) {
+            } else if (const auto* symbol = mAnalyser.ResolveSymbol(module_path, name)) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Type)
                     name = symbol->InternalName;
             }
@@ -63,14 +63,14 @@ namespace CE::Scripting::Impl::Codegen {
         return result;
     }
 
-    std::vector<Lexer::Token> Generator::RewriteBody(const std::vector<Lexer::Token> &tokens,
-                                                     const AST::ASTFunction *function, const std::string &module_path,
-                                                     const std::string &name_space) const {
+    std::vector<Lexer::Token> Generator::RewriteBody(const std::vector<Lexer::Token>& tokens,
+                                                     const AST::ASTFunction* function, const std::string& module_path,
+                                                     const std::string& name_space) const {
         std::unordered_set<std::string> shadowed;
         if (function) {
-            for (const auto &parameter : function->Parameters)
+            for (const auto& parameter : function->Parameters)
                 shadowed.insert(parameter.Name);
-            for (const auto &local : function->LocalVariables)
+            for (const auto& local : function->LocalVariables)
                 shadowed.insert(local.Name);
         }
         std::vector<Lexer::Token> result;
@@ -92,7 +92,7 @@ namespace CE::Scripting::Impl::Codegen {
                                            ? name_space + "::" + candidate
                                            : candidate;
 
-            const Semantics::Symbol *symbol = nullptr;
+            const Semantics::Symbol* symbol = nullptr;
             bool is_function_call = false;
             std::vector<AST::ASTTypeRef> arg_types;
 
@@ -131,7 +131,7 @@ namespace CE::Scripting::Impl::Codegen {
                     b_depth = 0;
                     br_depth = 0;
                     for (size_t k = end + 2; k < matching_close; ++k) {
-                        const auto &tk = tokens[k];
+                        const auto& tk = tokens[k];
                         if (tk.Type == Lexer::Token::TokenType::OpenParen)
                             p_depth++;
                         else if (tk.Type == Lexer::Token::TokenType::CloseParen)
@@ -157,7 +157,7 @@ namespace CE::Scripting::Impl::Codegen {
                         call_args.push_back(current_arg);
                     }
 
-                    for (const auto &ca : call_args) {
+                    for (const auto& ca : call_args) {
                         arg_types.push_back(InferExpressionType(ca, function, module_path, name_space));
                     }
                 }
@@ -188,15 +188,15 @@ namespace CE::Scripting::Impl::Codegen {
         return result;
     }
 
-    AST::ASTTypeRef Generator::InferExpressionType(const std::vector<Lexer::Token> &tokens,
-                                                   const AST::ASTFunction *function, const std::string &module_path,
-                                                   const std::string &name_space) const {
+    AST::ASTTypeRef Generator::InferExpressionType(const std::vector<Lexer::Token>& tokens,
+                                                   const AST::ASTFunction* function, const std::string& module_path,
+                                                   const std::string& name_space) const {
         if (tokens.empty())
             return {};
 
         // 1. If it's a single token:
         if (tokens.size() == 1) {
-            const auto &t = tokens[0];
+            const auto& t = tokens[0];
             if (t.Type == Lexer::Token::TokenType::Number) {
                 AST::ASTTypeRef type;
                 if (t.Value.find('.') != std::string::npos || t.Value.back() == 'f' || t.Value.back() == 'F') {
@@ -224,11 +224,11 @@ namespace CE::Scripting::Impl::Codegen {
                 }
                 // Check parameter
                 if (function) {
-                    for (const auto &param : function->Parameters) {
+                    for (const auto& param : function->Parameters) {
                         if (param.Name == t.Value)
                             return param.Type;
                     }
-                    for (const auto &local : function->LocalVariables) {
+                    for (const auto& local : function->LocalVariables) {
                         if (local.Name == t.Value)
                             return local.Type;
                     }
@@ -237,7 +237,7 @@ namespace CE::Scripting::Impl::Codegen {
                 std::string scoped = t.Value.find("::") == std::string::npos && !name_space.empty()
                                          ? name_space + "::" + t.Value
                                          : t.Value;
-                const auto *symbol = mAnalyser.ResolveSymbol(module_path, t.Value);
+                const auto* symbol = mAnalyser.ResolveSymbol(module_path, t.Value);
                 if (!symbol && scoped != t.Value)
                     symbol = mAnalyser.ResolveSymbol(module_path, scoped);
 
@@ -280,7 +280,7 @@ namespace CE::Scripting::Impl::Codegen {
                 size_t b_depth = 0;
                 size_t br_depth = 0;
                 for (size_t k = name_end + 1; k < matching_close; ++k) {
-                    const auto &tk = tokens[k];
+                    const auto& tk = tokens[k];
                     if (tk.Type == Lexer::Token::TokenType::OpenParen)
                         p_depth++;
                     else if (tk.Type == Lexer::Token::TokenType::CloseParen)
@@ -305,10 +305,10 @@ namespace CE::Scripting::Impl::Codegen {
                     nested_args.push_back(current_nested);
                 }
                 std::vector<AST::ASTTypeRef> nested_types;
-                for (const auto &na : nested_args) {
+                for (const auto& na : nested_args) {
                     nested_types.push_back(InferExpressionType(na, function, module_path, name_space));
                 }
-                const auto *func_symbol = mAnalyser.ResolveFunction(module_path, func_name, nested_types);
+                const auto* func_symbol = mAnalyser.ResolveFunction(module_path, func_name, nested_types);
                 if (!func_symbol) {
                     std::string scoped_func = func_name.find("::") == std::string::npos && !name_space.empty()
                                                   ? name_space + "::" + func_name
@@ -329,7 +329,7 @@ namespace CE::Scripting::Impl::Codegen {
         size_t b_depth = 0;
         size_t br_depth = 0;
         for (size_t k = 0; k < tokens.size(); ++k) {
-            const auto &tk = tokens[k];
+            const auto& tk = tokens[k];
             if (tk.Type == Lexer::Token::TokenType::OpenParen)
                 p_depth++;
             else if (tk.Type == Lexer::Token::TokenType::CloseParen)
@@ -363,7 +363,7 @@ namespace CE::Scripting::Impl::Codegen {
         bool has_null = false;
         AST::ASTTypeRef other_type;
 
-        for (const auto &tk : tokens) {
+        for (const auto& tk : tokens) {
             if (tk.Type == Lexer::Token::TokenType::String) {
                 has_string = true;
             } else if (tk.Type == Lexer::Token::TokenType::Number) {
@@ -378,7 +378,7 @@ namespace CE::Scripting::Impl::Codegen {
                 } else {
                     if (function) {
                         bool found_var = false;
-                        for (const auto &param : function->Parameters) {
+                        for (const auto& param : function->Parameters) {
                             if (param.Name == tk.Value) {
                                 other_type = param.Type;
                                 found_var = true;
@@ -386,7 +386,7 @@ namespace CE::Scripting::Impl::Codegen {
                             }
                         }
                         if (!found_var) {
-                            for (const auto &local : function->LocalVariables) {
+                            for (const auto& local : function->LocalVariables) {
                                 if (local.Name == tk.Value) {
                                     other_type = local.Type;
                                     found_var = true;
@@ -399,7 +399,7 @@ namespace CE::Scripting::Impl::Codegen {
                         std::string scoped = tk.Value.find("::") == std::string::npos && !name_space.empty()
                                                  ? name_space + "::" + tk.Value
                                                  : tk.Value;
-                        const auto *symbol = mAnalyser.ResolveSymbol(module_path, tk.Value);
+                        const auto* symbol = mAnalyser.ResolveSymbol(module_path, tk.Value);
                         if (!symbol && scoped != tk.Value)
                             symbol = mAnalyser.ResolveSymbol(module_path, scoped);
 
@@ -428,22 +428,22 @@ namespace CE::Scripting::Impl::Codegen {
         return type;
     }
 
-    std::string Generator::EmitDeclaration(const AST::ASTDeclaration &declaration, const std::string &module_path,
-                                           const std::string &name_space) const {
+    std::string Generator::EmitDeclaration(const AST::ASTDeclaration& declaration, const std::string& module_path,
+                                           const std::string& name_space) const {
         if (declaration.Type == AST::ASTDeclaration::Kind::Namespace) {
             std::string result;
-            const auto &ns = *std::get<std::shared_ptr<AST::ASTNamespace>>(declaration.Data);
+            const auto& ns = *std::get<std::shared_ptr<AST::ASTNamespace>>(declaration.Data);
             const std::string nested = name_space.empty() ? ns.Name : name_space + "::" + ns.Name;
-            for (const auto &child : ns.Declarations)
+            for (const auto& child : ns.Declarations)
                 result += EmitDeclaration(child, module_path, nested);
             return result;
         }
         const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
-        const auto *symbol = mAnalyser.FindDeclarationSymbol(qualified, module_path, declaration);
+        const auto* symbol = mAnalyser.FindDeclarationSymbol(qualified, module_path, declaration);
         if (!symbol)
             return {};
         if (declaration.Type == AST::ASTDeclaration::Kind::Function) {
-            const auto &function = std::get<AST::ASTFunction>(declaration.Data);
+            const auto& function = std::get<AST::ASTFunction>(declaration.Data);
             std::string result =
                 EmitTypeRef(function.ReturnType, module_path, name_space) + " " + symbol->InternalName + "(";
             for (size_t i = 0; i < function.Parameters.size(); ++i) {
@@ -457,26 +457,26 @@ namespace CE::Scripting::Impl::Codegen {
             return result + ")" + JoinTokens(RewriteBody(function.Body, &function, module_path, name_space)) + "\n";
         }
         if (declaration.Type == AST::ASTDeclaration::Kind::Global) {
-            const auto &global = std::get<AST::ASTGlobal>(declaration.Data);
+            const auto& global = std::get<AST::ASTGlobal>(declaration.Data);
             std::string result = EmitTypeRef(global.Type, module_path, name_space) + " " + symbol->InternalName;
             if (!global.Initializer.empty())
                 result += " = " + JoinTokens(RewriteBody(global.Initializer, nullptr, module_path, name_space));
             return result + ";\n";
         }
-        const auto &type = std::get<AST::ASTType>(declaration.Data);
+        const auto& type = std::get<AST::ASTType>(declaration.Data);
         return "class " + symbol->InternalName + " {" +
                JoinTokens(RewriteBody(type.Body, nullptr, module_path, name_space)) + "};\n";
     }
 
     std::string
-    Generator::GenerateMonoScript(const std::vector<std::string> &emission_order,
-                                  const std::unordered_map<std::string, AST::ASTModule> &parsed_modules) const {
+    Generator::GenerateMonoScript(const std::vector<std::string>& emission_order,
+                                  const std::unordered_map<std::string, AST::ASTModule>& parsed_modules) const {
         std::string result;
-        for (const auto &module_path : emission_order) {
+        for (const auto& module_path : emission_order) {
             auto module = parsed_modules.find(module_path);
             if (module == parsed_modules.end())
                 continue;
-            for (const auto &declaration : module->second.Declarations) {
+            for (const auto& declaration : module->second.Declarations) {
                 result += EmitDeclaration(declaration, module_path, "");
             }
         }

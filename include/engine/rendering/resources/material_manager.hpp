@@ -11,12 +11,12 @@ namespace CE::Renderer::Resources {
     using MaterialHandle = uint64_t;
     class MaterialManager {
       public:
-        MaterialManager(TextureManager &texture_manager, IRenderer &renderer);
+        MaterialManager(TextureManager& texture_manager, IRenderer& renderer);
 
         MaterialHandle CreateMaterial(TextureHandle tex_handle);
 
         // Internally used
-        Material *GetMaterial(MaterialHandle matt_handle);
+        Material* GetMaterial(MaterialHandle matt_handle);
         void DestroyMaterial(MaterialHandle matt_handle);
         void DestroyAllMaterials();
         // Debug helpers
@@ -40,10 +40,10 @@ namespace CE::Renderer::Resources {
             bool IsError;
         };
 
-        MaterialEntry *GetMaterialEntry(MaterialHandle handle);
+        MaterialEntry* GetMaterialEntry(MaterialHandle handle);
         uint64_t mNextHandleID = 0;
-        TextureManager &mTextureManager;
-        IRenderer &mRenderer;
+        TextureManager& mTextureManager;
+        IRenderer& mRenderer;
         std::unordered_map<MaterialHandle, MaterialEntry> mMaterials;
     };
 } // namespace CE::Renderer::Resources

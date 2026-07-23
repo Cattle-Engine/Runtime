@@ -25,8 +25,8 @@ namespace CE::Settings {
 
     class SettingsManager {
       public:
-        SettingsManager(const GameInfo &gameinfo, uint64_t instance_id);
-        void SetInstance(Instance &instance);
+        SettingsManager(const GameInfo& gameinfo, uint64_t instance_id);
+        void SetInstance(Instance& instance);
         SettingsInfo Settings;
 
         bool ReloadSettings();
@@ -46,7 +46,7 @@ namespace CE::Settings {
 
       private:
         bool Internal_ReloadSettings();
-        CE::Instance *mInstance = nullptr;
+        CE::Instance* mInstance = nullptr;
         CE::Ini::IniFile mIniFile;
         CE::Ini::ParseError mParseError;
         CE::Ini::Options mOptions;

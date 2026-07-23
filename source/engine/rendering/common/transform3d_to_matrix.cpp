@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace CE::Renderer::Common {
-    glm::mat4 Transform3DToMatrix(const Transform3D &t) {
+    glm::mat4 Transform3DToMatrix(const Transform3D& t) {
         glm::mat4 transform(1.0f);
 
         transform = glm::translate(transform, t.position);

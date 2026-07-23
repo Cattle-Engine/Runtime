@@ -2,8 +2,8 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Core::Audio {
-    AudioClip *AudioSystem::LoadSound(const std::string &path, AudioType type) {
-        AudioClip *clip = new AudioClip;
+    AudioClip* AudioSystem::LoadSound(const std::string& path, AudioType type) {
+        AudioClip* clip = new AudioClip;
 
         clip->Path = path;
         if (!mVFS.FileExists(path.c_str())) {
@@ -12,7 +12,7 @@ namespace CE::Core::Audio {
             return nullptr;
         }
 
-        VirtualFile *file = mVFS.OpenFile(path.c_str());
+        VirtualFile* file = mVFS.OpenFile(path.c_str());
         if (!file || !file->sdl_stream) {
             delete clip;
             return nullptr;
@@ -34,7 +34,7 @@ namespace CE::Core::Audio {
         return clip;
     }
 
-    void AudioSystem::DestroySound(AudioClip *clip) {
+    void AudioSystem::DestroySound(AudioClip* clip) {
         if (clip == nullptr) {
             CE_LOG(LogLevel::Error, "[Audio {}] Audio clip was null!", mInstanceID);
             return;

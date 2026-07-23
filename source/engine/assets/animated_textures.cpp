@@ -7,13 +7,13 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets::Animations {
-    AnimatedTextureManager::AnimatedTextureManager(VFS::VFS &vfs, Renderer::IRenderer &renderer, int instance_id)
+    AnimatedTextureManager::AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
         : mVFS(vfs), mRenderer(renderer) {
         mInstanceID = instance_id;
         mNextHandleID = 1;
     }
 
-    AnimationInstance *AnimatedTextureManager::GetAnimationInfo(uint32_t handle) {
+    AnimationInstance* AnimatedTextureManager::GetAnimationInfo(uint32_t handle) {
         auto it = mAnimationInstances.find(handle);
         if (it == mAnimationInstances.end()) {
             CE_LOG(LogLevel::Error, "[Animation Manager {}] Use after free or invalid handle: {}", mInstanceID, handle);
@@ -72,7 +72,7 @@ namespace CE::Assets::Animations {
         anim->FramesInfo.reserve(frame_count);
         anim->FrameCount = frame_count;
 
-        for (const TDFFile &f : frames) {
+        for (const TDFFile& f : frames) {
             FrameInfo frame{};
 
             if (f.has("Width"))
@@ -203,11 +203,11 @@ namespace CE::Assets::Animations {
 
     void AnimatedTextureManager::Update(float dt) {
         dt = std::clamp(dt, 0.0f, 0.1f);
-        for (auto &[handle, anim] : mAnimationInstances) {
+        for (auto& [handle, anim] : mAnimationInstances) {
             if (!anim.IsPlaying || !anim.AnimInfo)
                 continue;
 
-            const auto &frames = anim.AnimInfo->FramesInfo;
+            const auto& frames = anim.AnimInfo->FramesInfo;
             if (frames.empty())
                 continue;
 
@@ -248,7 +248,7 @@ namespace CE::Assets::Animations {
     }
 
     void AnimatedTextureManager::Render() {
-        for (auto &[handle, anim] : mAnimationInstances) {
+        for (auto& [handle, anim] : mAnimationInstances) {
 
             if (anim.AnimInfo == nullptr)
                 continue;
@@ -256,16 +256,16 @@ namespace CE::Assets::Animations {
             if (!anim.AutoRender)
                 continue;
 
-            const auto &frames = anim.AnimInfo->FramesInfo;
+            const auto& frames = anim.AnimInfo->FramesInfo;
             if (frames.empty())
                 continue;
 
             if (anim.CurrentFrame >= frames.size())
                 continue;
 
-            const FrameInfo &frame = frames[anim.CurrentFrame];
+            const FrameInfo& frame = frames[anim.CurrentFrame];
 
-            CE::Renderer::Texture *tex = anim.AnimInfo->Texture;
+            CE::Renderer::Texture* tex = anim.AnimInfo->Texture;
 
             if (tex == nullptr)
                 continue;
@@ -321,16 +321,16 @@ namespace CE::Assets::Animations {
         if (it->second.AnimInfo == nullptr)
             return;
 
-        const auto &frames = it->second.AnimInfo->FramesInfo;
+        const auto& frames = it->second.AnimInfo->FramesInfo;
         if (frames.empty())
             return;
 
         if (it->second.CurrentFrame >= frames.size())
             return;
 
-        const FrameInfo &frame = frames[it->second.CurrentFrame];
+        const FrameInfo& frame = frames[it->second.CurrentFrame];
 
-        CE::Renderer::Texture *tex = it->second.AnimInfo->Texture;
+        CE::Renderer::Texture* tex = it->second.AnimInfo->Texture;
 
         if (tex == nullptr)
             return;

@@ -3,10 +3,10 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
-    MaterialManager::MaterialManager(TextureManager &texture_manager, IRenderer &renderer)
+    MaterialManager::MaterialManager(TextureManager& texture_manager, IRenderer& renderer)
         : mTextureManager(texture_manager), mRenderer(renderer) {}
 
-    MaterialManager::MaterialEntry *MaterialManager::GetMaterialEntry(MaterialHandle handle) {
+    MaterialManager::MaterialEntry* MaterialManager::GetMaterialEntry(MaterialHandle handle) {
         auto list = mMaterials.find(handle);
         if (list != mMaterials.end()) {
             return &list->second;
@@ -107,7 +107,7 @@ namespace CE::Renderer::Resources {
         mMaterials.erase(it);
     }
 
-    Material *MaterialManager::GetMaterial(MaterialHandle handle) {
+    Material* MaterialManager::GetMaterial(MaterialHandle handle) {
         auto material = GetMaterialEntry(handle);
 
         if (material) {

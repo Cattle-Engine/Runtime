@@ -11,9 +11,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {
-    SDL_GPUShader *LoadShader(SDL_GPUDevice *device, const std::string &shaderfilename, Uint32 samplercount,
+    SDL_GPUShader* LoadShader(SDL_GPUDevice* device, const std::string& shaderfilename, Uint32 samplercount,
                               Uint32 uniformbuffercount, Uint32 storagebuffercount, Uint32 storagetexturecount,
-                              CE::VFS::VFS *vfs, const std::string &basePath) {
+                              CE::VFS::VFS* vfs, const std::string& basePath) {
         if (vfs == nullptr) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");
             return nullptr;
@@ -32,7 +32,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         SDL_GPUShaderFormat backendformats = SDL_GetGPUShaderFormats(device);
 
         SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
-        const char *entrypoint = nullptr;
+        const char* entrypoint = nullptr;
         std::string fullPath;
 
         // Select appropriate shader format and path based on backend support
@@ -54,7 +54,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         }
 
         // Load shader data from VFS
-        auto *shaderFile = vfs->V_fopen(fullPath.c_str(), "rb");
+        auto* shaderFile = vfs->V_fopen(fullPath.c_str(), "rb");
         if (!shaderFile) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to open shader file: {}", fullPath);
             return nullptr;
@@ -89,7 +89,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         shaderinfo.num_storage_buffers = storagebuffercount;
         shaderinfo.num_uniform_buffers = uniformbuffercount;
 
-        SDL_GPUShader *shader = SDL_CreateGPUShader(device, &shaderinfo);
+        SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderinfo);
         if (shader == nullptr) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to create GPU shader: {}", SDL_GetError());
             return nullptr;
@@ -99,7 +99,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         return shader;
     }
 
-    glm::mat4 GetView(const Camera2D &cam) {
+    glm::mat4 GetView(const Camera2D& cam) {
         glm::mat4 view(1.0f);
 
         view = glm::translate(view, glm::vec3(-cam.x, -cam.y, 0.0f));
@@ -112,7 +112,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
                           -1.0f, 1.0f);
     }
 
-    glm::mat4 GetCameraMatrix(const Camera2D &cam, float w, float h) {
+    glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h) {
         glm::mat4 proj = GetProjection(w, h);
         glm::mat4 view = GetView(cam);
 

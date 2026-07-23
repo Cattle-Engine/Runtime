@@ -9,20 +9,20 @@
 #include <limits>
 #include <utility>
 
-static Sint64 SDLCALL sdl_vfile_size(void *userdata);
-static Sint64 SDLCALL sdl_vfile_seek(void *userdata, Sint64 offset, SDL_IOWhence whence);
-static size_t SDLCALL sdl_vfile_read(void *userdata, void *ptr, size_t size, SDL_IOStatus *status);
-static size_t SDLCALL sdl_vfile_write(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status);
-static bool SDLCALL sdl_vfile_flush(void *userdata, SDL_IOStatus *status);
-static bool SDLCALL sdl_vfile_close(void *userdata);
+static Sint64 SDLCALL sdl_vfile_size(void* userdata);
+static Sint64 SDLCALL sdl_vfile_seek(void* userdata, Sint64 offset, SDL_IOWhence whence);
+static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL_IOStatus* status);
+static size_t SDLCALL sdl_vfile_write(void* userdata, const void* ptr, size_t size, SDL_IOStatus* status);
+static bool SDLCALL sdl_vfile_flush(void* userdata, SDL_IOStatus* status);
+static bool SDLCALL sdl_vfile_close(void* userdata);
 
-static bool mode_wants_write(const char *mode) {
+static bool mode_wants_write(const char* mode) {
     if (!mode || mode[0] == '\0')
         return false;
     return mode[0] == 'w';
 }
 
-static const SDL_IOStreamInterface *get_vfile_io_interface() {
+static const SDL_IOStreamInterface* get_vfile_io_interface() {
     static SDL_IOStreamInterface iface;
     static bool inited = false;
     if (!inited) {
@@ -38,15 +38,15 @@ static const SDL_IOStreamInterface *get_vfile_io_interface() {
     return &iface;
 }
 
-static Sint64 SDLCALL sdl_vfile_size(void *userdata) {
-    auto *vfile = static_cast<VirtualFile *>(userdata);
+static Sint64 SDLCALL sdl_vfile_size(void* userdata) {
+    auto* vfile = static_cast<VirtualFile*>(userdata);
     if (!vfile)
         return -1;
     return static_cast<Sint64>(vfile->size);
 }
 
-static Sint64 SDLCALL sdl_vfile_seek(void *userdata, Sint64 offset, SDL_IOWhence whence) {
-    auto *file = static_cast<VirtualFile *>(userdata);
+static Sint64 SDLCALL sdl_vfile_seek(void* userdata, Sint64 offset, SDL_IOWhence whence) {
+    auto* file = static_cast<VirtualFile*>(userdata);
     if (!file)
         return -1;
 
@@ -131,7 +131,7 @@ static Sint64 SDLCALL sdl_vfile_seek(void *userdata, Sint64 offset, SDL_IOWhence
     return -1;
 }
 
-static size_t write_to_dir_handle(VirtualFile *file, const void *ptr, size_t size) {
+static size_t write_to_dir_handle(VirtualFile* file, const void* ptr, size_t size) {
     if (!file || !ptr || size == 0 || !file->dir_handle || !file->writable)
         return 0;
 
@@ -144,8 +144,8 @@ static size_t write_to_dir_handle(VirtualFile *file, const void *ptr, size_t siz
     return written;
 }
 
-static size_t SDLCALL sdl_vfile_read(void *userdata, void *ptr, size_t size, SDL_IOStatus *status) {
-    auto *file = static_cast<VirtualFile *>(userdata);
+static size_t SDLCALL sdl_vfile_read(void* userdata, void* ptr, size_t size, SDL_IOStatus* status) {
+    auto* file = static_cast<VirtualFile*>(userdata);
     if (!file || !ptr) {
         if (status)
             *status = SDL_IO_STATUS_ERROR;
@@ -204,8 +204,8 @@ static size_t SDLCALL sdl_vfile_read(void *userdata, void *ptr, size_t size, SDL
     return 0;
 }
 
-static size_t SDLCALL sdl_vfile_write(void *userdata, const void *ptr, size_t size, SDL_IOStatus *status) {
-    auto *file = static_cast<VirtualFile *>(userdata);
+static size_t SDLCALL sdl_vfile_write(void* userdata, const void* ptr, size_t size, SDL_IOStatus* status) {
+    auto* file = static_cast<VirtualFile*>(userdata);
     if (!file || !file->writable) {
         if (status)
             *status = SDL_IO_STATUS_READONLY;
@@ -218,8 +218,8 @@ static size_t SDLCALL sdl_vfile_write(void *userdata, const void *ptr, size_t si
     return written;
 }
 
-static bool SDLCALL sdl_vfile_flush(void *userdata, SDL_IOStatus * /*status*/) {
-    auto *file = static_cast<VirtualFile *>(userdata);
+static bool SDLCALL sdl_vfile_flush(void* userdata, SDL_IOStatus* /*status*/) {
+    auto* file = static_cast<VirtualFile*>(userdata);
     if (!file)
         return false;
     if (file->dir_handle && file->writable) {
@@ -231,19 +231,19 @@ static bool SDLCALL sdl_vfile_flush(void *userdata, SDL_IOStatus * /*status*/) {
     return true;
 }
 
-static bool SDLCALL sdl_vfile_close(void *userdata) {
-    auto *file = static_cast<VirtualFile *>(userdata);
+static bool SDLCALL sdl_vfile_close(void* userdata) {
+    auto* file = static_cast<VirtualFile*>(userdata);
     if (file)
         file->sdl_stream = nullptr;
     return true;
 }
 namespace CE::Global {
-    static CE::VFS::VFS *g_vfs = nullptr;
-    CE::VFS::VFS &GetVFS() {
+    static CE::VFS::VFS* g_vfs = nullptr;
+    CE::VFS::VFS& GetVFS() {
         return *g_vfs;
     }
 
-    void SetVFS(CE::VFS::VFS *vfs) {
+    void SetVFS(CE::VFS::VFS* vfs) {
         g_vfs = vfs;
     }
 } // namespace CE::Global
@@ -251,11 +251,11 @@ namespace CE::Global {
 uint64_t LoadedFile::size() const {
     return static_cast<uint64_t>(data.size());
 }
-const uint8_t *LoadedFile::data_ptr() const {
+const uint8_t* LoadedFile::data_ptr() const {
     return data.data();
 }
 
-MountPoint::MountPoint(const std::string &mount, const std::string &source, bool archive, LoadMode mode, int priority_,
+MountPoint::MountPoint(const std::string& mount, const std::string& source, bool archive, LoadMode mode, int priority_,
                        uint64_t mount_order_)
     : mount_path(mount),
       source_path(source),
@@ -302,12 +302,12 @@ namespace CE::VFS::Returns {
 
 namespace CE::VFS {
 
-    std::string VFS::NormalizeVirtualPath(const std::string &path) {
+    std::string VFS::NormalizeVirtualPath(const std::string& path) {
         std::string p = VFS::NormalizePath(path);
         return VFS::ResolveVirtualPath(p);
     }
 
-    static bool mount_has_file(MountPoint *mount, const std::string &rel_path) {
+    static bool mount_has_file(MountPoint* mount, const std::string& rel_path) {
         if (!mount)
             return false;
 
@@ -317,7 +317,7 @@ namespace CE::VFS {
         if (mount->is_archive) {
             if (!mount->tcf_handle)
                 return false;
-            tcf_file_t *file = nullptr;
+            tcf_file_t* file = nullptr;
             const int result = tcf_vfs_open_file(mount->tcf_handle, rel_path.c_str(), &file);
             if (result == TCF_OK) {
                 tcf_vfs_close_file(file);
@@ -330,7 +330,7 @@ namespace CE::VFS {
         return std::filesystem::exists(full_path) && std::filesystem::is_regular_file(full_path);
     }
 
-    static bool ensure_parent_directories(const std::filesystem::path &path) {
+    static bool ensure_parent_directories(const std::filesystem::path& path) {
         const std::filesystem::path parent = path.parent_path();
         if (parent.empty())
             return true;
@@ -340,13 +340,13 @@ namespace CE::VFS {
         return !ec;
     }
 
-    static bool mount_precedes(const MountPoint *a, const MountPoint *b) {
+    static bool mount_precedes(const MountPoint* a, const MountPoint* b) {
         if (a->priority != b->priority)
             return a->priority > b->priority;
         return a->mount_order > b->mount_order;
     }
 
-    int VFS::MountArchive(const char *archive_path, const char *v_mount_path, const LoadMode loadmode, int priority) {
+    int VFS::MountArchive(const char* archive_path, const char* v_mount_path, const LoadMode loadmode, int priority) {
         if (!archive_path || !v_mount_path)
             return Returns::LOAD_FAIL;
 
@@ -368,7 +368,7 @@ namespace CE::VFS {
         return Returns::LOAD_SUCCESS;
     }
 
-    int VFS::MountFolder(const char *folder_path, const char *v_mount_path, const LoadMode loadmode, int priority) {
+    int VFS::MountFolder(const char* folder_path, const char* v_mount_path, const LoadMode loadmode, int priority) {
         if (!folder_path || !v_mount_path)
             return Returns::LOAD_FAIL;
 
@@ -389,7 +389,7 @@ namespace CE::VFS {
         return Returns::LOAD_SUCCESS;
     }
 
-    bool VFS::Unmount(const char *v_mount_path) {
+    bool VFS::Unmount(const char* v_mount_path) {
         if (!v_mount_path)
             return false;
 
@@ -410,7 +410,7 @@ namespace CE::VFS {
         return true;
     }
 
-    bool VFS::FileExists(const char *virtual_path) {
+    bool VFS::FileExists(const char* virtual_path) {
         if (!virtual_path)
             return false;
 
@@ -418,14 +418,14 @@ namespace CE::VFS {
         path = ResolveVirtualPath(path);
 
         std::string rel_path;
-        MountPoint *mount = FindMount(path, rel_path);
+        MountPoint* mount = FindMount(path, rel_path);
         if (!mount)
             return false;
 
         return mount_has_file(mount, rel_path);
     }
 
-    bool VFS::GetFileSize(const char *virtual_path, uint64_t &out_size) {
+    bool VFS::GetFileSize(const char* virtual_path, uint64_t& out_size) {
         out_size = 0;
         if (!virtual_path)
             return false;
@@ -433,7 +433,7 @@ namespace CE::VFS {
         std::string norm_path = NormalizeVirtualPath(virtual_path);
 
         std::string rel_path;
-        MountPoint *mount = FindMount(norm_path, rel_path);
+        MountPoint* mount = FindMount(norm_path, rel_path);
         if (!mount)
             return false;
 
@@ -446,7 +446,7 @@ namespace CE::VFS {
         }
 
         if (mount->is_archive) {
-            tcf_file_t *file = nullptr;
+            tcf_file_t* file = nullptr;
             int result = tcf_vfs_open_file(mount->tcf_handle, rel_path.c_str(), &file);
             if (result != TCF_OK)
                 return false;
@@ -463,12 +463,12 @@ namespace CE::VFS {
         return true;
     }
 
-    bool VFS::CreateFile(const char *virtual_path) {
+    bool VFS::CreateFile(const char* virtual_path) {
         if (!virtual_path)
             return false;
 
         std::string rel_path;
-        MountPoint *mount = FindWritableMount(virtual_path, rel_path);
+        MountPoint* mount = FindWritableMount(virtual_path, rel_path);
         if (!mount || mount->is_archive || rel_path.empty())
             return false;
 
@@ -479,7 +479,7 @@ namespace CE::VFS {
         if (!ensure_parent_directories(full_path))
             return false;
 
-        FILE *file = std::fopen(full_path.string().c_str(), "wb");
+        FILE* file = std::fopen(full_path.string().c_str(), "wb");
         if (!file)
             return false;
 
@@ -494,11 +494,11 @@ namespace CE::VFS {
         return true;
     }
 
-    VirtualFile *VFS::OpenFile(const char *virtual_path) {
+    VirtualFile* VFS::OpenFile(const char* virtual_path) {
         return OpenFile(virtual_path, "rb");
     }
 
-    VirtualFile *VFS::OpenFile(const char *virtual_path, const char *mode) {
+    VirtualFile* VFS::OpenFile(const char* virtual_path, const char* mode) {
         if (!virtual_path)
             return nullptr;
         if (!mode || mode[0] == '\0')
@@ -509,7 +509,7 @@ namespace CE::VFS {
         const bool wants_write = mode_wants_write(mode);
 
         std::string rel_path;
-        MountPoint *mount = wants_write ? FindWritableMount(norm_path, rel_path) : FindMount(norm_path, rel_path);
+        MountPoint* mount = wants_write ? FindWritableMount(norm_path, rel_path) : FindMount(norm_path, rel_path);
 
         if (!mount)
             return nullptr;
@@ -517,7 +517,7 @@ namespace CE::VFS {
         if (wants_write && rel_path.empty())
             return nullptr;
 
-        auto *vfile = new VirtualFile();
+        auto* vfile = new VirtualFile();
         vfile->mount = mount;
         vfile->path = rel_path;
         vfile->eof = false;
@@ -543,7 +543,7 @@ namespace CE::VFS {
                 delete vfile;
                 return nullptr;
             }
-            tcf_file_t *file = nullptr;
+            tcf_file_t* file = nullptr;
             int result = tcf_vfs_open_file(mount->tcf_handle, rel_path.c_str(), &file);
             if (result != TCF_OK) {
                 delete vfile;
@@ -568,7 +568,7 @@ namespace CE::VFS {
             return nullptr;
         }
 
-        FILE *file = std::fopen(full_path.string().c_str(), wants_write ? "wb" : "rb");
+        FILE* file = std::fopen(full_path.string().c_str(), wants_write ? "wb" : "rb");
         if (!file) {
             delete vfile;
             return nullptr;
@@ -582,7 +582,7 @@ namespace CE::VFS {
         return vfile;
     }
 
-    size_t VFS::ReadFile(VirtualFile *file, void *buffer, size_t size) {
+    size_t VFS::ReadFile(VirtualFile* file, void* buffer, size_t size) {
         if (!file || !buffer)
             return 0;
 
@@ -628,7 +628,7 @@ namespace CE::VFS {
         return 0;
     }
 
-    size_t VFS::WriteFile(VirtualFile *file, const void *buffer, size_t size) {
+    size_t VFS::WriteFile(VirtualFile* file, const void* buffer, size_t size) {
         if (!file || !buffer)
             return 0;
         if (file->loaded_data || file->tcf_handle) {
@@ -642,7 +642,7 @@ namespace CE::VFS {
         return write_to_dir_handle(file, buffer, size);
     }
 
-    bool VFS::FlushFile(VirtualFile *file) {
+    bool VFS::FlushFile(VirtualFile* file) {
         if (!file)
             return false;
         if (file->dir_handle && file->writable) {
@@ -654,7 +654,7 @@ namespace CE::VFS {
         return true;
     }
 
-    bool VFS::SeekFile(VirtualFile *file, int64_t offset, int whence) {
+    bool VFS::SeekFile(VirtualFile* file, int64_t offset, int whence) {
         if (!file)
             return false;
 
@@ -708,7 +708,7 @@ namespace CE::VFS {
         return false;
     }
 
-    int64_t VFS::TellFile(VirtualFile *file) {
+    int64_t VFS::TellFile(VirtualFile* file) {
         if (!file)
             return -1;
         if (file->position > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
@@ -716,7 +716,7 @@ namespace CE::VFS {
         return static_cast<int64_t>(file->position);
     }
 
-    void VFS::CloseFile(VirtualFile *file) {
+    void VFS::CloseFile(VirtualFile* file) {
         if (!file)
             return;
 
@@ -749,13 +749,13 @@ namespace CE::VFS {
         delete file;
     }
 
-    VirtualFile *VFS::V_fopen(const char *virtual_path, const char *mode) {
+    VirtualFile* VFS::V_fopen(const char* virtual_path, const char* mode) {
         if (!mode || mode[0] == '\0')
             return nullptr;
         return OpenFile(virtual_path, mode);
     }
 
-    size_t VFS::V_fread(void *ptr, size_t size, size_t nmemb, VirtualFile *stream) {
+    size_t VFS::V_fread(void* ptr, size_t size, size_t nmemb, VirtualFile* stream) {
         if (!stream || !ptr)
             return 0;
         if (size == 0 || nmemb == 0)
@@ -770,7 +770,7 @@ namespace CE::VFS {
         return bytes_read / size;
     }
 
-    size_t VFS::V_fwrite(const void *ptr, size_t size, size_t nmemb, VirtualFile *stream) {
+    size_t VFS::V_fwrite(const void* ptr, size_t size, size_t nmemb, VirtualFile* stream) {
         if (!stream || !ptr)
             return 0;
         if (size == 0 || nmemb == 0)
@@ -785,7 +785,7 @@ namespace CE::VFS {
         return bytes_written / size;
     }
 
-    int VFS::V_fseek(VirtualFile *stream, long offset, int whence) {
+    int VFS::V_fseek(VirtualFile* stream, long offset, int whence) {
         if (!stream)
             return -1;
         const bool ok = SeekFile(stream, static_cast<int64_t>(offset), whence);
@@ -794,7 +794,7 @@ namespace CE::VFS {
         return 0;
     }
 
-    long VFS::V_ftell(VirtualFile *stream) {
+    long VFS::V_ftell(VirtualFile* stream) {
         if (!stream)
             return -1;
         const int64_t pos = TellFile(stream);
@@ -803,39 +803,39 @@ namespace CE::VFS {
         return static_cast<long>(pos);
     }
 
-    int VFS::V_fclose(VirtualFile *stream) {
+    int VFS::V_fclose(VirtualFile* stream) {
         if (!stream)
             return -1;
         CloseFile(stream);
         return 0;
     }
 
-    int VFS::V_fflush(VirtualFile *stream) {
+    int VFS::V_fflush(VirtualFile* stream) {
         if (!stream)
             return EOF;
         return FlushFile(stream) ? 0 : EOF;
     }
 
-    int VFS::V_feof(VirtualFile *stream) {
+    int VFS::V_feof(VirtualFile* stream) {
         if (!stream)
             return 0;
         return stream->eof ? 1 : 0;
     }
 
-    int VFS::V_ferror(VirtualFile *stream) {
+    int VFS::V_ferror(VirtualFile* stream) {
         if (!stream)
             return 0;
         return stream->error ? 1 : 0;
     }
 
-    void VFS::V_clearerr(VirtualFile *stream) {
+    void VFS::V_clearerr(VirtualFile* stream) {
         if (!stream)
             return;
         stream->eof = false;
         stream->error = false;
     }
 
-    void VFS::V_rewind(VirtualFile *stream) {
+    void VFS::V_rewind(VirtualFile* stream) {
         if (!stream)
             return;
         stream->eof = false;
@@ -843,7 +843,7 @@ namespace CE::VFS {
         (void)SeekFile(stream, 0, SEEK_SET);
     }
 
-    int VFS::V_fgetc(VirtualFile *stream) {
+    int VFS::V_fgetc(VirtualFile* stream) {
         if (!stream)
             return EOF;
         unsigned char c = 0;
@@ -853,7 +853,7 @@ namespace CE::VFS {
         return static_cast<int>(c);
     }
 
-    char *VFS::V_fgets(char *s, int n, VirtualFile *stream) {
+    char* VFS::V_fgets(char* s, int n, VirtualFile* stream) {
         if (!stream || !s || n <= 0)
             return nullptr;
         if (n == 1) {
@@ -880,19 +880,19 @@ namespace CE::VFS {
         return s;
     }
 
-    MountPoint *VFS::FindWritableMount(const std::string &virtual_path, std::string &relative_path) {
+    MountPoint* VFS::FindWritableMount(const std::string& virtual_path, std::string& relative_path) {
         std::string norm_path = NormalizePath(virtual_path);
         norm_path = ResolveVirtualPath(norm_path);
 
         struct Candidate {
-            MountPoint *mount;
+            MountPoint* mount;
             size_t mount_len;
         };
 
         std::vector<Candidate> candidates;
         candidates.reserve(mounts.size());
 
-        for (auto &mount : mounts) {
+        for (auto& mount : mounts) {
             if (mount->is_archive)
                 continue;
             if (norm_path.rfind(mount->mount_path, 0) != 0)
@@ -906,7 +906,7 @@ namespace CE::VFS {
         if (candidates.empty())
             return nullptr;
 
-        std::sort(candidates.begin(), candidates.end(), [](const Candidate &a, const Candidate &b) {
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
             if (a.mount_len != b.mount_len)
                 return a.mount_len > b.mount_len;
             return mount_precedes(a.mount, b.mount);
@@ -917,24 +917,24 @@ namespace CE::VFS {
     }
 
     void VFS::ListMounts() {
-        std::vector<MountPoint *> sorted;
+        std::vector<MountPoint*> sorted;
         sorted.reserve(mounts.size());
-        for (const auto &mount : mounts)
+        for (const auto& mount : mounts)
             sorted.push_back(mount.get());
 
-        std::sort(sorted.begin(), sorted.end(), [](const MountPoint *a, const MountPoint *b) {
+        std::sort(sorted.begin(), sorted.end(), [](const MountPoint* a, const MountPoint* b) {
             if (a->mount_path != b->mount_path)
                 return a->mount_path < b->mount_path;
             return mount_precedes(a, b);
         });
 
-        for (const auto *mount : sorted) {
+        for (const auto* mount : sorted) {
             std::cout << mount->mount_path << " -> " << mount->source_path
                       << (mount->is_archive ? " [archive]" : " [folder]") << " (priority=" << mount->priority << ")\n";
         }
     }
 
-    std::string VFS::NormalizePath(const std::string &path) {
+    std::string VFS::NormalizePath(const std::string& path) {
         std::string result;
         bool last_was_slash = false;
 
@@ -959,12 +959,12 @@ namespace CE::VFS {
         return result;
     }
 
-    std::string VFS::ResolveVirtualPath(const std::string &path) {
+    std::string VFS::ResolveVirtualPath(const std::string& path) {
         std::filesystem::path p(path);
 
         std::vector<std::string> parts;
 
-        for (const auto &part : p) {
+        for (const auto& part : p) {
             if (part == "." || part.empty())
                 continue;
             if (part == "..") {
@@ -985,7 +985,7 @@ namespace CE::VFS {
         return result;
     }
 
-    std::string VFS::GetRelativePath(const std::string &virtual_path, const std::string &mount_path) {
+    std::string VFS::GetRelativePath(const std::string& virtual_path, const std::string& mount_path) {
         if (mount_path.length() >= virtual_path.length())
             return "";
 
@@ -996,19 +996,19 @@ namespace CE::VFS {
         return rel;
     }
 
-    MountPoint *VFS::FindMount(const std::string &virtual_path, std::string &relative_path) {
+    MountPoint* VFS::FindMount(const std::string& virtual_path, std::string& relative_path) {
         std::string norm_path = NormalizePath(virtual_path);
         norm_path = ResolveVirtualPath(norm_path);
 
         struct Candidate {
-            MountPoint *mount;
+            MountPoint* mount;
             size_t mount_len;
         };
 
         std::vector<Candidate> candidates;
         candidates.reserve(mounts.size());
 
-        for (auto &mount : mounts) {
+        for (auto& mount : mounts) {
             if (norm_path.rfind(mount->mount_path, 0) != 0)
                 continue;
             const size_t mount_len = mount->mount_path.length();
@@ -1020,13 +1020,13 @@ namespace CE::VFS {
         if (candidates.empty())
             return nullptr;
 
-        std::sort(candidates.begin(), candidates.end(), [](const Candidate &a, const Candidate &b) {
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& a, const Candidate& b) {
             if (a.mount_len != b.mount_len)
                 return a.mount_len > b.mount_len;
             return mount_precedes(a.mount, b.mount);
         });
 
-        for (const auto &candidate : candidates) {
+        for (const auto& candidate : candidates) {
             std::string rel = GetRelativePath(norm_path, candidate.mount->mount_path);
             if (mount_has_file(candidate.mount, rel)) {
                 relative_path = std::move(rel);
@@ -1037,10 +1037,10 @@ namespace CE::VFS {
         return nullptr;
     }
 
-    bool VFS::LoadEntireFolder(MountPoint *mount) {
+    bool VFS::LoadEntireFolder(MountPoint* mount) {
         std::filesystem::path base_path(mount->source_path);
 
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(base_path)) {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(base_path)) {
             if (!entry.is_regular_file())
                 continue;
 
@@ -1062,7 +1062,7 @@ namespace CE::VFS {
             file.seekg(0, std::ios::beg);
 
             loaded->data.resize(size);
-            file.read(reinterpret_cast<char *>(loaded->data.data()), static_cast<std::streamsize>(size));
+            file.read(reinterpret_cast<char*>(loaded->data.data()), static_cast<std::streamsize>(size));
 
             mount->loaded_files[rel_path] = std::move(loaded);
         }
@@ -1070,7 +1070,7 @@ namespace CE::VFS {
         return true;
     }
 
-    bool VFS::LoadEntireArchive(MountPoint *mount) {
+    bool VFS::LoadEntireArchive(MountPoint* mount) {
         if (!mount->tcf_handle)
             return false;
 
@@ -1081,7 +1081,7 @@ namespace CE::VFS {
         mount->loaded_files.clear();
 
         for (uint32_t i = 0; i < static_cast<uint32_t>(entry_count); ++i) {
-            const char *path = nullptr;
+            const char* path = nullptr;
             uint32_t path_len = 0;
             uint64_t entry_size = 0;
             if (tcf_vfs_entry_info(mount->tcf_handle, i, &path, &path_len, &entry_size) != TCF_OK || !path)
@@ -1105,11 +1105,11 @@ namespace CE::VFS {
         return true;
     }
 
-    bool VFS::LoadFromTCF(MountPoint *mount, const std::string &rel_path, std::vector<uint8_t> &out_data) {
+    bool VFS::LoadFromTCF(MountPoint* mount, const std::string& rel_path, std::vector<uint8_t>& out_data) {
         if (!mount->tcf_handle)
             return false;
 
-        tcf_file_t *file = nullptr;
+        tcf_file_t* file = nullptr;
         int result = tcf_vfs_open_file(mount->tcf_handle, rel_path.c_str(), &file);
         if (result != TCF_OK)
             return false;
@@ -1129,7 +1129,7 @@ namespace CE::VFS {
         return (result == TCF_OK && bytes_read == out_data.size());
     }
 
-    bool VFS::load_file_from_directory(MountPoint *mount, const std::string &rel_path, std::vector<uint8_t> &out_data) {
+    bool VFS::load_file_from_directory(MountPoint* mount, const std::string& rel_path, std::vector<uint8_t>& out_data) {
         std::filesystem::path full_path = std::filesystem::path(mount->source_path) / rel_path;
 
         if (!std::filesystem::exists(full_path) || !std::filesystem::is_regular_file(full_path))
@@ -1147,7 +1147,7 @@ namespace CE::VFS {
         file.seekg(0, std::ios::beg);
 
         out_data.resize(size);
-        file.read(reinterpret_cast<char *>(out_data.data()), static_cast<std::streamsize>(size));
+        file.read(reinterpret_cast<char*>(out_data.data()), static_cast<std::streamsize>(size));
         return true;
     }
 

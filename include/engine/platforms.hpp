@@ -9,6 +9,6 @@ namespace CE::Platforms {
     bool SupportsANSI();
     bool EnableANSI();
 
-    void *AlignedAllocate(std::size_t size, std::size_t alignment);
-    void AlignedFree(void *ptr) noexcept;
+    void* AlignedAllocate(std::size_t size, std::size_t alignment);
+    void AlignedFree(void* ptr) noexcept;
 } // namespace CE::Platforms

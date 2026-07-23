@@ -10,9 +10,9 @@
 #include "engine/engine.hpp"
 #include "engine/memory/allocator.hpp"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     // get the executable base path to combine with the data file name (data.tcf)
-    const char *base = SDL_GetBasePath();
+    const char* base = SDL_GetBasePath();
     if (!base) {
         CE_LOG(CE::LogLevel::Fatal, "[Main] SDL_GetBasePath returned nullptr");
         return 1;
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
         if (!engine.CreateInstance("main", true))
             return 1;
         return engine.Run();
-    } catch (std::runtime_error &e) {
+    } catch (std::runtime_error& e) {
         ShowError(e.what());
         return 1;
     }

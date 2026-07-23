@@ -1,7 +1,7 @@
 #include "engine/scripting/angelscript.hpp"
 
 namespace {
-    bool RegisterKeyboardEnum(asIScriptEngine *engine) {
+    bool RegisterKeyboardEnum(asIScriptEngine* engine) {
         int result = engine->RegisterEnum("KeyboardKeys");
         if (result < 0) {
             return false;
@@ -123,7 +123,7 @@ namespace {
         return true;
     }
 
-    bool RegisterMouseEnum(asIScriptEngine *engine) {
+    bool RegisterMouseEnum(asIScriptEngine* engine) {
         int result = engine->RegisterEnum("MouseButtons");
         if (result < 0) {
             return false;

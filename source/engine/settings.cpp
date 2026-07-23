@@ -9,14 +9,14 @@
 #include "engine/platforms.hpp"
 
 namespace CE::Settings {
-    SettingsManager::SettingsManager(const GameInfo &gameinfo, uint64_t instance_id) {
+    SettingsManager::SettingsManager(const GameInfo& gameinfo, uint64_t instance_id) {
         mGameName = gameinfo.gameNameString;
         mGameInfo = gameinfo;
         mInstanceID = instance_id;
         Internal_ReloadSettings();
     }
 
-    void SettingsManager::SetInstance(CE::Instance &instance) {
+    void SettingsManager::SetInstance(CE::Instance& instance) {
         mInstance = &instance;
     }
 

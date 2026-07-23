@@ -17,11 +17,11 @@ namespace CE::Renderer::Resources {
       public:
         TextureRef() = default;
 
-        TextureRef(TextureManager *mgr, TextureHandle handle, Texture *tex);
+        TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex);
 
         ~TextureRef(); // Not inline anymore
         void Reset();
-        Texture *Get() const {
+        Texture* Get() const {
             return mTexture;
         }
 
@@ -29,25 +29,25 @@ namespace CE::Renderer::Resources {
             return mTexture != nullptr;
         }
 
-        TextureRef(const TextureRef &) = delete;
-        TextureRef &operator=(const TextureRef &) = delete;
+        TextureRef(const TextureRef&) = delete;
+        TextureRef& operator=(const TextureRef&) = delete;
 
-        TextureRef(TextureRef &&other) noexcept;
-        TextureRef &operator=(TextureRef &&other) noexcept;
+        TextureRef(TextureRef&& other) noexcept;
+        TextureRef& operator=(TextureRef&& other) noexcept;
 
       private:
-        TextureManager *mManager = nullptr;
+        TextureManager* mManager = nullptr;
         TextureHandle mHandle = 0;
-        Texture *mTexture = nullptr;
+        Texture* mTexture = nullptr;
     };
 
     class TextureManager {
       public:
-        TextureManager(VFS::VFS &vfs, IRenderer &renderer);
+        TextureManager(VFS::VFS& vfs, IRenderer& renderer);
         ~TextureManager();
         // Internal use for other systems only!
         TextureRef Acquire(TextureHandle handle);
-        Texture *GetTexture(TextureHandle handle);
+        Texture* GetTexture(TextureHandle handle);
 
         // Used to decrease RefCount in TextureEntry
         void Return(TextureHandle handle);
@@ -70,10 +70,10 @@ namespace CE::Renderer::Resources {
          * @param cache_key Used to optimize, if a texture is already loaded with the same cache key, it returns that
          * instead of creating an entirely new texture
          */
-        TextureHandle CreateTextureFromData(int width, int height, const void *pixels, TextureFormat format,
+        TextureHandle CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
                                             int pitch = 0, TextureFilter filter = TextureFilter::Linear,
                                             TextureWrap wrap = TextureWrap::Clamp, std::string cache_key = "",
-                                            TextureUploadBatch *batch = nullptr);
+                                            TextureUploadBatch* batch = nullptr);
 
         /**
          * @brief This marks a texture for deletion and doesn't allow you to get the texture anymore, a texture is only
@@ -97,17 +97,17 @@ namespace CE::Renderer::Resources {
 
       private:
         struct TextureEntry {
-            Texture *Resource;
+            Texture* Resource;
             uint32_t RefCount;
             std::string Path;
             bool IsError;
             bool IsPendingUnload;
         };
 
-        TextureEntry *GetTextureEntry(TextureHandle handle);
+        TextureEntry* GetTextureEntry(TextureHandle handle);
 
-        IRenderer &mRenderer;
-        VFS::VFS &mVFS;
+        IRenderer& mRenderer;
+        VFS::VFS& mVFS;
         uint64_t mNextHandleID = 0;
         std::unordered_map<TextureHandle, TextureEntry> mTextureCache;
         std::unordered_map<std::string, TextureHandle> mPathCache;

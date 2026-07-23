@@ -3,11 +3,11 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
-    GPUMeshManager::GPUMeshManager(IRenderer &renderer, MaterialManager &mat_manager)
+    GPUMeshManager::GPUMeshManager(IRenderer& renderer, MaterialManager& mat_manager)
         : mMaterialManager(mat_manager), mRenderer(renderer) {}
 
     GPUMeshManager::~GPUMeshManager() {
-        for (auto &[handle, meshInfo] : mGPUMeshes) {
+        for (auto& [handle, meshInfo] : mGPUMeshes) {
             (void)handle;
             if (meshInfo.Mesh) {
                 mRenderer.DestroyGPUMesh(meshInfo.Mesh);
@@ -17,12 +17,12 @@ namespace CE::Renderer::Resources {
         mGPUMeshes.clear();
     }
 
-    GPUMesh *GPUMeshManager::CreateMesh(MeshData &data) {
+    GPUMesh* GPUMeshManager::CreateMesh(MeshData& data) {
         return mRenderer.CreateGPUMesh(data);
     }
 
-    MeshHandle GPUMeshManager::CreateMeshHandle(MeshData &data) {
-        GPUMesh *mesh = CreateMesh(data);
+    MeshHandle GPUMeshManager::CreateMeshHandle(MeshData& data) {
+        GPUMesh* mesh = CreateMesh(data);
         if (!mesh) {
             CE_LOG(LogLevel::Error, "[GPUMesh Manager] Failed to create mesh");
             return 0;
@@ -35,7 +35,7 @@ namespace CE::Renderer::Resources {
         return handle;
     }
 
-    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D &transform, MaterialHandle matt_handle,
+    void GPUMeshManager::DrawMeshHandle(MeshHandle handle, const Transform3D& transform, MaterialHandle matt_handle,
                                         bool error_texture) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end() || !it->second.Mesh) {
@@ -73,14 +73,14 @@ namespace CE::Renderer::Resources {
         mRenderer.DrawMeshMat4(it->second.Mesh, material_to_draw, transform, error_texture);
     }
 
-    void GPUMeshManager::ChangeMesh(MeshHandle handle, MeshData &data) {
+    void GPUMeshManager::ChangeMesh(MeshHandle handle, MeshData& data) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
             CE_LOG(LogLevel::Warn, "[GPUMesh Manager] Tried to change missing mesh handle {}", handle);
             return;
         }
 
-        GPUMesh *newMesh = CreateMesh(data);
+        GPUMesh* newMesh = CreateMesh(data);
         if (!newMesh) {
             CE_LOG(LogLevel::Error, "[GPUMesh Manager] Failed to rebuild mesh {}", handle);
             return;
@@ -106,7 +106,7 @@ namespace CE::Renderer::Resources {
         mGPUMeshes.erase(it);
     }
 
-    GPUMesh *GPUMeshManager::GetMesh(MeshHandle handle) {
+    GPUMesh* GPUMeshManager::GetMesh(MeshHandle handle) {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
             return nullptr;
@@ -114,7 +114,7 @@ namespace CE::Renderer::Resources {
         return it->second.Mesh;
     }
 
-    const GPUMesh *GPUMeshManager::GetMesh(MeshHandle handle) const {
+    const GPUMesh* GPUMeshManager::GetMesh(MeshHandle handle) const {
         auto it = mGPUMeshes.find(handle);
         if (it == mGPUMeshes.end()) {
             return nullptr;

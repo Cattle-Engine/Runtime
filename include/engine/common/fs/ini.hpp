@@ -44,7 +44,7 @@ namespace CE::Ini {
         void clear();
 
         bool has(std::string_view section, std::string_view key) const;
-        const std::string *get_ptr(std::string_view section, std::string_view key) const;
+        const std::string* get_ptr(std::string_view section, std::string_view key) const;
 
         std::string get_string(std::string_view section, std::string_view key, std::string_view def = {}) const;
         int64_t get_int(std::string_view section, std::string_view key, int64_t def = 0) const;
@@ -62,13 +62,13 @@ namespace CE::Ini {
         void set_key_comment(std::string_view section, std::string_view key, std::string_view comment);
     };
 
-    bool parse_memory(const void *data, size_t size, IniFile &out, ParseError *err = nullptr, Options opt = {});
+    bool parse_memory(const void* data, size_t size, IniFile& out, ParseError* err = nullptr, Options opt = {});
 
-    bool parse(std::string_view text, IniFile &out, ParseError *err = nullptr, Options opt = {});
+    bool parse(std::string_view text, IniFile& out, ParseError* err = nullptr, Options opt = {});
 
-    bool load_file(const std::filesystem::path &path, IniFile &out, ParseError *err = nullptr, Options opt = {});
+    bool load_file(const std::filesystem::path& path, IniFile& out, ParseError* err = nullptr, Options opt = {});
 
-    std::string serialize(const IniFile &ini, WriteOptions opt = {});
-    bool save_file(const std::filesystem::path &path, const IniFile &ini, WriteOptions opt = {});
+    std::string serialize(const IniFile& ini, WriteOptions opt = {});
+    bool save_file(const std::filesystem::path& path, const IniFile& ini, WriteOptions opt = {});
 
 } // namespace CE::Ini

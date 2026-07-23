@@ -4,21 +4,21 @@
 
 namespace CE::Scripting::Impl::AST {
     // forward declared to stop a circular dep
-    void HashDeclaration(Utils::StreamingHasher &hasher, const ASTDeclaration &decl);
-    void HashNamespace(Utils::StreamingHasher &hasher, const ASTNamespace &ns);
+    void HashDeclaration(Utils::StreamingHasher& hasher, const ASTDeclaration& decl);
+    void HashNamespace(Utils::StreamingHasher& hasher, const ASTNamespace& ns);
 
-    uint64_t HashModule(const ASTModule &module) {
+    uint64_t HashModule(const ASTModule& module) {
         Utils::StreamingHasher hasher;
 
         // hash imports
-        for (const auto &imp : module.Imports) {
+        for (const auto& imp : module.Imports) {
             hasher.AddString(imp.Module);
             if (imp.Symbol)
                 hasher.AddString(*imp.Symbol);
         }
 
         // hash all declarations
-        for (const auto &decl : module.Declarations) {
+        for (const auto& decl : module.Declarations) {
             HashDeclaration(hasher, decl);
         }
 
@@ -26,7 +26,7 @@ namespace CE::Scripting::Impl::AST {
     }
 
     // helper function to easily hash stuff
-    void HashTypeRef(Utils::StreamingHasher &hasher, const ASTTypeRef &type) {
+    void HashTypeRef(Utils::StreamingHasher& hasher, const ASTTypeRef& type) {
         hasher.AddString(type.Name);
         hasher.AddValue(type.IsConst);
         hasher.AddValue(type.IsReference);
@@ -35,43 +35,43 @@ namespace CE::Scripting::Impl::AST {
         hasher.AddValue(type.IsAuto);
     }
 
-    void HashParameter(Utils::StreamingHasher &hasher, const ASTParameter &param) {
+    void HashParameter(Utils::StreamingHasher& hasher, const ASTParameter& param) {
         HashTypeRef(hasher, param.Type);
         hasher.AddString(param.Name);
         hasher.AddString(param.Direction);
     }
 
-    void HashTokens(Utils::StreamingHasher &hasher, const std::vector<Lexer::Token> &tokens) {
-        for (const auto &token : tokens) {
+    void HashTokens(Utils::StreamingHasher& hasher, const std::vector<Lexer::Token>& tokens) {
+        for (const auto& token : tokens) {
             hasher.AddValue(static_cast<int>(token.Type));
             hasher.AddString(token.Value);
         }
     }
 
-    void HashFunction(Utils::StreamingHasher &hasher, const ASTFunction &func) {
+    void HashFunction(Utils::StreamingHasher& hasher, const ASTFunction& func) {
         hasher.AddString(func.Name);
         HashTypeRef(hasher, func.ReturnType);
 
         // hash parameters
-        for (const auto &param : func.Parameters) {
+        for (const auto& param : func.Parameters) {
             HashParameter(hasher, param);
         }
         // hash the function body
         HashTokens(hasher, func.Body);
     }
 
-    void HashGlobal(Utils::StreamingHasher &hasher, const ASTGlobal &global) {
+    void HashGlobal(Utils::StreamingHasher& hasher, const ASTGlobal& global) {
         HashTypeRef(hasher, global.Type);
         hasher.AddString(global.Name);
         HashTokens(hasher, global.Initializer);
     }
 
-    void HashType(Utils::StreamingHasher &hasher, const ASTType &type) {
+    void HashType(Utils::StreamingHasher& hasher, const ASTType& type) {
         hasher.AddString(type.Name);
         HashTokens(hasher, type.Body);
     }
 
-    void HashDeclaration(Utils::StreamingHasher &hasher, const ASTDeclaration &decl) {
+    void HashDeclaration(Utils::StreamingHasher& hasher, const ASTDeclaration& decl) {
         // hash common fields
         hasher.AddValue(static_cast<int>(decl.Type));
         hasher.AddValue(decl.Exported);
@@ -80,7 +80,7 @@ namespace CE::Scripting::Impl::AST {
 
         // hash the variant data based on type
         std::visit(
-            [&](const auto &data) {
+            [&](const auto& data) {
                 using T = std::decay_t<decltype(data)>;
 
                 if constexpr (std::is_same_v<T, ASTFunction>) {
@@ -100,11 +100,11 @@ namespace CE::Scripting::Impl::AST {
             decl.Data);
     }
 
-    void HashNamespace(Utils::StreamingHasher &hasher, const ASTNamespace &ns) {
+    void HashNamespace(Utils::StreamingHasher& hasher, const ASTNamespace& ns) {
         hasher.AddString(ns.Name);
 
         // hash all declarations in the namespace
-        for (const auto &decl : ns.Declarations) {
+        for (const auto& decl : ns.Declarations) {
             HashDeclaration(hasher, decl);
         }
     }

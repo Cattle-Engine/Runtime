@@ -40,7 +40,7 @@ namespace CE::Core::Audio {
     };
 
     struct AudioClip {
-        MIX_Audio *Audio = nullptr;
+        MIX_Audio* Audio = nullptr;
         AudioType Type = AudioType::Error;
         std::string Path;
         bool IsError = false;
@@ -48,8 +48,8 @@ namespace CE::Core::Audio {
     };
 
     struct PlayingSound {
-        MIX_Track *Track = nullptr;
-        const AudioClip *Clip = nullptr;
+        MIX_Track* Track = nullptr;
+        const AudioClip* Clip = nullptr;
         float PositionSeconds = 0.0f;
         int Volume = 128; // 0..128 maps to gain 0..1
         bool IsPlaying = false;
@@ -66,31 +66,31 @@ namespace CE::Core::Audio {
 
     class AudioSystem {
       public:
-        AudioSystem(VFS::VFS &vfs, int instanceid, uint32_t device_id, bool stero);
+        AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
         ~AudioSystem();
 
         std::vector<AudioDeviceInfo> ListAudioDevices();
         void SetAudioDevice(uint32_t device_id, bool stero);
 
-        AudioClip *LoadSound(const std::string &path, const AudioType type);
-        void DestroySound(AudioClip *clip);
+        AudioClip* LoadSound(const std::string& path, const AudioType type);
+        void DestroySound(AudioClip* clip);
 
-        PlayingSound CreateSoundInstance(const AudioClip &clip);
-        void PlaySound(PlayingSound &sound);
-        void PauseSound(PlayingSound &sound);
-        void ResumeSound(PlayingSound &sound);
-        void SeekSound(PlayingSound &sound, float position_seconds);
-        void StopSound(PlayingSound &sound);
-        void UpdateSound(PlayingSound &sound);
-        void DestroySoundInstance(PlayingSound &sound);
+        PlayingSound CreateSoundInstance(const AudioClip& clip);
+        void PlaySound(PlayingSound& sound);
+        void PauseSound(PlayingSound& sound);
+        void ResumeSound(PlayingSound& sound);
+        void SeekSound(PlayingSound& sound, float position_seconds);
+        void StopSound(PlayingSound& sound);
+        void UpdateSound(PlayingSound& sound);
+        void DestroySoundInstance(PlayingSound& sound);
         void StopAll();
         void SetMasterVolume(float v);
         void SetSFXVolume(float v);
         void SetMusicVolume(float v);
-        void SetBusVolume(const std::string &bus, float v);
+        void SetBusVolume(const std::string& bus, float v);
         void SetGlobalVoiceLimit(size_t max_voices);
-        void SetBusVoiceLimit(const std::string &bus, size_t max_voices);
-        void ApplyDSP(PlayingSound &sound);
+        void SetBusVoiceLimit(const std::string& bus, size_t max_voices);
+        void ApplyDSP(PlayingSound& sound);
 
       private:
         struct TrackState {
@@ -101,22 +101,22 @@ namespace CE::Core::Audio {
             uint64_t PlayOrder = 0;
         };
 
-        static void SDLCALL TrackCookedDSP(void *userdata, MIX_Track *track, const SDL_AudioSpec *spec, float *pcm,
+        static void SDLCALL TrackCookedDSP(void* userdata, MIX_Track* track, const SDL_AudioSpec* spec, float* pcm,
                                            int samples);
-        float ComputeTrackGain(const TrackState &state) const;
-        void UpdateTrackGain(MIX_Track *track);
+        float ComputeTrackGain(const TrackState& state) const;
+        void UpdateTrackGain(MIX_Track* track);
         void UpdateAllTrackGains();
-        std::vector<AudioFilter> BuildEffectChain(const PlayingSound &sound) const;
-        bool EnforceVoiceLimits(MIX_Track *requested_track, const std::string &bus);
-        static const char *DefaultBusName(AudioType type);
-        static bool IsTrackActive(MIX_Track *track);
-        float GetSoundPositionSeconds(MIX_Track *track);
+        std::vector<AudioFilter> BuildEffectChain(const PlayingSound& sound) const;
+        bool EnforceVoiceLimits(MIX_Track* requested_track, const std::string& bus);
+        static const char* DefaultBusName(AudioType type);
+        static bool IsTrackActive(MIX_Track* track);
+        float GetSoundPositionSeconds(MIX_Track* track);
 
-        VFS::VFS &mVFS;
+        VFS::VFS& mVFS;
         int mInstanceID;
-        MIX_Mixer *mMixer = nullptr;
+        MIX_Mixer* mMixer = nullptr;
         SDL_AudioSpec mMixerSpec = {};
-        std::vector<MIX_Track *> mTracks;
+        std::vector<MIX_Track*> mTracks;
         uint64_t mPlayCounter = 0;
         size_t mGlobalVoiceLimit = 0;
         float mMasterVolume = 1.0f;
@@ -126,6 +126,6 @@ namespace CE::Core::Audio {
         std::unordered_map<std::string, size_t> mBusVoiceLimits;
 
         std::mutex mDSPMutex;
-        std::unordered_map<MIX_Track *, TrackState> mTrackStates;
+        std::unordered_map<MIX_Track*, TrackState> mTrackStates;
     };
 } // namespace CE::Core::Audio

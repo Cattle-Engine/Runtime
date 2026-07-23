@@ -3,7 +3,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets {
-    VFSIOStream::VFSIOStream(VirtualFile *file, CE::VFS::VFS *vfs) : mFile(file), mVFS(vfs) {}
+    VFSIOStream::VFSIOStream(VirtualFile* file, CE::VFS::VFS* vfs) : mFile(file), mVFS(vfs) {}
 
     VFSIOStream::~VFSIOStream() {
         if (mFile && mVFS) {
@@ -12,14 +12,14 @@ namespace CE::Assets {
         }
     }
 
-    size_t VFSIOStream::Read(void *pvBuffer, size_t pSize, size_t pCount) {
+    size_t VFSIOStream::Read(void* pvBuffer, size_t pSize, size_t pCount) {
         if (!mFile || !mVFS)
             return 0;
 
         return mVFS->ReadFile(mFile, pvBuffer, pSize * pCount) / pSize;
     }
 
-    size_t VFSIOStream::Write(const void *pvBuffer, size_t pSize, size_t pCount) {
+    size_t VFSIOStream::Write(const void* pvBuffer, size_t pSize, size_t pCount) {
         if (!mFile || !mVFS)
             return 0;
 
@@ -67,9 +67,9 @@ namespace CE::Assets {
             mVFS->FlushFile(mFile);
     }
 
-    VFSIOSystem::VFSIOSystem(CE::VFS::VFS *vfs) : mVFS(vfs) {}
+    VFSIOSystem::VFSIOSystem(CE::VFS::VFS* vfs) : mVFS(vfs) {}
 
-    bool VFSIOSystem::Exists(const char *pFile) const {
+    bool VFSIOSystem::Exists(const char* pFile) const {
         if (!mVFS)
             return false;
 
@@ -80,13 +80,13 @@ namespace CE::Assets {
         return '/';
     }
 
-    Assimp::IOStream *VFSIOSystem::Open(const char *pFile, const char *pMode) {
+    Assimp::IOStream* VFSIOSystem::Open(const char* pFile, const char* pMode) {
         (void)pMode;
 
         if (!mVFS)
             return nullptr;
 
-        VirtualFile *file = mVFS->OpenFile(pFile, "rb");
+        VirtualFile* file = mVFS->OpenFile(pFile, "rb");
 
         if (!file)
             return nullptr;
@@ -94,7 +94,7 @@ namespace CE::Assets {
         return new VFSIOStream(file, mVFS);
     }
 
-    void VFSIOSystem::Close(Assimp::IOStream *pFile) {
+    void VFSIOSystem::Close(Assimp::IOStream* pFile) {
         delete pFile;
     }
 

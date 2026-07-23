@@ -20,13 +20,13 @@ namespace CE::Assets::Animations {
     struct AnimationInfo {
         std::string mSourceFileName;
         uint32_t FrameCount;
-        Renderer::Texture *Texture;
+        Renderer::Texture* Texture;
         std::vector<FrameInfo> FramesInfo;
     };
 
     struct AnimationInstance {
         uint32_t CurrentFrame;
-        AnimationInfo *AnimInfo;
+        AnimationInfo* AnimInfo;
         bool IsPlaying;
         bool Loop;
         bool AutoRender;
@@ -38,7 +38,7 @@ namespace CE::Assets::Animations {
 
     class AnimatedTextureManager {
       public:
-        AnimatedTextureManager(VFS::VFS &vfs, Renderer::IRenderer &renderer, int instance_id);
+        AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
 
         void Load(std::string name, std::string path);
         void Unload(std::string name);
@@ -60,11 +60,11 @@ namespace CE::Assets::Animations {
         void Render();
 
       private:
-        AnimationInstance *GetAnimationInfo(uint32_t handle);
+        AnimationInstance* GetAnimationInfo(uint32_t handle);
         std::unordered_map<std::string, std::shared_ptr<AnimationInfo>> mAnimations;
         std::unordered_map<uint32_t, AnimationInstance> mAnimationInstances;
-        VFS::VFS &mVFS;
-        Renderer::IRenderer &mRenderer;
+        VFS::VFS& mVFS;
+        Renderer::IRenderer& mRenderer;
         uint32_t mNextHandleID;
         int mInstanceID;
     };

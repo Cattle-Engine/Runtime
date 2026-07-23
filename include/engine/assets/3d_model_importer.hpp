@@ -20,9 +20,9 @@
 namespace CE::Assets::Model3DImporter {
     class ModelImporter {
       public:
-        ModelImporter(VFS::VFS &vfs, Renderer::Resources::GPUMeshManager &mesh_manager,
-                      Renderer::Resources::MaterialManager &mat_manager, Renderer::Resources::TextureManager &tex_man,
-                      Renderer::IRenderer &renderer);
+        ModelImporter(VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
+                      Renderer::Resources::MaterialManager& mat_manager, Renderer::Resources::TextureManager& tex_man,
+                      Renderer::IRenderer& renderer);
 
         /*
          * @brief Loads a model from the VFS
@@ -38,31 +38,31 @@ namespace CE::Assets::Model3DImporter {
         };
 
         struct LoadedAssimpTextureInfo {
-            SDL_Surface *texture = nullptr;
+            SDL_Surface* texture = nullptr;
             TextureInfo tex_info; // Used when a texture is already loaded
             std::string cache_key = "";
         };
 
-        SDL_Surface *DecodeSurface(const aiScene *scene, const std::string &path, const std::string &textureName,
-                                   std::unordered_map<std::string, SDL_Surface *> &cache);
+        SDL_Surface* DecodeSurface(const aiScene* scene, const std::string& path, const std::string& textureName,
+                                   std::unordered_map<std::string, SDL_Surface*>& cache);
 
-        CE::Renderer::MeshData ConvertMesh(aiMesh *mesh);
-        SDL_Surface *BuildMR(SDL_Surface *metallic, SDL_Surface *roughness);
-        LoadedAssimpTextureInfo LoadAssimpTexture(const aiScene *scene, const aiMaterial *mat, aiTextureType type,
-                                                  Renderer::Resources::Model &model, std::string model_path,
-                                                  std::vector<TextureInfo> &mat_io_vector);
+        CE::Renderer::MeshData ConvertMesh(aiMesh* mesh);
+        SDL_Surface* BuildMR(SDL_Surface* metallic, SDL_Surface* roughness);
+        LoadedAssimpTextureInfo LoadAssimpTexture(const aiScene* scene, const aiMaterial* mat, aiTextureType type,
+                                                  Renderer::Resources::Model& model, std::string model_path,
+                                                  std::vector<TextureInfo>& mat_io_vector);
 
         Renderer::Resources::MaterialHandle
-        LoadAssimpMaterial(const aiScene *scene, const aiMaterial *material, Renderer::Resources::Model &model,
-                           const std::string &path, std::vector<TextureInfo> &gpuHandleCache,
-                           std::unordered_map<std::string, SDL_Surface *> &surfaceCache,
-                           Renderer::TextureUploadBatch *batch);
+        LoadAssimpMaterial(const aiScene* scene, const aiMaterial* material, Renderer::Resources::Model& model,
+                           const std::string& path, std::vector<TextureInfo>& gpuHandleCache,
+                           std::unordered_map<std::string, SDL_Surface*>& surfaceCache,
+                           Renderer::TextureUploadBatch* batch);
 
-        VFS::VFS &mVFS;
-        Renderer::Resources::GPUMeshManager &mGPUMeshManager;
-        Renderer::Resources::MaterialManager &mMaterialManager;
-        Renderer::Resources::TextureManager &mTextureManager;
+        VFS::VFS& mVFS;
+        Renderer::Resources::GPUMeshManager& mGPUMeshManager;
+        Renderer::Resources::MaterialManager& mMaterialManager;
+        Renderer::Resources::TextureManager& mTextureManager;
         // Used to batch textures
-        Renderer::IRenderer &mRenderer;
+        Renderer::IRenderer& mRenderer;
     };
 } // namespace CE::Assets::Model3DImporter

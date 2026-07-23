@@ -234,7 +234,7 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::LoadSound(const std::string &path, const std::string &name, int type) {
+    void Runtime::LoadSound(const std::string& path, const std::string& name, int type) {
         if (!mAudioManager) {
             return;
         }
@@ -246,14 +246,14 @@ namespace CE::Scripting {
         mAudioManager->LoadSound(path, name, resolved);
     }
 
-    void Runtime::UnloadSound(const std::string &name) {
+    void Runtime::UnloadSound(const std::string& name) {
         if (!mAudioManager) {
             return;
         }
         mAudioManager->UnloadSound(name);
     }
 
-    uint32_t Runtime::CreateSoundInstance(const std::string &name) {
+    uint32_t Runtime::CreateSoundInstance(const std::string& name) {
         if (!mAudioManager) {
             return 0;
         }
@@ -302,7 +302,7 @@ namespace CE::Scripting {
         mAudioManager->SeekSound(handle, seconds);
     }
 
-    void Runtime::SetSoundBus(uint32_t handle, const std::string &bus) {
+    void Runtime::SetSoundBus(uint32_t handle, const std::string& bus) {
         if (!mAudioManager) {
             return;
         }
@@ -344,7 +344,7 @@ namespace CE::Scripting {
         mAudioManager->SetSFXVolume(volume);
     }
 
-    void Runtime::AddEffect(uint32_t handle, const std::string &name, const AudioEffectDesc &effect) {
+    void Runtime::AddEffect(uint32_t handle, const std::string& name, const AudioEffectDesc& effect) {
         if (!mAudioManager) {
             return;
         }
@@ -364,7 +364,7 @@ namespace CE::Scripting {
         mAudioManager->AddEffect(handle, name, filter);
     }
 
-    void Runtime::RemoveEffect(uint32_t handle, const std::string &name) {
+    void Runtime::RemoveEffect(uint32_t handle, const std::string& name) {
         if (!mAudioManager) {
             return;
         }

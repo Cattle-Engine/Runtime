@@ -8,7 +8,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(std::unique_ptr<VFS::VFS> &vfs, const char *datafilename, bool debugmode) {
+    int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
         CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
 
@@ -18,7 +18,7 @@ namespace CE::Bootstrap {
         return 0;
     }
 
-    int Init_GameInfo(std::unique_ptr<VFS::VFS> &vfs, std::unique_ptr<GameInfo> &gameinfo, bool debugmode) {
+    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, bool debugmode) {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
 
         if (!stream) {

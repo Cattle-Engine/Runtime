@@ -16,32 +16,32 @@
 namespace CE::UI {
     class DebugWindow {
       public:
-        void Draw(CE::Renderer::IRenderer &renderer, CE::Renderer::Resources::TextureManager &texman,
-                  CE::Renderer::Resources::ShaderManager &shaderman, CE::Assets::Skyboxes::SkyBoxManager &skyboxman,
-                  CE::Assets::Fonts::FontManager &fontman, CE::GameInfo &gameinfo,
-                  CE::Settings::SettingsManager &settings, CE::Assets::Audio::AudioManager *audioman,
-                  Input::Keyboard &kbmanger, CE::Instance &instance, Input::Mouse &msmanager, int fps, float deltaTime,
+        void Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
+                  CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                  CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
+                  CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman,
+                  Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime,
                   float frameTime);
 
         void SetOpen(bool open);
         bool IsOpen() const;
 
       private:
-        void DrawInstanceTab(CE::GameInfo &gameinfo, CE::Instance &instance);
-        void DrawInputTab(CE::Input::Keyboard &kbmanger, CE::Input::Mouse &msmanager);
-        void DrawSettingsTab(CE::Settings::SettingsManager &settings, CE::Assets::Audio::AudioManager *audioman);
-        void DrawPerformanceTab(CE::Renderer::IRenderer &renderer, CE::Renderer::Resources::TextureManager &texman,
-                                CE::Renderer::Resources::ShaderManager &shaderman,
-                                CE::Assets::Skyboxes::SkyBoxManager &skyboxman,
-                                const CE::Settings::SettingsManager &settings, int fps, float deltaTime,
+        void DrawInstanceTab(CE::GameInfo& gameinfo, CE::Instance& instance);
+        void DrawInputTab(CE::Input::Keyboard& kbmanger, CE::Input::Mouse& msmanager);
+        void DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman);
+        void DrawPerformanceTab(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
+                                CE::Renderer::Resources::ShaderManager& shaderman,
+                                CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                                const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
                                 float frameTime);
-        void DrawRendererTab(CE::Renderer::IRenderer &renderer, const CE::Settings::SettingsManager &settings,
-                             CE::Renderer::Resources::TextureManager &texman,
-                             CE::Renderer::Resources::ShaderManager &shaderman,
-                             CE::Assets::Skyboxes::SkyBoxManager &skyboxman, CE::Assets::Fonts::FontManager &fontman);
-        void DrawAudioTab(CE::Assets::Audio::AudioManager *audioman, CE::Settings::SettingsManager &settings);
+        void DrawRendererTab(CE::Renderer::IRenderer& renderer, const CE::Settings::SettingsManager& settings,
+                             CE::Renderer::Resources::TextureManager& texman,
+                             CE::Renderer::Resources::ShaderManager& shaderman,
+                             CE::Assets::Skyboxes::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman);
+        void DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings);
 
-        void UpdateFreeCam(CE::Renderer::IRenderer &renderer, Input::Keyboard &keyboard, Input::Mouse &mouse,
+        void UpdateFreeCam(CE::Renderer::IRenderer& renderer, Input::Keyboard& keyboard, Input::Mouse& mouse,
                            float deltaTime);
 
         struct SettingsTabState {

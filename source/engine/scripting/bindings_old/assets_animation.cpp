@@ -32,21 +32,21 @@ namespace CE::Scripting {
         return true;
     }
 
-    void Runtime::LoadAnimation(const std::string &path, const std::string &name) {
+    void Runtime::LoadAnimation(const std::string& path, const std::string& name) {
         if (!mAnimationManager) {
             return;
         }
         mAnimationManager->Load(name, path);
     }
 
-    void Runtime::UnloadAnimation(const std::string &name) {
+    void Runtime::UnloadAnimation(const std::string& name) {
         if (!mAnimationManager) {
             return;
         }
         mAnimationManager->Unload(name);
     }
 
-    uint32_t Runtime::CreateAnimationInstance(const std::string &name) {
+    uint32_t Runtime::CreateAnimationInstance(const std::string& name) {
         if (!mAnimationManager) {
             return 0;
         }
@@ -102,7 +102,7 @@ namespace CE::Scripting {
         mAnimationManager->SetLooping(handle, loop);
     }
 
-    void Runtime::SetAnimationTint(uint32_t handle, const Renderer::Colour &colour) {
+    void Runtime::SetAnimationTint(uint32_t handle, const Renderer::Colour& colour) {
         if (!mAnimationManager) {
             return;
         }

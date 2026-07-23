@@ -13,7 +13,7 @@ namespace CE::Input {
         auto indices = CE::SDL_Events::GetWindowEventIndices(gWindowID);
 
         for (size_t idx : indices) {
-            const SDL_Event &event = CE::SDL_Events::gEvents[idx];
+            const SDL_Event& event = CE::SDL_Events::gEvents[idx];
 
             if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) {
 

@@ -29,9 +29,9 @@ namespace CE::Scripting::Impl {
         return {};
     }
 
-    ModuleImporter::ModuleImporter(VFS::VFS &vfs) : mVFS(vfs) {}
+    ModuleImporter::ModuleImporter(VFS::VFS& vfs) : mVFS(vfs) {}
 
-    std::string ModuleImporter::LoadFile(const std::string &filepath) {
+    std::string ModuleImporter::LoadFile(const std::string& filepath) {
         if (!mVFS.FileExists(filepath.c_str())) {
             throw std::runtime_error("File not found: " + filepath);
         }
@@ -40,8 +40,8 @@ namespace CE::Scripting::Impl {
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(Common::GetScriptFromVFS(filepath, mVFS), filepath));
         analyser.CheckModule(root, filepath);
         mEntrypoints.clear();
-        for (const std::string &source_name : {std::string("main"), std::string("update")}) {
-            if (const auto *symbol = analyser.FindSymbol(source_name, filepath)) {
+        for (const std::string& source_name : {std::string("main"), std::string("update")}) {
+            if (const auto* symbol = analyser.FindSymbol(source_name, filepath)) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Function) {
                     mEntrypoints.emplace(source_name, symbol->InternalName);
                 }
@@ -51,7 +51,7 @@ namespace CE::Scripting::Impl {
         return generator.GenerateMonoScript(analyser.GetEmissionOrder(), analyser.GetParsedModules());
     }
 
-    ModuleInfo ModuleImporter::LoadModule(const std::string &name) {
+    ModuleInfo ModuleImporter::LoadModule(const std::string& name) {
         ModuleInfo info;
         info.Name = name;
         const std::string source = Common::GetScriptFromVFS(name, mVFS);
@@ -62,7 +62,7 @@ namespace CE::Scripting::Impl {
         return info;
     }
 
-    std::string ModuleImporter::GetGeneratedEntrypoint(const std::string &source_name) const {
+    std::string ModuleImporter::GetGeneratedEntrypoint(const std::string& source_name) const {
         auto entrypoint = mEntrypoints.find(source_name);
         return entrypoint == mEntrypoints.end() ? std::string{} : entrypoint->second;
     }

@@ -7,7 +7,7 @@
 namespace CE::Scripting::Impl::Parser {
     class Parser {
       public:
-        Parser(const std::vector<Lexer::Token> &tokens) : mTokens(tokens) {}
+        Parser(const std::vector<Lexer::Token>& tokens) : mTokens(tokens) {}
 
         AST::ASTModule Parse() {
             AST::ASTModule script_module;
@@ -35,7 +35,7 @@ namespace CE::Scripting::Impl::Parser {
         }
 
       private:
-        const Lexer::Token &Current() {
+        const Lexer::Token& Current() {
             return mTokens.at(mPosition);
         }
         void Advance() {
@@ -51,7 +51,7 @@ namespace CE::Scripting::Impl::Parser {
             return true;
         }
 
-        const Lexer::Token &Expect(Lexer::Token::TokenType type) {
+        const Lexer::Token& Expect(Lexer::Token::TokenType type) {
             if (Current().Type != type) {
                 throw Exceptions::ParserError("Unexpected token", Current().Location);
             }
@@ -59,7 +59,7 @@ namespace CE::Scripting::Impl::Parser {
             return mTokens[mPosition++];
         }
 
-        const Lexer::Token &Peek(size_t offset = 1) {
+        const Lexer::Token& Peek(size_t offset = 1) {
             size_t idx = mPosition + offset;
             if (idx >= mTokens.size()) {
                 return mTokens.back();
@@ -371,7 +371,7 @@ namespace CE::Scripting::Impl::Parser {
             return decl;
         }
 
-        const std::vector<Lexer::Token> &mTokens;
+        const std::vector<Lexer::Token>& mTokens;
         size_t mPosition = 0;
     };
 

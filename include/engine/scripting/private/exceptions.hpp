@@ -16,7 +16,7 @@ namespace CE::Scripting::Impl::Exceptions {
               mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
                                 mLocation.Column)) {}
 
-        const char *what() const noexcept override {
+        const char* what() const noexcept override {
             return mWhat.c_str();
         }
 
@@ -34,7 +34,7 @@ namespace CE::Scripting::Impl::Exceptions {
               mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
                                 mLocation.Column)) {}
 
-        const char *what() const noexcept override {
+        const char* what() const noexcept override {
             return mWhat.c_str();
         }
 
@@ -52,7 +52,7 @@ namespace CE::Scripting::Impl::Exceptions {
               mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
                                 mLocation.Column)) {}
 
-        const char *what() const noexcept override {
+        const char* what() const noexcept override {
             return mWhat.c_str();
         }
 

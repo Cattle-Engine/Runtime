@@ -162,8 +162,8 @@ namespace CE::Scripting {
         mSettingsManager.ReloadSettings();
     }
 
-    int Runtime::RegisterStateCallback(const std::string &state, const std::string &eventName,
-                                       asIScriptFunction *callback) {
+    int Runtime::RegisterStateCallback(const std::string& state, const std::string& eventName,
+                                       asIScriptFunction* callback) {
         if (callback == nullptr) {
             Fail("CE::Events::On received a null callback");
             return -1;
@@ -183,7 +183,7 @@ namespace CE::Scripting {
         return id;
     }
 
-    void Runtime::SetGameState(const std::string &state) {
+    void Runtime::SetGameState(const std::string& state) {
         mInstance.SetGameState(state);
     }
 
@@ -191,36 +191,36 @@ namespace CE::Scripting {
         return mInstance.GetGameState();
     }
 
-    int Runtime::GetSettingInt(const std::string &key, const std::string &section, int fallback) {
+    int Runtime::GetSettingInt(const std::string& key, const std::string& section, int fallback) {
         return mSettingsManager.Custom_GetInteger(key, section, fallback);
     }
 
-    float Runtime::GetSettingFloat(const std::string &key, const std::string &section, float fallback) {
+    float Runtime::GetSettingFloat(const std::string& key, const std::string& section, float fallback) {
         return mSettingsManager.Custom_GetFloat(key, section, fallback);
     }
 
-    bool Runtime::GetSettingBool(const std::string &key, const std::string &section, bool fallback) {
+    bool Runtime::GetSettingBool(const std::string& key, const std::string& section, bool fallback) {
         return mSettingsManager.Custom_GetBool(key, section, fallback);
     }
 
-    std::string Runtime::GetSettingString(const std::string &key, const std::string &section,
-                                          const std::string &fallback) {
+    std::string Runtime::GetSettingString(const std::string& key, const std::string& section,
+                                          const std::string& fallback) {
         return mSettingsManager.Custom_GetString(key, section, fallback);
     }
 
-    void Runtime::SetSettingInt(const std::string &key, const std::string &section, int value) {
+    void Runtime::SetSettingInt(const std::string& key, const std::string& section, int value) {
         mSettingsManager.Custom_SetInteger(key, section, value);
     }
 
-    void Runtime::SetSettingFloat(const std::string &key, const std::string &section, float value) {
+    void Runtime::SetSettingFloat(const std::string& key, const std::string& section, float value) {
         mSettingsManager.Custom_SetFloat(key, section, value);
     }
 
-    void Runtime::SetSettingBool(const std::string &key, const std::string &section, bool value) {
+    void Runtime::SetSettingBool(const std::string& key, const std::string& section, bool value) {
         mSettingsManager.Custom_SetBool(key, section, value);
     }
 
-    void Runtime::SetSettingString(const std::string &key, const std::string &section, const std::string &value) {
+    void Runtime::SetSettingString(const std::string& key, const std::string& section, const std::string& value) {
         mSettingsManager.Custom_SetString(key, section, value);
     }
 } // namespace CE::Scripting

@@ -38,7 +38,7 @@ constexpr uint64_t TCF_HEADER_CRC32_V2_LEN = 56;
 #define PATH_SEP '/'
 #endif
 
-static uint32_t crc32(const uint8_t *data, size_t len) {
+static uint32_t crc32(const uint8_t* data, size_t len) {
     uint32_t crc = 0xFFFFFFFF;
 
     for (size_t i = 0; i < len; i++) {
@@ -75,35 +75,35 @@ struct TCFEntry {
 
 static std::vector<TCFEntry> entries;
 
-static void add_entry(const std::string &path, uint64_t size) {
+static void add_entry(const std::string& path, uint64_t size) {
     entries.emplace_back(TCFEntry{path, 0, size});
 }
 
-int ensure_dirs(const char *path) {
+int ensure_dirs(const char* path) {
     std::filesystem::path p(path);
     std::filesystem::create_directories(p.parent_path());
     return 0;
 }
 
-static uint16_t read_u16(std::ifstream &f) {
+static uint16_t read_u16(std::ifstream& f) {
     uint8_t b[2];
-    f.read(reinterpret_cast<char *>(b), 2);
+    f.read(reinterpret_cast<char*>(b), 2);
     if (!f)
         return 0;
     return static_cast<uint16_t>(b[0] | (b[1] << 8));
 }
 
-static uint32_t read_u32(std::ifstream &f) {
+static uint32_t read_u32(std::ifstream& f) {
     uint8_t b[4];
-    f.read(reinterpret_cast<char *>(b), 4);
+    f.read(reinterpret_cast<char*>(b), 4);
     if (!f)
         return 0;
     return static_cast<uint32_t>(b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24));
 }
 
-static uint64_t read_u64(std::ifstream &f) {
+static uint64_t read_u64(std::ifstream& f) {
     uint8_t b[8];
-    f.read(reinterpret_cast<char *>(b), 8);
+    f.read(reinterpret_cast<char*>(b), 8);
     if (!f)
         return 0;
     return static_cast<uint64_t>(b[0]) | (static_cast<uint64_t>(b[1]) << 8) | (static_cast<uint64_t>(b[2]) << 16) |
@@ -112,42 +112,42 @@ static uint64_t read_u64(std::ifstream &f) {
            (static_cast<uint64_t>(b[7]) << 56);
 }
 
-static void write_u16_le(std::ofstream &f, uint16_t v) {
+static void write_u16_le(std::ofstream& f, uint16_t v) {
     uint8_t b[2] = {
         static_cast<uint8_t>(v & 0xFF),
         static_cast<uint8_t>((v >> 8) & 0xFF),
     };
-    f.write(reinterpret_cast<const char *>(b), 2);
+    f.write(reinterpret_cast<const char*>(b), 2);
 }
 
-static void write_u64_le(std::ofstream &f, uint64_t v) {
+static void write_u64_le(std::ofstream& f, uint64_t v) {
     uint8_t b[8] = {
         static_cast<uint8_t>(v & 0xFF),         static_cast<uint8_t>((v >> 8) & 0xFF),
         static_cast<uint8_t>((v >> 16) & 0xFF), static_cast<uint8_t>((v >> 24) & 0xFF),
         static_cast<uint8_t>((v >> 32) & 0xFF), static_cast<uint8_t>((v >> 40) & 0xFF),
         static_cast<uint8_t>((v >> 48) & 0xFF), static_cast<uint8_t>((v >> 56) & 0xFF),
     };
-    f.write(reinterpret_cast<const char *>(b), 8);
+    f.write(reinterpret_cast<const char*>(b), 8);
 }
 
-static uint32_t le_u32(const uint8_t *p) {
+static uint32_t le_u32(const uint8_t* p) {
     return static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) | (static_cast<uint32_t>(p[2]) << 16) |
            (static_cast<uint32_t>(p[3]) << 24);
 }
 
-static uint64_t le_u64(const uint8_t *p) {
+static uint64_t le_u64(const uint8_t* p) {
     return static_cast<uint64_t>(p[0]) | (static_cast<uint64_t>(p[1]) << 8) | (static_cast<uint64_t>(p[2]) << 16) |
            (static_cast<uint64_t>(p[3]) << 24) | (static_cast<uint64_t>(p[4]) << 32) |
            (static_cast<uint64_t>(p[5]) << 40) | (static_cast<uint64_t>(p[6]) << 48) |
            (static_cast<uint64_t>(p[7]) << 56);
 }
 
-static std::string normalize_inner_path(const char *inner_path) {
+static std::string normalize_inner_path(const char* inner_path) {
     if (!inner_path)
         return {};
 
     std::string s(inner_path);
-    for (char &ch : s) {
+    for (char& ch : s) {
         if (ch == '\\')
             ch = '/';
     }
@@ -158,7 +158,7 @@ static std::string normalize_inner_path(const char *inner_path) {
     return s;
 }
 
-static bool is_safe_inner_path(const std::string &p) {
+static bool is_safe_inner_path(const std::string& p) {
     if (p.empty())
         return false;
     if (p.find("..") != std::string::npos)
@@ -177,7 +177,7 @@ struct TCFHeaderInfo {
     uint64_t data_offset = 0;
 };
 
-static uint64_t get_file_size(std::ifstream &f) {
+static uint64_t get_file_size(std::ifstream& f) {
     std::streampos cur = f.tellg();
     f.seekg(0, std::ios::end);
     std::streampos end = f.tellg();
@@ -187,9 +187,9 @@ static uint64_t get_file_size(std::ifstream &f) {
     return static_cast<uint64_t>(end);
 }
 
-static int read_tcf_header(std::ifstream &f, TCFHeaderInfo &info) {
+static int read_tcf_header(std::ifstream& f, TCFHeaderInfo& info) {
     uint8_t prefix[4];
-    f.read(reinterpret_cast<char *>(prefix), sizeof(prefix));
+    f.read(reinterpret_cast<char*>(prefix), sizeof(prefix));
     if (!f || f.gcount() != static_cast<std::streamsize>(sizeof(prefix)))
         return TCF_ERR_FORMAT;
 
@@ -201,7 +201,7 @@ static int read_tcf_header(std::ifstream &f, TCFHeaderInfo &info) {
     if (info.version == VERSION_V1) {
         uint8_t header[static_cast<size_t>(TCF_HEADER_SIZE_V1)];
         std::memcpy(header, prefix, sizeof(prefix));
-        f.read(reinterpret_cast<char *>(header + sizeof(prefix)),
+        f.read(reinterpret_cast<char*>(header + sizeof(prefix)),
                static_cast<std::streamsize>(TCF_HEADER_SIZE_V1 - sizeof(prefix)));
         if (!f || f.gcount() != static_cast<std::streamsize>(TCF_HEADER_SIZE_V1 - sizeof(prefix)))
             return TCF_ERR_FORMAT;
@@ -216,7 +216,7 @@ static int read_tcf_header(std::ifstream &f, TCFHeaderInfo &info) {
     } else if (info.version == VERSION_V2) {
         uint8_t header[static_cast<size_t>(TCF_HEADER_SIZE_V2)];
         std::memcpy(header, prefix, sizeof(prefix));
-        f.read(reinterpret_cast<char *>(header + sizeof(prefix)),
+        f.read(reinterpret_cast<char*>(header + sizeof(prefix)),
                static_cast<std::streamsize>(TCF_HEADER_SIZE_V2 - sizeof(prefix)));
         if (!f || f.gcount() != static_cast<std::streamsize>(TCF_HEADER_SIZE_V2 - sizeof(prefix)))
             return TCF_ERR_FORMAT;
@@ -247,8 +247,8 @@ static int read_tcf_header(std::ifstream &f, TCFHeaderInfo &info) {
     return TCF_OK;
 }
 
-static int read_tcf_index_entry(std::ifstream &f, uint8_t version, std::string &path_out, uint64_t &offset_out,
-                                uint64_t &size_out) {
+static int read_tcf_index_entry(std::ifstream& f, uint8_t version, std::string& path_out, uint64_t& offset_out,
+                                uint64_t& size_out) {
     uint16_t path_len = read_u16(f);
     if (!f)
         return TCF_ERR_IO;
@@ -284,9 +284,9 @@ static int read_tcf_index_entry(std::ifstream &f, uint8_t version, std::string &
     return TCF_OK;
 }
 
-static void walk_dir(const std::filesystem::path &base, const std::filesystem::path &rel = "") {
+static void walk_dir(const std::filesystem::path& base, const std::filesystem::path& rel = "") {
     std::filesystem::path current = base / rel;
-    for (const auto &entry : std::filesystem::recursive_directory_iterator(current)) {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(current)) {
         if (entry.is_regular_file()) {
             std::filesystem::path relative_path = std::filesystem::relative(entry.path(), base);
             std::string path_str = relative_path.generic_string(); // Use forward slashes
@@ -296,26 +296,26 @@ static void walk_dir(const std::filesystem::path &base, const std::filesystem::p
     }
 }
 
-int tcf_pack(const char *input_dir, const char *out_path) {
+int tcf_pack(const char* input_dir, const char* out_path) {
     init_tables();
     entries.clear();
     walk_dir(input_dir);
 
-    std::sort(entries.begin(), entries.end(), [](const TCFEntry &a, const TCFEntry &b) { return a.size < b.size; });
+    std::sort(entries.begin(), entries.end(), [](const TCFEntry& a, const TCFEntry& b) { return a.size < b.size; });
 
     std::ofstream out(out_path, std::ios::binary);
     if (!out)
         return TCF_ERR_IO;
 
     uint8_t header[static_cast<size_t>(TCF_HEADER_SIZE_V2)] = {0};
-    out.write(reinterpret_cast<char *>(header), static_cast<std::streamsize>(sizeof(header)));
+    out.write(reinterpret_cast<char*>(header), static_cast<std::streamsize>(sizeof(header)));
     if (!out)
         return TCF_ERR_IO;
 
     std::vector<uint8_t> buffer(BUFFER_SIZE);
     uint64_t offset = 0;
 
-    for (auto &entry : entries) {
+    for (auto& entry : entries) {
         entry.offset = offset;
 
         std::filesystem::path full_path = std::filesystem::path(input_dir) / entry.path;
@@ -325,7 +325,7 @@ int tcf_pack(const char *input_dir, const char *out_path) {
 
         size_t r;
         while (in) {
-            in.read(reinterpret_cast<char *>(buffer.data()), BUFFER_SIZE);
+            in.read(reinterpret_cast<char*>(buffer.data()), BUFFER_SIZE);
             r = static_cast<size_t>(in.gcount());
             if (r == 0)
                 break;
@@ -334,7 +334,7 @@ int tcf_pack(const char *input_dir, const char *out_path) {
                 buffer[j] = shift_table[buffer[j]];
             }
 
-            out.write(reinterpret_cast<char *>(buffer.data()), static_cast<std::streamsize>(r));
+            out.write(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(r));
         }
 
         offset += entry.size;
@@ -345,7 +345,7 @@ int tcf_pack(const char *input_dir, const char *out_path) {
         return TCF_ERR_IO;
     uint64_t index_offset = static_cast<uint64_t>(index_pos);
 
-    for (const auto &entry : entries) {
+    for (const auto& entry : entries) {
         if (entry.path.size() > std::numeric_limits<uint16_t>::max())
             return TCF_ERR_ARG;
 
@@ -397,14 +397,14 @@ int tcf_pack(const char *input_dir, const char *out_path) {
     header[59] = static_cast<uint8_t>((crc >> 24) & 0xFF);
 
     out.seekp(0);
-    out.write(reinterpret_cast<char *>(header), static_cast<std::streamsize>(sizeof(header)));
+    out.write(reinterpret_cast<char*>(header), static_cast<std::streamsize>(sizeof(header)));
     if (!out)
         return TCF_ERR_IO;
 
     return TCF_OK;
 }
 
-int tcf_load_file(const char *tcf_path, const char *inner_path, uint8_t **out_data, uint64_t *out_size) {
+int tcf_load_file(const char* tcf_path, const char* inner_path, uint8_t** out_data, uint64_t* out_size) {
     if (!tcf_path || !inner_path || !out_data || !out_size)
         return TCF_ERR_ARG;
 
@@ -469,7 +469,7 @@ int tcf_load_file(const char *tcf_path, const char *inner_path, uint8_t **out_da
     if (found_size > static_cast<uint64_t>(std::numeric_limits<size_t>::max()))
         return TCF_ERR_MEMORY;
 
-    uint8_t *data = static_cast<uint8_t *>(std::malloc(static_cast<size_t>(found_size)));
+    uint8_t* data = static_cast<uint8_t*>(std::malloc(static_cast<size_t>(found_size)));
     if (!data)
         return TCF_ERR_MEMORY;
 
@@ -491,7 +491,7 @@ int tcf_load_file(const char *tcf_path, const char *inner_path, uint8_t **out_da
 
     while (remaining > 0) {
         size_t chunk = static_cast<size_t>(std::min<uint64_t>(remaining, static_cast<uint64_t>(BUFFER_SIZE)));
-        f.read(reinterpret_cast<char *>(buffer.data()), static_cast<std::streamsize>(chunk));
+        f.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(chunk));
         if (!f || static_cast<size_t>(f.gcount()) != chunk) {
             std::free(data);
             return TCF_ERR_IO;
@@ -510,11 +510,11 @@ int tcf_load_file(const char *tcf_path, const char *inner_path, uint8_t **out_da
     return TCF_OK;
 }
 
-void tcf_free(void *ptr) {
+void tcf_free(void* ptr) {
     std::free(ptr);
 }
 
-int tcf_extract(const char *tcf_path, const char *output_dir) {
+int tcf_extract(const char* tcf_path, const char* output_dir) {
     init_tables();
 
     std::ifstream f(tcf_path, std::ios::binary);
@@ -560,7 +560,7 @@ int tcf_extract(const char *tcf_path, const char *output_dir) {
     const uint64_t payload_size = header.index_offset - header.data_offset;
     std::vector<uint8_t> buffer(BUFFER_SIZE);
 
-    for (const auto &entry : local_entries) {
+    for (const auto& entry : local_entries) {
         if (entry.offset > payload_size || entry.size > payload_size || entry.offset + entry.size > payload_size)
             return TCF_ERR_FORMAT;
 
@@ -579,14 +579,14 @@ int tcf_extract(const char *tcf_path, const char *output_dir) {
         uint64_t remaining = entry.size;
         while (remaining > 0) {
             size_t chunk = static_cast<size_t>(std::min<uint64_t>(remaining, static_cast<uint64_t>(BUFFER_SIZE)));
-            f.read(reinterpret_cast<char *>(buffer.data()), static_cast<std::streamsize>(chunk));
+            f.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(chunk));
             if (!f || static_cast<size_t>(f.gcount()) != chunk)
                 return TCF_ERR_IO;
 
             for (size_t j = 0; j < chunk; ++j)
                 buffer[j] = unshift_table[buffer[j]];
 
-            out.write(reinterpret_cast<const char *>(buffer.data()), static_cast<std::streamsize>(chunk));
+            out.write(reinterpret_cast<const char*>(buffer.data()), static_cast<std::streamsize>(chunk));
             if (!out)
                 return TCF_ERR_IO;
 
@@ -607,7 +607,7 @@ struct tcf_vfs_t {
 };
 
 struct tcf_file_t {
-    tcf_vfs_t *vfs;    // Parent VFS
+    tcf_vfs_t* vfs;    // Parent VFS
     uint64_t offset;   // File data start (relative to payload start)
     uint64_t size;     // Total size of the file
     uint64_t position; // Current read position (0..size)
@@ -620,13 +620,13 @@ struct tcf_file_t {
  * @return TCF_OK on success, error code otherwise.
  */
 
-uint64_t tcf_vfs_file_size(tcf_file_t *file) {
+uint64_t tcf_vfs_file_size(tcf_file_t* file) {
     if (!file)
         return 0;
     return file->size;
 }
 
-int tcf_vfs_open(const char *tcf_path, tcf_vfs_t **vfs_out) {
+int tcf_vfs_open(const char* tcf_path, tcf_vfs_t** vfs_out) {
     if (!tcf_path || !vfs_out)
         return TCF_ERR_ARG;
 
@@ -684,7 +684,7 @@ int tcf_vfs_open(const char *tcf_path, tcf_vfs_t **vfs_out) {
  * Closes a VFS handle and releases all associated resources.
  * @param vfs The VFS handle to close (can be NULL).
  */
-void tcf_vfs_close(tcf_vfs_t *vfs) {
+void tcf_vfs_close(tcf_vfs_t* vfs) {
     if (vfs) {
         vfs->file.close();
         delete vfs;
@@ -698,7 +698,7 @@ void tcf_vfs_close(tcf_vfs_t *vfs) {
  * @param file_out Output pointer to the file handle.
  * @return TCF_OK on success, error code otherwise.
  */
-int tcf_vfs_open_file(tcf_vfs_t *vfs, const char *inner_path, tcf_file_t **file_out) {
+int tcf_vfs_open_file(tcf_vfs_t* vfs, const char* inner_path, tcf_file_t** file_out) {
     if (!vfs || !inner_path || !file_out)
         return TCF_ERR_ARG;
 
@@ -708,7 +708,7 @@ int tcf_vfs_open_file(tcf_vfs_t *vfs, const char *inner_path, tcf_file_t **file_
 
     // Find the entry
     auto it = std::find_if(vfs->entries.begin(), vfs->entries.end(),
-                           [&wanted](const TCFEntry &e) { return e.path == wanted; });
+                           [&wanted](const TCFEntry& e) { return e.path == wanted; });
     if (it == vfs->entries.end())
         return TCF_ERR_NOT_FOUND;
 
@@ -717,7 +717,7 @@ int tcf_vfs_open_file(tcf_vfs_t *vfs, const char *inner_path, tcf_file_t **file_
     if (it->offset > payload_size || it->size > payload_size || it->offset + it->size > payload_size)
         return TCF_ERR_FORMAT;
 
-    tcf_file_t *file = new tcf_file_t();
+    tcf_file_t* file = new tcf_file_t();
     file->vfs = vfs;
     file->offset = it->offset;
     file->size = it->size;
@@ -735,7 +735,7 @@ int tcf_vfs_open_file(tcf_vfs_t *vfs, const char *inner_path, tcf_file_t **file_
  * @param bytes_read Actual number of bytes read (can be NULL).
  * @return TCF_OK on success (including EOF), error code otherwise.
  */
-int tcf_vfs_read(tcf_file_t *file, void *buffer, size_t size, size_t *bytes_read) {
+int tcf_vfs_read(tcf_file_t* file, void* buffer, size_t size, size_t* bytes_read) {
     if (!file || !buffer)
         return TCF_ERR_ARG;
 
@@ -767,11 +767,11 @@ int tcf_vfs_read(tcf_file_t *file, void *buffer, size_t size, size_t *bytes_read
     uint8_t temp_buffer[BUFFER_SIZE];
     size_t remaining = to_read;
     size_t written = 0;
-    uint8_t *out = static_cast<uint8_t *>(buffer);
+    uint8_t* out = static_cast<uint8_t*>(buffer);
 
     while (remaining > 0) {
         size_t chunk = std::min(remaining, static_cast<size_t>(BUFFER_SIZE));
-        file->vfs->file.read(reinterpret_cast<char *>(temp_buffer), static_cast<std::streamsize>(chunk));
+        file->vfs->file.read(reinterpret_cast<char*>(temp_buffer), static_cast<std::streamsize>(chunk));
         if (!file->vfs->file || static_cast<size_t>(file->vfs->file.gcount()) != chunk) {
             // Partial read or error
             return TCF_ERR_IO;
@@ -799,7 +799,7 @@ int tcf_vfs_read(tcf_file_t *file, void *buffer, size_t size, size_t *bytes_read
  * @param whence SEEK_SET, SEEK_CUR, or SEEK_END.
  * @return TCF_OK on success, error code otherwise.
  */
-int tcf_vfs_seek(tcf_file_t *file, int64_t offset, int whence) {
+int tcf_vfs_seek(tcf_file_t* file, int64_t offset, int whence) {
     if (!file)
         return TCF_ERR_ARG;
 
@@ -833,7 +833,7 @@ int tcf_vfs_seek(tcf_file_t *file, int64_t offset, int whence) {
  * @param file The file handle.
  * @return Current position, or -1 on error.
  */
-int64_t tcf_vfs_tell(tcf_file_t *file) {
+int64_t tcf_vfs_tell(tcf_file_t* file) {
     if (!file)
         return -1;
     if (file->position > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
@@ -845,24 +845,24 @@ int64_t tcf_vfs_tell(tcf_file_t *file) {
  * Closes a file handle and releases its resources.
  * @param file The file handle to close (can be NULL).
  */
-void tcf_vfs_close_file(tcf_file_t *file) {
+void tcf_vfs_close_file(tcf_file_t* file) {
     delete file;
 }
 
-uint64_t tcf_vfs_entry_count(const tcf_vfs_t *vfs) {
+uint64_t tcf_vfs_entry_count(const tcf_vfs_t* vfs) {
     if (!vfs)
         return 0;
     return static_cast<uint64_t>(vfs->entries.size());
 }
 
-int tcf_vfs_entry_info(const tcf_vfs_t *vfs, uint32_t index, const char **path_out, uint32_t *path_len_out,
-                       uint64_t *size_out) {
+int tcf_vfs_entry_info(const tcf_vfs_t* vfs, uint32_t index, const char** path_out, uint32_t* path_len_out,
+                       uint64_t* size_out) {
     if (!vfs)
         return TCF_ERR_ARG;
     if (index >= vfs->entries.size())
         return TCF_ERR_ARG;
 
-    const TCFEntry &entry = vfs->entries[index];
+    const TCFEntry& entry = vfs->entries[index];
     if (path_out)
         *path_out = entry.path.c_str();
     if (path_len_out)
@@ -873,13 +873,13 @@ int tcf_vfs_entry_info(const tcf_vfs_t *vfs, uint32_t index, const char **path_o
     return TCF_OK;
 }
 
-int tcf_vfs_read_entry(tcf_vfs_t *vfs, uint32_t index, void *buffer, size_t buffer_size) {
+int tcf_vfs_read_entry(tcf_vfs_t* vfs, uint32_t index, void* buffer, size_t buffer_size) {
     if (!vfs || !buffer)
         return TCF_ERR_ARG;
     if (index >= vfs->entries.size())
         return TCF_ERR_ARG;
 
-    const TCFEntry &entry = vfs->entries[index];
+    const TCFEntry& entry = vfs->entries[index];
     if (entry.size > buffer_size)
         return TCF_ERR_ARG;
 
@@ -899,11 +899,11 @@ int tcf_vfs_read_entry(tcf_vfs_t *vfs, uint32_t index, void *buffer, size_t buff
     uint8_t temp_buffer[BUFFER_SIZE];
     uint64_t remaining = entry.size;
     size_t written = 0;
-    uint8_t *out = static_cast<uint8_t *>(buffer);
+    uint8_t* out = static_cast<uint8_t*>(buffer);
 
     while (remaining > 0) {
         size_t chunk = static_cast<size_t>(std::min<uint64_t>(remaining, static_cast<uint64_t>(BUFFER_SIZE)));
-        vfs->file.read(reinterpret_cast<char *>(temp_buffer), static_cast<std::streamsize>(chunk));
+        vfs->file.read(reinterpret_cast<char*>(temp_buffer), static_cast<std::streamsize>(chunk));
         if (!vfs->file || static_cast<size_t>(vfs->file.gcount()) != chunk)
             return TCF_ERR_IO;
 

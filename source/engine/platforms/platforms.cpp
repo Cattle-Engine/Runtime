@@ -32,11 +32,11 @@ namespace CE::Platforms {
         return Linux::EnableANSI();
     }
 
-    void *AlignedAllocate(std::size_t size, std::size_t alignment) {
+    void* AlignedAllocate(std::size_t size, std::size_t alignment) {
         return Linux::AlignedAllocate(size, alignment);
     }
 
-    void AlignedFree(void *ptr) noexcept {
+    void AlignedFree(void* ptr) noexcept {
         Linux::AlignedFree(ptr);
     }
 #endif
@@ -62,11 +62,11 @@ namespace CE::Platforms {
         return Windows::EnableANSI();
     }
 
-    void *AlignedAllocate(std::size_t size, std::size_t alignment) {
+    void* AlignedAllocate(std::size_t size, std::size_t alignment) {
         return Windows::AlignedAllocate(size, alignment);
     }
 
-    void AlignedFree(void *ptr) noexcept {
+    void AlignedFree(void* ptr) noexcept {
         Windows::AlignedFree(ptr);
     }
 #endif

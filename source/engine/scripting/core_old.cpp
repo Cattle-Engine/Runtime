@@ -9,7 +9,7 @@
 #include <scriptstdstring/scriptstdstring.h>
 
 namespace {
-    const char *ToString(asEMsgType type) {
+    const char* ToString(asEMsgType type) {
         switch (type) {
         case asMSGTYPE_ERROR:
             return "Error";
@@ -24,16 +24,16 @@ namespace {
 } // namespace
 
 namespace CE::Scripting {
-    Runtime::Runtime(VFS::VFS &vfs, CE::GameInfo &gameInfo, Settings::SettingsManager &settingsManager,
-                     Instance &instance, Renderer::IRenderer &renderer,
-                     Renderer::Resources::TextureManager &textureManager,
-                     Renderer::Resources::ShaderManager &shadermanager, Assets::Skyboxes::SkyBoxManager &skyboxManager,
-                     Assets::Fonts::FontManager &fontManager, Renderer::Resources::GPUMeshManager &gpuMeshManager,
-                     Renderer::Resources::MaterialManager &materialManager,
-                     CE::Assets::Animations::AnimatedTextureManager *AnimatedTextureManager, Input::Keyboard &keyboard,
-                     Input::Mouse &mouse, bool output_debug_info,
-                     CE::Common::Containers::RendererResourcesNameRegistry &RendererResourcesNameRegistry,
-                     CE::Assets::Audio::AudioManager *audioManager)
+    Runtime::Runtime(VFS::VFS& vfs, CE::GameInfo& gameInfo, Settings::SettingsManager& settingsManager,
+                     Instance& instance, Renderer::IRenderer& renderer,
+                     Renderer::Resources::TextureManager& textureManager,
+                     Renderer::Resources::ShaderManager& shadermanager, Assets::Skyboxes::SkyBoxManager& skyboxManager,
+                     Assets::Fonts::FontManager& fontManager, Renderer::Resources::GPUMeshManager& gpuMeshManager,
+                     Renderer::Resources::MaterialManager& materialManager,
+                     CE::Assets::Animations::AnimatedTextureManager* AnimatedTextureManager, Input::Keyboard& keyboard,
+                     Input::Mouse& mouse, bool output_debug_info,
+                     CE::Common::Containers::RendererResourcesNameRegistry& RendererResourcesNameRegistry,
+                     CE::Assets::Audio::AudioManager* audioManager)
         : mRendererResourcesNameRegistry(RendererResourcesNameRegistry),
           mVFS(vfs),
           mGameInfo(gameInfo),
@@ -136,13 +136,13 @@ namespace CE::Scripting {
             code = importer.LoadFile(mGameInfo.startupFileName);
             mainEntrypoint = importer.GetGeneratedEntrypoint("main");
             updateEntrypoint = importer.GetGeneratedEntrypoint("update");
-        } catch (const Impl::Exceptions::LexerError &error) {
+        } catch (const Impl::Exceptions::LexerError& error) {
             return Fail(std::format("(Lexer Error) Failed to prepare AngelScript startup file '{}': {}",
                                     mGameInfo.startupFileName, error.what()));
-        } catch (const Impl::Exceptions::SemanticError &error) {
+        } catch (const Impl::Exceptions::SemanticError& error) {
             return Fail(std::format("(Semantic Error) Failed to prepare AngelScript startup file '{}': {}",
                                     mGameInfo.startupFileName, error.what()));
-        } catch (const Impl::Exceptions::ParserError &error) {
+        } catch (const Impl::Exceptions::ParserError& error) {
             return Fail(std::format("(Parser Error) Failed to prepare AngelScript startup file '{}': {}",
                                     mGameInfo.startupFileName, error.what()));
         }
@@ -165,14 +165,14 @@ namespace CE::Scripting {
             return Fail("Failed to build AngelScript module");
         }
 
-        asIScriptFunction *func =
+        asIScriptFunction* func =
             mainEntrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(mainEntrypoint.c_str());
 
         if (!func) {
             return Fail("AngelScript entrypoint 'void main()' was not found");
         }
 
-        asIScriptContext *ctx = mScriptEngine->CreateContext();
+        asIScriptContext* ctx = mScriptEngine->CreateContext();
         if (ctx == nullptr) {
             return Fail("Failed to create AngelScript startup context");
         }
@@ -219,18 +219,19 @@ namespace CE::Scripting {
         return true;
     }
 
-    const std::string &Runtime::GetLastError() const {
+    const std::string& Runtime::GetLastError() const {
         return mLastError;
     }
 
-    void Runtime::MessageCallback(const asSMessageInfo *msg, void *param) {
-        auto *runtime = static_cast<Runtime *>(param);
+    void Runtime::MessageCallback(const asSMessageInfo* msg, void* param) {
+        auto* runtime = static_cast<Runtime*>(param);
         if (msg == nullptr || runtime == nullptr) {
             return;
         }
 
         const std::string message =
-            std::format("[AngelScript] {}:{}:{} {}: {}", msg->section ? msg->section : "<unknown>", msg->row, msg->col,ToString(msg->type), msg->message ? msg->message : "");
+            std::format("[AngelScript] {}:{}:{} {}: {}", msg->section ? msg->section : "<unknown>", msg->row, msg->col,
+                        ToString(msg->type), msg->message ? msg->message : "");
 
         switch (msg->type) {
         case asMSGTYPE_ERROR:
@@ -247,7 +248,7 @@ namespace CE::Scripting {
         }
     }
 
-    bool Runtime::Fail(const std::string &message) {
+    bool Runtime::Fail(const std::string& message) {
         if (mLastError.empty()) {
             mLastError = message;
         }

@@ -3,5 +3,5 @@
 #include <SDL3/SDL.h>
 
 namespace CE::Utils {
-    bool IsWindowFullScreen(SDL_Window *window);
+    bool IsWindowFullScreen(SDL_Window* window);
 }

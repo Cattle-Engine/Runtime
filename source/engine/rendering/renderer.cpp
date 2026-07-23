@@ -7,7 +7,7 @@
 #include "memory"
 
 namespace CE::Renderer {
-    CE::Renderer::IRenderer *CreateRenderer(RendererBackend backend, VFS::VFS *vfs) {
+    CE::Renderer::IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs) {
         switch (backend) {
         case RendererBackend::Software:
             return new CE::Renderer::Software::Software_Renderer(vfs);

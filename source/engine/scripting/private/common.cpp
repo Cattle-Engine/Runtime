@@ -3,8 +3,8 @@
 #include <algorithm>
 
 namespace CE::Scripting::Impl::Common {
-    std::string GetScriptFromVFS(const std::string &path, VFS::VFS &vfs) {
-        VirtualFile *file = vfs.OpenFile(path.c_str());
+    std::string GetScriptFromVFS(const std::string& path, VFS::VFS& vfs) {
+        VirtualFile* file = vfs.OpenFile(path.c_str());
         if (file == nullptr) {
             return {};
         }
@@ -21,7 +21,7 @@ namespace CE::Scripting::Impl::Common {
         return data;
     }
 
-    std::string Import2Path(const AST::ASTImport &import, VFS::VFS &vfs) {
+    std::string Import2Path(const AST::ASTImport& import, VFS::VFS& vfs) {
         size_t module_components =
             import.Symbol.has_value() && !import.Path.empty() ? import.Path.size() - 1 : import.Path.size();
 
@@ -33,34 +33,34 @@ namespace CE::Scripting::Impl::Common {
         }
 
         if (import.Symbol.has_value()) {
-            for (const auto &ext : {".as", ".ceas"}) {
+            for (const auto& ext : {".as", ".ceas"}) {
                 std::string file = path.empty() ? (*import.Symbol + ext) : (path + "/" + *import.Symbol + ext);
                 if (vfs.FileExists(file.c_str())) {
                     return file;
                 }
             }
 
-            for (const auto &ext : {".as", ".ceas"}) {
+            for (const auto& ext : {".as", ".ceas"}) {
                 std::string file = path + ext;
                 if (vfs.FileExists(file.c_str())) {
                     return file;
                 }
             }
 
-            for (const auto &ext : {".as", ".ceas"}) {
+            for (const auto& ext : {".as", ".ceas"}) {
                 std::string file = path + "/module" + ext;
                 if (vfs.FileExists(file.c_str())) {
                     return file;
                 }
             }
         } else {
-            for (const auto &ext : {".as", ".ceas"}) {
+            for (const auto& ext : {".as", ".ceas"}) {
                 std::string file = path + ext;
                 if (vfs.FileExists(file.c_str())) {
                     return file;
                 }
             }
-            for (const auto &ext : {".as", ".ceas"}) {
+            for (const auto& ext : {".as", ".ceas"}) {
                 std::string file = path + "/module" + ext;
                 if (vfs.FileExists(file.c_str())) {
                     return file;

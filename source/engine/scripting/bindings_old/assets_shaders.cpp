@@ -4,16 +4,16 @@
 
 #include <scriptarray/scriptarray.h>
 
-static void ConstructShaderHandle(CE::Renderer::Resources::ShaderHandle *memory) {
+static void ConstructShaderHandle(CE::Renderer::Resources::ShaderHandle* memory) {
     new (memory) CE::Renderer::Resources::ShaderHandle();
 }
 
-static void ConstructShaderHandleCopy(const CE::Renderer::Resources::ShaderHandle &other,
-                                      CE::Renderer::Resources::ShaderHandle *memory) {
+static void ConstructShaderHandleCopy(const CE::Renderer::Resources::ShaderHandle& other,
+                                      CE::Renderer::Resources::ShaderHandle* memory) {
     new (memory) CE::Renderer::Resources::ShaderHandle(other);
 }
 
-static void DestructShaderHandle(CE::Renderer::Resources::ShaderHandle *memory) {
+static void DestructShaderHandle(CE::Renderer::Resources::ShaderHandle* memory) {
     memory->~ShaderHandle();
 }
 
@@ -76,7 +76,7 @@ namespace CE::Scripting {
 
         r = mScriptEngine->RegisterObjectMethod("ShaderHandle", "bool opEquals(const ShaderHandle &in) const",
                                                 asMETHODPR(Renderer::Resources::ShaderHandle, operator==,
-                                                           (const Renderer::Resources::ShaderHandle &) const, bool),
+                                                           (const Renderer::Resources::ShaderHandle&) const, bool),
                                                 asCALL_THISCALL);
         if (r < 0) {
             return false;
@@ -131,11 +131,11 @@ namespace CE::Scripting {
         return mShaderManager.CreateProgram();
     }
 
-    Renderer::Resources::ShaderHandle Runtime::LoadShader(const std::string &path, int fragmentSamplerCount) {
+    Renderer::Resources::ShaderHandle Runtime::LoadShader(const std::string& path, int fragmentSamplerCount) {
         return mShaderManager.Load(path.c_str(), fragmentSamplerCount);
     }
 
-    bool Runtime::LoadShaderStage(Renderer::Resources::ShaderHandle handle, const std::string &path,
+    bool Runtime::LoadShaderStage(Renderer::Resources::ShaderHandle handle, const std::string& path,
                                   Renderer::ShaderStage stage, int samplerCount) {
         return mShaderManager.LoadStage(handle, path, stage, samplerCount);
     }
@@ -160,39 +160,39 @@ namespace CE::Scripting {
         mShaderManager.Unload(handle);
     }
 
-    void Runtime::SetShaderFloat(const std::string &uniformName, float value) {
+    void Runtime::SetShaderFloat(const std::string& uniformName, float value) {
         mShaderManager.SetFloat(uniformName.c_str(), value);
     }
 
-    void Runtime::SetShaderVec2(const std::string &uniformName, float x, float y) {
+    void Runtime::SetShaderVec2(const std::string& uniformName, float x, float y) {
         mShaderManager.SetVec2(uniformName.c_str(), x, y);
     }
 
-    void Runtime::SetShaderVec3(const std::string &uniformName, float x, float y, float z) {
+    void Runtime::SetShaderVec3(const std::string& uniformName, float x, float y, float z) {
         mShaderManager.SetVec3(uniformName.c_str(), x, y, z);
     }
 
-    void Runtime::SetShaderVec4(const std::string &uniformName, float x, float y, float z, float w) {
+    void Runtime::SetShaderVec4(const std::string& uniformName, float x, float y, float z, float w) {
         mShaderManager.SetVec4(uniformName.c_str(), x, y, z, w);
     }
 
-    void Runtime::SetShaderMat4(const std::string &uniformName, const CScriptArray *values) {
+    void Runtime::SetShaderMat4(const std::string& uniformName, const CScriptArray* values) {
         if (!values || values->GetSize() < 16) {
             return;
         }
 
         float matrix[16]{};
         for (asUINT i = 0; i < 16; ++i) {
-            matrix[i] = *static_cast<const float *>(values->At(i));
+            matrix[i] = *static_cast<const float*>(values->At(i));
         }
         mShaderManager.SetMat4(uniformName.c_str(), matrix);
     }
 
-    void Runtime::SetShaderInt(const std::string &uniformName, int value) {
+    void Runtime::SetShaderInt(const std::string& uniformName, int value) {
         mShaderManager.SetInt(uniformName.c_str(), value);
     }
 
-    bool Runtime::SetShaderTexture(const std::string &uniformName, const TextureHandle &texture, int slot) {
+    bool Runtime::SetShaderTexture(const std::string& uniformName, const TextureHandle& texture, int slot) {
         return mShaderManager.SetTexture(uniformName.c_str(), texture.handle, slot);
     }
 } // namespace CE::Scripting

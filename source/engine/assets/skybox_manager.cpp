@@ -4,18 +4,18 @@
 
 namespace CE::Assets::Skyboxes {
     namespace {
-        std::shared_ptr<CE::Renderer::Texture> MakeTextureHandle(CE::Renderer::Texture *texture) {
-            return std::shared_ptr<CE::Renderer::Texture>(texture, [](CE::Renderer::Texture *) {});
+        std::shared_ptr<CE::Renderer::Texture> MakeTextureHandle(CE::Renderer::Texture* texture) {
+            return std::shared_ptr<CE::Renderer::Texture>(texture, [](CE::Renderer::Texture*) {});
         }
     } // namespace
 
-    SkyBoxManager::SkyBoxManager(CE::Renderer::IRenderer *renderer, CE::VFS::VFS *vfs) {
+    SkyBoxManager::SkyBoxManager(CE::Renderer::IRenderer* renderer, CE::VFS::VFS* vfs) {
         gRenderer = renderer;
         gVFS = vfs;
         gErrorTex = gRenderer ? gRenderer->GetErrorTexture() : nullptr;
     }
 
-    std::shared_ptr<CE::Renderer::Texture> SkyBoxManager::LoadFaceTexture(std::string path, bool &isErrorFace) const {
+    std::shared_ptr<CE::Renderer::Texture> SkyBoxManager::LoadFaceTexture(std::string path, bool& isErrorFace) const {
         isErrorFace = true;
 
         if (!gRenderer || !gVFS) {
@@ -33,7 +33,7 @@ namespace CE::Assets::Skyboxes {
             return MakeTextureHandle(gErrorTex);
         }
 
-        if (auto *texture = gRenderer->LoadTex(path.c_str())) {
+        if (auto* texture = gRenderer->LoadTex(path.c_str())) {
             isErrorFace = false;
             return MakeTextureHandle(texture);
         }
@@ -119,7 +119,7 @@ namespace CE::Assets::Skyboxes {
             gBoundSkyBoxName.clear();
         }
 
-        auto unloadFace = [this](const std::shared_ptr<CE::Renderer::Texture> &face) {
+        auto unloadFace = [this](const std::shared_ptr<CE::Renderer::Texture>& face) {
             if (!face || face.get() == gErrorTex) {
                 return;
             }
@@ -143,9 +143,9 @@ namespace CE::Assets::Skyboxes {
             gRenderer->SetSkyBox({});
         }
 
-        for (auto &[name, skybox] : gSkyBoxes) {
+        for (auto& [name, skybox] : gSkyBoxes) {
             (void)name;
-            auto unloadFace = [this](const std::shared_ptr<CE::Renderer::Texture> &face) {
+            auto unloadFace = [this](const std::shared_ptr<CE::Renderer::Texture>& face) {
                 if (!face || face.get() == gErrorTex) {
                     return;
                 }
@@ -172,7 +172,7 @@ namespace CE::Assets::Skyboxes {
 
     int SkyBoxManager::Debug_LoadedSkyBoxesNoError() const {
         int count = 0;
-        for (const auto &[name, skybox] : gSkyBoxes) {
+        for (const auto& [name, skybox] : gSkyBoxes) {
             (void)name;
             if (!skybox.IsErrorSkyBox) {
                 ++count;
@@ -183,7 +183,7 @@ namespace CE::Assets::Skyboxes {
 
     int SkyBoxManager::Debug_LoadedSkyBoxesError() const {
         int count = 0;
-        for (const auto &[name, skybox] : gSkyBoxes) {
+        for (const auto& [name, skybox] : gSkyBoxes) {
             (void)name;
             if (skybox.IsErrorSkyBox) {
                 ++count;
@@ -200,7 +200,7 @@ namespace CE::Assets::Skyboxes {
         std::vector<DebugSkyBoxInfo> out;
         out.reserve(gSkyBoxes.size());
 
-        for (const auto &[name, skybox] : gSkyBoxes) {
+        for (const auto& [name, skybox] : gSkyBoxes) {
             DebugSkyBoxInfo info{};
             info.name = name;
             info.frontPath = skybox.FrontPath;

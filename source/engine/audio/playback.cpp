@@ -7,12 +7,12 @@
 namespace CE::Core::Audio {
     namespace {
         struct VoiceCandidate {
-            MIX_Track *Track = nullptr;
+            MIX_Track* Track = nullptr;
             uint64_t PlayOrder = 0;
         };
     } // namespace
 
-    float AudioSystem::GetSoundPositionSeconds(MIX_Track *track) {
+    float AudioSystem::GetSoundPositionSeconds(MIX_Track* track) {
         if (!track)
             return 0.0f;
 
@@ -24,7 +24,7 @@ namespace CE::Core::Audio {
         return ms / 1000.0f;
     }
 
-    PlayingSound AudioSystem::CreateSoundInstance(const AudioClip &clip) {
+    PlayingSound AudioSystem::CreateSoundInstance(const AudioClip& clip) {
         PlayingSound sound;
         sound.Clip = &clip;
         sound.Bus = DefaultBusName(clip.Type);
@@ -40,7 +40,7 @@ namespace CE::Core::Audio {
             return sound;
         }
 
-        MIX_Track *track = MIX_CreateTrack(mMixer);
+        MIX_Track* track = MIX_CreateTrack(mMixer);
         if (!track) {
             CE_LOG(LogLevel::Error, "[Audio {}] Failed to create track: {}", mInstanceID, SDL_GetError());
             return sound;
@@ -52,7 +52,7 @@ namespace CE::Core::Audio {
             return sound;
         }
 
-        const char *tag = (clip.Type == AudioType::Music) ? "music" : "sfx";
+        const char* tag = (clip.Type == AudioType::Music) ? "music" : "sfx";
         MIX_TagTrack(track, tag);
 
         mTracks.push_back(track);
@@ -60,7 +60,7 @@ namespace CE::Core::Audio {
 
         {
             std::lock_guard<std::mutex> lock(mDSPMutex);
-            TrackState &state = mTrackStates[track];
+            TrackState& state = mTrackStates[track];
             state.Type = clip.Type;
             state.Volume = sound.Volume;
             state.Bus = sound.Bus;
@@ -70,7 +70,7 @@ namespace CE::Core::Audio {
         return sound;
     }
 
-    void AudioSystem::PlaySound(PlayingSound &sound) {
+    void AudioSystem::PlaySound(PlayingSound& sound) {
         if (!sound.Clip) {
             CE_LOG(LogLevel::Error, "[Audio {}] PlaySound called with null clip.", mInstanceID);
             return;
@@ -96,7 +96,7 @@ namespace CE::Core::Audio {
 
         {
             std::lock_guard<std::mutex> lock(mDSPMutex);
-            TrackState &state = mTrackStates[sound.Track];
+            TrackState& state = mTrackStates[sound.Track];
             state.Type = sound.Clip->Type;
             state.Volume = sound.Volume;
             state.Bus = sound.Bus;
@@ -150,7 +150,7 @@ namespace CE::Core::Audio {
         }
     }
 
-    void AudioSystem::SeekSound(PlayingSound &sound, float position_seconds) {
+    void AudioSystem::SeekSound(PlayingSound& sound, float position_seconds) {
         if (!sound.Track) {
             return;
         }
@@ -173,7 +173,7 @@ namespace CE::Core::Audio {
         sound.PositionSeconds = position_seconds;
     }
 
-    void AudioSystem::PauseSound(PlayingSound &sound) {
+    void AudioSystem::PauseSound(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
             return;
@@ -189,7 +189,7 @@ namespace CE::Core::Audio {
         sound.IsPlaying = false;
     }
 
-    void AudioSystem::ResumeSound(PlayingSound &sound) {
+    void AudioSystem::ResumeSound(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
             return;
@@ -206,7 +206,7 @@ namespace CE::Core::Audio {
         sound.IsPlaying = true;
     }
 
-    void AudioSystem::StopSound(PlayingSound &sound) {
+    void AudioSystem::StopSound(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
             return;
@@ -217,7 +217,7 @@ namespace CE::Core::Audio {
         sound.IsPlaying = false;
     }
 
-    void AudioSystem::UpdateSound(PlayingSound &sound) {
+    void AudioSystem::UpdateSound(PlayingSound& sound) {
         if (!sound.Track) {
             return;
         }
@@ -228,7 +228,7 @@ namespace CE::Core::Audio {
 
         {
             std::lock_guard<std::mutex> lock(mDSPMutex);
-            TrackState &state = mTrackStates[sound.Track];
+            TrackState& state = mTrackStates[sound.Track];
             state.Type = sound.Clip ? sound.Clip->Type : AudioType::Error;
             state.Volume = sound.Volume;
             state.Bus = sound.Bus;
@@ -238,13 +238,13 @@ namespace CE::Core::Audio {
         ApplyDSP(sound);
     }
 
-    void AudioSystem::DestroySoundInstance(PlayingSound &sound) {
+    void AudioSystem::DestroySoundInstance(PlayingSound& sound) {
         if (!sound.Track) {
             sound.IsPlaying = false;
             return;
         }
 
-        MIX_Track *track = sound.Track;
+        MIX_Track* track = sound.Track;
         StopSound(sound);
 
         // Disable DSP callback before the track is destroyed.
@@ -270,7 +270,7 @@ namespace CE::Core::Audio {
     }
 
     void AudioSystem::StopAll() {
-        for (MIX_Track *track : mTracks) {
+        for (MIX_Track* track : mTracks) {
             MIX_StopTrack(track, 0);
         }
     }
@@ -290,7 +290,7 @@ namespace CE::Core::Audio {
         UpdateAllTrackGains();
     }
 
-    void AudioSystem::SetBusVolume(const std::string &bus, float v) {
+    void AudioSystem::SetBusVolume(const std::string& bus, float v) {
         const std::string resolved = bus.empty() ? std::string(DefaultBusName(AudioType::SFX)) : bus;
         {
             std::lock_guard<std::mutex> lock(mDSPMutex);
@@ -304,7 +304,7 @@ namespace CE::Core::Audio {
         mGlobalVoiceLimit = max_voices;
     }
 
-    void AudioSystem::SetBusVoiceLimit(const std::string &bus, size_t max_voices) {
+    void AudioSystem::SetBusVoiceLimit(const std::string& bus, size_t max_voices) {
         if (bus.empty()) {
             return;
         }
@@ -313,7 +313,7 @@ namespace CE::Core::Audio {
         mBusVoiceLimits[bus] = max_voices;
     }
 
-    float AudioSystem::ComputeTrackGain(const TrackState &state) const {
+    float AudioSystem::ComputeTrackGain(const TrackState& state) const {
         const float base = std::clamp(static_cast<float>(state.Volume) / 128.0f, 0.0f, 1.0f);
         const float category = (state.Type == AudioType::Music) ? mMusicVolume : mSFXVolume;
         float bus_gain = 1.0f;
@@ -324,7 +324,7 @@ namespace CE::Core::Audio {
         return std::clamp(base * category * bus_gain * mMasterVolume, 0.0f, 1.0f);
     }
 
-    void AudioSystem::UpdateTrackGain(MIX_Track *track) {
+    void AudioSystem::UpdateTrackGain(MIX_Track* track) {
         if (!track) {
             return;
         }
@@ -345,16 +345,16 @@ namespace CE::Core::Audio {
     }
 
     void AudioSystem::UpdateAllTrackGains() {
-        std::vector<std::pair<MIX_Track *, float>> gains;
+        std::vector<std::pair<MIX_Track*, float>> gains;
         {
             std::lock_guard<std::mutex> lock(mDSPMutex);
             gains.reserve(mTrackStates.size());
-            for (const auto &[track, state] : mTrackStates) {
+            for (const auto& [track, state] : mTrackStates) {
                 gains.emplace_back(track, ComputeTrackGain(state));
             }
         }
 
-        for (const auto &[track, gain] : gains) {
+        for (const auto& [track, gain] : gains) {
             if (!track) {
                 continue;
             }
@@ -364,7 +364,7 @@ namespace CE::Core::Audio {
         }
     }
 
-    bool AudioSystem::EnforceVoiceLimits(MIX_Track *requested_track, const std::string &bus) {
+    bool AudioSystem::EnforceVoiceLimits(MIX_Track* requested_track, const std::string& bus) {
         std::optional<VoiceCandidate> oldest_global;
         std::optional<VoiceCandidate> oldest_bus;
         size_t active_global = 0;
@@ -381,7 +381,7 @@ namespace CE::Core::Audio {
                 bus_limit = bus_limit_it->second;
             }
 
-            for (const auto &[track, state] : mTrackStates) {
+            for (const auto& [track, state] : mTrackStates) {
                 if (!track || track == requested_track || !IsTrackActive(track)) {
                     continue;
                 }
@@ -417,7 +417,7 @@ namespace CE::Core::Audio {
         return true;
     }
 
-    const char *AudioSystem::DefaultBusName(AudioType type) {
+    const char* AudioSystem::DefaultBusName(AudioType type) {
         switch (type) {
         case AudioType::Music:
             return "music";
@@ -428,7 +428,7 @@ namespace CE::Core::Audio {
         }
     }
 
-    bool AudioSystem::IsTrackActive(MIX_Track *track) {
+    bool AudioSystem::IsTrackActive(MIX_Track* track) {
         return track && (MIX_TrackPlaying(track) || MIX_TrackPaused(track));
     }
 } // namespace CE::Core::Audio

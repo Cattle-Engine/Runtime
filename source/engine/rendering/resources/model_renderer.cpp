@@ -4,10 +4,10 @@
 #include "engine/rendering/common/transform3d_to_matrix.hpp"
 
 namespace CE::Renderer::Resources {
-    ModelRenderer::ModelRenderer(MaterialManager &mat_manager, GPUMeshManager &gpu_mesh_man, IRenderer &renderer)
+    ModelRenderer::ModelRenderer(MaterialManager& mat_manager, GPUMeshManager& gpu_mesh_man, IRenderer& renderer)
         : mMaterialManager(mat_manager), mGPUMeshManager(gpu_mesh_man), mRenderer(renderer) {}
 
-    void ModelRenderer::RenderModel(const Model &model, const Transform3D &transform) {
+    void ModelRenderer::RenderModel(const Model& model, const Transform3D& transform) {
         if (model.Nodes.empty())
             return;
 
@@ -16,10 +16,10 @@ namespace CE::Renderer::Resources {
         RenderNode(model, model.RootNode, rootMatrix);
     }
 
-    void ModelRenderer::RenderNode(const Model &model, uint32_t nodeIndex, const glm::mat4 &parentTransform) {
+    void ModelRenderer::RenderNode(const Model& model, uint32_t nodeIndex, const glm::mat4& parentTransform) {
         if (nodeIndex >= model.Nodes.size())
             return;
-        const Model::Node &node = model.Nodes[nodeIndex];
+        const Model::Node& node = model.Nodes[nodeIndex];
 
         glm::mat4 localTransform = node.Transform;
 
@@ -39,7 +39,7 @@ namespace CE::Renderer::Resources {
         }
     }
 
-    void ModelRenderer::DestroyModel(Model &model) {
+    void ModelRenderer::DestroyModel(Model& model) {
         for (auto meshHandle : model.Meshes) {
             mGPUMeshManager.DestroyMesh(meshHandle);
         }

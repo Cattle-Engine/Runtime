@@ -12,40 +12,40 @@ namespace CE::TDF {
         constexpr uint8_t kMagic[3] = {'T', 'D', 'F'};
         constexpr uint8_t kObjectVersion = 0x11;
 
-        [[noreturn]] void throwFormat(const char *msg) {
+        [[noreturn]] void throwFormat(const char* msg) {
             throw std::runtime_error(std::string("TDF: ") + msg);
         }
 
-        void writeU32(std::vector<uint8_t> &out, uint32_t v) {
+        void writeU32(std::vector<uint8_t>& out, uint32_t v) {
             uint8_t b[4];
             std::memcpy(b, &v, 4);
             out.insert(out.end(), b, b + 4);
         }
 
-        template <typename T> void writePod(std::vector<uint8_t> &out, const T &value) {
-            const auto *bytes = reinterpret_cast<const uint8_t *>(&value);
+        template <typename T> void writePod(std::vector<uint8_t>& out, const T& value) {
+            const auto* bytes = reinterpret_cast<const uint8_t*>(&value);
             out.insert(out.end(), bytes, bytes + sizeof(T));
         }
 
-        uint32_t readU32(const uint8_t *p) {
+        uint32_t readU32(const uint8_t* p) {
             uint32_t v;
             std::memcpy(&v, p, 4);
             return v;
         }
 
-        template <typename T> T readPod(const uint8_t *p) {
+        template <typename T> T readPod(const uint8_t* p) {
             T value;
             std::memcpy(&value, p, sizeof(T));
             return value;
         }
 
-        void requireDataSize(const Value &v, size_t expected, const char *msg) {
+        void requireDataSize(const Value& v, size_t expected, const char* msg) {
             if (v.data.size() != expected) {
                 throwFormat(msg);
             }
         }
 
-        void readExact(::VirtualFile *file, void *buffer, size_t size) {
+        void readExact(::VirtualFile* file, void* buffer, size_t size) {
             if (!file || !file->sdl_stream) {
                 throwFormat("invalid stream");
             }
@@ -59,7 +59,7 @@ namespace CE::TDF {
             }
         }
 
-        std::vector<std::string> splitPath(const std::string &s, char sep) {
+        std::vector<std::string> splitPath(const std::string& s, char sep) {
             std::vector<std::string> parts;
             std::string cur;
 
@@ -82,7 +82,7 @@ namespace CE::TDF {
             return parts;
         }
 
-        std::vector<uint8_t> serializeToBytes(const File &file, uint8_t version) {
+        std::vector<uint8_t> serializeToBytes(const File& file, uint8_t version) {
             std::vector<uint8_t> bytes;
             bytes.insert(bytes.end(), kMagic, kMagic + 3);
             bytes.push_back(version);
@@ -90,7 +90,7 @@ namespace CE::TDF {
             std::vector<uint8_t> index;
             std::vector<uint8_t> data;
 
-            for (const auto &[key, val] : file.entries) {
+            for (const auto& [key, val] : file.entries) {
                 if (key.empty() || key.size() > 255) {
                     throwFormat("key length must be 1..255");
                 }
@@ -112,7 +112,7 @@ namespace CE::TDF {
             return bytes;
         }
 
-        File parseFromBytes(const uint8_t *data, size_t size) {
+        File parseFromBytes(const uint8_t* data, size_t size) {
             if (size < 4) {
                 throwFormat("buffer too small");
             }
@@ -137,8 +137,8 @@ namespace CE::TDF {
                     throwFormat("index overflow");
                 }
 
-                std::string key(reinterpret_cast<const char *>(data + pos),
-                                reinterpret_cast<const char *>(data + pos + keyLen));
+                std::string key(reinterpret_cast<const char*>(data + pos),
+                                reinterpret_cast<const char*>(data + pos + keyLen));
                 pos += keyLen;
 
                 const Type type = static_cast<Type>(data[pos++]);
@@ -151,7 +151,7 @@ namespace CE::TDF {
             const size_t dataStart = pos;
             File file;
 
-            for (auto &[key, type, offset] : index) {
+            for (auto& [key, type, offset] : index) {
                 size_t p = dataStart + offset;
                 if (p > size) {
                     throwFormat("offset out of range");
@@ -242,7 +242,7 @@ namespace CE::TDF {
             return file;
         }
 
-        File decodeObjectValue(const Value &v) {
+        File decodeObjectValue(const Value& v) {
             if (v.type != Type::Object) {
                 throwFormat("value is not Object");
             }
@@ -258,7 +258,7 @@ namespace CE::TDF {
             return parseFromBytes(v.data.data() + 4, len);
         }
 
-        Value encodeObjectValue(const File &obj, uint8_t version) {
+        Value encodeObjectValue(const File& obj, uint8_t version) {
             const std::vector<uint8_t> blob = serializeToBytes(obj, version);
             Value v{Type::Object, {}};
             writeU32(v.data, static_cast<uint32_t>(blob.size()));
@@ -266,7 +266,7 @@ namespace CE::TDF {
             return v;
         }
 
-        std::vector<std::string> decodeStringArray(const Value &v) {
+        std::vector<std::string> decodeStringArray(const Value& v) {
             if (v.type != Type::ArrString) {
                 throwFormat("not ArrString");
             }
@@ -297,11 +297,11 @@ namespace CE::TDF {
             return out;
         }
 
-        Value encodeStringArray(const std::vector<std::string> &arr) {
+        Value encodeStringArray(const std::vector<std::string>& arr) {
             Value v{Type::ArrString, {}};
             writeU32(v.data, static_cast<uint32_t>(arr.size()));
 
-            for (const auto &s : arr) {
+            for (const auto& s : arr) {
                 v.data.insert(v.data.end(), s.begin(), s.end());
                 v.data.push_back(0);
             }
@@ -309,7 +309,7 @@ namespace CE::TDF {
             return v;
         }
 
-        std::vector<File> decodeObjectArray(const Value &v) {
+        std::vector<File> decodeObjectArray(const Value& v) {
             if (v.type != Type::ArrObject) {
                 throwFormat("not ArrObject");
             }
@@ -341,11 +341,11 @@ namespace CE::TDF {
             return out;
         }
 
-        Value encodeObjectArray(const std::vector<File> &arr, uint8_t version) {
+        Value encodeObjectArray(const std::vector<File>& arr, uint8_t version) {
             Value v{Type::ArrObject, {}};
             writeU32(v.data, static_cast<uint32_t>(arr.size()));
 
-            for (const auto &obj : arr) {
+            for (const auto& obj : arr) {
                 const auto blob = serializeToBytes(obj, version);
                 writeU32(v.data, static_cast<uint32_t>(blob.size()));
                 v.data.insert(v.data.end(), blob.begin(), blob.end());
@@ -354,7 +354,7 @@ namespace CE::TDF {
             return v;
         }
 
-        template <typename T> std::vector<T> decodeFixedArray(const Value &v, Type expectedType) {
+        template <typename T> std::vector<T> decodeFixedArray(const Value& v, Type expectedType) {
             if (v.type != expectedType) {
                 throwFormat("unexpected array type");
             }
@@ -375,7 +375,7 @@ namespace CE::TDF {
             return out;
         }
 
-        Value encodeBoolArray(const std::vector<bool> &arr) {
+        Value encodeBoolArray(const std::vector<bool>& arr) {
             Value v{Type::ArrBool, {}};
             writeU32(v.data, static_cast<uint32_t>(arr.size()));
             v.data.reserve(4 + arr.size());
@@ -385,17 +385,17 @@ namespace CE::TDF {
             return v;
         }
 
-        template <typename T> Value encodeFixedArray(Type type, const std::vector<T> &arr) {
+        template <typename T> Value encodeFixedArray(Type type, const std::vector<T>& arr) {
             Value v{type, {}};
             writeU32(v.data, static_cast<uint32_t>(arr.size()));
             if (!arr.empty()) {
-                const auto *bytes = reinterpret_cast<const uint8_t *>(arr.data());
+                const auto* bytes = reinterpret_cast<const uint8_t*>(arr.data());
                 v.data.insert(v.data.end(), bytes, bytes + sizeof(T) * arr.size());
             }
             return v;
         }
 
-        Value makeSingleElementArray(const Value &val) {
+        Value makeSingleElementArray(const Value& val) {
             switch (val.type) {
             case Type::Bool:
                 return File::makeBoolArray({File::readBool(val)});
@@ -414,7 +414,7 @@ namespace CE::TDF {
             }
         }
 
-        void appendArrayValue(Value &array, const Value &val) {
+        void appendArrayValue(Value& array, const Value& val) {
             if (!File::isArray(array.type)) {
                 throwFormat("value is not array");
             }
@@ -464,7 +464,7 @@ namespace CE::TDF {
             }
         }
 
-        void eraseArrayValue(Value &array, size_t index) {
+        void eraseArrayValue(Value& array, size_t index) {
             if (!File::isArray(array.type)) {
                 throwFormat("value is not array");
             }
@@ -514,7 +514,7 @@ namespace CE::TDF {
             }
         }
 
-        bool tryGetPathRecursive(const File &file, const std::vector<std::string> &parts, size_t index, Value &out) {
+        bool tryGetPathRecursive(const File& file, const std::vector<std::string>& parts, size_t index, Value& out) {
             const auto it = file.entries.find(parts[index]);
             if (it == file.entries.end()) {
                 return false;
@@ -530,7 +530,7 @@ namespace CE::TDF {
             return tryGetPathRecursive(child, parts, index + 1, out);
         }
 
-        bool removePathRecursive(File &file, const std::vector<std::string> &parts, size_t index) {
+        bool removePathRecursive(File& file, const std::vector<std::string>& parts, size_t index) {
             auto it = file.entries.find(parts[index]);
             if (it == file.entries.end()) {
                 return false;
@@ -551,13 +551,13 @@ namespace CE::TDF {
             return removed;
         }
 
-        void setPathRecursive(File &file, const std::vector<std::string> &parts, size_t index, const Value &val) {
+        void setPathRecursive(File& file, const std::vector<std::string>& parts, size_t index, const Value& val) {
             if (index + 1 == parts.size()) {
                 file.entries[parts[index]] = val;
                 return;
             }
 
-            Value &slot = file.entries[parts[index]];
+            Value& slot = file.entries[parts[index]];
             if (slot.type == Type::Null && slot.data.empty()) {
                 slot = encodeObjectValue(File{}, kObjectVersion);
             } else if (slot.type != Type::Object) {
@@ -572,10 +572,10 @@ namespace CE::TDF {
     } // namespace
 
 #if defined(TDF_MODE_CE)
-    void File::save(VFS::VFS &vfs, const std::string &path, uint8_t version) const {
+    void File::save(VFS::VFS& vfs, const std::string& path, uint8_t version) const {
         const auto bytes = serializeToBytes(*this, version);
 
-        ::VirtualFile *f = vfs.V_fopen(path.c_str(), "wb");
+        ::VirtualFile* f = vfs.V_fopen(path.c_str(), "wb");
         if (!f) {
             throw std::runtime_error("TDF: VFS write fail");
         }
@@ -593,8 +593,8 @@ namespace CE::TDF {
         }
     }
 
-    void File::load(VFS::VFS &vfs, const std::string &path) {
-        ::VirtualFile *f = vfs.OpenFile(path.c_str());
+    void File::load(VFS::VFS& vfs, const std::string& path) {
+        ::VirtualFile* f = vfs.OpenFile(path.c_str());
         if (!f) {
             throw std::runtime_error("TDF: VFS open fail");
         }
@@ -614,7 +614,7 @@ namespace CE::TDF {
 #endif
 
 #if defined(TDF_MODE_EXTERN)
-    void File::save(const std::filesystem::path &path, uint8_t version) const {
+    void File::save(const std::filesystem::path& path, uint8_t version) const {
         const auto bytes = serializeToBytes(*this, version);
 
         std::ofstream out(path, std::ios::binary | std::ios::trunc);
@@ -623,7 +623,7 @@ namespace CE::TDF {
         }
 
         if (!bytes.empty()) {
-            out.write(reinterpret_cast<const char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+            out.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
         }
 
         if (!out) {
@@ -631,7 +631,7 @@ namespace CE::TDF {
         }
     }
 
-    void File::load(const std::filesystem::path &path) {
+    void File::load(const std::filesystem::path& path) {
         std::ifstream in(path, std::ios::binary);
         if (!in.is_open()) {
             throw std::runtime_error("TDF: filesystem open fail");
@@ -641,7 +641,7 @@ namespace CE::TDF {
         std::vector<uint8_t> buffer(static_cast<size_t>(size));
 
         if (!buffer.empty()) {
-            in.read(reinterpret_cast<char *>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
+            in.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
         }
 
         if (!in) {
@@ -652,39 +652,39 @@ namespace CE::TDF {
     }
 #endif
 
-    void File::set(const std::string &key, const Value &val) {
+    void File::set(const std::string& key, const Value& val) {
         entries[key] = val;
     }
 
-    bool File::remove(const std::string &key) {
+    bool File::remove(const std::string& key) {
         return entries.erase(key) > 0;
     }
 
-    bool File::has(const std::string &key) const {
+    bool File::has(const std::string& key) const {
         return entries.find(key) != entries.end();
     }
 
-    bool File::hasPath(const std::string &path, char separator) const {
+    bool File::hasPath(const std::string& path, char separator) const {
         Value out;
         return tryGetPath(path, out, separator);
     }
 
-    bool File::tryGetPath(const std::string &path, Value &out, char separator) const {
+    bool File::tryGetPath(const std::string& path, Value& out, char separator) const {
         const auto parts = splitPath(path, separator);
         return tryGetPathRecursive(*this, parts, 0, out);
     }
 
-    bool File::removePath(const std::string &path, char separator) {
+    bool File::removePath(const std::string& path, char separator) {
         const auto parts = splitPath(path, separator);
         return removePathRecursive(*this, parts, 0);
     }
 
-    void File::setPath(const std::string &path, const Value &val, char separator) {
+    void File::setPath(const std::string& path, const Value& val, char separator) {
         const auto parts = splitPath(path, separator);
         setPathRecursive(*this, parts, 0, val);
     }
 
-    void File::appendToArray(const std::string &key, const Value &val) {
+    void File::appendToArray(const std::string& key, const Value& val) {
         auto it = entries.find(key);
         if (it == entries.end()) {
             entries.emplace(key, makeSingleElementArray(val));
@@ -694,7 +694,7 @@ namespace CE::TDF {
         appendArrayValue(it->second, val);
     }
 
-    void File::deleteFromArray(const std::string &key, size_t index) {
+    void File::deleteFromArray(const std::string& key, size_t index) {
         auto it = entries.find(key);
         if (it == entries.end()) {
             throwFormat("array entry missing");
@@ -729,42 +729,42 @@ namespace CE::TDF {
         return out;
     }
 
-    Value File::makeString(const std::string &s) {
+    Value File::makeString(const std::string& s) {
         Value out{Type::String, {}};
         out.data.insert(out.data.end(), s.begin(), s.end());
         out.data.push_back(0);
         return out;
     }
 
-    Value File::makeBoolArray(const std::vector<bool> &arr) {
+    Value File::makeBoolArray(const std::vector<bool>& arr) {
         return encodeBoolArray(arr);
     }
 
-    Value File::makeIntArray(const std::vector<int32_t> &arr) {
+    Value File::makeIntArray(const std::vector<int32_t>& arr) {
         return encodeFixedArray(Type::ArrInt32, arr);
     }
 
-    Value File::makeUIntArray(const std::vector<uint32_t> &arr) {
+    Value File::makeUIntArray(const std::vector<uint32_t>& arr) {
         return encodeFixedArray(Type::ArrUInt32, arr);
     }
 
-    Value File::makeFloatArray(const std::vector<float> &arr) {
+    Value File::makeFloatArray(const std::vector<float>& arr) {
         return encodeFixedArray(Type::ArrFloat, arr);
     }
 
-    Value File::makeStringArray(const std::vector<std::string> &arr) {
+    Value File::makeStringArray(const std::vector<std::string>& arr) {
         return encodeStringArray(arr);
     }
 
-    Value File::makeObject(const File &obj, uint8_t version) {
+    Value File::makeObject(const File& obj, uint8_t version) {
         return encodeObjectValue(obj, version);
     }
 
-    Value File::makeObjectArray(const std::vector<File> &arr, uint8_t version) {
+    Value File::makeObjectArray(const std::vector<File>& arr, uint8_t version) {
         return encodeObjectArray(arr, version);
     }
 
-    bool File::readBool(const Value &v) {
+    bool File::readBool(const Value& v) {
         if (v.type != Type::Bool) {
             throwFormat("value is not Bool");
         }
@@ -772,7 +772,7 @@ namespace CE::TDF {
         return v.data[0] != 0;
     }
 
-    int32_t File::readInt(const Value &v) {
+    int32_t File::readInt(const Value& v) {
         if (v.type != Type::Int32) {
             throwFormat("value is not Int32");
         }
@@ -780,7 +780,7 @@ namespace CE::TDF {
         return readPod<int32_t>(v.data.data());
     }
 
-    uint32_t File::readUInt(const Value &v) {
+    uint32_t File::readUInt(const Value& v) {
         if (v.type != Type::UInt32) {
             throwFormat("value is not UInt32");
         }
@@ -788,7 +788,7 @@ namespace CE::TDF {
         return readPod<uint32_t>(v.data.data());
     }
 
-    float File::readFloat(const Value &v) {
+    float File::readFloat(const Value& v) {
         if (v.type != Type::Float) {
             throwFormat("value is not Float");
         }
@@ -796,21 +796,21 @@ namespace CE::TDF {
         return readPod<float>(v.data.data());
     }
 
-    std::string File::readString(const Value &v) {
+    std::string File::readString(const Value& v) {
         if (v.type != Type::String) {
             throwFormat("value is not String");
         }
         if (v.data.empty() || v.data.back() != 0) {
             throwFormat("String missing terminator");
         }
-        return std::string(reinterpret_cast<const char *>(v.data.data()));
+        return std::string(reinterpret_cast<const char*>(v.data.data()));
     }
 
-    File File::readObject(const Value &v) {
+    File File::readObject(const Value& v) {
         return decodeObjectValue(v);
     }
 
-    std::vector<bool> File::readBoolArray(const Value &v) {
+    std::vector<bool> File::readBoolArray(const Value& v) {
         if (v.type != Type::ArrBool) {
             throwFormat("value is not ArrBool");
         }
@@ -831,27 +831,27 @@ namespace CE::TDF {
         return out;
     }
 
-    std::vector<int32_t> File::readIntArray(const Value &v) {
+    std::vector<int32_t> File::readIntArray(const Value& v) {
         return decodeFixedArray<int32_t>(v, Type::ArrInt32);
     }
 
-    std::vector<uint32_t> File::readUIntArray(const Value &v) {
+    std::vector<uint32_t> File::readUIntArray(const Value& v) {
         return decodeFixedArray<uint32_t>(v, Type::ArrUInt32);
     }
 
-    std::vector<float> File::readFloatArray(const Value &v) {
+    std::vector<float> File::readFloatArray(const Value& v) {
         return decodeFixedArray<float>(v, Type::ArrFloat);
     }
 
-    std::vector<std::string> File::readStringArray(const Value &v) {
+    std::vector<std::string> File::readStringArray(const Value& v) {
         return decodeStringArray(v);
     }
 
-    std::vector<File> File::readObjectArray(const Value &v) {
+    std::vector<File> File::readObjectArray(const Value& v) {
         return decodeObjectArray(v);
     }
 
-    size_t File::arraySize(const Value &v) {
+    size_t File::arraySize(const Value& v) {
         if (!isArray(v.type)) {
             throwFormat("value is not array");
         }
@@ -861,7 +861,7 @@ namespace CE::TDF {
         return readU32(v.data.data());
     }
 
-    Value File::arrayElement(const Value &v, size_t index) {
+    Value File::arrayElement(const Value& v, size_t index) {
         if (index >= arraySize(v)) {
             throwFormat("array index out of range");
         }
@@ -885,7 +885,7 @@ namespace CE::TDF {
     }
 
 #if defined(TDF_MODE_CE)
-    void File::readValue(::VirtualFile *file, Value &v) {
+    void File::readValue(::VirtualFile* file, Value& v) {
         switch (v.type) {
         case Type::Null:
             v.data.clear();

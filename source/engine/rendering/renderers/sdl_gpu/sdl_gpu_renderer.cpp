@@ -20,7 +20,7 @@
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     namespace {
-        SDL_GPUSampler *CreateSampler(SDL_GPUDevice *device, SDL_GPUFilter filter,
+        SDL_GPUSampler* CreateSampler(SDL_GPUDevice* device, SDL_GPUFilter filter,
                                       SDL_GPUSamplerAddressMode addressMode) {
             SDL_GPUSamplerCreateInfo sampInfo{};
             sampInfo.min_filter = filter;
@@ -40,13 +40,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                    std::max(v0, v1) > 1.0f + kEpsilon;
         }
 
-        void UpdatePrimitiveBatchCounts(std::vector<PrimitiveBatch> &batches, uint32_t currentIndexCount) {
+        void UpdatePrimitiveBatchCounts(std::vector<PrimitiveBatch>& batches, uint32_t currentIndexCount) {
             if (!batches.empty()) {
                 batches.back().idxCount = currentIndexCount - batches.back().idxOffset;
             }
         }
 
-        void UpdateTexBatchCounts(std::vector<TexVertexBatch> &batches, uint32_t currentVertCount,
+        void UpdateTexBatchCounts(std::vector<TexVertexBatch>& batches, uint32_t currentVertCount,
                                   uint32_t currentIndexCount) {
             if (!batches.empty()) {
                 batches.back().vertCount = currentVertCount - batches.back().vertOffset;
@@ -55,7 +55,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     } // namespace
 
-    void RotatePoint(float &x, float &y, float cx, float cy, float sinA, float cosA) {
+    void RotatePoint(float& x, float& y, float cx, float cy, float sinA, float cosA) {
         float dx = x - cx;
         float dy = y - cy;
         x = cx + dx * cosA - dy * sinA;
@@ -66,7 +66,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return;
     }
 
-    int SDL_GPU_Renderer::Init(SDL_Window *window, bool debug, GPUDeviceHandle gdevice) {
+    int SDL_GPU_Renderer::Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) {
         (void)debug;
         switch (gdevice->backend) {
         case RendererBackend::DX12:
@@ -80,7 +80,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 1;
         }
 
-        gDevice = static_cast<SDL_GPUDevice *>(gdevice->device);
+        gDevice = static_cast<SDL_GPUDevice*>(gdevice->device);
 
         if (gDevice == nullptr) {
             CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] gDevice is NULL!");
@@ -169,7 +169,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             for (int x = 0; x < 8; x++) {
                 bool checker = ((x + y) % 2) == 0;
 
-                uint8_t *px = &errorTex[(y * 8 + x) * 4];
+                uint8_t* px = &errorTex[(y * 8 + x) * 4];
 
                 if (checker) {
                     px[0] = 255; // R
@@ -200,13 +200,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         eTbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         eTbInfo.size = sizeof(errorTex);
 
-        SDL_GPUTransferBuffer *eTb = SDL_CreateGPUTransferBuffer(gDevice, &eTbInfo);
-        void *eMapped = SDL_MapGPUTransferBuffer(gDevice, eTb, false);
+        SDL_GPUTransferBuffer* eTb = SDL_CreateGPUTransferBuffer(gDevice, &eTbInfo);
+        void* eMapped = SDL_MapGPUTransferBuffer(gDevice, eTb, false);
         SDL_memcpy(eMapped, errorTex, sizeof(errorTex));
         SDL_UnmapGPUTransferBuffer(gDevice, eTb);
 
-        SDL_GPUCommandBuffer *eCmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass *eCopy = SDL_BeginGPUCopyPass(eCmd);
+        SDL_GPUCommandBuffer* eCmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass* eCopy = SDL_BeginGPUCopyPass(eCmd);
 
         SDL_GPUTextureTransferInfo eSrc{};
         eSrc.transfer_buffer = eTb;
@@ -236,13 +236,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUTransferBufferCreateInfo wTbInfo{};
         wTbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         wTbInfo.size = 4;
-        SDL_GPUTransferBuffer *wTb = SDL_CreateGPUTransferBuffer(gDevice, &wTbInfo);
-        void *wMapped = SDL_MapGPUTransferBuffer(gDevice, wTb, false);
+        SDL_GPUTransferBuffer* wTb = SDL_CreateGPUTransferBuffer(gDevice, &wTbInfo);
+        void* wMapped = SDL_MapGPUTransferBuffer(gDevice, wTb, false);
         SDL_memcpy(wMapped, white, 4);
         SDL_UnmapGPUTransferBuffer(gDevice, wTb);
 
-        SDL_GPUCommandBuffer *wCmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass *wCopy = SDL_BeginGPUCopyPass(wCmd);
+        SDL_GPUCommandBuffer* wCmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass* wCopy = SDL_BeginGPUCopyPass(wCmd);
 
         SDL_GPUTextureTransferInfo wSrc{};
         wSrc.transfer_buffer = wTb;
@@ -287,13 +287,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_GPUTransferBufferCreateInfo nTbInfo{};
         nTbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         nTbInfo.size = 4;
-        SDL_GPUTransferBuffer *nTb = SDL_CreateGPUTransferBuffer(gDevice, &nTbInfo);
-        void *nMapped = SDL_MapGPUTransferBuffer(gDevice, nTb, false);
+        SDL_GPUTransferBuffer* nTb = SDL_CreateGPUTransferBuffer(gDevice, &nTbInfo);
+        void* nMapped = SDL_MapGPUTransferBuffer(gDevice, nTb, false);
         SDL_memcpy(nMapped, defaultNormal, 4);
         SDL_UnmapGPUTransferBuffer(gDevice, nTb);
 
-        SDL_GPUCommandBuffer *nCmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass *nCopy = SDL_BeginGPUCopyPass(nCmd);
+        SDL_GPUCommandBuffer* nCmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass* nCopy = SDL_BeginGPUCopyPass(nCmd);
 
         SDL_GPUTextureTransferInfo nSrc{};
         nSrc.transfer_buffer = nTb;
@@ -326,11 +326,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return 0;
     }
 
-    int SDL_GPU_Renderer::Shutdown(SDL_Window *window) {
-        CE_LOG(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void *>(this));
+    int SDL_GPU_Renderer::Shutdown(SDL_Window* window) {
+        CE_LOG(LogLevel::Info, "[Renderer {}] Shutdown called", static_cast<void*>(this));
 
         if (gDevice == nullptr) {
-            CE_LOG(LogLevel::Error, "[Renderer {}] No device!", static_cast<void *>(this));
+            CE_LOG(LogLevel::Error, "[Renderer {}] No device!", static_cast<void*>(this));
             return 0;
         }
 
@@ -365,8 +365,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             gWhiteSampler = nullptr;
         }
 
-        CE_LOG(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", static_cast<void *>(this),
-               static_cast<void *>(gWhiteTex));
+        CE_LOG(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", static_cast<void*>(this),
+               static_cast<void*>(gWhiteTex));
         if (gWhiteTex) {
             SDL_ReleaseGPUTexture(gDevice, gWhiteTex);
             gWhiteTex = nullptr;
@@ -396,7 +396,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         return 0;
     }
-    int SDL_GPU_Renderer::BeginFrame(SDL_Window *window) {
+    int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {
         mWarnedOutsideFrame = false;
         gCommandBuffer = SDL_AcquireGPUCommandBuffer(gDevice);
         if (gCommandBuffer == nullptr) {
@@ -433,16 +433,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         m3DModeActive = false;
         m2DModeActive = false;
 
-        gMappedVerts = (Vertex *)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
-        gMappedIndices = (uint16_t *)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
+        gMappedVerts = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferVerts, true);
+        gMappedIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferIdx, true);
 
-        gMappedTexVerts = (Vertex *)SDL_MapGPUTransferBuffer(gDevice, gTransferTexVerts, true);
-        gMappedTexIndices = (uint16_t *)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
+        gMappedTexVerts = (Vertex*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexVerts, true);
+        gMappedTexIndices = (uint16_t*)SDL_MapGPUTransferBuffer(gDevice, gTransferTexIdx, true);
         gFrameActive = true;
         return 0;
     }
 
-    int SDL_GPU_Renderer::EndFrame(SDL_Window *window) {
+    int SDL_GPU_Renderer::EndFrame(SDL_Window* window) {
         (void)window;
 
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferVerts);
@@ -450,7 +450,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexVerts);
         SDL_UnmapGPUTransferBuffer(gDevice, gTransferTexIdx);
 
-        SDL_GPUCopyPass *copy = SDL_BeginGPUCopyPass(gCommandBuffer);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(gCommandBuffer);
 
         if (gIndexCount > 0) {
             size_t vSize = sizeof(Vertex) * gVertCount;
@@ -487,7 +487,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
         colorTargetInfo.load_op = gMeshCommands.empty() ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
 
-        const CubeMap &skyboxState = GetSkyBoxState();
+        const CubeMap& skyboxState = GetSkyBoxState();
         const bool hasSkybox = skyboxState.front || skyboxState.back || skyboxState.left || skyboxState.right ||
                                skyboxState.top || skyboxState.bottom;
 
@@ -511,7 +511,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_BindGPUVertexBuffers(gRenderPass, 0, &vBind, 1);
             SDL_BindGPUIndexBuffer(gRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 
-            for (const auto &batch : gPrimitiveBatches) {
+            for (const auto& batch : gPrimitiveBatches) {
                 if (batch.idxCount == 0) {
                     continue;
                 }
@@ -525,7 +525,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
         }
 
-        for (const auto &batch : gTexBatches) {
+        for (const auto& batch : gTexBatches) {
             if (batch.idxCount == 0)
                 continue;
             if (!batch.texture || !batch.texture->gpuTex)
@@ -559,7 +559,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             uiTarget.load_op = SDL_GPU_LOADOP_LOAD;
             uiTarget.store_op = SDL_GPU_STOREOP_STORE;
 
-            SDL_GPURenderPass *uiPass = SDL_BeginGPURenderPass(gCommandBuffer, &uiTarget, 1, nullptr);
+            SDL_GPURenderPass* uiPass = SDL_BeginGPURenderPass(gCommandBuffer, &uiTarget, 1, nullptr);
             ImGui_ImplSDLGPU3_RenderDrawData(mPendingImGuiDrawData, gCommandBuffer, uiPass);
             SDL_EndGPURenderPass(uiPass);
         }
@@ -791,8 +791,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    Texture *SDL_GPU_Renderer::LoadTex(const char *path) {
-        CE::VFS::VFS &vfs = *gVFS;
+    Texture* SDL_GPU_Renderer::LoadTex(const char* path) {
+        CE::VFS::VFS& vfs = *gVFS;
 
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
@@ -800,7 +800,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        VirtualFile *vf = vfs.OpenFile(path);
+        VirtualFile* vf = vfs.OpenFile(path);
         if (!vf) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
             return nullptr;
@@ -810,19 +810,19 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         vfs.ReadFile(vf, fileBytes.data(), fileBytes.size());
         vfs.CloseFile(vf);
 
-        SDL_IOStream *mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
+        SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
             return nullptr;
         }
 
-        SDL_Surface *surface = IMG_Load_IO(mem, true);
+        SDL_Surface* surface = IMG_Load_IO(mem, true);
         if (!surface) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] IMG_Load_IO failed for '{}': {}", path, SDL_GetError());
             return nullptr;
         }
 
-        SDL_Surface *converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface* converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
         SDL_DestroySurface(surface);
         if (!converted) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_ConvertSurface failed: {}", SDL_GetError());
@@ -842,7 +842,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         texInfo.layer_count_or_depth = 1;
         texInfo.num_levels = 1;
 
-        SDL_GPUTexture *gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
+        SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
         if (!gpuTex) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(converted);
@@ -853,14 +853,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         tbInfo.size = (Uint32)dataSize;
 
-        SDL_GPUTransferBuffer *tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
-        void *mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
+        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
+        void* mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
         SDL_memcpy(mapped, converted->pixels, dataSize);
         SDL_UnmapGPUTransferBuffer(gDevice, tb);
         SDL_DestroySurface(converted);
 
-        SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(gDevice);
-        SDL_GPUCopyPass *copy = SDL_BeginGPUCopyPass(cmd);
+        SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
 
         SDL_GPUTextureTransferInfo src{};
         src.transfer_buffer = tb;
@@ -879,7 +879,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_SubmitGPUCommandBuffer(cmd);
         SDL_ReleaseGPUTransferBuffer(gDevice, tb);
 
-        SDLGPUTexData *data = new SDLGPUTexData();
+        SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex = gpuTex;
         data->sampler = CreateSampler(gDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
         data->repeatSampler = CreateSampler(gDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
@@ -896,7 +896,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        Texture *tex = new Texture();
+        Texture* tex = new Texture();
         tex->handle = data;
         tex->width = w;
         tex->height = h;
@@ -905,31 +905,31 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return tex;
     }
 
-    TextureUploadBatch *SDL_GPU_Renderer::BeginBatchTextureUpload() {
-        auto *batchData = new SDLTextureUploadBatchData();
+    TextureUploadBatch* SDL_GPU_Renderer::BeginBatchTextureUpload() {
+        auto* batchData = new SDLTextureUploadBatchData();
         batchData->cmd = SDL_AcquireGPUCommandBuffer(gDevice);
 
-        auto *batch = new TextureUploadBatch();
+        auto* batch = new TextureUploadBatch();
         batch->handle = batchData;
         return batch;
     }
 
-    void SDL_GPU_Renderer::EndBatchTextureUpload(TextureUploadBatch *batch) {
+    void SDL_GPU_Renderer::EndBatchTextureUpload(TextureUploadBatch* batch) {
         if (!batch || !batch->handle)
             return;
-        auto *data = static_cast<SDLTextureUploadBatchData *>(batch->handle);
+        auto* data = static_cast<SDLTextureUploadBatchData*>(batch->handle);
 
         SDL_SubmitGPUCommandBuffer(data->cmd);
-        for (auto *tb : data->pendingTBs)
+        for (auto* tb : data->pendingTBs)
             SDL_ReleaseGPUTransferBuffer(gDevice, tb);
 
         delete data;
         delete batch;
     }
 
-    Texture *SDL_GPU_Renderer::CreateTextureFromData(int width, int height, const void *pixels, TextureFormat format,
+    Texture* SDL_GPU_Renderer::CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
                                                      int pitch, TextureFilter filter, TextureWrap wrap,
-                                                     TextureUploadBatch *batch) {
+                                                     TextureUploadBatch* batch) {
         if (!gDevice) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateTextureFromData called before Init()");
             return nullptr;
@@ -979,7 +979,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         const Uint32 srcPixelsPerRow = (Uint32)(srcPitchBytes / srcBpp);
 
         std::vector<uint8_t> converted;
-        const uint8_t *uploadPtr = static_cast<const uint8_t *>(pixels);
+        const uint8_t* uploadPtr = static_cast<const uint8_t*>(pixels);
         Uint32 uploadPixelsPerRow = srcPixelsPerRow;
         Uint32 uploadWidth = (Uint32)width;
         Uint32 uploadHeight = (Uint32)height;
@@ -988,16 +988,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         if (format != TextureFormat::RGBA8) {
             converted.resize((size_t)width * (size_t)height * 4);
-            const uint8_t *src = static_cast<const uint8_t *>(pixels);
+            const uint8_t* src = static_cast<const uint8_t*>(pixels);
 
             for (int row = 0; row < height; ++row) {
-                const uint8_t *srcRow = src + (size_t)row * (size_t)srcPitchBytes;
-                uint8_t *dstRow = converted.data() + (size_t)row * (size_t)width * 4;
+                const uint8_t* srcRow = src + (size_t)row * (size_t)srcPitchBytes;
+                uint8_t* dstRow = converted.data() + (size_t)row * (size_t)width * 4;
 
                 if (format == TextureFormat::RGB8) {
                     for (int col = 0; col < width; ++col) {
-                        const uint8_t *s = srcRow + (size_t)col * 3;
-                        uint8_t *d = dstRow + (size_t)col * 4;
+                        const uint8_t* s = srcRow + (size_t)col * 3;
+                        uint8_t* d = dstRow + (size_t)col * 4;
                         d[0] = s[0];
                         d[1] = s[1];
                         d[2] = s[2];
@@ -1006,7 +1006,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 } else {
                     for (int col = 0; col < width; ++col) {
                         const uint8_t v = srcRow[col];
-                        uint8_t *d = dstRow + (size_t)col * 4;
+                        uint8_t* d = dstRow + (size_t)col * 4;
                         d[0] = v;
                         d[1] = v;
                         d[2] = v;
@@ -1028,7 +1028,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         texInfo.layer_count_or_depth = 1;
         texInfo.num_levels = 1;
 
-        SDL_GPUTexture *gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
+        SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(gDevice, &texInfo);
         if (!gpuTex) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             return nullptr;
@@ -1041,14 +1041,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         tbInfo.size = (Uint32)uploadSize;
 
-        SDL_GPUTransferBuffer *tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
+        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(gDevice, &tbInfo);
         if (!tb) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
             SDL_ReleaseGPUTexture(gDevice, gpuTex);
             return nullptr;
         }
 
-        void *mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
+        void* mapped = SDL_MapGPUTransferBuffer(gDevice, tb, false);
         if (!mapped) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(gDevice, tb);
@@ -1059,12 +1059,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_memcpy(mapped, uploadPtr, uploadSize);
         SDL_UnmapGPUTransferBuffer(gDevice, tb);
 
-        SDLTextureUploadBatchData *batchData =
-            batch ? static_cast<SDLTextureUploadBatchData *>(batch->handle) : nullptr;
+        SDLTextureUploadBatchData* batchData = batch ? static_cast<SDLTextureUploadBatchData*>(batch->handle) : nullptr;
 
-        SDL_GPUCommandBuffer *cmd = batchData ? batchData->cmd : SDL_AcquireGPUCommandBuffer(gDevice);
+        SDL_GPUCommandBuffer* cmd = batchData ? batchData->cmd : SDL_AcquireGPUCommandBuffer(gDevice);
 
-        SDL_GPUCopyPass *copy = SDL_BeginGPUCopyPass(cmd);
+        SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
 
         SDL_GPUTextureTransferInfo src{};
         src.transfer_buffer = tb;
@@ -1103,7 +1102,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             break;
         }
 
-        SDLGPUTexData *data = new SDLGPUTexData();
+        SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex = gpuTex;
         data->sampler = CreateSampler(gDevice, gpuFilter, addressMode);
         data->repeatSampler = CreateSampler(gDevice, gpuFilter, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
@@ -1119,7 +1118,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        Texture *tex = new Texture();
+        Texture* tex = new Texture();
         tex->handle = data;
         tex->width = width;
         tex->height = height;
@@ -1128,7 +1127,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return tex;
     }
 
-    void SDL_GPU_Renderer::DrawTex(Texture *texture, float x, float y, float w, float h, Colour colour, float rotation,
+    void SDL_GPU_Renderer::DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
                                    TextureFlip flip) {
         if (!gFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -1139,10 +1138,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
         if (!texture || !texture->handle)
             return;
-        auto *tex = static_cast<SDLGPUTexData *>(texture->handle);
+        auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES)
             return;
-        SDL_GPUSampler *sampler = tex->sampler;
+        SDL_GPUSampler* sampler = tex->sampler;
 
         if (gTexBatches.empty() || gCurrentTex != tex || gCurrentTexSampler != sampler ||
             gTexBatches.back().shader != gCurrentShader) {
@@ -1191,7 +1190,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         UpdateTexBatchCounts(gTexBatches, gTexVertCount, gTexIndexCount);
     }
 
-    void SDL_GPU_Renderer::DrawTexUV(Texture *texture, float x, float y, float w, float h, float u0, float v0, float u1,
+    void SDL_GPU_Renderer::DrawTexUV(Texture* texture, float x, float y, float w, float h, float u0, float v0, float u1,
                                      float v1, Colour colour, float rotation, TextureFlip flip) {
         if (!gFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -1202,10 +1201,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
         if (!texture || !texture->handle)
             return;
-        auto *tex = static_cast<SDLGPUTexData *>(texture->handle);
+        auto* tex = static_cast<SDLGPUTexData*>(texture->handle);
         if (gTexVertCount + 4 > MAX_VERTS || gTexIndexCount + 6 > MAX_INDICES)
             return;
-        SDL_GPUSampler *sampler = RequiresRepeatSampler(u0, v0, u1, v1) ? tex->repeatSampler : tex->sampler;
+        SDL_GPUSampler* sampler = RequiresRepeatSampler(u0, v0, u1, v1) ? tex->repeatSampler : tex->sampler;
 
         if (gTexBatches.empty() || gCurrentTex != tex || gCurrentTexSampler != sampler ||
             gTexBatches.back().shader != gCurrentShader) {
@@ -1259,7 +1258,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         std::vector<DeferredDeleteEntry> entriesToDelete;
 
-        for (auto &entry : gDeferredDeletes) {
+        for (auto& entry : gDeferredDeletes) {
             if (force) {
                 entry.framesUntilDelete = 0;
             } else {
@@ -1279,17 +1278,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
         }
 
-        for (const auto &entry : entriesToDelete) {
+        for (const auto& entry : entriesToDelete) {
             gDeferredDeletes.erase(std::remove(gDeferredDeletes.begin(), gDeferredDeletes.end(), entry),
                                    gDeferredDeletes.end());
         }
     }
 
-    void SDL_GPU_Renderer::UnloadTex(Texture *texture) {
+    void SDL_GPU_Renderer::UnloadTex(Texture* texture) {
         if (!texture)
             return;
         if (texture->handle) {
-            auto *data = static_cast<SDLGPUTexData *>(texture->handle);
+            auto* data = static_cast<SDLGPUTexData*>(texture->handle);
             gDeferredDeletes.push_back({data, 3});
         }
         delete texture;
@@ -1336,11 +1335,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return static_cast<int>(gTexIndexCount);
     }
 
-    Camera2D *SDL_GPU_Renderer::GetCamera() {
+    Camera2D* SDL_GPU_Renderer::GetCamera() {
         return &gCamera;
     }
 
-    Texture *SDL_GPU_Renderer::GetErrorTexture() {
+    Texture* SDL_GPU_Renderer::GetErrorTexture() {
         static Texture errorTexture;
 
         static SDLGPUTexData data;
@@ -1357,22 +1356,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return &errorTexture;
     }
 
-    void *SDL_GPU_Renderer::GetNativeTextureHandle(Texture *texture) {
+    void* SDL_GPU_Renderer::GetNativeTextureHandle(Texture* texture) {
         if (!texture || !texture->handle) {
             return nullptr;
         }
 
-        auto *data = static_cast<SDLGPUTexData *>(texture->handle);
+        auto* data = static_cast<SDLGPUTexData*>(texture->handle);
         return data ? data->gpuTex : nullptr;
     }
 
-    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS *vfs) {
+    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs) {
         gBackend = backend;
         gVFS = vfs;
     }
 
     void SDL_GPU_Renderer::SetVSync(bool setting) {
-        SDL_Window *window = SDL_GetWindowFromID(mWindowID);
+        SDL_Window* window = SDL_GetWindowFromID(mWindowID);
         if (window == nullptr) {
             CE_LOG(LogLevel::Warn, "[SDL_GPU Renderer] SetVSync called before window was available");
             return;

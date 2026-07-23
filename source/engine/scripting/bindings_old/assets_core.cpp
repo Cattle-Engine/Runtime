@@ -6,19 +6,19 @@
 #include "engine/scripting/scripting_macros.hpp"
 
 namespace CE::Scripting {
-    void ASMeshData::SetColour(const Renderer::Colour &colour) {
+    void ASMeshData::SetColour(const Renderer::Colour& colour) {
         Renderer::Primitives3D::SetMeshColour(mesh, colour);
     }
 
-    static ASMeshData *MeshDataFactory() {
+    static ASMeshData* MeshDataFactory() {
         return new ASMeshData();
     }
 
-    void Runtime::ConstructColour(Renderer::Colour *self) {
+    void Runtime::ConstructColour(Renderer::Colour* self) {
         new (self) Renderer::Colour();
     }
 
-    void Runtime::ConstructColourRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a, Renderer::Colour *self) {
+    void Runtime::ConstructColourRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a, Renderer::Colour* self) {
         new (self) Renderer::Colour{r, g, b, a};
     }
 

@@ -28,17 +28,17 @@
 #define CE_REGISTER_NAME_REGISTRY_GLOBAL_IMPL(registry, cppType, scriptType, namespaceName, id)                        \
     do {                                                                                                               \
         struct CE_CONCAT(_ce_registry_wrapper_, id) {                                                                  \
-            std::remove_reference_t<decltype(registry)> *Registry;                                                     \
+            std::remove_reference_t<decltype(registry)>* Registry;                                                     \
                                                                                                                        \
             static bool Exists(std::string_view name) {                                                                \
                 return GetRegistry()->Exists(name);                                                                    \
             }                                                                                                          \
                                                                                                                        \
-            static void Add(std::string_view name, const cppType &value) {                                             \
+            static void Add(std::string_view name, const cppType& value) {                                             \
                 GetRegistry()->Add(std::string(name), value);                                                          \
             }                                                                                                          \
                                                                                                                        \
-            static const cppType &Get(std::string_view name) {                                                         \
+            static const cppType& Get(std::string_view name) {                                                         \
                 return GetRegistry()->Get(std::string(name));                                                          \
             }                                                                                                          \
                                                                                                                        \
@@ -51,8 +51,8 @@
             }                                                                                                          \
                                                                                                                        \
             /* Return a reference to the pointer so it can be assigned */                                              \
-            static std::remove_reference_t<decltype(registry)> *&GetRegistry() {                                       \
-                static std::remove_reference_t<decltype(registry)> *reg = nullptr;                                     \
+            static std::remove_reference_t<decltype(registry)>*& GetRegistry() {                                       \
+                static std::remove_reference_t<decltype(registry)>* reg = nullptr;                                     \
                 return reg;                                                                                            \
             }                                                                                                          \
         };                                                                                                             \
@@ -100,11 +100,11 @@
                 return GetRegistry()->Exists(name);                                                                    \
             }                                                                                                          \
                                                                                                                        \
-            static void Add(std::string_view name, const cppType &value) {                                             \
+            static void Add(std::string_view name, const cppType& value) {                                             \
                 GetRegistry()->Add(std::string(name), value.handleMember);                                             \
             }                                                                                                          \
                                                                                                                        \
-            static const cppType &Get(std::string_view name) {                                                         \
+            static const cppType& Get(std::string_view name) {                                                         \
                 static cppType cachedValue{};                                                                          \
                 cachedValue = cppType{GetRegistry()->Get(std::string(name))};                                          \
                 return cachedValue;                                                                                    \
@@ -118,8 +118,8 @@
                 GetRegistry()->Clear();                                                                                \
             }                                                                                                          \
                                                                                                                        \
-            static std::remove_reference_t<decltype(registry)> *&GetRegistry() {                                       \
-                static std::remove_reference_t<decltype(registry)> *reg = nullptr;                                     \
+            static std::remove_reference_t<decltype(registry)>*& GetRegistry() {                                       \
+                static std::remove_reference_t<decltype(registry)>* reg = nullptr;                                     \
                 return reg;                                                                                            \
             }                                                                                                          \
         };                                                                                                             \

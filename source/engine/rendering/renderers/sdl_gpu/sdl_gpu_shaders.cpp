@@ -16,7 +16,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         constexpr Uint32 kDefaultCustomFragmentSamplerCount = 4;
         constexpr Uint32 kCustomFragmentUniformBufferCount = 1;
 
-        bool TryParseSuffixIndex(const char *name, const char *prefix, size_t maxCount, size_t &indexOut) {
+        bool TryParseSuffixIndex(const char* name, const char* prefix, size_t maxCount, size_t& indexOut) {
             if (!name || !prefix) {
                 return false;
             }
@@ -32,7 +32,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 return false;
             }
 
-            char *endPtr = nullptr;
+            char* endPtr = nullptr;
             const long parsedIndex = std::strtol(suffix.c_str(), &endPtr, 10);
             if (endPtr == nullptr || *endPtr != '\0' || parsedIndex < 0) {
                 return false;
@@ -47,13 +47,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return true;
         }
 
-        std::string NormalizeUniformName(const char *name) {
+        std::string NormalizeUniformName(const char* name) {
             if (!name) {
                 return {};
             }
 
             std::string normalized(name);
-            for (char &ch : normalized) {
+            for (char& ch : normalized) {
                 ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
             }
             return normalized;
@@ -61,24 +61,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     } // namespace
 
-    bool SDL_GPU_Renderer::ShaderPathSuggests3D(const std::string &shaderPath) {
+    bool SDL_GPU_Renderer::ShaderPathSuggests3D(const std::string& shaderPath) {
         std::string normalized = shaderPath;
-        for (char &ch : normalized) {
+        for (char& ch : normalized) {
             ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
         }
 
         return normalized.find("3d") != std::string::npos;
     }
 
-    SDL_GPU_Renderer_Shader *SDL_GPU_Renderer::GetShaderProgram(Shader *shaderProgram) {
+    SDL_GPU_Renderer_Shader* SDL_GPU_Renderer::GetShaderProgram(Shader* shaderProgram) {
         if (!shaderProgram) {
             return nullptr;
         }
 
-        return static_cast<SDL_GPU_Renderer_Shader *>(shaderProgram->handle);
+        return static_cast<SDL_GPU_Renderer_Shader*>(shaderProgram->handle);
     }
 
-    std::string SDL_GPU_Renderer::GetShaderBaseName(const char *path) {
+    std::string SDL_GPU_Renderer::GetShaderBaseName(const char* path) {
         if (!path || path[0] == '\0') {
             return {};
         }
@@ -101,12 +101,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return baseName;
     }
 
-    bool SDL_GPU_Renderer::ParseIndexedUniformName(const char *name, const char *prefix, size_t maxCount,
-                                                   size_t &indexOut) {
+    bool SDL_GPU_Renderer::ParseIndexedUniformName(const char* name, const char* prefix, size_t maxCount,
+                                                   size_t& indexOut) {
         return TryParseSuffixIndex(name, prefix, maxCount, indexOut);
     }
 
-    SDL_GPUShader *SDL_GPU_Renderer::GetStageShader(const SDL_GPU_Renderer_Shader *shaderProgram,
+    SDL_GPUShader* SDL_GPU_Renderer::GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram,
                                                     ShaderStage stage) const {
         if (!shaderProgram) {
             return nullptr;
@@ -119,12 +119,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return shaderProgram->UsesDefaultFragment ? gDefaultFragmentShader : shaderProgram->FragmentShader;
     }
 
-    void SDL_GPU_Renderer::ReleaseProgramStage(SDL_GPU_Renderer_Shader *shaderProgram, ShaderStage stage) {
+    void SDL_GPU_Renderer::ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) {
         if (!shaderProgram) {
             return;
         }
 
-        SDL_GPUShader *&shaderHandle =
+        SDL_GPUShader*& shaderHandle =
             (stage == ShaderStage::Vertex) ? shaderProgram->VertexShader : shaderProgram->FragmentShader;
 
         if (shaderHandle) {
@@ -139,7 +139,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    bool SDL_GPU_Renderer::LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader *shaderProgram, const char *path,
+    bool SDL_GPU_Renderer::LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path,
                                                       ShaderStage stage, Uint32 samplerCount) {
         if (!gDevice || !shaderProgram) {
             return false;
@@ -153,7 +153,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         ReleaseProgramStage(shaderProgram, stage);
 
-        SDL_GPUShader *loadedShader = nullptr;
+        SDL_GPUShader* loadedShader = nullptr;
         if (stage == ShaderStage::Vertex) {
             loadedShader = Utils::LoadShader(gDevice, shaderPath, 0, kCustomVertexUniformBufferCount, 0, 0, gVFS);
         } else {
@@ -187,23 +187,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return true;
     }
 
-    Shader *SDL_GPU_Renderer::CreateShaderProgram() {
-        auto *backendShader = new SDL_GPU_Renderer_Shader();
+    Shader* SDL_GPU_Renderer::CreateShaderProgram() {
+        auto* backendShader = new SDL_GPU_Renderer_Shader();
         backendShader->BoundTextures.resize(1, nullptr);
-        auto *shaderProgram = new Shader();
+        auto* shaderProgram = new Shader();
         shaderProgram->handle = backendShader;
         shaderProgram->backend = gBackend;
         return shaderProgram;
     }
 
-    Shader *SDL_GPU_Renderer::LoadShader(const char *path, int fragmentSamplerCount) {
+    Shader* SDL_GPU_Renderer::LoadShader(const char* path, int fragmentSamplerCount) {
         std::string baseName = GetShaderBaseName(path);
         if (baseName.empty()) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] LoadShader called with an invalid path");
             return nullptr;
         }
 
-        Shader *shaderProgram = CreateShaderProgram();
+        Shader* shaderProgram = CreateShaderProgram();
         if (!shaderProgram) {
             return nullptr;
         }
@@ -222,9 +222,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return shaderProgram;
     }
 
-    bool SDL_GPU_Renderer::LoadShaderStage(Shader *shaderProgram, const char *path, ShaderStage stage,
+    bool SDL_GPU_Renderer::LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage,
                                            int samplerCount) {
-        auto *program = GetShaderProgram(shaderProgram);
+        auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] LoadShaderStage called with an invalid shader program");
             return false;
@@ -238,8 +238,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return LoadShaderStageIntoProgram(program, path, stage, static_cast<Uint32>(std::max(0, samplerCount)));
     }
 
-    bool SDL_GPU_Renderer::UseDefaultShaderStage(Shader *shaderProgram, ShaderStage stage) {
-        auto *program = GetShaderProgram(shaderProgram);
+    bool SDL_GPU_Renderer::UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) {
+        auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] UseDefaultShaderStage called with an invalid shader program");
             return false;
@@ -255,28 +255,28 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return true;
     }
 
-    bool SDL_GPU_Renderer::CompileShaderProgram(Shader *shaderProgram) {
-        auto *program = GetShaderProgram(shaderProgram);
+    bool SDL_GPU_Renderer::CompileShaderProgram(Shader* shaderProgram) {
+        auto* program = GetShaderProgram(shaderProgram);
         if (!program) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram called with an invalid shader program");
             return false;
         }
 
-        SDL_Window *window = SDL_GetWindowFromID(mWindowID);
+        SDL_Window* window = SDL_GetWindowFromID(mWindowID);
         if (!window) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CompileShaderProgram could not resolve the renderer window");
             return false;
         }
 
-        SDL_GPUShader *vertexShader = GetStageShader(program, ShaderStage::Vertex);
-        SDL_GPUShader *fragmentShader = GetStageShader(program, ShaderStage::Fragment);
+        SDL_GPUShader* vertexShader = GetStageShader(program, ShaderStage::Vertex);
+        SDL_GPUShader* fragmentShader = GetStageShader(program, ShaderStage::Fragment);
         if (!vertexShader || !fragmentShader) {
             CE_LOG(LogLevel::Error,
                    "[SDL_GPU Renderer] CompileShaderProgram requires both a vertex and fragment stage");
             return false;
         }
 
-        SDL_GPUGraphicsPipeline *newPipeline = (program->Mode == SDL_GPU_Renderer_Shader::PipelineMode::Mode3D)
+        SDL_GPUGraphicsPipeline* newPipeline = (program->Mode == SDL_GPU_Renderer_Shader::PipelineMode::Mode3D)
                                                    ? Create3DGraphicsPipeline(window, vertexShader, fragmentShader)
                                                    : CreateGraphicsPipeline(window, vertexShader, fragmentShader);
         if (!newPipeline) {
@@ -297,12 +297,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return true;
     }
 
-    void SDL_GPU_Renderer::UnloadShader(Shader *shader) {
+    void SDL_GPU_Renderer::UnloadShader(Shader* shader) {
         if (!shader) {
             return;
         }
 
-        auto *program = GetShaderProgram(shader);
+        auto* program = GetShaderProgram(shader);
         if (!program) {
             delete shader;
             return;
@@ -325,13 +325,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         delete shader;
     }
 
-    void SDL_GPU_Renderer::BindShader(Shader *shader) {
+    void SDL_GPU_Renderer::BindShader(Shader* shader) {
         if (!shader) {
             UnbindShader();
             return;
         }
 
-        auto *program = GetShaderProgram(shader);
+        auto* program = GetShaderProgram(shader);
         if (!program) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Invalid shader program passed to BindShader");
             return;
@@ -359,7 +359,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderFloat(const char *name, float value) {
+    void SDL_GPU_Renderer::SetShaderFloat(const char* name, float value) {
         if (!gCurrentShader || !name) {
             return;
         }
@@ -398,7 +398,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderVec2(const char *name, float x, float y) {
+    void SDL_GPU_Renderer::SetShaderVec2(const char* name, float x, float y) {
         if (!gCurrentShader || !name) {
             return;
         }
@@ -420,7 +420,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderVec3(const char *name, float x, float y, float z) {
+    void SDL_GPU_Renderer::SetShaderVec3(const char* name, float x, float y, float z) {
         if (!gCurrentShader || !name) {
             return;
         }
@@ -436,7 +436,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderVec4(const char *name, float x, float y, float z, float w) {
+    void SDL_GPU_Renderer::SetShaderVec4(const char* name, float x, float y, float z, float w) {
         if (!gCurrentShader || !name) {
             return;
         }
@@ -457,7 +457,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderMat4(const char *name, const float *mat4) {
+    void SDL_GPU_Renderer::SetShaderMat4(const char* name, const float* mat4) {
         if (!gCurrentShader || !name || !mat4) {
             return;
         }
@@ -484,7 +484,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderInt(const char *name, int value) {
+    void SDL_GPU_Renderer::SetShaderInt(const char* name, int value) {
         if (!gCurrentShader || !name) {
             return;
         }
@@ -508,7 +508,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
     }
 
-    void SDL_GPU_Renderer::SetShaderTexture(const char *name, Texture *texture, int slot) {
+    void SDL_GPU_Renderer::SetShaderTexture(const char* name, Texture* texture, int slot) {
         (void)name;
         if (!gCurrentShader) {
             return;
