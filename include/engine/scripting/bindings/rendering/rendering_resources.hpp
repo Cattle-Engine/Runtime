@@ -14,17 +14,21 @@ namespace CE::Scripting::Bindings {
             void UnloadTexture(const Renderer::Resources::TextureHandle& handle);
     };
     
+    // Binds the functions inside private and adds the CE::Renderer::Resources::MaterialHandle
     class MaterialResourceBindings : public IScriptBinding {
         public:
             bool RegisterBindings() override;
         private:
-            void CreateMaterial(const Renderer::Resources::MaterialHandle& handle);
+            void CreateMaterial(Renderer::Resources::MaterialHandle& handle, const Renderer::Resources::TextureHandle& tex);
             void DestroyMaterialHandle(const Renderer::Resources::MaterialHandle& handle);
-            bool SetMaterialAlbedo(const Renderer::Resources::MaterialHandle& handle, const std::string& textureName);
-            bool SetMaterialTint(const Renderer::Resources::MaterialHandle& handle, const Renderer::Colour& colour);
-            bool SetMaterialRoughness(const Renderer::Resources::MaterialHandle& handle, float roughness);
-            bool SetMaterialMetallic(const Renderer::Resources::MaterialHandle& handle, float metallic);
-            bool HasMaterial(const Renderer::Resources::MaterialHandle& handle) const;
+            void SetMaterialAlbedo(
+                const Renderer::Resources::MaterialHandle& handle, 
+                const Renderer::Resources::TextureHandle tex
+            );
+            void SetMaterialTint(const Renderer::Resources::MaterialHandle& handle, const Renderer::Colour& colour);
+            void SetMaterialRoughness(const Renderer::Resources::MaterialHandle& handle, float roughness);
+            void SetMaterialMetallic(const Renderer::Resources::MaterialHandle& handle, float metallic);
+            bool MaterialExists(const Renderer::Resources::MaterialHandle& handle) const;
     };
     
     class GPUMeshResourceBindings : public IScriptBinding {
