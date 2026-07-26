@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <variant>
 
 #include <SDL3/SDL.h>
 

@@ -2,16 +2,15 @@
 // Shared macros used by bindings
 
 
-// This MUST only be called from an IScriptBinding as it uses members only inside that!
-#define CE_REGISTER_TYPE(name, size, flags) \
-do { \
-    if (mScriptEngine.RegisterObjectType((name), (size), (flags)) < 0) { \
-        return false; \
-    } \
+// The below functions must only be called from a function that returns false and is in IScriptBinding
+#define CE_REGISTER_TYPE(name, size, flags)                                                     \
+do {                                                                                            \
+    if (mScriptEngine.RegisterObjectType((name), (size), (flags)) < 0) {                        \
+        return false;                                                                           \
+    }                                                                                           \
 } while (false)
 
-// This also MUST only be called from IScriptBinding
-#define CE_REGISTER_GLOBAL(type, obj, decl, method)                                            \
+#define CE_REGISTER_GLOBAL(type, obj, decl, method)                                             \
 do {                                                                                            \
     if (mScriptEngine.RegisterGlobalFunction(                                                   \
             decl,                                                                               \
@@ -21,3 +20,39 @@ do {                                                                            
         return false;                                                                           \
     }                                                                                           \
 } while (false)
+
+#define CE_REGISTER_OBJECT_BEHAVIOUR(obj, behaviour, declaration, func_ptr, call_conv)          \
+do {                                                                                            \
+    if (mScriptEngine.RegisterObjectBehaviour(                                                  \
+            obj,                                                                                \
+            behaviour,                                                                          \
+            declaration,                                                                        \
+            func_ptr,                                                                           \
+            call_conv                                                                           \
+        ) < 0) {                                                                                \
+        return false;                                                                           \
+    }                                                                                           \
+} while (false)
+
+#define CE_REGISTER_OBJECT_PROPERTY(obj, decl, byte_offset)                                     \
+do {                                                                                            \
+    if (mScriptEngine.RegisterObjectProperty(                                                   \
+            obj,                                                                                \
+            decl,                                                                               \
+            byte_offset                                                                         \
+        ) < 0) {                                                                                \
+        return false;                                                                           \
+    }                                                                                           \
+} while (false)                 
+
+#define CE_REGISTER_OBJECT_METHOD(obj, declaration, func_ptr, call_conv)                        \
+do {                                                                                            \
+    if (mScriptEngine.RegisterObjectMethod(                                                     \
+            obj,                                                                                \
+            declaration,                                                                        \
+            func_ptr,                                                                           \
+            call_conv                                                                           \
+        ) < 0) {                                                                                \
+        return false;                                                                           \
+    }                                                                                           \
+} while (false)                                                                                 
