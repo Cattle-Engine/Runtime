@@ -10,6 +10,8 @@
 #include "engine/assets/assimp_vfs_io.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/utils/scoped_timer.hpp"
+#include "engine/rendering/resources/material_manager.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 
 #include <SDL3_image/SDL_image.h>
 #include <assimp/Importer.hpp>
@@ -68,11 +70,11 @@ namespace CE::Assets::Model3DImporter {
     ModelImporter::ModelImporter(VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
                                  Renderer::Resources::MaterialManager& mat_manager,
                                  Renderer::Resources::TextureManager& tex_man, Renderer::IRenderer& renderer)
-        : mRenderer(renderer),
-          mVFS(vfs),
+        : mVFS(vfs),
           mGPUMeshManager(mesh_manager),
           mMaterialManager(mat_manager),
-          mTextureManager(tex_man) {}
+          mTextureManager(tex_man),
+          mRenderer(renderer) {}
 
     CE::Renderer::MeshData ModelImporter::ConvertMesh(aiMesh* mesh) {
         CE::Renderer::MeshData out;
@@ -85,7 +87,7 @@ namespace CE::Assets::Model3DImporter {
                                           : glm::vec3(0.0f);
             v.uv = mesh->HasTextureCoords(0) ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y)
                                              : glm::vec2(0.0f);
-            v.color = {255, 255, 255, 255};
+            v.colour = {255, 255, 255, 255};
             out.vertices.push_back(v);
         }
 
@@ -296,7 +298,7 @@ namespace CE::Assets::Model3DImporter {
         auto resolveHandle = [&](const std::string& assimp_path,
                                  SDL_Surface* surface) -> Renderer::Resources::TextureHandle {
             if (assimp_path.empty())
-                return 0;
+                return Renderer::Resources::TextureHandle{0};
 
             for (const auto& entry : gpuHandleCache) {
                 if (entry.path == assimp_path)
@@ -304,7 +306,7 @@ namespace CE::Assets::Model3DImporter {
             }
 
             if (!surface)
-                return 0;
+                return Renderer::Resources::TextureHandle{0};
 
             auto handle = mTextureManager.CreateTextureFromData(
                 surface->w, surface->h, surface->pixels, Renderer::TextureFormat::RGBA8, surface->pitch,
@@ -335,7 +337,7 @@ namespace CE::Assets::Model3DImporter {
             resolveHandle(normal_path.empty() ? "__white_normal" : normal_path, normal_surf);
 
         std::string mr_key = std::format("__mr_{}_{}", metallic_path, roughness_path);
-        Renderer::Resources::TextureHandle mr_handle = 0;
+        Renderer::Resources::TextureHandle mr_handle{0};
 
         bool mr_found = false;
         for (const auto& entry : gpuHandleCache) {

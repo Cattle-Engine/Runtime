@@ -18,5 +18,6 @@ namespace CE::Scripting::Bindings {
             bool RegisterResourceHandleBindings();
             // Binds glm::vec3 and glm::vec2 to CE::Vec3, CE::Vec2
             bool RegisterVec3AndVec2();
+            bool RegisterVertex3D();
     };
 }

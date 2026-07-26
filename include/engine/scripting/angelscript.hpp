@@ -50,7 +50,7 @@ namespace CE {
         class AudioManager;
     }
 
-    namespace CE::Common::Containers {
+    namespace Common::Containers {
         struct RendererResourcesNameRegistry;
     }
 } // namespace CE

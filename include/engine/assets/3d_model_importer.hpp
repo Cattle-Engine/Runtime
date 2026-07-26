@@ -34,7 +34,7 @@ namespace CE::Assets::Model3DImporter {
       private:
         struct TextureInfo {
             std::string path = "";
-            Renderer::Resources::TextureHandle handle = 0;
+            Renderer::Resources::TextureHandle handle{};
         };
 
         struct LoadedAssimpTextureInfo {

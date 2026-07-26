@@ -36,7 +36,7 @@ namespace CE::Renderer::Primitives3D {
 
         void ApplyColour(MeshData& data, const Colour& colour) {
             for (auto& vertex : data.vertices) {
-                vertex.color = colour;
+                vertex.colour = colour;
             }
         }
     } // namespace

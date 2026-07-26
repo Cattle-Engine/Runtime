@@ -5,18 +5,16 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/3d_model_importer.hpp"
+#include "engine/ui/debug_window.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/assets/audio.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/audio/audio.hpp"
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/containers/registries.hpp"
 #include "engine/common/core/event_bus.hpp"
 #include "engine/common/core/game_state.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/misc/arguments.hpp"
-#include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/rendering/renderer.hpp"
@@ -26,7 +24,6 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/scripting/angelscript.hpp"
-#include "engine/ui/debug_window.hpp"
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;
@@ -47,8 +44,8 @@ namespace CE {
         int GetInstanceID();
         void SetGameState(const std::string& state);
         const std::string& GetGameState() const;
-        CE::Core::EventBus& GetEventBus();
-        CE::Core::GameState::GameStateManager& GetGameStateManager();
+        Core::EventBus& GetEventBus();
+        Core::GameState::GameStateManager& GetGameStateManager();
         ~Instance();
 
       private:
@@ -58,30 +55,30 @@ namespace CE {
         int Bootstrap_RendererResourceManagers();
         int Bootstrap_AssetImportersAndManagers();
 
-        std::unique_ptr<CE::VFS::VFS> gVFS;
-        std::unique_ptr<CE::GameInfo> gGameInfo;
-        std::unique_ptr<CE::Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
-        std::unique_ptr<CE::Settings::SettingsManager> gSettingsManager;
-        std::unique_ptr<CE::Renderer::IRenderer> gRenderer;
+        std::unique_ptr<VFS::VFS> gVFS;
+        std::unique_ptr<GameInfo> gGameInfo;
+        std::unique_ptr<Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
+        std::unique_ptr<Settings::SettingsManager> gSettingsManager;
+        std::unique_ptr<Renderer::IRenderer> gRenderer;
 
-        std::unique_ptr<CE::Input::Keyboard> gKeyboardManger;
-        std::unique_ptr<CE::Input::Mouse> gMouseManger;
+        std::unique_ptr<Input::Keyboard> gKeyboardManger;
+        std::unique_ptr<Input::Mouse> gMouseManger;
 
-        std::unique_ptr<CE::Scripting::Runtime> gScriptingManager;
+        std::unique_ptr<Scripting::Runtime> gScriptingManager;
 
-        std::unique_ptr<CE::Core::Audio::AudioSystem> gAudioSystem;
-        std::unique_ptr<CE::Assets::Audio::AudioManager> gAudioManager;
+        std::unique_ptr<Core::Audio::AudioSystem> gAudioSystem;
+        std::unique_ptr<Assets::Audio::AudioManager> gAudioManager;
 
-        std::unique_ptr<CE::Renderer::Resources::GPUMeshManager> gGPUMeshManager;
-        std::unique_ptr<CE::Renderer::Resources::MaterialManager> gMaterialManager;
-        std::unique_ptr<CE::Renderer::Resources::TextureManager> gTextureManager;
-        std::unique_ptr<CE::Renderer::Resources::ModelRenderer> gModelRenderer;
-        std::unique_ptr<CE::Renderer::Resources::ShaderManager> gShaderManager;
+        std::unique_ptr<Renderer::Resources::GPUMeshManager> gGPUMeshManager;
+        std::unique_ptr<Renderer::Resources::MaterialManager> gMaterialManager;
+        std::unique_ptr<Renderer::Resources::TextureManager> gTextureManager;
+        std::unique_ptr<Renderer::Resources::ModelRenderer> gModelRenderer;
+        std::unique_ptr<Renderer::Resources::ShaderManager> gShaderManager;
 
-        std::unique_ptr<CE::Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
-        std::unique_ptr<CE::Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
-        std::unique_ptr<CE::Assets::Model3DImporter::ModelImporter> g3DModelImporter;
-        std::unique_ptr<CE::Assets::Fonts::FontManager> gFontManager;
+        std::unique_ptr<Assets::Skyboxes::SkyBoxManager> gSkyBoxManager;
+        std::unique_ptr<Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
+        std::unique_ptr<Assets::Model3DImporter::ModelImporter> g3DModelImporter;
+        std::unique_ptr<Assets::Fonts::FontManager> gFontManager;
 
         SDL_Window* gWindow = nullptr;
         RendererBackend gRendererBackend = RendererBackend::None;
@@ -100,9 +97,9 @@ namespace CE {
         // The id for the window in the instance, provided by SDL
         int gInstanceWindowID;
 
-        CE::Core::EventBus gEventBus;
-        CE::Core::GameState::GameStateManager gGameStateManager;
-        CE::UI::DebugWindow gDebugWindow;
+        Core::EventBus gEventBus;
+        Core::GameState::GameStateManager gGameStateManager;
+        UI::DebugWindow gDebugWindow;
         EngineArguements gProgramArguments;
     };
 

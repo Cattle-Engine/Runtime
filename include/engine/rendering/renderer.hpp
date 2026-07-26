@@ -86,7 +86,7 @@ namespace CE::Renderer {
     struct Vertex3D {
         glm::vec3 position;
         glm::vec3 normal;
-        Colour color;
+        Colour colour;
         glm::vec2 uv;
         glm::vec3 tangent{0.0f, 0.0f, 0.0f};
         float tangentSign = 1.0f;

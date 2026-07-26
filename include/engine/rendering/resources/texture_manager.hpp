@@ -10,18 +10,15 @@
 
 namespace CE::Renderer::Resources {
     struct TextureHandle {
-      TextureHandle() : id(0) {}
-      TextureHandle(const TextureHandle& other) : id(other.id) {}
-      
-      uint64_t id = 0;
-      
-      explicit operator bool() const {
-        return id != 0;
-      }
-      
-      bool operator==(const TextureHandle& other) const {
-        return id == other.id;
-      }
+        uint64_t id = 0;
+
+        constexpr explicit operator bool() const {
+            return id != 0;
+        }
+
+        constexpr bool operator==(const TextureHandle& other) const {
+            return id == other.id;
+        }
     };
     
     struct TextureHandleHash {
@@ -29,6 +26,8 @@ namespace CE::Renderer::Resources {
         return std::hash<uint64_t>{}(handle.id);
       }
     };
+
+    inline constexpr TextureHandle mInvalidHandle{};
 
     class TextureManager; // Forward declaration
 

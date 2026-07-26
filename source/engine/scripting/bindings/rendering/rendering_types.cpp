@@ -47,6 +47,14 @@ namespace {
         new (self) CE::Renderer::Colour{r, g, b, a};
     }
 
+    static void ConstructVertex(CE::Renderer::Vertex3D* self) {
+        new(self) CE::Renderer::Vertex3D();
+    }
+
+    static void DestructVertex(CE::Renderer::Vertex3D* self) {
+        self->~Vertex3D();
+    }
+
     static void Vec2Default(glm::vec2* self) {
         new(self) glm::vec2();
     }
@@ -514,10 +522,70 @@ namespace CE::Scripting::Bindings {
         return true;
     }
 
+    bool RenderingTypes::RegisterVertex3D() {
+        mScriptEngine.SetDefaultNamespace("CE");
+        CE_REGISTER_TYPE("Vertex", sizeof(Renderer::Vertex3D), asOBJ_VALUE | asGetTypeTraits<Renderer::Vertex3D>());
+
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "Vec3 position", 
+            asOFFSET(Renderer::Vertex3D, position)
+        );
+        
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "Vec3 normal", 
+            asOFFSET(Renderer::Vertex3D, normal)
+        );
+
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "Colour colour", 
+            asOFFSET(Renderer::Vertex3D, colour)
+        );
+
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "Vec2 uv", 
+            asOFFSET(Renderer::Vertex3D, uv)
+        );
+
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "Vec3 tangent", 
+            asOFFSET(Renderer::Vertex3D, tangent)
+        );
+
+        CE_REGISTER_OBJECT_PROPERTY(
+            "Vertex", 
+            "float tangent_sign", 
+            asOFFSET(Renderer::Vertex3D, tangentSign)
+        );
+
+        CE_REGISTER_OBJECT_BEHAVIOUR(
+            "Vertex",
+            asBEHAVE_CONSTRUCT,
+            "void f()",
+            asFUNCTION(ConstructVertex),
+            asCALL_CDECL_OBJLAST
+        );
+
+        CE_REGISTER_OBJECT_BEHAVIOUR(
+            "Vertex",
+            asBEHAVE_DESTRUCT,
+            "void f()",
+            asFUNCTION(DestructVertex),
+            asCALL_CDECL_OBJLAST
+        );
+
+        return true;
+    }
+
     bool RenderingTypes::RegisterBindings() {
         if(!RegisterColourBinding()) return false;
         if (!RegisterResourceHandleBindings()) return false;
         if (!RegisterVec3AndVec2()) return false;
+        if (!RegisterVertex3D()) return false;
 
         return true;
     }

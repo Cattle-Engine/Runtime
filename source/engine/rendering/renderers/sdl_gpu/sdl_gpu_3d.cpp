@@ -656,8 +656,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 src.position,
                 glm::length(src.normal) > 0.0001f ? glm::normalize(src.normal) : glm::vec3(0.0f, 1.0f, 0.0f),
                 // Pack RGBA into a single uint32_t
-                (static_cast<uint32_t>(src.color.r)) | (static_cast<uint32_t>(src.color.g) << 8) |
-                    (static_cast<uint32_t>(src.color.b) << 16) | (static_cast<uint32_t>(src.color.a) << 24),
+                (static_cast<uint32_t>(src.colour.r)) | (static_cast<uint32_t>(src.colour.g) << 8) |
+                    (static_cast<uint32_t>(src.colour.b) << 16) | (static_cast<uint32_t>(src.colour.a) << 24),
                 src.uv, src.tangent, src.tangentSign};
         }
 
