@@ -1,0 +1,118 @@
+RequiredCppHeaders:
+  - <glm/glm.hpp>
+  - "engine/rendering/resources/texture_manager.hpp"
+
+ASNamespace: CE # Global namespace
+
+# Types to bind to AngelScript
+ASTypes:
+  - Name: Vec3
+    CppType: glm::vec3
+
+    Properties: # classes and structs stuff like ```foo.variable```
+      - Type: float
+        CppMember: "x" # the C++ member
+        ASMember: "x" # The AS member that points to the C++ member. It can be a different name from the C++ member.
+
+      - Type: float
+        CppMember: "y"
+        ASMember: "y"
+
+      - Type: float
+        CppMember: "z"
+        ASMember: "z"
+
+    Constructors: # Value type constructors
+      - Signature: "" # ()
+        CppFunction: CE::Scripting::Bindings::ConstructVec3
+
+      - Signature: "float, float, float"
+        CppFunction: CE::Scripting::Bindings::ConstructVec3XYZ
+
+    Behaviours: # AngelScript behaviours (factories, destructors, addref/release, etc.)
+      - Type: Destructor
+        CppFunction: CE::Scripting::Bindings::DestroyVec3
+
+      - Type: Factory
+        Signature: "int"
+        CppFunction: CE::Scripting::Bindings::CreateVec3
+
+    Methods:
+      - Name: Length
+        ReturnType: float
+        Signature: ""
+        IsConst: true # Eg float Length() const;
+        CppFunction: CE::Scripting::Bindings::Vec3Length
+
+      - Name: Dot
+        ReturnType: float
+        Signature: "const Vec3&"
+        IsConst: true
+        CppFunction: CE::Scripting::Bindings::Vec3Dot
+
+    Operators: # AngelScript operator overloads
+      - Operator: "+"
+        ReturnType: Vec3
+        Signature: "const Vec3&"
+        CppFunction: CE::Scripting::Bindings::Vec3Add
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Vec3&"
+        CppFunction: CE::Scripting::Bindings::Vec3Equals
+
+  - Name: TextureHandle
+    CppType: CE::Renderer::Resources::TextureHandle
+
+# Free standing functions to bind to AngelScript
+ASFunctions:
+  - Name: GetGameInfo
+    Namespace: CE::Instance # Overrides the global namespace
+    ReturnType: float
+    Signature: "" # Empty means it's just ()
+    CppFunction: CE::Foo::GetGameInfo
+
+  - Name: SomeFunction
+    ReturnType: void
+    Signature: "const int, string&"
+    CppFunction: CE::Scripting::Bindings::SomeFunction
+
+# Enums to expose to AngelScript
+ASEnums:
+  - Name: TextureFormat
+    CppType: CE::Renderer::TextureFormat # If empty it just makes a new enum
+
+    Values:
+      - RGBA8
+      - RGB8
+      - Depth24
+
+# Global constants to expose to AngelScript
+ASConstants:
+  - Name: PI
+    Type: float
+    Value: 3.14159265
+
+# Typedefs / aliases
+ASTypeAliases:
+  - Name: uint
+    Target: uint32
+
+# Forward declarations that should exist only in AngelScript
+ASDeclarations:
+  - "class Entity;"
+  - "interface IUpdatable;"
+
+# Global functions that are backed by a C++ class instance
+ASClassFunctions:
+  - Name: IsKeyReleased
+    ReturnType: bool
+    Signature: "KeyboardKeys key"
+
+    Class: mKeyboardManager 
+    # Bindings are inside IScriptBinding, they have mRuntime, this points to a class inside it.
+
+    CppMethod: "IsKeyReleased" # The C++ member function
+
+    # So, this is made into, mRuntime.KeyboardManager.IsKeyReleased, BUT angelscript see's IsKeyReleased not a class
+    CallingConvention: ThisCallAsGlobal
