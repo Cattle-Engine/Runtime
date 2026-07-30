@@ -1,10 +1,13 @@
 # Takes a yaml file and generates a C++ binding for angelscript
 import argparse
 import yaml
+import generator
 from pathlib import Path
 from enum import Enum
-from typing import Any
+from typing import Any Final
 from dataclasses import dataclass, field
+
+CLASS_NAME: Final = generate_symbol_name() 
 
 @dataclass
 class ASProperty:
@@ -384,6 +387,9 @@ def generate_cpp_source(binding: ASBindingFile) -> str:
     return ""
 
 def generate_cpp_header(binding: ASBindingFile) -> str:
+    out: str
+    
+    
     return ""
 
 def parse_args() -> argparse.Namespace:
