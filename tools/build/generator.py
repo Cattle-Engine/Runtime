@@ -1,8 +1,14 @@
 import random
+from typing import Final
 from dataclasses import dataclass, field
+
+ANGELSCRIPT_CLASS_INCLUDE: Final = "engine/scripting/bindings/script_binding_class.hpp"
 
 def generate_symbol_name() -> str:
     return f"_CE_GENERATED_{random.getrandbits(64):016X}"
+
+def generate_comment(comment: str) -> str:
+    return f"/* {comment} */"
 
 @dataclass
 class CodeWriter:
@@ -35,6 +41,21 @@ class CodeWriter:
     def end_block(self, suffix: str = "") -> None:
         self.dedent()
         self.write(f"}}{suffix}")
+
+    def begin_namespace(self, name: str) -> None:
+        self.begin_block(f"namespace {name}")
+
+    def begin_class(self, name: str, inherit: str | None = None) -> None:
+        if inherit:
+            self.begin_block(f"class {name} : {inherit}")
+        else:
+            self.begin_block(f"class {name}")
+
+    def begin_function(self, signature: str) -> None:
+        self.begin_block(signature)
+
+    def end_class(self) -> None:
+        self.end_block(";")
 
     def build(self) -> str:
         return "\n".join(self._lines)

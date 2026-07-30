@@ -8,6 +8,7 @@ ASNamespace: CE # Global namespace
 ASTypes:
   - Name: Vec3
     CppType: glm::vec3
+    Namespace: CE::Math
 
     Properties: # classes and structs stuff like ```foo.variable```
       - Type: float
@@ -43,6 +44,7 @@ ASTypes:
         Signature: ""
         IsConst: true # Eg float Length() const;
         CppFunction: CE::Scripting::Bindings::Vec3Length
+        CallingConvention: ThisCall
 
       - Name: Dot
         ReturnType: float
@@ -76,6 +78,7 @@ ASFunctions:
     ReturnType: void
     Signature: "const int, string&"
     CppFunction: CE::Scripting::Bindings::SomeFunction
+    CallingConvention: CDecl
 
 # Enums to expose to AngelScript
 ASEnums:
