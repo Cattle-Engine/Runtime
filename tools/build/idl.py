@@ -92,7 +92,7 @@ class ASConstant:
     name: str
     type: str
     value: Any
-
+    namespace: str = ""
 
 @dataclass
 class ASBindingFile:
@@ -213,7 +213,8 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
             ASConstant(
                 name=x["Name"],
                 type=x["Type"],
-                value=x["Value"]
+                value=x["Value"],
+                namespace=x.get("Namespace", data.get("ASNamespace", ""))
             )
             for x in data.get("ASConstants", [])
         ]

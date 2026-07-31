@@ -1,4 +1,6 @@
 import idl
+from idl import CALLING_CONVENTIONS
+from generator import FLAG_MAP
 import generator
 
 def generate_as_type_binding(type: idl.ASType, gen: generator.CodeWriter) -> None:
@@ -70,7 +72,7 @@ def generate_as_type_binding(type: idl.ASType, gen: generator.CodeWriter) -> Non
             f'"{type.name}", '
             f'"{declaration}", '
             f'{op.cpp_function}, '
-            f'{CALL_CONV_MAP["ThisCall"]}));'
+            f'{s["ThisCall"]}));'
         )
 
     for prop in type.properties:
@@ -84,10 +86,60 @@ def generate_as_type_binding(type: idl.ASType, gen: generator.CodeWriter) -> Non
     gen.pop_as_namespace()
 
 def generate_as_function_binding(func: idl.ASFunction, gen: generator.CodeWriter) -> None:
-    return
+    declaration = (
+        f'{func.return_type} '
+        f'{func.name}'
+        f'({func.signature})'
+    )
+
+    gen.push_as_namespace(func.namespace)
+
+    gen.write(
+        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction('
+        f'"{declaration}", '
+        f'{func.cpp_function}, '
+        f'{idl.CALLING_CONVENTIONS[func.calling_convention]}));'
+    )
+
+    gen.pop_as_namespace()
+
 
 def generate_as_enum_binding(enum: idl.ASEnum, gen: generator.CodeWriter) -> None:
-    return
+    gen.write(
+        f'CE_CHECK_AS(mScriptEngine.RegisterEnum("{enum.name}"));'
+    )
+
+    for value in enum.values:
+        cpp_value = (
+            f'{enum.cpp_type}::{value}'
+            if enum.cpp_type else
+            value
+        )
+
+        gen.write(
+            f'CE_CHECK_AS(mScriptEngine.RegisterEnumValue('
+            f'"{enum.name}", '
+            f'"{value}", '
+            f'(int){cpp_value}));'
+        )
+
 
 def generate_as_constant(constant: idl.ASConstant, gen: generator.CodeWriter) -> None:
-    return
+    gen.push_as_namespace(constant.namespace)
+    if isinstance(constant.value, str):
+        value = f'"{constant.value}"'
+    elif isinstance(constant.value, bool):
+        value = "true" if constant.value else "false"
+    else:
+        value = str(constant.value)
+
+    gen.write(
+        f'static const {constant.type} s_{constant.name} = {value};'
+    )
+
+    gen.write(
+        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalProperty('
+        f'"const {constant.type} {constant.name}", '
+        f'(void*)&s_{constant.name}));'
+    )
+    gen.pop_as_namespace()
