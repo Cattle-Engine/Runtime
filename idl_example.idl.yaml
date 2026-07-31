@@ -10,6 +10,9 @@ ASTypes:
     CppType: glm::vec3
     Namespace: CE::Math
 
+    ASFlags:
+        - Refrence
+    
     Properties: # classes and structs stuff like ```foo.variable```
       - Type: float
         CppMember: "x" # the C++ member

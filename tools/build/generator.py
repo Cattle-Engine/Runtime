@@ -3,6 +3,51 @@ from typing import Final
 from dataclasses import dataclass, field
 
 ANGELSCRIPT_CLASS_INCLUDE: Final = "engine/scripting/bindings/script_binding_class.hpp"
+ANGELSCRIPT_MACRO_INCUDE: Final = "engine/scripting/bindings/binding_macros.hpp"
+
+FLAG_MAP = {
+    # Object kinds
+    "Value": "asOBJ_VALUE",
+    "Reference": "asOBJ_REF",
+
+    # Object behaviour
+    "GarbageCollected": "asOBJ_GC",
+    "NoCount": "asOBJ_NOCOUNT",
+    "Scoped": "asOBJ_SCOPED",
+    "Template": "asOBJ_TEMPLATE",
+    "Shared": "asOBJ_SHARED",
+    "NoInherit": "asOBJ_NOINHERIT",
+
+    # Memory/layout hints
+    "POD": "asOBJ_POD",
+
+    # Application primitive types
+    "AppPrimitive": "asOBJ_APP_PRIMITIVE",
+    "AppFloat": "asOBJ_APP_FLOAT",
+    "AppArray": "asOBJ_APP_ARRAY",
+
+    # Application class types
+    "AppClass": "asOBJ_APP_CLASS",
+    "AppClassConstructor": "asOBJ_APP_CLASS_CONSTRUCTOR",
+    "AppClassDestructor": "asOBJ_APP_CLASS_DESTRUCTOR",
+    "AppClassAssignment": "asOBJ_APP_CLASS_ASSIGNMENT",
+    "AppClassCopyConstructor": "asOBJ_APP_CLASS_COPY_CONSTRUCTOR",
+
+    # Application class combinations
+    "AppClassCDA": "asOBJ_APP_CLASS_CDA",
+    "AppClassCDAK": "asOBJ_APP_CLASS_CDAK",
+
+    # Automatic application class detection
+    "AppClassAllInts": "asOBJ_APP_CLASS_ALLINTS",
+    "AppClassAllFloats": "asOBJ_APP_CLASS_ALLFLOATS",
+
+    # Alignment
+    "AppClassAlign8": "asOBJ_APP_CLASS_ALIGN8",
+    "AppClassAlign16": "asOBJ_APP_CLASS_ALIGN16",
+
+    # Additional constructors
+    "AppClassMoreConstructors": "asOBJ_APP_CLASS_MORE_CONSTRUCTORS",
+}
 
 def generate_symbol_name() -> str:
     return f"_CE_GENERATED_{random.getrandbits(64):016X}"
@@ -56,6 +101,12 @@ class CodeWriter:
 
     def end_class(self) -> None:
         self.end_block(";")
+        
+    def push_as_namespace(ns: str) -> None:
+        self.write(f'mScriptEngine.SetDefaultNamespace("{type.namespace}");')
+        
+    def pop_as_namespace() -> None:
+        self.write('mScriptEngine.SetDefaultNamespace("");')
 
     def build(self) -> str:
         return "\n".join(self._lines)

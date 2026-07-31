@@ -2,7 +2,21 @@ import idl
 import generator
 
 def generate_as_type_binding(type: idl.ASType, gen: generator.CodeWriter) -> None:
-    return
+    flags = " | ".join(
+        FLAG_MAP[x]
+        for x in type.flags
+    )
+    
+    gen.push_as_namespace(type.namespace)
+
+    gen.write(
+        f'mScriptEngine.RegisterObjectType('
+        f'"{type.name}", '
+        f'sizeof({type.cpp_type}), '
+        f'{flags});'
+    )
+
+    gen.pop_as_namespace()
 
 def generate_as_function_binding(func: idl.ASFunction, gen: generator.CodeWriter) -> None:
     return

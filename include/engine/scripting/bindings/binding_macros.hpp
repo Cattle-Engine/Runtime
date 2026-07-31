@@ -55,4 +55,11 @@ do {                                                                            
         ) < 0) {                                                                                \
         return false;                                                                           \
     }                                                                                           \
-} while (false)                                                                                 
+} while (false)
+
+#define CE_CHECK_AS(call)                                                                       \
+do {                                                                                            \
+    if ((call) != 0) {                                                                          \
+        return false;                                                                           \
+    }                                                                                           \
+} while (false)
