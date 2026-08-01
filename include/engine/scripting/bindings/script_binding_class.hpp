@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/scripting/angelscript.hpp"
-#include <SDL3_image/SDL_image.h>
 #include <angelscript.h>
 
 namespace CE::Scripting::Bindings {

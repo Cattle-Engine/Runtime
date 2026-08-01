@@ -124,6 +124,12 @@ class CodeWriter:
     def end_class(self) -> None:
         self.end_block(";")
 
+    def begin_struct(self, name: str):
+        self.begin_block(f"struct {name}")
+
+    def end_struct(self):
+        self.end_block(";")
+
     def push_as_namespace(self, ns: str) -> None:
         if ns:
             self.write(f'mScriptEngine.SetDefaultNamespace("{ns}");')

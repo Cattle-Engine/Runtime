@@ -7,8 +7,10 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import json
 import tempfile
 import zipfile
+import generator
 from pathlib import Path
 from typing import Iterable
 from urllib.request import Request, urlopen
@@ -25,7 +27,66 @@ DATA_FILE_NAME = "data.tcf"
 VCPKG_ROOT = ROOT / "tools" / "cache" / "vcpkg" / "vcpkg"
 VULKAN_SDK_CACHE_ROOT = ROOT / "tools" / "cache" / "vulkan-sdk"
 VULKAN_SDK_DOWNLOAD_ROOT = "https://sdk.lunarg.com/sdk/download/latest"
+IDL_SEARCH_DIRS = [
+    ROOT / "include",
+    ROOT / "source",
+]
 
+IDL_GENERATED_DIR = BUILD_DIR / "generated" / "bindings"
+IDL_GENERATOR = ROOT / "tools" / "build" / "build_as_bindings.py"
+
+def iter_idl_files() -> Iterable[Path]:
+    files: list[Path] = []
+
+    for root in IDL_SEARCH_DIRS:
+        files.extend(root.rglob("*.idl.yaml"))
+
+    return sorted(files)
+
+def generate_binding_registry(build: Path) -> None:
+    bindings_dir: Path = build / "generated" / "bindings"
+    registry_header: Path = bindings_dir / "binding_registry.hpp"
+
+    generated_headers = sorted(bindings_dir.glob("*.generated.hpp"))
+
+    gen: generator.CodeWriter = generator.CodeWriter()
+    gen.write("#pragma once")
+
+    gen.write("#include <array>")
+    gen.write('#include "engine/scripting/bindings/script_binding_class.hpp"')
+    gen.write('#include "engine/scripting/angelscript.hpp"')
+
+    for header in generated_headers:
+        gen.write(f'#include "{header.name}"')
+
+    for meta in bindings_dir.glob("*.generated.json"):
+        data = json.loads(meta.read_text())
+        class_name = data["class"]
+
+
+
+def build_idl(build_dir: Path) -> None:
+    generated_dir = build_dir / "generated" / "bindings"
+    generated_dir.mkdir(parents=True, exist_ok=True)
+
+    for yaml in iter_idl_files():
+        name = yaml.name.removesuffix(".idl.yaml")
+
+        header = generated_dir / f"{name}.generated.hpp"
+        source = generated_dir / f"{name}.generated.cpp"
+
+        run([
+            sys.executable,
+            str(IDL_GENERATOR),
+            "--yaml_file", str(yaml),
+            "--output_header", str(header),
+            "--output_source", str(source),
+            "--source_dir", str(ROOT / "source"),
+            "--include_dir", str(ROOT / "include"),
+        ])
+
+        log(f"Generated {header.name}")
+    
 
 def log(message: str) -> None:
     print(f"[build.py] {message}")
@@ -355,7 +416,17 @@ def parse_args() -> argparse.Namespace:
         "command",
         nargs="?",
         default="full",
-        choices=["bootstrap", "shaders", "assets", "configure", "build", "full", "clean", "clean-generated"],
+        choices=[
+            "bootstrap",
+            "idl",
+            "shaders",
+            "assets",
+            "configure",
+            "build",
+            "full",
+            "clean",
+            "clean-generated",
+        ],
         help="Operation to run. Defaults to the full build pipeline.",
     )
     parser.add_argument("--build-dir", type=Path, default=BUILD_DIR, help="CMake build directory.")
@@ -386,6 +457,9 @@ def main() -> int:
 
     if args.command in {"configure", "full"}:
         configure_cmake(build_dir, args.triplet)
+
+    if args.command in {"idl", "full"}:
+        build_idl(build_dir)
 
     if args.command == "bootstrap":
         return 0

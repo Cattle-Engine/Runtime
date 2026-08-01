@@ -180,6 +180,29 @@ file(GLOB_RECURSE CE_JSON_ASSET_INPUTS CONFIGURE_DEPENDS
     "${CE_ROOT_DIR}/assets/*.json"
 )
 
+file(GLOB_RECURSE CE_IDL_INPUTS CONFIGURE_DEPENDS
+    "${CE_ROOT_DIR}/include/*.idl.yaml"
+    "${CE_ROOT_DIR}/source/*.idl.yaml"
+)
+
+set(CE_GENERATED_BINDINGS_DIR "${CMAKE_BINARY_DIR}/generated/bindings")
+
+set(CE_GENERATED_BINDING_SOURCES "")
+set(CE_GENERATED_BINDING_HEADERS "")
+
+foreach(IDL_FILE ${CE_IDL_INPUTS})
+    get_filename_component(IDL_NAME "${IDL_FILE}" NAME)
+    string(REGEX REPLACE "\\.idl\\.yaml$" "" IDL_NAME "${IDL_NAME}")
+
+    list(APPEND CE_GENERATED_BINDING_SOURCES
+        "${CE_GENERATED_BINDINGS_DIR}/${IDL_NAME}.generated.cpp"
+    )
+
+    list(APPEND CE_GENERATED_BINDING_HEADERS
+        "${CE_GENERATED_BINDINGS_DIR}/${IDL_NAME}.generated.hpp"
+    )
+endforeach()
+
 find_package(Angelscript CONFIG REQUIRED)
 
 find_path(
@@ -226,7 +249,10 @@ if(NOT CE_SHADER_PREPARE_RESULT EQUAL 0)
     message(FATAL_ERROR "Failed to generate shader headers during CMake configure.")
 endif()
 
-add_executable(ce_engine ${SOURCES})
+add_executable(ce_engine
+    ${SOURCES}
+    ${CE_GENERATED_BINDING_SOURCES}
+)
 
 if (ENABLE_SANITIZERS)
     target_compile_options(ce_engine PRIVATE
@@ -245,6 +271,7 @@ target_sources(ce_engine PRIVATE ${ANGELSCRIPT_ADDON_SOURCES})
 
 target_include_directories(ce_engine PRIVATE
     include
+    ${CE_GENERATED_BINDINGS_DIR}
     include/third_party
     include/third_party/imgui
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}
@@ -349,6 +376,36 @@ add_custom_command(
 
 add_custom_target(ce_generated_shaders DEPENDS "${CE_SHADER_STAMP}")
 
+set(CE_IDL_STAMP "${CMAKE_BINARY_DIR}/generated/idl.stamp")
+
+add_custom_command(
+    OUTPUT "${CE_IDL_STAMP}"
+    COMMAND
+        "${Python3_EXECUTABLE}"
+        "${CE_BUILD_SCRIPT}"
+        idl
+        --build-dir "${CMAKE_BINARY_DIR}"
+    COMMAND
+        "${CMAKE_COMMAND}"
+        -E
+        touch
+        "${CE_IDL_STAMP}"
+    DEPENDS
+        "${CE_BUILD_SCRIPT}"
+        "${CE_ROOT_DIR}/tools/build/build_as_bindings.py"
+        ${CE_IDL_INPUTS}
+    WORKING DIRECTORY
+        "${CE_ROOT_DIR}"
+    VERBATIM
+)
+
+add_custom_target(ce_generated_idl
+    DEPENDS
+        "${CE_IDL_STAMP}"
+        ${CE_GENERATED_BINDING_SOURCES}
+        ${CE_GENERATED_BINDING_HEADERS}
+)
+
 set(CE_DATA_FILE_PATH "${CMAKE_BINARY_DIR}/${DATA_FILE_NAME}")
 add_custom_command(
     OUTPUT "${CE_DATA_FILE_PATH}"
@@ -366,9 +423,19 @@ add_custom_command(
 
 add_custom_target(ce_assets ALL DEPENDS "${CE_DATA_FILE_PATH}")
 add_dependencies(ce_assets ce_generated_shaders)
-add_dependencies(ce_engine ce_generated_shaders ce_assets)
+add_dependencies(
+    ce_engine
+    ce_generated_shaders
+    ce_generated_idl
+    ce_assets
+)
 
 add_custom_target(ce_clean_generated
+    COMMAND
+        "${CMAKE_COMMAND}"
+        -E
+        remove_directory
+        "${CE_GENERATED_BINDINGS_DIR}"
     COMMAND "${Python3_EXECUTABLE}" "${CE_BUILD_SCRIPT}" clean-generated "--build-dir" "${CMAKE_BINARY_DIR}"
     WORKING_DIRECTORY "${CE_ROOT_DIR}"
     VERBATIM
