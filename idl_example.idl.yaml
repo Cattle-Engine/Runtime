@@ -10,8 +10,9 @@ ASTypes:
     CppType: glm::vec3
     Namespace: CE::Math
 
-    ASFlags:
-        - Refrence
+    Flags:
+      - Value
+      - POD
     
     Properties: # classes and structs stuff like ```foo.variable```
       - Type: float
@@ -68,6 +69,9 @@ ASTypes:
 
   - Name: TextureHandle
     CppType: CE::Renderer::Resources::TextureHandle
+    Flags:
+      - Value
+      - POD
 
 # Free standing functions to bind to AngelScript
 ASFunctions:
@@ -102,12 +106,16 @@ ASConstants:
 # Typedefs / aliases
 ASTypeAliases:
   - Name: uint
+    Namespace: CE::Math # optional
     Target: uint32
 
 # Forward declarations that should exist only in AngelScript
 ASDeclarations:
-  - "class Entity;"
-  - "interface IUpdatable;"
+  - Name: "class Entity"
+    Namespace: CE::ECS
+
+  - Name: "interface IUpdatable"
+    Namespace: CE::Core
 
 # Global functions that are backed by a C++ class instance
 ASClassFunctions:

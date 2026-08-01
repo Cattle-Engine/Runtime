@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 ANGELSCRIPT_CLASS_INCLUDE: Final = "engine/scripting/bindings/script_binding_class.hpp"
 ANGELSCRIPT_MACRO_INCUDE: Final = "engine/scripting/bindings/binding_macros.hpp"
+ANGELSCRIPT_MACRO_INCLUDE: Final = ANGELSCRIPT_MACRO_INCUDE
 
 FLAG_MAP = {
     # Object kinds
@@ -47,6 +48,27 @@ FLAG_MAP = {
 
     # Additional constructors
     "AppClassMoreConstructors": "asOBJ_APP_CLASS_MORE_CONSTRUCTORS",
+}
+
+BEHAVIOUR_MAP = {
+    "Construct": "asBEHAVE_CONSTRUCT",
+    "Constructor": "asBEHAVE_CONSTRUCT",
+    "Factory": "asBEHAVE_FACTORY",
+    "Destruct": "asBEHAVE_DESTRUCT",
+    "Destructor": "asBEHAVE_DESTRUCT",
+    "AddRef": "asBEHAVE_ADDREF",
+    "Release": "asBEHAVE_RELEASE",
+    "CopyConstruct": "asBEHAVE_COPY_CONSTRUCT",
+    "Init": "asBEHAVE_INIT",
+}
+
+CALL_CONV_MAP = {
+    "CDecl": "asCALL_CDECL",
+    "CDeclObjFirst": "asCALL_CDECL_OBJFIRST",
+    "CDeclObjLast": "asCALL_CDECL_OBJLAST",
+    "ThisCall": "asCALL_THISCALL",
+    "ThisCallAsGlobal": "asCALL_THISCALL_ASGLOBAL",
+    "Generic": "asCALL_GENERIC",
 }
 
 def generate_symbol_name() -> str:
@@ -101,12 +123,13 @@ class CodeWriter:
 
     def end_class(self) -> None:
         self.end_block(";")
-        
-    def push_as_namespace(ns: str) -> None:
-        self.write(f'mScriptEngine.SetDefaultNamespace("{type.namespace}");')
-        
-    def pop_as_namespace() -> None:
-        self.write('mScriptEngine.SetDefaultNamespace("");')
+
+    def push_as_namespace(self, ns: str) -> None:
+        if ns:
+            self.write(f'mScriptEngine.SetDefaultNamespace("{ns}");')
+
+    def pop_as_namespace(self, ns: str = "") -> None:
+        self.write(f'mScriptEngine.SetDefaultNamespace("{ns}");')
 
     def build(self) -> str:
         return "\n".join(self._lines)
