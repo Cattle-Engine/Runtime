@@ -16,6 +16,12 @@ namespace CE::Renderer::Resources {
 
         uint64_t id = 0;
 
+
+        ShaderHandle& operator=(const ShaderHandle& other) {
+            id = other.id;
+            return *this;
+        }
+
         explicit operator bool() const {
             return id != 0;
         }

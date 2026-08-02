@@ -158,6 +158,9 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     source/*.c
 )
 
+# REMOVE ME
+list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")
+
 if(WIN32)
     list(FILTER SOURCES EXCLUDE REGEX "/platforms/linux/")
 elseif(APPLE)
@@ -251,9 +254,7 @@ endif()
 
 add_executable(ce_engine
     ${SOURCES}
-    ${CE_GENERATED_BINDING_SOURCES}
 )
-
 if (ENABLE_SANITIZERS)
     target_compile_options(ce_engine PRIVATE
         -fsanitize=address,undefined
@@ -268,6 +269,10 @@ if (ENABLE_SANITIZERS)
 endif()
 
 target_sources(ce_engine PRIVATE ${ANGELSCRIPT_ADDON_SOURCES})
+
+target_sources(ce_engine PRIVATE
+    ${CE_GENERATED_BINDING_SOURCES}
+)
 
 target_include_directories(ce_engine PRIVATE
     include
@@ -379,23 +384,31 @@ add_custom_target(ce_generated_shaders DEPENDS "${CE_SHADER_STAMP}")
 set(CE_IDL_STAMP "${CMAKE_BINARY_DIR}/generated/idl.stamp")
 
 add_custom_command(
-    OUTPUT "${CE_IDL_STAMP}"
+    OUTPUT
+        "${CE_IDL_STAMP}"
+        ${CE_GENERATED_BINDING_SOURCES}
+        ${CE_GENERATED_BINDING_HEADERS}
+
     COMMAND
         "${Python3_EXECUTABLE}"
         "${CE_BUILD_SCRIPT}"
         idl
         --build-dir "${CMAKE_BINARY_DIR}"
+
     COMMAND
         "${CMAKE_COMMAND}"
         -E
         touch
         "${CE_IDL_STAMP}"
+
     DEPENDS
         "${CE_BUILD_SCRIPT}"
-        "${CE_ROOT_DIR}/tools/build/build_as_bindings.py"
+        "${CE_ROOT_DIR}/tools/build/as_binding_gen.py"
         ${CE_IDL_INPUTS}
-    WORKING DIRECTORY
+
+    WORKING_DIRECTORY
         "${CE_ROOT_DIR}"
+
     VERBATIM
 )
 

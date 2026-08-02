@@ -99,14 +99,15 @@ namespace CE {
 
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *gVFS, *gGameInfo, *gSettingsManager, *this, *gRenderer, *gTextureManager, *gShaderManager, *gSkyBoxManager,
-            *gFontManager, *gGPUMeshManager, *gMaterialManager,
-            gAnimatedTextureManager.get() /*TODO: Make this use & not a fucking pointer*/, *gKeyboardManger,
-            *gMouseManger, gProgramArguments.OutputDebugASInfo, *mRendererResourcesNameRegistry, gAudioManager.get());
+            *gFontManager, *gGPUMeshManager, *gMaterialManager, *gAnimatedTextureManager, *gKeyboardManger,
+            *gMouseManger, *mRendererResourcesNameRegistry, gProgramArguments.OutputDebugASInfo,
+            gProgramArguments.OutputDebugASInfoPath, gAudioManager.get());
 
-        if (!gScriptingManager->Initialize()) {
+        if (!gScriptingManager->Init()) {
             ShowError(gScriptingManager->GetLastError());
-            throw std::runtime_error(std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
-                                                 gScriptingManager->GetLastError()));
+            throw std::runtime_error(
+                std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
+                            gScriptingManager->GetLastError()));
         }
 
         if (!gScriptingManager->RunStartup()) {

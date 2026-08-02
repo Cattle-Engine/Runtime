@@ -13,6 +13,7 @@
 #include "engine/audio/audio.hpp"
 #include "engine/common/core/event_bus.hpp"
 #include "engine/common/core/game_state.hpp"
+#include "engine/common/containers/registries.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/misc/arguments.hpp"
 #include "engine/input/keyboard.hpp"

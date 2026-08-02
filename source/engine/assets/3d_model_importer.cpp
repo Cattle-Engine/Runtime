@@ -284,7 +284,7 @@ namespace CE::Assets::Model3DImporter {
     }
 
     Renderer::Resources::MaterialHandle
-    ModelImporter::LoadAssimpMaterial(const aiScene* scene, const aiMaterial* mat, Renderer::Resources::Model& model,
+    ModelImporter::LoadAssimpMaterial(const aiScene* scene, const aiMaterial* mat, [[maybe_unused]] Renderer::Resources::Model& model,
                                       const std::string& model_path, std::vector<TextureInfo>& gpuHandleCache,
                                       std::unordered_map<std::string, SDL_Surface*>& surfaceCache,
                                       Renderer::TextureUploadBatch* batch) {

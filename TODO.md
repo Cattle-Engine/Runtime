@@ -69,6 +69,7 @@ export int foo_func() {
 ```
 - [ ] Make an IDL for angelscript using yaml so I don't have to spend an afternoon copying the same BORING STUFF
 - [ ] Refactor the angelscript bindings to have something like IScriptBinding
+- [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Connect input binder to instance

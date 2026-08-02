@@ -328,7 +328,7 @@ namespace CE::Renderer::Software {
 
     Texture* Software_Renderer::CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
                                                       int pitch, TextureFilter, TextureWrap,
-                                                      TextureUploadBatch* batch) {
+                                                      TextureUploadBatch*) {
         if (mRenderer == nullptr || pixels == nullptr || width <= 0 || height <= 0) {
             return nullptr;
         }

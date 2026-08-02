@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <angelscript.h>
+#include "engine/common/fs/vfs.hpp"
 
 // Forward declare a hella lot of stuff to help compile times
 namespace CE {
@@ -123,3 +124,7 @@ namespace CE::Scripting {
         bool mOutputDebugASInfo = false;
     };
 } // namespace CE::Scripting
+
+namespace CE::Scripting::Utils {
+    std::string LoadScript(VFS::VFS& vfs, const char* path);
+}

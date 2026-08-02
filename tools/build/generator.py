@@ -72,7 +72,7 @@ CALL_CONV_MAP = {
 }
 
 def generate_symbol_name() -> str:
-    return f"_CE_GENERATED_{random.getrandbits(64):016X}"
+    return f"CE_GENERATED_{random.getrandbits(64):016X}"
 
 def generate_comment(comment: str) -> str:
     return f"/* {comment} */"
@@ -111,6 +111,9 @@ class CodeWriter:
 
     def begin_namespace(self, name: str) -> None:
         self.begin_block(f"namespace {name}")
+
+    def end_namespace(self) -> None:
+        self.end_block()
 
     def begin_class(self, name: str, inherit: str | None = None) -> None:
         if inherit:

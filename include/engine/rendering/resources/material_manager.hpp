@@ -12,7 +12,12 @@ namespace CE::Renderer::Resources {
         MaterialHandle(const MaterialHandle& other) : id(other.id) {}
         
         uint64_t id = 0;
-        
+      
+        MaterialHandle& operator=(const MaterialHandle& other) {
+            id = other.id;
+            return *this;
+        }
+
         explicit operator bool() const {
           return id != 0;
         }

@@ -183,7 +183,7 @@ namespace CE::Scripting::Impl::Semantics {
         std::string qualified_name = full_namespace.empty() ? decl.Name : full_namespace + "::" + decl.Name;
         std::string internal_name = GenerateInternalName(decl, full_namespace, module_hash);
 
-        Symbol symbol{decl.Type, qualified_name, internal_name, module_path, decl.Location, decl.Exported};
+        Symbol symbol{decl.Type, qualified_name, internal_name, module_path, decl.Location, decl.Exported, {}};
 
         if (decl.Type == AST::ASTDeclaration::Kind::Function) {
             const auto& function = std::get<AST::ASTFunction>(decl.Data);
@@ -203,7 +203,7 @@ namespace CE::Scripting::Impl::Semantics {
         }
 
         if (decl.Exported) {
-            ExportInfo info{decl.Name, internal_name, decl.Type, full_namespace, module_path};
+            ExportInfo info{decl.Name, internal_name, decl.Type, full_namespace, module_path, {}};
 
             if (decl.Type == AST::ASTDeclaration::Kind::Function) {
                 info.Signature = symbol.Signature;
