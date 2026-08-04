@@ -31,34 +31,37 @@ class ASConstructor:
 
 
 @dataclass
-class ASBehaviour:
-    type: str
-    cpp_function: str
+class ASBindableCallable:
+    cpp_function: str = ""
+    inline_body: str = ""
+    generated_name: str = ""
+    calling_convention: str = ""
+
+
+@dataclass
+class ASBehaviour(ASBindableCallable):
+    type: str = ""
+    cpp_function: str = ""
     signature: str = ""
     calling_convention: str = "CDecl"
 
 
 @dataclass
-class ASMethod:
-    name: str
-    return_type: str
-    signature: str
-    cpp_function: str = ""
-    inline_body: str = ""
+class ASMethod(ASBindableCallable):
+    name: str = ""
+    return_type: str = ""
+    signature: str = ""
     is_const: bool = False
     calling_convention: str = "ThisCall"
 
 
 @dataclass
-class ASOperator:
-    operator: str
-    return_type: str
-    signature: str
-    cpp_function: str = ""
-    inline_body: str = ""
+class ASOperator(ASBindableCallable):
+    operator: str = ""
+    return_type: str = ""
+    signature: str = ""
     calling_convention: str = "CDeclObjFirst"
     is_const: bool = True
-    generated_name: str = ""
 
 @dataclass
 class ASType:
@@ -74,11 +77,10 @@ class ASType:
 
 
 @dataclass
-class ASFunction:
-    name: str
-    return_type: str
-    signature: str
-    cpp_function: str
+class ASFunction(ASBindableCallable):
+    name: str = ""
+    return_type: str = ""
+    signature: str = ""
     namespace: str = ""
     calling_convention: str = "CDecl"
 
@@ -113,14 +115,13 @@ class ASDeclaration:
 
 
 @dataclass
-class ASClassFunction:
-    name: str
-    return_type: str
-    signature: str
+class ASClassFunction(ASBindableCallable):
+    name: str = ""
+    return_type: str = ""
+    signature: str = ""
     cpp_class: str = ""
     cpp_method: str = ""
     calling_convention: str = "ThisCallAsGlobal"
-    custom_function: str = ""
 
 
 @dataclass
@@ -225,7 +226,9 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 namespace=x.get("Namespace", default_namespace),
                 return_type=x["ReturnType"],
                 signature=x.get("Signature", ""),
-                cpp_function=x["CppFunction"],
+                cpp_function=x.get("CppFunction", ""),
+                inline_body=x.get("Body", ""),
+                generated_name=x.get("GeneratedName", ""),
                 calling_convention=x.get("CallingConvention", "CDecl"),
             )
             for x in data.get("ASFunctions", [])
@@ -270,7 +273,8 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 signature=x.get("Signature", ""),
                 cpp_class=x.get("Class", ""),
                 cpp_method=x.get("CppMethod", ""),
-                custom_function=x.get("Function", ""),
+                inline_body=x.get("Function", x.get("Body", "")),
+                generated_name=x.get("GeneratedName", ""),
                 calling_convention=x.get(
                     "CallingConvention",
                     "ThisCallAsGlobal"
@@ -349,9 +353,9 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Method '{method.name}' in '{as_type.name}' missing ReturnType"
                 )
-            if not method.cpp_function:
+            if not method.cpp_function and not method.inline_body:
                 errors.append(
-                    f"Method '{method.name}' in '{as_type.name}' missing CppFunction"
+                    f"Method '{method.name}' in '{as_type.name}' missing CppFunction or Body"
                 )
             if method.calling_convention not in generator.CALL_CONV_MAP:
                 errors.append(
@@ -383,8 +387,8 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append("ASFunction missing Name")
         if not function.return_type:
             errors.append(f"Function '{function.name}' missing ReturnType")
-        if not function.cpp_function:
-            errors.append(f"Function '{function.name}' missing CppFunction")
+        if not function.cpp_function and not function.inline_body:
+            errors.append(f"Function '{function.name}' missing CppFunction or Body")
         if function.calling_convention not in generator.CALL_CONV_MAP:
             errors.append(
                 f"Function '{function.name}' has unknown calling convention '{function.calling_convention}'"
@@ -437,7 +441,7 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append("ASClassFunction missing Name")
         if not class_function.return_type:
             errors.append(f"ASClassFunction '{class_function.name}' missing ReturnType")
-        if not class_function.custom_function:
+        if not class_function.inline_body:
             if not class_function.cpp_class:
                 errors.append(f"ASClassFunction '{class_function.name}' missing Class")
             if not class_function.cpp_method:
@@ -658,8 +662,8 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
         gen.begin_function(declaration)
 
-        if class_function.custom_function:
-            for line in class_function.custom_function.splitlines():
+        if class_function.inline_body:
+            for line in class_function.inline_body.splitlines():
                 gen.write(line)
         else:
             call_args = _argument_list(class_function.signature)
