@@ -28,17 +28,6 @@ namespace {
         return self.id == static_cast<uint64_t>(other);
     }
     
-    static bool TextureHandleEquals(
-        const CE::Renderer::Resources::TextureHandle& self, 
-        const CE::Renderer::Resources::TextureHandle& other
-    ) {
-        return self.id == other.id;
-    }
-    
-    static bool TextureHandleEqualsInt(const CE::Renderer::Resources::TextureHandle& self, int64_t other) {
-        return self.id == static_cast<uint64_t>(other);
-    }
-    
     void ConstructColour(CE::Renderer::Colour* self) {
         new (self) CE::Renderer::Colour();
     }
@@ -163,6 +152,17 @@ namespace {
 }
 
 namespace CE::Scripting::Bindings {
+    bool TextureHandleEquals(
+        const CE::Renderer::Resources::TextureHandle& self, 
+        const CE::Renderer::Resources::TextureHandle& other
+    ) {
+        return self.id == other.id;
+    }
+    
+    bool TextureHandleEqualsInt(const CE::Renderer::Resources::TextureHandle& self, int64_t other) {
+        return self.id == static_cast<uint64_t>(other);
+    }
+
     bool RenderingTypes::RegisterColourBinding() {
         CE_REGISTER_TYPE("Colour", sizeof(Renderer::Colour), asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<Renderer::Colour>());
 

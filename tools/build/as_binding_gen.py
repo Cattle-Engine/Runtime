@@ -196,9 +196,13 @@ def generate_as_type_binding(
         declaration = (
             f"{operator.return_type} {_operator_name(operator.operator)}({_registration_signature(operator.signature)})"
         )
+        if operator.is_const:
+            declaration += " const"
+
+        function_name = operator.generated_name or operator.cpp_function
 
         gen.write(
-            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {operator.cpp_function}, {generator.CALL_CONV_MAP["ThisCall"]});'
+            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_name}, {generator.CALL_CONV_MAP[operator.calling_convention]});'
         )
 
     for prop in as_type.properties:
@@ -299,3 +303,12 @@ def generate_as_declaration(
     )
 
     gen.pop_as_namespace(restore_namespace)
+
+def generate_as_class_function(
+        func: idl.ASClassFunction,
+        gen: generator.CodeWriter
+) -> None:
+    declaration = f"{func.return_type} {func.name}({_registration_signature(func.signature)})"
+    gen.write(
+        f'CE_REGISTER_GLOBAL({idl.CLASS_NAME}, this, "{declaration}", {func.name});'
+    )

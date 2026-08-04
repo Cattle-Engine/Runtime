@@ -43,7 +43,8 @@ class ASMethod:
     name: str
     return_type: str
     signature: str
-    cpp_function: str
+    cpp_function: str = ""
+    inline_body: str = ""
     is_const: bool = False
     calling_convention: str = "ThisCall"
 
@@ -53,8 +54,11 @@ class ASOperator:
     operator: str
     return_type: str
     signature: str
-    cpp_function: str
-
+    cpp_function: str = ""
+    inline_body: str = ""
+    calling_convention: str = "CDeclObjFirst"
+    is_const: bool = True
+    generated_name: str = ""
 
 @dataclass
 class ASType:
@@ -113,9 +117,10 @@ class ASClassFunction:
     name: str
     return_type: str
     signature: str
-    cpp_class: str
-    cpp_method: str
-    calling_convention: str
+    cpp_class: str = ""
+    cpp_method: str = ""
+    calling_convention: str = "ThisCallAsGlobal"
+    custom_function: str = ""
 
 
 @dataclass
@@ -174,7 +179,8 @@ def parse_as_method(data: dict[str, Any]) -> ASMethod:
         name=data["Name"],
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
-        cpp_function=data["CppFunction"],
+        cpp_function=data.get("CppFunction", ""),
+        inline_body=data.get("Body", ""),
         is_const=data.get("IsConst", False),
         calling_convention=data.get("CallingConvention", "ThisCall"),
     )
@@ -185,7 +191,10 @@ def parse_as_operator(data: dict[str, Any]) -> ASOperator:
         operator=data["Operator"],
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
-        cpp_function=data["CppFunction"],
+        cpp_function=data.get("CppFunction", ""),
+        inline_body=data.get("Body", ""),
+        calling_convention=data.get("CallingConvention", "CDeclObjFirst"),
+        is_const=data.get("IsConst", True),
     )
 
 
@@ -259,9 +268,13 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 name=x["Name"],
                 return_type=x["ReturnType"],
                 signature=x.get("Signature", ""),
-                cpp_class=x["Class"],
-                cpp_method=x["CppMethod"],
-                calling_convention=x.get("CallingConvention", "ThisCallAsGlobal"),
+                cpp_class=x.get("Class", ""),
+                cpp_method=x.get("CppMethod", ""),
+                custom_function=x.get("Function", ""),
+                calling_convention=x.get(
+                    "CallingConvention",
+                    "ThisCallAsGlobal"
+                ),
             )
             for x in data.get("ASClassFunctions", [])
         ],
@@ -355,9 +368,13 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Operator '{operator.operator}' in '{as_type.name}' missing ReturnType"
                 )
-            if not operator.cpp_function:
+            if not operator.cpp_function and not operator.inline_body:
                 errors.append(
-                    f"Operator '{operator.operator}' in '{as_type.name}' missing CppFunction"
+                    f"Operator '{operator.operator}' in '{as_type.name}' missing CppFunction or Body"
+                )
+            if operator.calling_convention not in {"CDeclObjFirst", "CDeclObjLast"}:
+                errors.append(
+                    f"Operator '{operator.operator}' in '{as_type.name}' has unsupported calling convention '{operator.calling_convention}'"
                 )
 
     function_names: set[str] = set()
@@ -420,10 +437,11 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append("ASClassFunction missing Name")
         if not class_function.return_type:
             errors.append(f"ASClassFunction '{class_function.name}' missing ReturnType")
-        if not class_function.cpp_class:
-            errors.append(f"ASClassFunction '{class_function.name}' missing Class")
-        if not class_function.cpp_method:
-            errors.append(f"ASClassFunction '{class_function.name}' missing CppMethod")
+        if not class_function.custom_function:
+            if not class_function.cpp_class:
+                errors.append(f"ASClassFunction '{class_function.name}' missing Class")
+            if not class_function.cpp_method:
+                errors.append(f"ASClassFunction '{class_function.name}' missing CppMethod")
         if class_function.calling_convention not in generator.CALL_CONV_MAP:
             errors.append(
                 f"ASClassFunction '{class_function.name}' has unknown calling convention '{class_function.calling_convention}'"
@@ -539,8 +557,69 @@ def _format_cpp_include(include: str) -> str:
     return f'"{stripped}"'
 
 
+def _sanitize_symbol_part(value: str) -> str:
+    sanitized: list[str] = []
+    last_was_underscore = False
+
+    for char in value:
+        if char.isalnum():
+            sanitized.append(char)
+            last_was_underscore = False
+        elif not last_was_underscore:
+            sanitized.append("_")
+            last_was_underscore = True
+
+    result = "".join(sanitized).strip("_")
+    return result or "Symbol"
+
+
+def _operator_helper_name(as_type: ASType, operator: ASOperator, index: int) -> str:
+    return _sanitize_symbol_part(f"{as_type.name}_{operator.operator}_{index}")
+
+
+def _operator_self_parameter(as_type: ASType, operator: ASOperator) -> str:
+    if operator.is_const:
+        return f"const {as_type.cpp_type}& self"
+    return f"{as_type.cpp_type}& self"
+
+
+def _operator_cpp_parameter_type(as_type: ASType, part: str) -> str:
+    normalized = part.replace(" ", "")
+    script_name = as_type.name
+
+    if normalized == script_name:
+        return as_type.cpp_type
+    if normalized == f"const{script_name}&":
+        return f"const {as_type.cpp_type}&"
+    if normalized == f"{script_name}&":
+        return f"{as_type.cpp_type}&"
+
+    return _cpp_parameter_type(part)
+
+
+def _operator_parameter_list(as_type: ASType, operator: ASOperator) -> str:
+    self_param = _operator_self_parameter(as_type, operator)
+    parts = [
+        _operator_cpp_parameter_type(as_type, part)
+        for part in _signature_parts(operator.signature)
+    ]
+    params = ", ".join(f"{part} arg{index}" for index, part in enumerate(parts))
+
+    if operator.calling_convention == "CDeclObjLast":
+        return ", ".join([part for part in [params, self_param] if part])
+
+    return ", ".join([part for part in [self_param, params] if part])
+
+
 def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     gen = generator.CodeWriter()
+    inline_operator_helpers: list[tuple[str, ASType, ASOperator]] = []
+
+    for as_type in binding.types:
+        for index, operator in enumerate(as_type.operators):
+            if operator.inline_body:
+                operator.generated_name = _operator_helper_name(as_type, operator, index)
+                inline_operator_helpers.append((operator.generated_name, as_type, operator))
 
     gen.write(generator.generate_comment("GENERATED BY THE CE IDL, DO NOT MODIFY"))
     gen.write("#include <angelscript.h>")
@@ -550,25 +629,54 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         gen.write(f"#include {_format_cpp_include(include)}")
 
     gen.write("")
+    if inline_operator_helpers:
+        gen.begin_block("namespace")
+
+        for helper_name, as_type, operator in inline_operator_helpers:
+            declaration = (
+                f"static {operator.return_type} {helper_name}"
+                f"({_operator_parameter_list(as_type, operator)})"
+            )
+            gen.begin_function(declaration)
+            for line in operator.inline_body.splitlines():
+                gen.write(line)
+            gen.end_block()
+            gen.write("")
+
+        gen.end_block()
+        gen.write("")
+
     gen.begin_namespace("CE::Scripting::Bindings")
 
     for class_function in binding.class_functions:
         params = _cpp_parameter_list(class_function.signature)
-        declaration = f"{class_function.return_type} {CLASS_NAME}::{class_function.name}({params})"
-        gen.begin_function(declaration)
 
-        call_args = _argument_list(class_function.signature)
-        call = (
-            f"mRuntime.{class_function.cpp_class}.{class_function.cpp_method}"
-            f"({call_args})"
-            if call_args
-            else f"mRuntime.{class_function.cpp_class}.{class_function.cpp_method}()"
+        declaration = (
+            f"{class_function.return_type} "
+            f"{CLASS_NAME}::{class_function.name}({params})"
         )
 
-        if class_function.return_type == "void":
-            gen.write(f"{call};")
+        gen.begin_function(declaration)
+
+        if class_function.custom_function:
+            for line in class_function.custom_function.splitlines():
+                gen.write(line)
         else:
-            gen.write(f"return {call};")
+            call_args = _argument_list(class_function.signature)
+
+            call = (
+                f"mRuntime.{class_function.cpp_class}."
+                f"{class_function.cpp_method}({call_args})"
+                if call_args
+                else
+                f"mRuntime.{class_function.cpp_class}."
+                f"{class_function.cpp_method}()"
+            )
+
+            if class_function.return_type == "void":
+                gen.write(f"{call};")
+            else:
+                gen.write(f"return {call};")
 
         gen.end_block()
         gen.write("")

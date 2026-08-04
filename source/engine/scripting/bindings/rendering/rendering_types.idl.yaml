@@ -1,0 +1,31 @@
+RequiredCppHeaders:
+  - <glm/glm.hpp>
+  - "engine/rendering/resources/texture_manager.hpp"
+  - "engine/scripting/bindings/rendering/rendering_types.hpp"
+ASNamespace: CE
+
+ASTypes:
+  - Name: Texture
+    CppType: CE::Renderer::Resources::TextureHandle
+
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: uint64
+        CppMember: id
+        ASMember: handle
+
+    Operators:
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Texture&"
+        Body: |
+          return self.id == arg0.id;
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "int64"
+        Body: |
+          return self.id == static_cast<uint64>(arg0);

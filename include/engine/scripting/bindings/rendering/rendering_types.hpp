@@ -1,11 +1,16 @@
 #pragma once
 
 #include "engine/scripting/bindings/script_binding_class.hpp"
+#include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::Scripting::Bindings {
-    struct ASMeshData {
+    bool TextureHandleEquals(
+        const CE::Renderer::Resources::TextureHandle& self, 
+        const CE::Renderer::Resources::TextureHandle& other
+    );
+    bool TextureHandleEqualsInt(const CE::Renderer::Resources::TextureHandle& self, int64_t other);
 
-    };
+    
 
     // Stuff that I don't know where to give a home
     class RenderingTypes : public IScriptBinding {

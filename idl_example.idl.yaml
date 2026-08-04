@@ -130,3 +130,17 @@ ASClassFunctions:
 
     # So, this is made into, mRuntime.KeyboardManager.IsKeyReleased, BUT angelscript see's IsKeyReleased not a class
     CallingConvention: ThisCallAsGlobal
+
+  - Name: Anotherfunction
+    ReturnType: bool
+    Signature: "asdf foo"
+
+    Function: |
+      return mRuntime.mKeyboardManager.IsKeyPressed(arg0);
+
+  - Name: RuntimeBackedFunction
+    ReturnType: bool
+    Signature: "KeyboardKeys key"
+
+    Function: |
+      return mRuntime.mKeyboardManager.IsKeyReleased(arg0);
