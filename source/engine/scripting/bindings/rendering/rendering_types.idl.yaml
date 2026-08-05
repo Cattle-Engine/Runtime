@@ -1,7 +1,8 @@
 RequiredCppHeaders:
   - <glm/glm.hpp>
   - "engine/rendering/resources/texture_manager.hpp"
-  - "engine/scripting/bindings/rendering/rendering_types.hpp"
+  - "engine/rendering/resources/material_manager.hpp"
+
 ASNamespace: CE
 
 ASTypes:
@@ -29,3 +30,99 @@ ASTypes:
         Signature: "int64"
         Body: |
           return self.id == static_cast<uint64>(arg0);
+
+  - Name: Material
+    CppType: CE::Renderer::Resources::MaterialHandle
+
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: uint64
+        CppMember: id
+        ASMember: handle
+
+    Operators:
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Material&"
+        Body: |
+          return self.id == arg0.id;
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "int64"
+        Body: |
+          return self.id == static_cast<uint64>(arg0);
+
+  - Name: Vec2
+    CppType: glm::vec2
+
+    Flags:
+      - ValueType
+
+    Behaviours:
+      - Type: Construct
+        CppFunction: Vec2Default
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "float, float"
+        CppFunction: Vec2Init
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "const Vec2&"
+        CppFunction: Vec2Copy
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        CppFunction: Destruct<glm::vec2>
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: float
+        CppMember: x
+        ASMember: x
+
+      - Type: float
+        CppMember: y
+        ASMember: y
+
+    Operators:
+      - Operator: "="
+        ReturnType: "Vec2&"
+        Signature: "const Vec2&"
+        CppFunction: Vec2Assign
+        CallingConvention: CDeclObjLast
+
+      - Operator: "+"
+        ReturnType: Vec2
+        Signature: "const Vec2&"
+        CppFunction: Vec2Add
+        CallingConvention: CDeclObjLast
+
+      - Operator: "-"
+        ReturnType: Vec2
+        Signature: "const Vec2&"
+        CppFunction: Vec2Subtract
+        CallingConvention: CDeclObjLast
+
+      - Operator: "/"
+        ReturnType: Vec2
+        Signature: "const Vec2&"
+        CppFunction: Vec2Divide
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Vec2
+        Signature: "const Vec2&"
+        CppFunction: Vec2Multiply
+        CallingConvention: CDeclObjLast
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Vec2&"
+        CppFunction: Vec2Equals
+        CallingConvention: CDeclObjLast

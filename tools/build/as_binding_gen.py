@@ -102,6 +102,95 @@ def _type_flags(flags: Iterable[str]) -> str:
     return " | ".join(rendered) if rendered else "0"
 
 
+def _sanitize_symbol_part(value: str) -> str:
+    sanitized: list[str] = []
+    last_was_underscore = False
+
+    for char in value:
+        if char.isalnum():
+            sanitized.append(char)
+            last_was_underscore = False
+        elif not last_was_underscore:
+            sanitized.append("_")
+            last_was_underscore = True
+
+    result = "".join(sanitized).strip("_")
+    return result or "Symbol"
+
+
+def _behaviour_helper_name(
+    as_type: idl.ASType,
+    behaviour: idl.ASBehaviour,
+    index: int,
+) -> str:
+    suffix = "" if index == 0 else f"_{index}"
+    return _sanitize_symbol_part(f"{as_type.name}_{behaviour.type}_Generated{suffix}")
+
+
+def _behaviour_cpp_parameter_type(as_type: idl.ASType, part: str) -> str:
+    normalized = part.replace(" ", "")
+    script_name = as_type.name
+
+    if normalized == script_name:
+        return as_type.cpp_type
+    if normalized == f"const{script_name}&":
+        return f"const {as_type.cpp_type}&"
+    if normalized == f"{script_name}&":
+        return f"{as_type.cpp_type}&"
+
+    return _cpp_parameter_type(part)
+
+
+def _behaviour_parameter_list(
+    as_type: idl.ASType,
+    behaviour: idl.ASBehaviour,
+) -> str:
+    params = ", ".join(
+        f"{_behaviour_cpp_parameter_type(as_type, part)} arg{index}"
+        for index, part in enumerate(_signature_parts(behaviour.signature))
+    )
+    self_param = f"{as_type.cpp_type}* self"
+
+    if behaviour.type == "Factory":
+        return params
+
+    if behaviour.type == "Construct":
+        params = ", ".join(
+            x for x in [
+                params,
+                self_param,
+            ]
+            if x
+        )
+
+    elif behaviour.type == "Destruct":
+        params = self_param
+    elif behaviour.calling_convention == "CDeclObjFirst":
+        params = ", ".join(
+            x for x in [
+                self_param,
+                params,
+            ]
+            if x
+        )
+    elif behaviour.calling_convention == "CDeclObjLast":
+        params = ", ".join(
+            x for x in [
+                params,
+                self_param,
+            ]
+            if x
+        )
+
+    return params
+
+
+def _behaviour_return_type(behaviour: idl.ASBehaviour, as_type: idl.ASType) -> str:
+    if behaviour.type == "Factory":
+        return f"{as_type.cpp_type}*"
+    return "void"
+
+
 def _operator_name(operator: str) -> str:
     return {
         "+": "opAdd",
@@ -175,9 +264,10 @@ def generate_as_type_binding(
 
     for behaviour in as_type.behaviours:
         declaration = _behaviour_declaration(as_type, behaviour)
+        function_name = behaviour.generated_name or behaviour.cpp_function
 
         gen.write(
-            f'CE_REGISTER_OBJECT_BEHAVIOUR("{as_type.name}", {generator.BEHAVIOUR_MAP[behaviour.type]}, "{declaration}", {behaviour.cpp_function}, {generator.CALL_CONV_MAP[behaviour.calling_convention]});'
+            f'CE_REGISTER_OBJECT_BEHAVIOUR("{as_type.name}", {generator.BEHAVIOUR_MAP[behaviour.type]}, "{declaration}", {function_name}, {generator.CALL_CONV_MAP[behaviour.calling_convention]});'
         )
 
     for method in as_type.methods:
