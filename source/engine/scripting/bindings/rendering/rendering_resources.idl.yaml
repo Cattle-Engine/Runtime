@@ -1,0 +1,15 @@
+RequiredCppHeaders:
+  - "engine/rendering/resources/texture_manager.hpp"
+  - "engine/rendering/resources/material_manager.hpp"
+
+ASNamespace: CE::Graphics
+
+ASClassFunctions:
+  - Name: CreateMaterial
+    ReturnType: void
+    Signature: Material&, Texture&
+    CppSignature: CE::Renderer::MaterialHandle
+    Function: |
+      arg0 = mRuntime.mMaterialManager.CreateMaterial(tex);
+  
+  - Name: DestroyMaterial

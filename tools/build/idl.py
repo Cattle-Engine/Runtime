@@ -119,6 +119,7 @@ class ASClassFunction(ASBindableCallable):
     name: str = ""
     return_type: str = ""
     signature: str = ""
+    cpp_signature: str = "" # used for the actual function
     cpp_class: str = ""
     cpp_method: str = ""
     calling_convention: str = "ThisCallAsGlobal"
@@ -275,6 +276,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 cpp_method=x.get("CppMethod", ""),
                 inline_body=x.get("Function", x.get("Body", "")),
                 generated_name=x.get("GeneratedName", ""),
+                cpp_signature=x.get("CppSignature", ""),
                 calling_convention=x.get(
                     "CallingConvention",
                     "ThisCallAsGlobal"
@@ -680,7 +682,8 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     gen.begin_namespace("CE::Scripting::Bindings")
 
     for class_function in binding.class_functions:
-        params = _cpp_parameter_list(class_function.signature)
+        sig = class_function.cpp_signature or class_function.signature
+        params = _cpp_parameter_list(sig)
 
         declaration = (
             f"{class_function.return_type} "
@@ -693,7 +696,7 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
             for line in class_function.inline_body.splitlines():
                 gen.write(line)
         else:
-            call_args = _argument_list(class_function.signature)
+            call_args = _argument_list(sig)
 
             call = (
                 f"mRuntime.{class_function.cpp_class}."
@@ -771,7 +774,8 @@ def generate_cpp_header(binding: ASBindingFile) -> str:
         gen.write("private:")
         gen.indent()
         for class_function in binding.class_functions:
-            params = _cpp_parameter_list(class_function.signature)
+            sig = class_function.cpp_signature or class_function.signature
+            params = _cpp_parameter_list(sig)
             gen.write(f"{class_function.return_type} {class_function.name}({params});")
         gen.dedent()
 
