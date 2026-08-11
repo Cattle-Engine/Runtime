@@ -122,6 +122,7 @@ class ASClassFunction(ASBindableCallable):
     cpp_signature: str = "" # used for the actual function
     cpp_class: str = ""
     cpp_method: str = ""
+    as_namespace: str = ""
     calling_convention: str = "ThisCallAsGlobal"
 
 
@@ -277,6 +278,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 inline_body=x.get("Function", x.get("Body", "")),
                 generated_name=x.get("GeneratedName", ""),
                 cpp_signature=x.get("CppSignature", ""),
+                as_namespace=x.get("Namespace", default_namespace),
                 calling_convention=x.get(
                     "CallingConvention",
                     "ThisCallAsGlobal"
@@ -738,6 +740,7 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
     for class_function in binding.class_functions:
         declaration = f"{class_function.return_type} {class_function.name}({_registration_signature(class_function.signature)})"
+        gen.write(f'mScriptEngine.SetDefaultNamespace("{class_function.as_namespace}");')
         gen.write(
             f'CE_REGISTER_GLOBAL({CLASS_NAME}, this, "{declaration}", {class_function.name});'
         )

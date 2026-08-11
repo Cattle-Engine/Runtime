@@ -7,9 +7,21 @@ ASNamespace: CE::Graphics
 ASClassFunctions:
   - Name: CreateMaterial
     ReturnType: void
-    Signature: Material&, Texture&
-    CppSignature: CE::Renderer::MaterialHandle
+    Signature: Material& out, const Texture& in
+    CppSignature: CE::Renderer::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Materials
     Function: |
-      arg0 = mRuntime.mMaterialManager.CreateMaterial(tex);
+      arg0 = mRuntime.mMaterialManager.CreateMaterial(arg1);
   
   - Name: DestroyMaterial
+    ReturnType: void
+    Signature: const Material& in
+    CppSignature: const Renderer::Resources::MaterialHandle& handle
+    Namespace: CE::Graphics::Materials
+    Function: |
+      mRuntime.mMaterialManager.DestroyMaterial(handle);
+  
+  - Name: SetMaterialAlbedo
+    ReturnType: void
+    Signature: const Material& in, const Texture& in
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
