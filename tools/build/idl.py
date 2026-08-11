@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Final
+import json
 
 import yaml
 
@@ -66,6 +67,7 @@ class ASOperator(ASBindableCallable):
 @dataclass
 class ASType:
     name: str
+    registration_priority: int = 0 
     cpp_type: str
     namespace: str = ""
     flags: list[str] = field(default_factory=list)
@@ -220,6 +222,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
 
     return ASBindingFile(
         required_cpp_headers=data.get("RequiredCppHeaders", []),
+        registration_priority=data.get("RegistrationPriority", 0),
         namespace=default_namespace,
         types=[parse_as_type(x, default_namespace) for x in data.get("ASTypes", [])],
         functions=[
@@ -821,7 +824,13 @@ def main() -> int:
 
         metadata = args.output_header.with_suffix(".json")
         metadata.write_text(
-            f'{{"class_name": "{CLASS_NAME}"}}',
+            json.dumps(
+                {
+                    "class_name": CLASS_NAME,
+                    "registration_priority": bindings.registration_priority,
+                },
+                indent=2,
+            ),
             encoding="utf-8",
         )
 

@@ -1,10 +1,14 @@
+RegistrationPriority: 90
+
 RequiredCppHeaders:
+  - <string>
   - "engine/rendering/resources/texture_manager.hpp"
   - "engine/rendering/resources/material_manager.hpp"
 
 ASNamespace: CE::Graphics
 
 ASClassFunctions:
+  # === Material functions ===
   - Name: CreateMaterial
     ReturnType: void
     Signature: Material& out, const Texture& in
@@ -19,9 +23,53 @@ ASClassFunctions:
     CppSignature: const Renderer::Resources::MaterialHandle& handle
     Namespace: CE::Graphics::Materials
     Function: |
-      mRuntime.mMaterialManager.DestroyMaterial(handle);
+      mRuntime.mMaterialManager.DestroyMaterial(arg0);
   
   - Name: SetMaterialAlbedo
     ReturnType: void
     Signature: const Material& in, const Texture& in
     CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Materials
+    Function: |
+        mRuntime.mMaterialManager.SetMaterialAlbedo(arg0, arg1);
+    
+  - Name: SetMaterialTint
+    ReturnType: void
+    Signature: const Material& in, const Colour& in
+    CppSignature: const CE::Renderer::MaterialHandle&, const CE::Renderer::Colour&
+    Namespace: CE::Graphics::Materials
+    Function: |
+      mRuntime.mMaterialManager.SetMaterialColour(arg0, arg1);
+
+  - Name: SetMaterialRoughness
+    ReturnType: void
+    Signature: const Material& in, const float& in
+    CppSignature: const CE::Renderer::MaterialHandle&, const float&
+    Namespace: CE::Graphics::Materials
+    Function: |
+      mRuntime.mMaterialManager.SetMaterialRoughness(arg0, arg1);
+
+  - Name: SetMaterialMetallic
+    ReturnType: void
+    Signature: const Material& in, const float& in
+    CppSignature: const CE::Renderer::MaterialHandle&, const float&
+    Namespace: CE::Graphics::Materials
+    Function: |
+      mRuntime.mMaterialManager.SetMaterialMetallic(arg0, arg1);
+  
+  - Name: MaterialExists
+    ReturnType: bool
+    Signature: const Material& in
+    CppSignature: const CE::Renderer::MaterialHandle&
+    Namespace: CE::Graphics::Materials
+    Function: |
+      return mRuntime.mMaterialManager.GetMaterial(arg0) != nullptr;
+  
+  # === Texture functions ===
+  - Name: LoadTexture
+    ReturnType: void
+    Signature: const string& in, const Texture& out
+    CppSignature: const std::string&, const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Textures
+    Function: |
+      arg1 = mRuntime.TextureManager.Load(arg0);

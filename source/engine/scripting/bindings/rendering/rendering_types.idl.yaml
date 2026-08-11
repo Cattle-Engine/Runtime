@@ -1,3 +1,5 @@
+RegistrationPriority: 100
+
 RequiredCppHeaders:
   - <glm/glm.hpp>
   - <string>

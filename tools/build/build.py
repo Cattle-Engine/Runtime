@@ -53,11 +53,17 @@ def generate_binding_registry(build: Path) -> None:
 
     generated_headers = sorted(bindings_dir.glob("*.generated.hpp"))
 
-    bindings: list[str] = []
+    bindings: list[tuple[int, str]] = []
 
     for meta in sorted(bindings_dir.glob("*.generated.json")):
         data = json.loads(meta.read_text())
-        bindings.append(data["class"])
+
+        bindings.append((
+            data.get("registration_priority", 0),
+            data["class"],
+        ))
+
+    bindings.sort(key=lambda binding: (-binding[0], binding[1])) # bigger numbers have higher priority
 
     gen: generator.CodeWriter = generator.CodeWriter()
 
@@ -70,7 +76,7 @@ def generate_binding_registry(build: Path) -> None:
     gen.write('#include "engine/scripting/bindings/script_binding_class.hpp"')
     gen.write('#include "engine/scripting/angelscript.hpp"')
 
-    gen.write("()")
+    gen.write("")
     gen.write(generator.generate_comment("Includes for the generated includes"))
 
     for header in generated_headers:
@@ -96,12 +102,13 @@ def generate_binding_registry(build: Path) -> None:
 
     gen.indent()
 
-    for class_name in bindings:
+    for priority, class_name in bindings:
         gen.write("{")
         gen.indent()
         gen.write(f'"{class_name}",')
         gen.write(
-            "[](Runtime& runtime, asIScriptEngine& engine) -> std::unique_ptr<IScriptBinding>"
+            "[](Runtime& runtime, asIScriptEngine& engine) "
+            "-> std::unique_ptr<IScriptBinding>"
         )
         gen.write("{")
         gen.indent()
