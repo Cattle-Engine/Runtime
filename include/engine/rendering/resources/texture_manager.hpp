@@ -65,6 +65,7 @@ namespace CE::Renderer::Resources {
         ~TextureManager();
         // Internal use for other systems only!
         TextureRef Acquire(TextureHandle handle);
+        // For 1 time use only!
         Texture* GetTexture(TextureHandle handle);
 
         // Used to decrease RefCount in TextureEntry

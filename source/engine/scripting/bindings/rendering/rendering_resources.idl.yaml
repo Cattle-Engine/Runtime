@@ -73,3 +73,108 @@ ASClassFunctions:
     Namespace: CE::Graphics::Textures
     Function: |
       arg1 = mRuntime.TextureManager.Load(arg0);
+
+  - Name: UnloadTexture
+    ReturnType: void 
+    Signature: const Texture& in
+    CppSignature: const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Textures
+    Function: |
+      mRuntime.mTextureManager.Unload(arg0);
+
+  - Name: UnloadAllTextures
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Namespace: CE::Graphics::Textures
+    Function: |
+      mRuntime.mTextureManager.UnloadAll();
+
+  - Name: TextureExists
+    ReturnType: bool
+    Signature: const Texture& in
+    CppSignature: const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Textures
+    Function: | 
+      return mRuntime.mTextureManager.GetTexture(arg0) != nullptr;
+  
+  # === Shader functions ===
+  - Name: CreateProgram
+    ReturnType: void
+    Signature: const Shader& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      arg0 = mRuntime.mShaderManager.CreateProgram(); 
+
+  - Name: LoadShader
+    ReturnType: void
+    Signature: const string& in filepath, Shader& in, int fragment_sampler_count = 4
+    CppSignature: const std::string&, int fragment_sampler_count, Shader& in
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      arg1 = mRuntime.mShaderManager.Load(arg0, arg2);
+
+  - Name: LoadStage
+    ReturnType: bool
+    Signature: const Shader& in, const string& in, const ShaderStage& in, int sampler_count = 4
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&, const std::string&, const CE::Renderer::ShaderStage&, int
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.LoadStage(arg0, arg1, arg2, arg3);
+
+  - Name: UseDefaultStage
+    ReturnType: bool
+    Signature: const Shader& in, const ShaderStage& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&, const CE::Renderer::ShaderStage&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.UseDefaultStage(arg0, arg1);
+
+  - Name: CompileShader
+    ReturnType: bool
+    Signature: const Shader& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.Compile(arg0);
+
+  - Name: BindShader
+    ReturnType: bool
+    Signature: const Shader& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.Bind(arg0);
+
+  - Name: UnbindShader
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.Unbind()
+
+  - Name: ShaderExists
+    ReturnType: bool
+    Signature: const Shader& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.ShaderExists(arg0);
+
+  - Name: UnloadShader
+    ReturnType: void
+    Signature: const Shader& in
+    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.Unload(arg0);
+
+  - Name: UnloadAllShaders
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      return mRuntime.mShaderManager.UnloadAll()

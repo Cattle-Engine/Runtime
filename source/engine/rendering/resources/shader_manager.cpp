@@ -202,6 +202,10 @@ namespace CE::Renderer::Resources {
         return entry->IsCompiled;
     }
 
+    bool ShaderManager::ShaderExists(const ShaderHandle& handle) {
+        return GetShaderEntry(handle) != nullptr;
+    }
+
     bool ShaderManager::Bind(ShaderHandle handle) {
         ShaderEntry* entry = GetShaderEntry(handle);
 

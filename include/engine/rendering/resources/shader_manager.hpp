@@ -96,6 +96,7 @@ namespace CE::Renderer::Resources {
         bool Compile(ShaderHandle handle);
         bool Bind(ShaderHandle handle);
         void Unbind();
+        bool ShaderExists(const ShaderHandle& handle);
         /**
          * @brief Adds a shader to be deleted, if it's called on the current bound shader this will error
          */
