@@ -2,6 +2,9 @@ RegistrationPriority: 100
 
 RequiredCppHeaders:
   - <glm/glm.hpp>
+  - <glm/gtx/norm.hpp>
+  - <glm/gtc/matrix_transform.hpp>
+  - <glm/gtx/string_cast.hpp>
   - <string>
   - <cstdint>
   - "engine/rendering/resources/texture_manager.hpp"
@@ -12,6 +15,353 @@ RequiredCppHeaders:
 ASNamespace: CE
 
 ASTypes:
+  
+
+  - Name: Mat4
+    CppType: glm::mat4
+
+    Flags:
+      - ValueType
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) glm::mat4(1.0f);
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "float"
+        Body: |
+          new(self) glm::mat4(arg0);
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "const Mat4&"
+        Body: |
+          new(self) glm::mat4(*arg0);
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~mat4();
+        CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        ReturnType: "Mat4&"
+        Signature: "const Mat4&"
+        Body: |
+          *self = *arg0;
+          return *self;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "+"
+        ReturnType: Mat4
+        Signature: "const Mat4&"
+        Body: |
+          return *self + *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "-"
+        ReturnType: Mat4
+        Signature: "const Mat4&"
+        Body: |
+          return *self - *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Mat4
+        Signature: "const Mat4&"
+        Body: |
+          return *self * *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Vec4
+        Signature: "const Vec4&"
+        Body: |
+          return *self * *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Mat4&"
+        Body: |
+          return *self == *arg0;
+        CallingConvention: CDeclObjLast
+
+    Methods:
+      - Name: "Transpose"
+        ReturnType: Mat4
+        Signature: ""
+        Body: |
+          return glm::transpose(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Inverse"
+        ReturnType: Mat4
+        Signature: ""
+        Body: |
+          return glm::inverse(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Determinant"
+        ReturnType: float
+        Signature: ""
+        Body: |
+          return glm::determinant(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "ToString"
+        ReturnType: string
+        Signature: ""
+        Body: |
+          return glm::to_string(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "SetIdentity"
+        ReturnType: void
+        Signature: ""
+        Body: |
+          *self = glm::mat4(1.0f);
+        CallingConvention: CDeclObjLast
+        IsConst: false
+
+      - Name: "Translate"
+        ReturnType: Mat4
+        Signature: "const Vec3&"
+        Body: |
+          return glm::translate(*self, *arg0);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Scale"
+        ReturnType: Mat4
+        Signature: "const Vec3&"
+        Body: |
+          return glm::scale(*self, *arg0);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Rotate"
+        ReturnType: Mat4
+        Signature: "float, const Vec3&"
+        Body: |
+          return glm::rotate(*self, arg0, *arg1);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+  - Name: Vec4
+    CppType: glm::vec4
+
+    Flags:
+      - ValueType
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) glm::vec4();
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "float, float, float, float"
+        Body: |
+          new(self) glm::vec4(arg0, arg1, arg2, arg3);
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: "const Vec4&"
+        Body: |
+          new(self) glm::vec4(*arg0);
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~vec4();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: float
+        CppMember: x
+        ASMember: x
+
+      - Type: float
+        CppMember: y
+        ASMember: y
+
+      - Type: float
+        CppMember: z
+        ASMember: z
+
+      - Type: float
+        CppMember: w
+        ASMember: w
+
+    Operators:
+      - Operator: "="
+        ReturnType: "Vec4&"
+        Signature: "const Vec4&"
+        Body: |
+          *self = *arg0;
+          return *self;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "+"
+        ReturnType: Vec4
+        Signature: "const Vec4&"
+        Body: |
+          return *self + *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "-"
+        ReturnType: Vec4
+        Signature: "const Vec4&"
+        Body: |
+          return *self - *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "/"
+        ReturnType: Vec4
+        Signature: "const Vec4&"
+        Body: |
+          return *self / *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Vec4
+        Signature: "const Vec4&"
+        Body: |
+          return *self * *arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Vec4
+        Signature: float
+        Body: |
+          return *self * arg0;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "*"
+        ReturnType: Vec4
+        Signature: "float"
+        Body: |
+          return arg0 * *self;
+        CallingConvention: CDeclObjLast
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Vec4&"
+        Body: |
+          return *self == *arg0;
+        CallingConvention: CDeclObjLast
+
+    Methods:
+      - Name: "Length"
+        ReturnType: float
+        Signature: ""
+        Body: |
+          return glm::length(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "LengthSquared"
+        ReturnType: float
+        Signature: ""
+        Body: |
+          return glm::length2(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Normalize"
+        ReturnType: Vec4
+        Signature: ""
+        Body: |
+          return glm::normalize(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Dot"
+        ReturnType: float
+        Signature: "const Vec4&"
+        Body: |
+          return glm::dot(*self, *arg0);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Distance"
+        ReturnType: float
+        Signature: "const Vec4&"
+        Body: |
+          return glm::distance(*self, *arg0);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Lerp"
+        ReturnType: Vec4
+        Signature: "const Vec4&, float"
+        Body: |
+          return glm::mix(*self, *arg0, arg1);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Clamp"
+        ReturnType: Vec4
+        Signature: "const Vec4&, const Vec4&"
+        Body: |
+          return glm::clamp(*self, *arg0, *arg1);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "Abs"
+        ReturnType: Vec4
+        Signature: ""
+        Body: |
+          return glm::abs(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "ToString"
+        ReturnType: string
+        Signature: ""
+        Body: |
+          return "Vec4(" + std::to_string(self->x) + ", " +
+                 std::to_string(self->y) + ", " +
+                 std::to_string(self->z) + ", " +
+                 std::to_string(self->w) + ")";
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
+      - Name: "NormalizeInPlace"
+        ReturnType: void
+        Signature: ""
+        Body: |
+          *self = glm::normalize(*self);
+        CallingConvention: CDeclObjLast
+        IsConst: false
+
+      - Name: "Set"
+        ReturnType: void
+        Signature: "float, float, float, float"
+        Body: |
+          self->x = arg0;
+          self->y = arg1;
+          self->z = arg2;
+          self->w = arg3;
+        CallingConvention: CDeclObjLast
+        IsConst: false
+
+      - Name: "IsZero"
+        ReturnType: bool
+        Signature: ""
+        Body: |
+          return glm::length2(*self) < 0.0001f;
+        CallingConvention: CDeclObjLast
+        IsConst: true
+
   - Name: Colour
     CppType: CE::Renderer::Colour
 
@@ -81,6 +431,31 @@ ASTypes:
       - Operator: "=="
         ReturnType: bool
         Signature: "const Material&"
+        Body: |
+          return self.id == arg0.id;
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "int64"
+        Body: |
+          return self.id == static_cast<uint64>(arg0);
+
+  - Name: Mesh
+    CppType: CE::Renderer::Resources::MeshHandle
+
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: uint64
+        CppMember: id
+        ASMember: handle
+
+    Operators:
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const Mesh&"
         Body: |
           return self.id == arg0.id;
 

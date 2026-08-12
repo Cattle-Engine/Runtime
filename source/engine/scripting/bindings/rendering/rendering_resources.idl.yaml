@@ -2,6 +2,7 @@ RegistrationPriority: 90
 
 RequiredCppHeaders:
   - <string>
+  - <glm/gtc/type_ptr.hpp>
   - "engine/rendering/resources/texture_manager.hpp"
   - "engine/rendering/resources/material_manager.hpp"
 
@@ -153,7 +154,7 @@ ASClassFunctions:
     CppSignature: ""
     Namespace: CE::Graphics::Shaders
     Function: |
-      return mRuntime.mShaderManager.Unbind()
+      return mRuntime.mShaderManager.Unbind();
 
   - Name: ShaderExists
     ReturnType: bool
@@ -177,4 +178,63 @@ ASClassFunctions:
     CppSignature: ""
     Namespace: CE::Graphics::Shaders
     Function: |
-      return mRuntime.mShaderManager.UnloadAll()
+      return mRuntime.mShaderManager.UnloadAll();
+
+  - Name: SetFloat
+    ReturnType: void
+    Signature: const string& in, float
+    CppSignature: const std::string&, float
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetFloat(arg0, arg1);
+
+  - Name: SetVec2
+    ReturnType: void
+    Signature: const string& in, const Vec2& in
+    CppSignature: const std::string&, const glm::vec2&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetVec2(arg0, arg1.x, arg1.y);
+
+  - Name: SetVec3
+    ReturnType: void
+    Signature: const string& in, const Vec3& in
+    CppSignature: const std::string&, const glm::vec3&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetVec3(arg0, arg1.x, arg1.y, arg1.z);
+
+  - Name: SetVec4
+    ReturnType: void
+    Signature: const string& in, const Vec4& in
+    CppSignature: const std::string&, const glm::vec4&
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetVec4(arg0, arg1.x, arg1.y, arg1.z, arg1.w);
+
+  - Name: SetMat4
+    ReturnType: void
+    Signature: const string& in, const Mat4& in
+    CppSignature: const std::string&, const glm::mat4
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetMat4(arg0, glm::value_ptr(arg1));
+
+  - Name: SetInt
+    ReturnType: void
+    Signature: const string& in, const int
+    CppSignature: const std::string&, const int
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetInt(arg0, arg1);
+
+  - Name: SetTexture
+    ReturnType: bool
+    Signature: const string& in, const Texture& in, int slot = 0
+    CppSignature: const string& in, const CE::Renderer::Resources::TextureHandle&, int
+    Namespace: CE::Graphics::Shaders
+    Function: |
+      mRuntime.mShaderManager.SetTexture(arg0, arg1, arg2);
+
+  # === Mesh functions ===
+  - Name: 
