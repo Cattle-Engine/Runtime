@@ -314,8 +314,10 @@ def generate_as_function_binding(
 
     gen.push_as_namespace(func.namespace)
 
+    cpp_function = func.generated_name if func.inline_body and func.generated_name else func.cpp_function
+
     gen.write(
-        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", {func.cpp_function}, {generator.CALL_CONV_MAP[func.calling_convention]}));'
+        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", {cpp_function}, {generator.CALL_CONV_MAP[func.calling_convention]}));'
     )
 
     gen.pop_as_namespace(restore_namespace)

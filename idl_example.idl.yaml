@@ -10,6 +10,10 @@ ASTypes:
     CppType: glm::vec3
     Namespace: CE::Math
 
+    # literally pastes whats below into the binding function after registeration
+    AfterRegister: |
+      int foo = 1; 
+
     Flags:
       - Value
       - POD
@@ -79,11 +83,13 @@ ASFunctions:
     Namespace: CE::Instance # Overrides the global namespace
     ReturnType: float
     Signature: "" # Empty means it's just ()
+    CppSignature: ""
     CppFunction: CE::Foo::GetGameInfo
 
   - Name: SomeFunction
     ReturnType: void
     Signature: "const int, string&"
+    CppSignature: "const int, std::string&"
     CppFunction: CE::Scripting::Bindings::SomeFunction
     CallingConvention: CDecl
 

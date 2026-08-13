@@ -70,6 +70,7 @@ class ASType:
     registration_priority: int = 0 
     cpp_type: str
     namespace: str = ""
+    after_register: str = ""
     flags: list[str] = field(default_factory=list)
     properties: list[ASProperty] = field(default_factory=list)
     constructors: list[ASConstructor] = field(default_factory=list)
@@ -83,6 +84,7 @@ class ASFunction(ASBindableCallable):
     name: str = ""
     return_type: str = ""
     signature: str = ""
+    cpp_signature: str = ""
     namespace: str = ""
     calling_convention: str = "CDecl"
 
@@ -208,6 +210,7 @@ def parse_as_type(data: dict[str, Any], default_namespace: str = "") -> ASType:
         name=data["Name"],
         cpp_type=data["CppType"],
         namespace=data.get("Namespace", default_namespace),
+        after_register=data.get("AfterRegister", ""),
         flags=list(_maybe_get(data, "Flags", "ASFlags", default=[])),
         properties=[parse_as_property(x) for x in data.get("Properties", [])],
         constructors=[parse_as_constructor(x) for x in data.get("Constructors", [])],
@@ -231,6 +234,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 namespace=x.get("Namespace", default_namespace),
                 return_type=x["ReturnType"],
                 signature=x.get("Signature", ""),
+                cpp_signature=x.get("CppSignature", ""),
                 cpp_function=x.get("CppFunction", ""),
                 inline_body=x.get("Body", ""),
                 generated_name=x.get("GeneratedName", ""),
@@ -588,6 +592,11 @@ def _operator_helper_name(as_type: ASType, operator: ASOperator, index: int) -> 
     return _sanitize_symbol_part(f"{as_type.name}_{operator.operator}_{index}")
 
 
+def _function_helper_name(function: ASFunction, index: int) -> str:
+    suffix = "" if index == 0 else f"_{index}"
+    return _sanitize_symbol_part(f"{function.name}_Generated{suffix}")
+
+
 def _operator_self_parameter(as_type: ASType, operator: ASOperator) -> str:
     if operator.is_const:
         return f"const {as_type.cpp_type}& self"
@@ -624,8 +633,21 @@ def _operator_parameter_list(as_type: ASType, operator: ASOperator) -> str:
 
 def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     gen = generator.CodeWriter()
+    inline_function_helpers: list[tuple[str, ASFunction]] = []
     inline_operator_helpers: list[tuple[str, ASType, ASOperator]] = []
     inline_behaviour_helpers: list[tuple[str, ASType, ASBehaviour]] = []
+
+    function_name_counts: dict[str, int] = {}
+
+    for as_function in binding.functions:
+        if as_function.inline_body:
+            inline_index = function_name_counts.get(as_function.name, 0)
+            function_name_counts[as_function.name] = inline_index + 1
+            as_function.generated_name = as_function.generated_name or _function_helper_name(
+                as_function,
+                inline_index,
+            )
+            inline_function_helpers.append((as_function.generated_name, as_function))
 
     for as_type in binding.types:
         behaviour_name_counts: dict[str, int] = {}
@@ -656,8 +678,19 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         gen.write(f"#include {_format_cpp_include(include)}")
 
     gen.write("")
-    if inline_operator_helpers or inline_behaviour_helpers:
+    if inline_function_helpers or inline_operator_helpers or inline_behaviour_helpers:
         gen.begin_block("namespace")
+
+        for helper_name, as_function in inline_function_helpers:
+            declaration = (
+                f"static {as_function.return_type} {helper_name}"
+                f"({_cpp_parameter_list(as_function.cpp_signature or as_function.signature)})"
+            )
+            gen.begin_function(declaration)
+            for line in as_function.inline_body.splitlines():
+                gen.write(line)
+            gen.end_block()
+            gen.write("")
 
         for helper_name, as_type, operator in inline_operator_helpers:
             declaration = (
@@ -725,6 +758,9 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
     for as_type in binding.types:
         as_binding_gen.generate_as_type_binding(as_type, gen, binding.namespace)
+        if as_type.after_register:
+            for line in as_type.after_register.splitlines():
+                gen.write(line)
 
     for as_function in binding.functions:
         as_binding_gen.generate_as_function_binding(as_function, gen, binding.namespace)
