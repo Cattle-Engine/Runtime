@@ -12,13 +12,21 @@ namespace CE::Renderer::Resources {
     struct TextureHandle {
         uint64_t id = 0;
 
+        // Returns nullptr if unloaded
+        Texture* GetTexture();
+
         constexpr explicit operator bool() const {
-            return id != 0;
+            return id != 0 && mTexture != nullptr;
         }
 
         constexpr bool operator==(const TextureHandle& other) const {
             return id == other.id;
         }
+
+        private:
+          // THIS IS NON-OWNING and should ONLY be used for renderer calls that REQUIRE Texture*
+          CE::Renderer::Texture** mTexture = nullptr;
+          bool mIsUnloaded = false;
     };
     
     struct TextureHandleHash {
