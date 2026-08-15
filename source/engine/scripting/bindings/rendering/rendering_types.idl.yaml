@@ -10,13 +10,12 @@ RequiredCppHeaders:
   - "engine/rendering/resources/texture_manager.hpp"
   - "engine/rendering/resources/material_manager.hpp"
   - "engine/rendering/resources/shader_manager.hpp"
+  - "engine/scripting/bindings/stl_vector_binder.hpp"
   - "engine/rendering/renderer.hpp"
 
 ASNamespace: CE
 
 ASTypes:
-  
-
   - Name: Mat4
     CppType: glm::mat4
 
@@ -132,28 +131,28 @@ ASTypes:
         IsConst: false
 
       - Name: "Translate"
-        ReturnType: Mat4
+        ReturnType: void
         Signature: "const Vec3&"
         Body: |
-          return glm::translate(*self, *arg0);
+          *self = glm::translate(*self, *arg0);
         CallingConvention: CDeclObjLast
-        IsConst: true
+        IsConst: false
 
       - Name: "Scale"
-        ReturnType: Mat4
+        ReturnType: void
         Signature: "const Vec3&"
         Body: |
-          return glm::scale(*self, *arg0);
+          *self = glm::scale(*self, *arg0);
         CallingConvention: CDeclObjLast
-        IsConst: true
+        IsConst: false
 
       - Name: "Rotate"
-        ReturnType: Mat4
+        ReturnType: void
         Signature: "float, const Vec3&"
         Body: |
-          return glm::rotate(*self, arg0, *arg1);
+          *self = glm::rotate(*self, arg0, *arg1);
         CallingConvention: CDeclObjLast
-        IsConst: true
+        IsConst: false
 
   - Name: Vec4
     CppType: glm::vec4
@@ -941,6 +940,106 @@ ASTypes:
         CallingConvention: CDeclObjLast
         IsConst: true
 
+  # also registers Vertex3DVector into CE::Containers::
+  - Name: Vertex3D
+    CppType: CE::Renderer::Vertex3D
+    Flags: 
+      - ValueType
+
+    AfterRegister: |
+      mScriptEngine.SetDefaultNamespace("CE::Containers");
+      CE::Scripting::Bindings::RegisterVector<CE::Renderer::Vertex3D>(&mScriptEngine, "Vertex3DVector", "Vertex3D");
+      mScriptEngine.SetDefaultNamespace("CE");
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Vertex3D();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destructor
+        Body: |
+          delete self;
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: Vec3
+        CppMember: position
+        ASMember: position
+      
+      - Type: Vec3
+        CppMember: normal
+        ASMember: normal
+
+      - Type: Colour
+        CppMember: colour
+        ASMember: colour
+
+      - Type: Vec2
+        CppMember: uv
+        ASMember: uv
+
+      - Type: Vec3
+        CppMember: tangent
+        ASMember: tangent
+
+      - Type: float
+        CppMember: tangentSign
+        ASMember: tangent_sign 
+
+  - Name: MeshData
+    CppType: CE::Renderer::MeshData
+    Flags: 
+      ValueType
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          self = new CE::Renderer::MeshData();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destructor
+        Body: |
+          delete self;
+        CallingConvention: CDeclObjLast
+    
+    Properties:
+      - Type: CE::Containers::Vertex3DVector
+        CppMember: vertices
+        ASMember: vertices
+
+      - Type: CE::Containers::Uint32Vector
+        CppMember: indices
+        ASMember: indices
+
+  - Name: Transform3D
+    CppType: CE::Renderer::Transform3D
+    Flags: 
+      ValueType
+
+    Behaviours:
+      - Type: Constructor
+        Body: |
+          self = new CE::Renderer::Transform3D();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destructor
+        Body: |
+          delete self;
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: Vec3
+        CppMember: position
+        ASMember: position
+
+      - Type: Vec3
+        CppMember: rotation
+        ASMember: rotation
+
+      - Type: Vec3
+        CppMember: scale
+        ASMember: scale
 ASEnums:
   - Name:
     CppType: CE::Renderer::ShaderStage

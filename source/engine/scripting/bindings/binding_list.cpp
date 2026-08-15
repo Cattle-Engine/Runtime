@@ -3,16 +3,15 @@
 
 namespace CE::Scripting::Bindings {
     bool ScriptBindings::RegisterAllBindings(asIScriptEngine& script_engine, Runtime& runtime) {
-        script_engine.SetDefaultNamespace("CE::Misc");
+        script_engine.SetDefaultNamespace("CE::Containers");
 
         RegisterVector<asUINT>(
             &script_engine,
-            "UintVector",
-            "uint"
+            "Uint32Vector",
+            "uint32"
         );
 
         script_engine.SetDefaultNamespace("");
-
         
         return true;
     }

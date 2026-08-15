@@ -98,8 +98,8 @@ namespace CE::Renderer {
     struct MeshData {
         std::vector<Vertex3D> vertices;
         std::vector<uint32_t> indices;
-        uint32_t vertex_count;
-        uint32_t indice_count;
+        [[deprecated("Please vertices.size()")]] uint32_t vertex_count;
+        [[deprecated("Please use indices.size()")]] uint32_t indice_count;
     };
 
     struct GPUMesh {

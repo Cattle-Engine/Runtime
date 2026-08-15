@@ -237,4 +237,50 @@ ASClassFunctions:
       mRuntime.mShaderManager.SetTexture(arg0, arg1, arg2);
 
   # === Mesh functions ===
-  - Name: 
+  - Name: CreateMesh
+    ReturnType: void
+    Signature: Mesh& in, const MeshData& in
+    CppSignature: CE::Renderer::Resources::MeshHandle&, const CE::Renderer::MeshData&
+    Namespace: CE::Graphics::Models
+    Function: |
+      arg0 = mRuntime.mGPUMeshManager.CreateMeshHandle(arg1);
+
+  - Name: DrawMesh
+    ReturnType: void
+    Signature: const Mesh& in, const Transform3D& in, const Material& in, bool
+    CppSignature: const CE::Renderer::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Namespace: CE::Graphics::Models
+    Function: |
+      mRuntime.mGPUMeshManager.DrawMeshHandle(arg0, arg1, arg2, arg3);
+
+  - Name: DrawMeshMat4
+    ReturnType: void
+    Signature: const Mesh& in, const Mat4& in, const Material& in, bool
+    CppSignature: const CE::Renderer::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Namespace: CE::Graphics::Models
+    Function: |
+      mRuntime.mGPUMeshManager.DrawMeshHandleMat4(arg0, arg1, arg2, arg3);
+
+  - Name: ChangeMesh
+    ReturnType: void
+    Signature: const Mesh& in, const Meshdata& in
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, const CE::Renderer::MeshData&
+    Namespace: CE::Graphics::Models
+    Function: |
+      mRuntime.mGPUMeshManager.ChangeMesh(arg0, arg1);
+
+  - Name: DestroyMesh
+    ReturnType: void
+    Signature: const Mesh& in
+    CppSignature: const CE::Renderer::Resources::MeshHandle&
+    Namespace: CE::Graphics::Models
+    Function: |
+      mRuntime.mGPUMeshManager.DestroyMesh(arg0);
+
+  - Name: MeshExists
+    ReturnType: void
+    Signature: const Mesh& in
+    CppSignature: const CE::Renderer::Resources::MeshHandle&
+    Namespace: CE::Graphics::Models
+    Function: |
+      return mRuntime.mGPUMeshManager.HasMesh(arg0);
