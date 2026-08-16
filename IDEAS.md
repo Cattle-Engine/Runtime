@@ -18,3 +18,61 @@ struct TextureEntry {
 };
 ```
 on unloading we do this ```entry->State->Texture = nullptr;``` and when the refcount goes to zero we actually unload the texture
+
+# Update system
+
+Okay so due to having the VFS it makes it easy enough to have an update system. I'm thinking of using a seperate file format for updates.
+Also make it so in Gameinfo.txt we have required integers for the game version.
+For updates themselves I'm thinking of a deltapatch system where we don't ship an entire new updated file only the parts that changed.
+
+So the path(s) for updates are defined in Gameinfo.txt under:
+```ini
+[Gameinfo]
+update_paths = {"./updates"}
+```
+(Dot paths are relative to the base game data)
+
+
+For the header of the file format I shall do: 
+
+```cpp
+struct CEUpdateHeader {
+    char Magic[6] = {'C', 'E', 'U', 'P', 'P', '\0'}; // at 0x00
+    uint32_t TargetGameMajorVersion = 1; // version of current update file
+    uint32_t TargetGameMinorversion = 2;
+    uint32_t TargetGamePatchVersion = 0;
+
+    uint32_t RequiredGameMajorVersion = 1; // require the 1.1.0 update and if not found error 
+    uint32_t RequiredGameMinorversion = 1;
+    uint32_t RequiredGamePatchVersion = 0;
+
+    uint32_t UpdateFormatVersion = 1; // incase I ever update the format
+    uint8_t reserved[50];
+};
+```
+After the header we have just a block of THESE
+
+```cpp
+enum class CEUpdateType : uint8_t {
+    AddFile = 0,
+    RemoveFile = 1,
+    ReplaceFile = 2,
+    PatchFile = 3
+};
+
+struct CEUpdate {
+    uint8_t UpdateType = 0; // gets casted to an CEUpdateType
+    uint32_t PatchLength = 0;
+    
+};
+```
+
+# How games gonna be ran with CE
+
+For windows, linux and mac (if I ever support) the engine and game shall be split into dis
+```
+ce_runtime.dll
+game.exe
+```
+game.exe loads ce_runtime.dll manually and calls C api functions to load the engine and create an instance.
+At the logical end of the file some core info is (base game data, ce_runtime.dll name as it can be anything) as drum roll please, TDF XD
