@@ -1,0 +1,9 @@
+RegistrationPriority: 80
+
+RequiredCppHeaders:
+  - "engine/rendering/resources/texture_manager.hpp"
+
+ASNamespace: CE::Graphics::Render2D
+
+ASClassFunctions:
+  - Name: DrawTexturePro

@@ -83,14 +83,6 @@ ASClassFunctions:
     Function: |
       mRuntime.mTextureManager.Unload(arg0);
 
-  - Name: UnloadAllTextures
-    ReturnType: void
-    Signature: ""
-    CppSignature: ""
-    Namespace: CE::Graphics::Textures
-    Function: |
-      mRuntime.mTextureManager.UnloadAll();
-
   - Name: TextureExists
     ReturnType: bool
     Signature: const Texture& in

@@ -3,7 +3,8 @@ okay for the texture manager gonna do this for the texture handle to avoid havin
 ```cpp
 struct TextureHandleState {
     Texture* Texture = nullptr;
-};```
+};
+```
 
 TextureHandle owns a shared_ptr to that state and TextureEntry holds the same state. 
 ```cpp

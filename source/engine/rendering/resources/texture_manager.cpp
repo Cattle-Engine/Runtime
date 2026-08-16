@@ -103,8 +103,12 @@ namespace CE::Renderer::Resources {
         }
         TextureHandle handle;
         handle.id = mNextHandleID++;
+
         texentry.Path = path;
         texentry.RefCount = 0;
+        texentry.State = std::make_shared<TextureHandleState>(texentry.Resource);
+
+        handle.mTexture = texentry.State;
 
         mTextureCache.emplace(handle, std::move(texentry));
         mPathCache[path] = handle;
@@ -122,6 +126,7 @@ namespace CE::Renderer::Resources {
 
         if (!it->second.IsPendingUnload) {
             it->second.IsPendingUnload = true;
+            it->second.State->texture = nullptr;
             mPendingUnload.push_back(handle);
         }
     }
@@ -170,6 +175,7 @@ namespace CE::Renderer::Resources {
     void TextureManager::UnloadAll() {
         for (auto& [name, texinfo] : mTextureCache) {
             if (!texinfo.IsError) {
+                texinfo.State->texture = nullptr;
                 mRenderer.UnloadTex(texinfo.Resource);
             }
         }

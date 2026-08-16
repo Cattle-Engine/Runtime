@@ -4,19 +4,36 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
 
 namespace CE::Renderer::Resources {
-    struct TextureHandle {
+  class TextureManager; // Forward declaration
+
+  struct TextureHandleState {
+      Texture* texture = nullptr;
+
+      explicit TextureHandleState(Texture* texture)
+          : texture(texture) {
+      }
+  };
+  
+  struct TextureHandle {
         uint64_t id = 0;
 
         // Returns nullptr if unloaded
-        Texture* GetTexture();
+        Texture* GetTexture() {
+          if (mTexture) {
+            return mTexture->texture;
+          } else {
+            return nullptr;
+          }
+        }
 
         constexpr explicit operator bool() const {
-            return id != 0 && mTexture != nullptr;
+            return id != 0 && mTexture->texture != nullptr;
         }
 
         constexpr bool operator==(const TextureHandle& other) const {
@@ -25,8 +42,8 @@ namespace CE::Renderer::Resources {
 
         private:
           // THIS IS NON-OWNING and should ONLY be used for renderer calls that REQUIRE Texture*
-          CE::Renderer::Texture** mTexture = nullptr;
-          bool mIsUnloaded = false;
+          std::shared_ptr<TextureHandleState> mTexture;
+          friend class TextureManager;
     };
     
     struct TextureHandleHash {
@@ -35,9 +52,7 @@ namespace CE::Renderer::Resources {
       }
     };
 
-    inline constexpr TextureHandle mInvalidHandle{};
-
-    class TextureManager; // Forward declaration
+    inline const TextureHandle mInvalidHandle = {};
 
     class TextureRef {
       public:
@@ -74,7 +89,7 @@ namespace CE::Renderer::Resources {
         // Internal use for other systems only!
         TextureRef Acquire(TextureHandle handle);
         // For 1 time use only!
-        Texture* GetTexture(TextureHandle handle);
+        [[deprecated("Please use GetTexture inside TextureHandle")]] Texture* GetTexture(TextureHandle handle);
 
         // Used to decrease RefCount in TextureEntry
         void Return(TextureHandle handle);
@@ -124,6 +139,7 @@ namespace CE::Renderer::Resources {
 
       private:
         struct TextureEntry {
+            std::shared_ptr<TextureHandleState> State;
             Texture* Resource;
             uint32_t RefCount;
             std::string Path;
