@@ -1046,3 +1046,10 @@ ASEnums:
     Values:
       - Fragment
       - Vertex
+  
+  - Name:
+    CppType: CE::Renderer::TextureFlip
+    Values:
+      - None
+      - Horizontal
+      - Vertical

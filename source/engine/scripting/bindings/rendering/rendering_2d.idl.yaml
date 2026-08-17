@@ -2,8 +2,14 @@ RegistrationPriority: 80
 
 RequiredCppHeaders:
   - "engine/rendering/resources/texture_manager.hpp"
+  - "engine/rendering/renderer.hpp"
 
 ASNamespace: CE::Graphics::Render2D
 
 ASClassFunctions:
-  - Name: DrawTexturePro
+  - Name: DrawTexture
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
+    Function: |
+      mRuntime.mRenderer.DrawTex(arg0.GetTexture(), arg1, arg2, arg3, arg4, arg5, arg6, arg7)

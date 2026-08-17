@@ -1,0 +1,21 @@
+RegistrationPriority: 10
+
+RequiredCppHeaders:
+  - <glm/glm.hpp>
+
+ASNamespace: CE::Math
+
+ASClassFunctions:
+  - Name: ToRadians
+    ReturnType: float
+    Signature: float
+    CppSignature: float
+    Function: |
+      return glm::radians(arg0);
+
+  - Name: ToDegrees
+    ReturnType: float
+    Signature: float
+    CppSignature: float
+    Function: |
+      return glm::degrees(arg0);
