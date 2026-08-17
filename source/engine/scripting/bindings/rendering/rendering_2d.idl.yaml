@@ -7,9 +7,43 @@ RequiredCppHeaders:
 ASNamespace: CE::Graphics::Render2D
 
 ASClassFunctions:
+  # Texture drawing
   - Name: DrawTexture
     ReturnType: void
     Signature: const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
-      mRuntime.mRenderer.DrawTex(arg0.GetTexture(), arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+
+  - Name: DrawTexture
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&, float, const CE::Renderer::TextureFlip
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5);
+
+  - Name: DrawTexture
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, const Colour& in
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, arg3, 0.0f);
+
+  - Name: DrawTexture
+    ReturnType: void
+    Signature: const Texture& in, float x, float y
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, CE::Renderer::Colour::White, 0.0f);
+  
+  # Also have overloads for DrawTextureUV tmrw
+
+  # Primitive drawing

@@ -74,7 +74,19 @@ namespace CE::Renderer {
         uint8_t g = 255;
         uint8_t b = 255;
         uint8_t a = 255;
+
+        static const Colour White;
+        static const Colour Black;
+        static const Colour Red;
+        static const Colour Green;
+        static const Colour Blue;
     };
+
+    inline const Colour Colour::White{255, 255, 255, 255};
+    inline const Colour Colour::Black{0, 0, 0, 255};
+    inline const Colour Colour::Red{255, 0, 0, 255};
+    inline const Colour Colour::Green{0, 255, 0, 255};
+    inline const Colour Colour::Blue{0, 0, 255, 255};
 
     struct Vector2 {
         int x, y;
