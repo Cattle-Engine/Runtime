@@ -44,6 +44,41 @@ ASClassFunctions:
       if (tex == nullptr) return;
       mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, CE::Renderer::Colour::White, 0.0f);
   
-  # Also have overloads for DrawTextureUV tmrw
+  # Texture drawing with UV coordinates
+  - Name: DrawTextureUV
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float, const CE::Renderer::TextureFlip
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+
+  - Name: DrawTextureUV
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, arg8);
+
+  - Name: DrawTextureUV
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, 0.0f);
+
+  - Name: DrawTextureUV
+    ReturnType: void
+    Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float
+    Function: |
+      auto tex = arg0.GetTexture();
+      if (tex == nullptr) return;
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
 
   # Primitive drawing
