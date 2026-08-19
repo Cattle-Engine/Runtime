@@ -220,12 +220,6 @@ namespace CE::Renderer {
         virtual void BeginMode3D() = 0;
         virtual void EndMode3D() = 0;
 
-        virtual void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-                              float rotation) = 0;
-        virtual void DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                                uint8_t a) = 0;
-        virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                              uint8_t a) = 0;
         virtual void SetClearColor(float r, float g, float b, float a) = 0;
         virtual Texture* LoadTex(const char* path) = 0;
         virtual Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
@@ -237,12 +231,23 @@ namespace CE::Renderer {
         virtual void DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                                Colour colour, float rotation, TextureFlip flip = TextureFlip::None) = 0;
         virtual void UnloadTex(Texture* texture) = 0;
+
+        // TODO: update these to take a Colour, not what ever this is
         virtual void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g,
                                   uint8_t b, uint8_t a, float rotation) = 0;
+        // TODO: add suport for rotating this
         virtual void DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g, uint8_t b,
                                    uint8_t a) = 0;
         virtual void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r,
                                      uint8_t g, uint8_t b, uint8_t a) = 0;
+
+        virtual void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                              float rotation) = 0;
+        virtual void DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
+                                uint8_t a) = 0;
+        virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
+                              uint8_t a) = 0;
+
         virtual int BeginFrame(SDL_Window* window) = 0;
         virtual int EndFrame(SDL_Window* window) = 0;
 

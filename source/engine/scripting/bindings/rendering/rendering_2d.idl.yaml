@@ -76,9 +76,38 @@ ASClassFunctions:
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float
+    Description: Draws a 2D texture
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
       mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
 
   # Primitive drawing
+  - Name: DrawTriangle
+    ReturnType: void
+    Signature: float x0, float y0, float x1, float y1, float x2, float y2, const Colour& in, float rotation
+    CppSignature: float, float, float, float, float, float, const CE::Renderer::Colour&, float rotation
+    Description: Draws a 2D triangle
+    Namespace: CE::Graphics::Render2D::Primitves
+    Function: |
+      mRuntime.mRenderer.DrawTriangle(arg0, arg1, arg2, arg3, arg4, arg5, arg6.r, arg6.g, arg6.b, arg6.a, arg7);
+
+  - Name: DrawRectangleLines
+    ReturnType: void  
+    Signature: float x, float y, float w, float h, float thickness, const Colour& in
+    CppSignature: float, float, float, float, float, const CE::Renderer::Colour&
+    Description: Draw a 2D rectangle made out of lines
+    Namespace: CE::Graphics::Render2D::Primitves
+    Function: |
+      mRuntime.mRenderer.DrawRectLines(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b, arg5.a);
+
+  - Name: DrawRectangle
+    ReturnType: void
+    Signature: float x, float y, float w, float h, const Colour& in, float rotation
+    CppSignature: float, float, float, float, const CE::Renderer::Colour&, float
+    Description: Draw a filled 2D rectangle
+    Namespace: CE::Graphics::Render2D::Primitves
+    Function: |
+      mRuntime.mRenderer.DrawRect(arg0, arg1, arg2, arg3, arg4.r, arg4.g, arg4.b, arg4.a, arg5);
+
+  - Name: DrawCircle

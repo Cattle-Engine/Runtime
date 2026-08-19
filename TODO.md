@@ -24,6 +24,8 @@
 - [X] Add XXHash to licence stuff
 - [X] Actually make function overloading work (semantic parser just throws it away)
 - [X] Make material, texture and mesh handles all structs
+- [X] Make an IDL for angelscript using yaml so I don't have to spend an afternoon copying the same BORING STUFF
+- [X] Refactor the angelscript bindings to have something like IScriptBinding
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -67,8 +69,7 @@ export int foo_func() {
 
 }
 ```
-- [ ] Make an IDL for angelscript using yaml so I don't have to spend an afternoon copying the same BORING STUFF
-- [ ] Refactor the angelscript bindings to have something like IScriptBinding
+- [ ] Make a python script to auto take idl and generate markdown docs
 - [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
