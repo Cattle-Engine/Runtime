@@ -111,3 +111,25 @@ ASClassFunctions:
       mRuntime.mRenderer.DrawRect(arg0, arg1, arg2, arg3, arg4.r, arg4.g, arg4.b, arg4.a, arg5);
 
   - Name: DrawCircle
+    ReturnType: void
+    Signature: float x, float y, float radius, int segments, const Colour& in
+    CppMember: float, float, float, int, const CE::Renderer::Colour&
+    Description: Draw a filled 2D circle
+    Function: |
+      mRuntime.mRenderer.DrawCircle(arg0, arg1, arg2, arg3, arg4.r, arg4.g, arg4.b, arg4.a);
+
+  - Name: DrawCircleLines
+    ReturnType: void
+    Signature: float x, float y, float radius, int segments, float thickness, const Colour& in
+    CppMember: float, float, float, int, const CE::Renderer::Colour&
+    Description: Draw a 2D circle out of lines
+    Function: |
+      mRuntime.mRenderer.DrawCircleLines(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b, arg5.a);
+
+  - Name: DrawLine
+    ReturnType: void
+    Signature: float x1, float y1, float x2, float y2, float thickness, const Colour& in
+    CppSignature: float, float, float, float, float, const CE::Renderer::Colour&
+    Description: Draw a 2D line
+    Function: |
+      mRuntime.mRenderer.DrawLine(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b. arg5.a); 
