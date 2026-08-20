@@ -756,6 +756,9 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     gen.begin_function(f"bool {CLASS_NAME}::RegisterBindings()")
     gen.write(f'mScriptEngine.SetDefaultNamespace("{binding.namespace}");')
 
+    for as_enum in binding.enums:
+        as_binding_gen.generate_as_enum_binding(as_enum, gen, binding.namespace)
+
     for as_type in binding.types:
         as_binding_gen.generate_as_type_binding(as_type, gen, binding.namespace)
         if as_type.after_register:
@@ -764,9 +767,6 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
     for as_function in binding.functions:
         as_binding_gen.generate_as_function_binding(as_function, gen, binding.namespace)
-
-    for as_enum in binding.enums:
-        as_binding_gen.generate_as_enum_binding(as_enum, gen, binding.namespace)
 
     for as_constant in binding.constants:
         as_binding_gen.generate_as_constant(as_constant, gen, binding.namespace)

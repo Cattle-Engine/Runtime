@@ -1,0 +1,6 @@
+RegistrationPriority: 100
+
+RequiredCppHeaders: 
+  - "engine/audio/audio.hpp"
+
+ASEnums:

@@ -69,6 +69,9 @@ export int foo_func() {
 
 }
 ```
+
+- [ ] Move audio manager from engine/assets/audio.hpp to engine/audio/audio_resource_manager.hpp, also put its class into CE::Audio::Resources 
+- [ ] Migrate audio manager to use a struct and not just uint32_t
 - [ ] Make a python script to auto take idl and generate markdown docs
 - [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
