@@ -7,10 +7,10 @@
 #include "engine/assets/3d_model_importer.hpp"
 #include "engine/ui/debug_window.hpp"
 #include "engine/assets/animated_textures.hpp"
-#include "engine/assets/audio.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/audio/audio.hpp"
+#include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/core/event_bus.hpp"
 #include "engine/common/core/game_state.hpp"
 #include "engine/common/containers/registries.hpp"
@@ -68,7 +68,7 @@ namespace CE {
         std::unique_ptr<Scripting::Runtime> gScriptingManager;
 
         std::unique_ptr<Core::Audio::AudioSystem> gAudioSystem;
-        std::unique_ptr<Assets::Audio::AudioManager> gAudioManager;
+        std::unique_ptr<Audio::Resources::AudioManager> gAudioManager;
 
         std::unique_ptr<Renderer::Resources::GPUMeshManager> gGPUMeshManager;
         std::unique_ptr<Renderer::Resources::MaterialManager> gMaterialManager;

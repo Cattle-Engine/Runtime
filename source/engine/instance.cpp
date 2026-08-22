@@ -87,7 +87,7 @@ namespace CE {
             gAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
                 *gVFS, gInstanceID, static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK), true);
 
-            gAudioManager = std::make_unique<CE::Assets::Audio::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
+            gAudioManager = std::make_unique<CE::Audio::Resources::AudioManager>(*gAudioSystem, *gVFS, gInstanceID);
             gAudioManager->SetMasterVolume(gSettingsManager->Settings.masterVolume);
             gAudioManager->SetMusicVolume(gSettingsManager->Settings.musicVolume);
             gAudioManager->SetSFXVolume(gSettingsManager->Settings.sfxVolume);
@@ -105,9 +105,8 @@ namespace CE {
 
         if (!gScriptingManager->Init()) {
             ShowError(gScriptingManager->GetLastError());
-            throw std::runtime_error(
-                std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
-                            gScriptingManager->GetLastError()));
+            throw std::runtime_error(std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
+                                                 gScriptingManager->GetLastError()));
         }
 
         if (!gScriptingManager->RunStartup()) {

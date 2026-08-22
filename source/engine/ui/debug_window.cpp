@@ -7,7 +7,7 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/assets/audio.hpp"
+#include "engine/audio/audio_resource_manager.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/common/misc/gameinfo.hpp"
@@ -292,7 +292,7 @@ namespace CE::UI {
     }
 
     void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings,
-                                      CE::Assets::Audio::AudioManager* audioman) {
+                                      CE::Audio::Resources::AudioManager* audioman) {
         auto& s = settings.Settings;
         auto& state = gSettingsState;
 
@@ -648,7 +648,8 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawAudioTab(CE::Assets::Audio::AudioManager* audioman, CE::Settings::SettingsManager& settings) {
+    void DebugWindow::DrawAudioTab(CE::Audio::Resources::AudioManager* audioman,
+                                   CE::Settings::SettingsManager& settings) {
         ImGui::Text("Audio");
         ImGui::Spacing();
 
@@ -689,11 +690,11 @@ namespace CE::UI {
             ImGui::TableHeadersRow();
 
             for (const auto& row : snapshot) {
-                ImGui::PushID(static_cast<int>(row.Handle));
+                ImGui::PushID(static_cast<int>(row.Handle.id));
                 ImGui::TableNextRow();
 
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("%u", row.Handle);
+                ImGui::Text("%u", row.Handle.id);
                 ImGui::TableSetColumnIndex(1);
                 ImGui::TextUnformatted(row.ClipName.c_str());
                 ImGui::TableSetColumnIndex(2);
@@ -733,7 +734,7 @@ namespace CE::UI {
                            CE::Renderer::Resources::ShaderManager& shaderman,
                            CE::Assets::Skyboxes::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
                            CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                           CE::Assets::Audio::AudioManager* audioman, Input::Keyboard& kbmanger, CE::Instance& instance,
+                           CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger, CE::Instance& instance,
                            Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
         if (!gOpen) {
             return;
@@ -782,7 +783,7 @@ namespace CE::UI {
     void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
                      CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
                      CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
-                     CE::Settings::SettingsManager& settings, CE::Assets::Audio::AudioManager* audioman,
+                     CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman,
                      Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps,
                      float deltaTime, float frameTime) {
         static DebugWindow window;

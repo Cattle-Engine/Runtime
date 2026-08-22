@@ -47,7 +47,7 @@ namespace CE {
         class Keyboard;
     } // namespace Input
 
-    namespace Assets::Audio {
+    namespace Audio::Resources {
         class AudioManager;
     }
 
@@ -68,7 +68,7 @@ namespace CE::Scripting {
                 Input::Mouse& mouse,
                 CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
                 bool output_debug_info, std::string output_debug_as_info_path,
-                Assets::Audio::AudioManager* audio_manager = nullptr);
+                Audio::Resources::AudioManager* audio_manager = nullptr);
         ~Runtime();
 
         bool RunStartup();
@@ -97,7 +97,7 @@ namespace CE::Scripting {
         Assets::Animations::AnimatedTextureManager& mAnimationManager;
         Input::Keyboard& mKeyboard;
         Input::Mouse& mMouse;
-        Assets::Audio::AudioManager* mAudioManager = nullptr;
+        Audio::Resources::AudioManager* mAudioManager = nullptr;
 
       private:
         struct ScriptCallbackRegistration {
