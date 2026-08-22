@@ -3,4 +3,129 @@ RegistrationPriority: 100
 RequiredCppHeaders: 
   - "engine/audio/audio.hpp"
 
+ASNamespace: CE::Audio
+
 ASEnums:
+  - Name: AudioType
+    CppType: CE::Core::Audio::AudioType
+
+    Values:
+      - SFX
+      - Music
+      - Error
+
+  - Name: AudioFilterType
+    CppType: CE::Core::Audio::AudioFilter::Type
+
+    Values:
+      - LowPass
+      - HighPass
+      - Reverb
+      - Delay
+      - Chorus
+
+ASTypes: 
+  - Name: AudioFilter
+    CppType: CE::Core::Audio::AudioFilter
+
+    Flags: 
+      - Value
+
+    Behaviours:
+      - Type: Constructor
+        Signature: # nothing required
+        Function: |
+          new(self) CE::Core::Audio::AudioFilter();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: AudioType
+        CppMember: Type
+        ASMember: Type
+
+      - Type: bool
+        CppMember: Enabled
+        ASMember: Enabled
+
+      - Type: float
+        CppMember: CutoffHz
+        ASMember: CutoffHz
+
+      - Type: float
+        CppMember: WetMix
+        ASMember: WetMix
+
+      - Type: float 
+        CppMember: Feedback
+        ASMember: Feedback
+
+      - Type: float 
+        CppMember: DelayMs
+        ASMember: DelayMs
+
+      - Type: float 
+        CppMember: DepthMs
+        ASMember: DepthMs
+
+      - Type: float
+        CppMember: RateHz
+        ASMember: RateHz
+
+      - Type: float 
+        CppMember: RoomSize
+        ASMember: RoomSize
+
+      - Type: float
+        CppMember: Damping
+        ASMember: Damping
+
+  - Name: AudioAsset
+    CppType: CE::Core::Audio::AudioHandle
+
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: uint32
+        CppMember: id
+        ASMember: handle
+
+    Operators:
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const AudioAsset&"
+        Body: |
+          return self.id == arg0.id;
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "uint"
+        Body: |
+          return self.id == static_cast<uint32_t>(arg0);
+
+
+  - Name: AudioInstance
+    CppType: CE::Core::Audio::AudioHandle
+
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: uint32
+        CppMember: id
+        ASMember: handle
+
+    Operators:
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const AudioInstance&"
+        Body: |
+          return self.id == arg0.id;
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "uint"
+        Body: |
+          return self.id == static_cast<uint32_t>(arg0);

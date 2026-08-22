@@ -26,6 +26,8 @@
 - [X] Make material, texture and mesh handles all structs
 - [X] Make an IDL for angelscript using yaml so I don't have to spend an afternoon copying the same BORING STUFF
 - [X] Refactor the angelscript bindings to have something like IScriptBinding
+- [X] Move audio manager from engine/assets/audio.hpp to engine/audio/audio_resource_manager.hpp, also put its class into CE::Audio::Resources 
+- [X] Migrate audio manager to use a struct and not just uint32_t
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -70,8 +72,7 @@ export int foo_func() {
 }
 ```
 
-- [X] Move audio manager from engine/assets/audio.hpp to engine/audio/audio_resource_manager.hpp, also put its class into CE::Audio::Resources 
-- [X] Migrate audio manager to use a struct and not just uint32_t
+- [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] Make a python script to auto take idl and generate markdown docs
 - [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
