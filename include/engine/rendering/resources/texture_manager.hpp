@@ -21,7 +21,10 @@ namespace CE::Renderer::Resources {
   };
   
   struct TextureHandle {
-        uint64_t id = 0;
+      TextureHandle() = default;
+      TextureHandle(uint64_t init_id) : id(init_id) {}
+
+      uint64_t id = 0;
 
         // Returns nullptr if unloaded
         Texture* GetTexture() {

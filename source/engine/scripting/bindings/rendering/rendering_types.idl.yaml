@@ -20,7 +20,7 @@ ASTypes:
     CppType: glm::mat4
 
     Flags:
-      - ValueType
+      - Value
 
     Behaviours:
       - Type: Construct
@@ -158,7 +158,7 @@ ASTypes:
     CppType: glm::vec4
 
     Flags:
-      - ValueType
+      - Value
 
     Behaviours:
       - Type: Construct
@@ -389,31 +389,6 @@ ASTypes:
         CppMember: b
         ASMember: b
 
-  - Name: Texture
-    CppType: CE::Renderer::Resources::TextureHandle
-
-    Flags:
-      - Value
-      - POD
-
-    Properties:
-      - Type: uint64
-        CppMember: id
-        ASMember: handle
-
-    Operators:
-      - Operator: "=="
-        ReturnType: bool
-        Signature: "const Texture&"
-        Body: |
-          return self.id == arg0.id;
-
-      - Operator: "=="
-        ReturnType: bool
-        Signature: "int64"
-        Body: |
-          return self.id == static_cast<uint64>(arg0);
-
   - Name: Material
     CppType: CE::Renderer::Resources::MaterialHandle
 
@@ -518,7 +493,7 @@ ASTypes:
     CppType: glm::vec2
 
     Flags:
-      - ValueType
+      - Value
 
     Behaviours:
       - Type: Construct
@@ -724,7 +699,7 @@ ASTypes:
     CppType: glm::vec3
 
     Flags:
-      - ValueType
+      - Value
 
     Behaviours:
       - Type: Construct
@@ -944,7 +919,7 @@ ASTypes:
   - Name: Vertex3D
     CppType: CE::Renderer::Vertex3D
     Flags: 
-      - ValueType
+      - Value
 
     AfterRegister: |
       mScriptEngine.SetDefaultNamespace("CE::Containers");
@@ -990,7 +965,7 @@ ASTypes:
   - Name: MeshData
     CppType: CE::Renderer::MeshData
     Flags: 
-      ValueType
+      - Value
 
     Behaviours:
       - Type: Construct
@@ -1015,7 +990,7 @@ ASTypes:
   - Name: Transform3D
     CppType: CE::Renderer::Transform3D
     Flags: 
-      ValueType
+      - Value
 
     Behaviours:
       - Type: Constructor
@@ -1041,13 +1016,13 @@ ASTypes:
         CppMember: scale
         ASMember: scale
 ASEnums:
-  - Name:
+  - Name: ShaderStage
     CppType: CE::Renderer::ShaderStage
     Values:
       - Fragment
       - Vertex
   
-  - Name:
+  - Name: TextureFlip
     CppType: CE::Renderer::TextureFlip
     Values:
       - None

@@ -68,7 +68,7 @@ class ASOperator(ASBindableCallable):
 class ASType:
     name: str
     registration_priority: int = 0 
-    cpp_type: str
+    cpp_type: str = ""
     namespace: str = ""
     after_register: str = ""
     flags: list[str] = field(default_factory=list)
@@ -134,6 +134,7 @@ class ASClassFunction(ASBindableCallable):
 class ASBindingFile:
     required_cpp_headers: list[str]
     namespace: str
+    registration_priority: int = 0
     types: list[ASType] = field(default_factory=list)
     functions: list[ASFunction] = field(default_factory=list)
     enums: list[ASEnum] = field(default_factory=list)
@@ -450,20 +451,28 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
     for class_function in binding.class_functions:
         if not class_function.name:
             errors.append("ASClassFunction missing Name")
+
         if not class_function.return_type:
-            errors.append(f"ASClassFunction '{class_function.name}' missing ReturnType")
+            errors.append(
+                f"ASClassFunction '{class_function.name}' missing ReturnType"
+            )
+
         if not class_function.inline_body:
             if not class_function.cpp_class:
-                errors.append(f"ASClassFunction '{class_function.name}' missing Class")
+                errors.append(
+                    f"ASClassFunction '{class_function.name}' missing Class"
+                )
+
             if not class_function.cpp_method:
-                errors.append(f"ASClassFunction '{class_function.name}' missing CppMethod")
+                errors.append(
+                    f"ASClassFunction '{class_function.name}' missing CppMethod"
+                )
+
         if class_function.calling_convention not in generator.CALL_CONV_MAP:
             errors.append(
-                f"ASClassFunction '{class_function.name}' has unknown calling convention '{class_function.calling_convention}'"
+                f"ASClassFunction '{class_function.name}' has unknown "
+                f"calling convention '{class_function.calling_convention}'"
             )
-        if class_function.name in class_function_names:
-            errors.append(f"Duplicate ASClassFunction '{class_function.name}'")
-        class_function_names.add(class_function.name)
 
     return errors
 

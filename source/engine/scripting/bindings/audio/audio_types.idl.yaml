@@ -33,8 +33,8 @@ ASTypes:
 
     Behaviours:
       - Type: Constructor
-        Signature: # nothing required
-        Function: |
+        Signature: "" # nothing required
+        Body: |
           new(self) CE::Core::Audio::AudioFilter();
         CallingConvention: CDeclObjLast
 

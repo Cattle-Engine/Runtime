@@ -185,6 +185,9 @@ namespace CE::Scripting::Bindings {
         const std::string pushBack =
             "void push_back(const " + script_element_type_name + " &in)";
 
+        const std::string insert =
+            "void insert(uint, const " + script_element_type_name + " &in)";
+
         int result = engine->RegisterObjectType(
             script_type_name.c_str(),
             sizeof(Vector),
@@ -314,7 +317,7 @@ namespace CE::Scripting::Bindings {
         if (!Detail::RegisterMethod<T>(
                 engine,
                 script_type_name.c_str(),
-                "void insert(uint, const " + script_element_type_name + " &in)",
+                insert.c_str(),
                 asFUNCTION(Bindings::Insert))) {
             return false;
         }
