@@ -2,24 +2,25 @@ RegistrationPriority: 90
 
 RequiredCppHeaders:
   - "engine/audio/audio.hpp"
+  - "engine/audio/audio_resource_manager.hpp"
   - <string>
 
 ASNamespace: CE::Audio
 
 ASClassFunctions:
   - Name: LoadSound
-    ReturnType: AudioHandle
-    Signature: const string& in filepath, const AudioType& in type
-    CppSignature: const std::string&, const CE::Audio::Resources::AudioType&
+    ReturnType: void
+    Signature: const string& in filepath, const AudioType& in type, AudioAsset& out handle
+    CppSignature: const std::string&, const CE::Core::Audio::AudioType&, CE::Audio::Resources::AudioHandle&
     Description: Loads an audio file from the VFS
     Function: |
-      if (!mRuntime.mAudioManager) return AudioHandle{};
-      return mRuntime.mAudioManager->LoadSound(arg0, arg1);
+      if (!mRuntime.mAudioManager) return;
+      arg2 = mRuntime.mAudioManager->LoadSound(arg0, arg1);
 
   - Name: UnloadSound
     ReturnType: void
-    Signature: const AudioHandle& in
-    CppSignature: const CE::Audio::Resources::AudioHandle& 
+    Signature: const AudioAsset& in handle
+    CppSignature: const CE::Audio::Resources::AudioHandle&
     Description: Unloads an audio handle
     Function: |
       if (!mRuntime.mAudioManager) return;

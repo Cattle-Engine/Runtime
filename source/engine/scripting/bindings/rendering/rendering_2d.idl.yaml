@@ -20,11 +20,11 @@ ASClassFunctions:
   - Name: DrawTexture
     ReturnType: void
     Signature: const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None
-    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&, float, const CE::Renderer::TextureFlip
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5);
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5);
 
   - Name: DrawTexture
     ReturnType: void
@@ -33,7 +33,7 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, arg3, 0.0f);
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, arg3, 0.0f);
 
   - Name: DrawTexture
     ReturnType: void
@@ -42,17 +42,17 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex.width, tex.height, CE::Renderer::Colour::White, 0.0f);
+      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, CE::Renderer::Colour::White, 0.0f);
   
   # Texture drawing with UV coordinates
   - Name: DrawTextureUV
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
-    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float, const CE::Renderer::TextureFlip
+    CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
   - Name: DrawTextureUV
     ReturnType: void
@@ -61,7 +61,7 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, arg8);
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8);
 
   - Name: DrawTextureUV
     ReturnType: void
@@ -70,7 +70,7 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, arg7, 0.0f);
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, 0.0f);
 
   - Name: DrawTextureUV
     ReturnType: void
@@ -80,7 +80,7 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex.width, tex.height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
+      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
 
   # Primitive drawing
   - Name: DrawTriangle
@@ -121,7 +121,7 @@ ASClassFunctions:
   - Name: DrawCircleLines
     ReturnType: void
     Signature: float x, float y, float radius, int segments, float thickness, const Colour& in
-    CppSignature: float, float, float, int, const CE::Renderer::Colour&
+    CppSignature: float, float, float, int, float, const CE::Renderer::Colour&
     Description: Draw a 2D circle out of lines
     Function: |
       mRuntime.mRenderer.DrawCircleLines(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b, arg5.a);
@@ -132,4 +132,4 @@ ASClassFunctions:
     CppSignature: float, float, float, float, float, const CE::Renderer::Colour&
     Description: Draw a 2D line
     Function: |
-      mRuntime.mRenderer.DrawLine(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b. arg5.a); 
+      mRuntime.mRenderer.DrawLine(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b, arg5.a);

@@ -2,6 +2,7 @@ RegistrationPriority: 100
 
 RequiredCppHeaders: 
   - "engine/audio/audio.hpp"
+  - "engine/audio/audio_resource_manager.hpp"
 
 ASNamespace: CE::Audio
 
@@ -39,8 +40,8 @@ ASTypes:
         CallingConvention: CDeclObjLast
 
     Properties:
-      - Type: AudioType
-        CppMember: Type
+      - Type: AudioFilterType
+        CppMember: Kind
         ASMember: Type
 
       - Type: bool
@@ -80,7 +81,7 @@ ASTypes:
         ASMember: Damping
 
   - Name: AudioAsset
-    CppType: CE::Core::Audio::AudioHandle
+    CppType: CE::Audio::Resources::AudioHandle
 
     Flags:
       - Value
@@ -106,7 +107,7 @@ ASTypes:
 
 
   - Name: AudioInstance
-    CppType: CE::Core::Audio::AudioHandle
+    CppType: CE::Audio::Resources::PlayingAudioHandle
 
     Flags:
       - Value

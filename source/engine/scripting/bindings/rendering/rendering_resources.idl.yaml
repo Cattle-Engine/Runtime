@@ -5,6 +5,9 @@ RequiredCppHeaders:
   - <glm/gtc/type_ptr.hpp>
   - "engine/rendering/resources/texture_manager.hpp"
   - "engine/rendering/resources/material_manager.hpp"
+  - "engine/rendering/resources/shader_manager.hpp"
+  - "engine/rendering/resources/gpu_mesh_manager.hpp"
+  - "engine/rendering/renderer.hpp"
 
 ASNamespace: CE::Graphics
 
@@ -12,23 +15,23 @@ ASClassFunctions:
   # === Material functions ===
   - Name: CreateMaterial
     ReturnType: void
-    Signature: Material& out, const Texture& in
-    CppSignature: CE::Renderer::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
+    Signature: Material& out handle, const Texture& in texture
+    CppSignature: CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Materials
     Function: |
       arg0 = mRuntime.mMaterialManager.CreateMaterial(arg1);
   
   - Name: DestroyMaterial
     ReturnType: void
-    Signature: const Material& in
-    CppSignature: const Renderer::Resources::MaterialHandle& handle
+    Signature: const Material& in handle
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&
     Namespace: CE::Graphics::Materials
     Function: |
       mRuntime.mMaterialManager.DestroyMaterial(arg0);
   
   - Name: SetMaterialAlbedo
     ReturnType: void
-    Signature: const Material& in, const Texture& in
+    Signature: const Material& in handle, const Texture& in texture
     CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Materials
     Function: |
@@ -36,32 +39,32 @@ ASClassFunctions:
     
   - Name: SetMaterialTint
     ReturnType: void
-    Signature: const Material& in, const Colour& in
-    CppSignature: const CE::Renderer::MaterialHandle&, const CE::Renderer::Colour&
+    Signature: const Material& in handle, const Colour& in colour
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Colour&
     Namespace: CE::Graphics::Materials
     Function: |
       mRuntime.mMaterialManager.SetMaterialColour(arg0, arg1);
 
   - Name: SetMaterialRoughness
     ReturnType: void
-    Signature: const Material& in, const float& in
-    CppSignature: const CE::Renderer::MaterialHandle&, const float&
+    Signature: const Material& in handle, const float& in roughness
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const float&
     Namespace: CE::Graphics::Materials
     Function: |
       mRuntime.mMaterialManager.SetMaterialRoughness(arg0, arg1);
 
   - Name: SetMaterialMetallic
     ReturnType: void
-    Signature: const Material& in, const float& in
-    CppSignature: const CE::Renderer::MaterialHandle&, const float&
+    Signature: const Material& in handle, const float& in metallic
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const float&
     Namespace: CE::Graphics::Materials
     Function: |
       mRuntime.mMaterialManager.SetMaterialMetallic(arg0, arg1);
   
   - Name: MaterialExists
     ReturnType: bool
-    Signature: const Material& in
-    CppSignature: const CE::Renderer::MaterialHandle&
+    Signature: const Material& in handle
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&
     Namespace: CE::Graphics::Materials
     Function: |
       return mRuntime.mMaterialManager.GetMaterial(arg0) != nullptr;
@@ -69,15 +72,15 @@ ASClassFunctions:
   # === Texture functions ===
   - Name: LoadTexture
     ReturnType: void
-    Signature: const string& in, const Texture& out
-    CppSignature: const std::string&, const CE::Renderer::Resources::TextureHandle&
+    Signature: const string& in path, Texture& out texture
+    CppSignature: const std::string&, CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Textures
     Function: |
-      arg1 = mRuntime.TextureManager.Load(arg0);
-
+      arg1 = mRuntime.mTextureManager.Load(arg0);
+  
   - Name: UnloadTexture
     ReturnType: void 
-    Signature: const Texture& in
+    Signature: const Texture& in texture
     CppSignature: const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Textures
     Function: |
@@ -85,7 +88,7 @@ ASClassFunctions:
 
   - Name: TextureExists
     ReturnType: bool
-    Signature: const Texture& in
+    Signature: const Texture& in texture
     CppSignature: const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Textures
     Function: | 
@@ -94,19 +97,19 @@ ASClassFunctions:
   # === Shader functions ===
   - Name: CreateProgram
     ReturnType: void
-    Signature: const Shader& in
-    CppSignature: const CE::Renderer::Resources::ShaderHandle&
+    Signature: Shader& out shader
+    CppSignature: CE::Renderer::Resources::ShaderHandle&
     Namespace: CE::Graphics::Shaders
     Function: |
       arg0 = mRuntime.mShaderManager.CreateProgram(); 
 
   - Name: LoadShader
     ReturnType: void
-    Signature: const string& in filepath, Shader& in, int fragment_sampler_count = 4
-    CppSignature: const std::string&, int fragment_sampler_count, Shader& in
+    Signature: const string& in filepath, int fragment_sampler_count = 4, Shader& out shader
+    CppSignature: const std::string&, int, CE::Renderer::Resources::ShaderHandle&
     Namespace: CE::Graphics::Shaders
     Function: |
-      arg1 = mRuntime.mShaderManager.Load(arg0, arg2);
+      arg2 = mRuntime.mShaderManager.Load(arg0, arg1);
 
   - Name: LoadStage
     ReturnType: bool
@@ -146,7 +149,7 @@ ASClassFunctions:
     CppSignature: ""
     Namespace: CE::Graphics::Shaders
     Function: |
-      return mRuntime.mShaderManager.Unbind();
+      mRuntime.mShaderManager.Unbind();
 
   - Name: ShaderExists
     ReturnType: bool
@@ -162,7 +165,7 @@ ASClassFunctions:
     CppSignature: const CE::Renderer::Resources::ShaderHandle&
     Namespace: CE::Graphics::Shaders
     Function: |
-      return mRuntime.mShaderManager.Unload(arg0);
+      mRuntime.mShaderManager.Unload(arg0);
 
   - Name: UnloadAllShaders
     ReturnType: void
@@ -170,7 +173,7 @@ ASClassFunctions:
     CppSignature: ""
     Namespace: CE::Graphics::Shaders
     Function: |
-      return mRuntime.mShaderManager.UnloadAll();
+      mRuntime.mShaderManager.UnloadAll();
 
   - Name: SetFloat
     ReturnType: void
@@ -207,7 +210,7 @@ ASClassFunctions:
   - Name: SetMat4
     ReturnType: void
     Signature: const string& in, const Mat4& in
-    CppSignature: const std::string&, const glm::mat4
+    CppSignature: const std::string&, const glm::mat4&
     Namespace: CE::Graphics::Shaders
     Function: |
       mRuntime.mShaderManager.SetMat4(arg0, glm::value_ptr(arg1));
@@ -223,55 +226,55 @@ ASClassFunctions:
   - Name: SetTexture
     ReturnType: bool
     Signature: const string& in, const Texture& in, int slot = 0
-    CppSignature: const string& in, const CE::Renderer::Resources::TextureHandle&, int
+    CppSignature: const std::string&, const CE::Renderer::Resources::TextureHandle&, int
     Namespace: CE::Graphics::Shaders
     Function: |
-      mRuntime.mShaderManager.SetTexture(arg0, arg1, arg2);
+      return mRuntime.mShaderManager.SetTexture(arg0, arg1, arg2);
 
   # === Mesh functions ===
   - Name: CreateMesh
     ReturnType: void
-    Signature: Mesh& in, const MeshData& in
-    CppSignature: CE::Renderer::Resources::MeshHandle&, const CE::Renderer::MeshData&
+    Signature: Mesh& out mesh, MeshData& in meshData
+    CppSignature: CE::Renderer::Resources::MeshHandle&, CE::Renderer::MeshData&
     Namespace: CE::Graphics::Models
     Function: |
       arg0 = mRuntime.mGPUMeshManager.CreateMeshHandle(arg1);
 
   - Name: DrawMesh
     ReturnType: void
-    Signature: const Mesh& in, const Transform3D& in, const Material& in, bool
-    CppSignature: const CE::Renderer::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Signature: const Mesh& in mesh, const Transform3D& in transform, const Material& in material, bool error_texture = false
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
     Namespace: CE::Graphics::Models
     Function: |
       mRuntime.mGPUMeshManager.DrawMeshHandle(arg0, arg1, arg2, arg3);
 
   - Name: DrawMeshMat4
     ReturnType: void
-    Signature: const Mesh& in, const Mat4& in, const Material& in, bool
-    CppSignature: const CE::Renderer::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Signature: const Mesh& in mesh, const Mat4& in transform, const Material& in material, bool error_texture = false
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, const glm::mat4&, const CE::Renderer::Resources::MaterialHandle&, bool
     Namespace: CE::Graphics::Models
     Function: |
       mRuntime.mGPUMeshManager.DrawMeshHandleMat4(arg0, arg1, arg2, arg3);
 
   - Name: ChangeMesh
     ReturnType: void
-    Signature: const Mesh& in, const Meshdata& in
-    CppSignature: const CE::Renderer::Resources::MeshHandle&, const CE::Renderer::MeshData&
+    Signature: const Mesh& in mesh, MeshData& in meshData
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, CE::Renderer::MeshData&
     Namespace: CE::Graphics::Models
     Function: |
       mRuntime.mGPUMeshManager.ChangeMesh(arg0, arg1);
 
   - Name: DestroyMesh
     ReturnType: void
-    Signature: const Mesh& in
+    Signature: const Mesh& in mesh
     CppSignature: const CE::Renderer::Resources::MeshHandle&
     Namespace: CE::Graphics::Models
     Function: |
       mRuntime.mGPUMeshManager.DestroyMesh(arg0);
 
   - Name: MeshExists
-    ReturnType: void
-    Signature: const Mesh& in
+    ReturnType: bool
+    Signature: const Mesh& in mesh
     CppSignature: const CE::Renderer::Resources::MeshHandle&
     Namespace: CE::Graphics::Models
     Function: |

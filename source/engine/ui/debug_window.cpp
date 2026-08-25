@@ -696,7 +696,7 @@ namespace CE::UI {
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("%u", row.Handle.id);
                 ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(row.ClipName.c_str());
+                ImGui::TextUnformatted(row.Label.c_str());
                 ImGui::TableSetColumnIndex(2);
                 ImGui::TextUnformatted(row.Bus.c_str());
                 ImGui::TableSetColumnIndex(3);

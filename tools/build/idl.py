@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -562,6 +563,36 @@ def _cpp_parameter_list(signature: str) -> str:
     )
 
 
+_CPP_TYPE_ALIASES: dict[str, str] = {
+    "string": "std::string",
+    "uint8": "uint8_t",
+    "uint32": "uint32_t",
+    "uint64": "uint64_t",
+    "int64": "int64_t",
+}
+
+
+def _resolve_cpp_type(type_name: str, type_map: dict[str, str]) -> str:
+    stripped = type_name.strip()
+    if not stripped:
+        return stripped
+
+    const_prefix = stripped.startswith("const ")
+    core = stripped[len("const ") :].strip() if const_prefix else stripped
+
+    suffix = ""
+    if core.endswith("&") or core.endswith("*"):
+        suffix = core[-1]
+        core = core[:-1].rstrip()
+
+    resolved = type_map.get(core, _CPP_TYPE_ALIASES.get(core, core))
+
+    if const_prefix:
+        return f"const {resolved}{suffix}"
+
+    return f"{resolved}{suffix}"
+
+
 def _argument_list(signature: str) -> str:
     parts = _signature_parts(signature)
     return ", ".join(f"arg{index}" for index, _ in enumerate(parts))
@@ -579,6 +610,17 @@ def _format_cpp_include(include: str) -> str:
     if stripped.startswith('"') and stripped.endswith('"'):
         return stripped
     return f'"{stripped}"'
+
+
+def _normalize_inline_body(body: str, *, operator_body: bool = False) -> str:
+    body = re.sub(r"\*(arg\d+)", r"\1", body)
+    body = body.replace("static_cast<uint64>", "static_cast<uint64_t>")
+    body = body.replace("static_cast<uint32>", "static_cast<uint32_t>")
+    body = body.replace("static_cast<uint8>", "static_cast<uint8_t>")
+    body = body.replace("static_cast<int64>", "static_cast<int64_t>")
+    if operator_body:
+        body = body.replace("*self", "self")
+    return body
 
 
 def _sanitize_symbol_part(value: str) -> str:
@@ -626,10 +668,14 @@ def _operator_cpp_parameter_type(as_type: ASType, part: str) -> str:
     return _cpp_parameter_type(part)
 
 
-def _operator_parameter_list(as_type: ASType, operator: ASOperator) -> str:
+def _operator_parameter_list(
+    as_type: ASType,
+    operator: ASOperator,
+    type_map: dict[str, str] | None = None,
+) -> str:
     self_param = _operator_self_parameter(as_type, operator)
     parts = [
-        _operator_cpp_parameter_type(as_type, part)
+        _resolve_cpp_type(_operator_cpp_parameter_type(as_type, part), type_map or {})
         for part in _signature_parts(operator.signature)
     ]
     params = ", ".join(f"{part} arg{index}" for index, part in enumerate(parts))
@@ -640,13 +686,49 @@ def _operator_parameter_list(as_type: ASType, operator: ASOperator) -> str:
     return ", ".join([part for part in [self_param, params] if part])
 
 
+def _method_helper_name(as_type: ASType, method: ASMethod, index: int) -> str:
+    suffix = "" if index == 0 else f"_{index}"
+    return _sanitize_symbol_part(f"{as_type.name}_{method.name}_Generated{suffix}")
+
+
+def _class_function_helper_name(func: ASClassFunction, index: int) -> str:
+    suffix = "" if index == 0 else f"_{index}"
+    return _sanitize_symbol_part(f"{func.name}_Generated{suffix}")
+
+
+def _method_parameter_list(
+    as_type: ASType,
+    method: ASMethod,
+    type_map: dict[str, str] | None = None,
+) -> str:
+    parts = [
+        _resolve_cpp_type(_cpp_parameter_type(part), type_map or {})
+        for part in _signature_parts(method.signature)
+    ]
+    params = ", ".join(f"{part} arg{index}" for index, part in enumerate(parts))
+
+    if method.calling_convention == "CDeclObjLast":
+        self_param = (
+            f"const {as_type.cpp_type}* self" if method.is_const else f"{as_type.cpp_type}* self"
+        )
+        return ", ".join([part for part in [params, self_param] if part])
+
+    self_param = (
+        f"const {as_type.cpp_type}* self" if method.is_const else f"{as_type.cpp_type}* self"
+    )
+    return ", ".join([part for part in [self_param, params] if part])
+
+
 def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     gen = generator.CodeWriter()
     inline_function_helpers: list[tuple[str, ASFunction]] = []
+    inline_method_helpers: list[tuple[str, ASType, ASMethod]] = []
     inline_operator_helpers: list[tuple[str, ASType, ASOperator]] = []
     inline_behaviour_helpers: list[tuple[str, ASType, ASBehaviour]] = []
+    type_map = {as_type.name: as_type.cpp_type for as_type in binding.types}
 
     function_name_counts: dict[str, int] = {}
+    class_function_name_counts: dict[str, int] = {}
 
     for as_function in binding.functions:
         if as_function.inline_body:
@@ -660,6 +742,20 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
     for as_type in binding.types:
         behaviour_name_counts: dict[str, int] = {}
+        method_name_counts: dict[str, int] = {}
+
+        for method in as_type.methods:
+            if method.inline_body:
+                inline_index = method_name_counts.get(method.name, 0)
+                method_name_counts[method.name] = inline_index + 1
+                method.generated_name = method.generated_name or _method_helper_name(
+                    as_type,
+                    method,
+                    inline_index,
+                )
+                inline_method_helpers.append(
+                    (method.generated_name, as_type, method)
+                )
 
         for index, operator in enumerate(as_type.operators):
             if operator.inline_body:
@@ -679,47 +775,77 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
                     (behaviour.generated_name, as_type, behaviour)
                 )
 
+    for class_function in binding.class_functions:
+        inline_index = class_function_name_counts.get(class_function.name, 0)
+        class_function_name_counts[class_function.name] = inline_index + 1
+        class_function.generated_name = class_function.generated_name or _class_function_helper_name(
+            class_function,
+            inline_index,
+        )
+
     gen.write(generator.generate_comment("GENERATED BY THE CE IDL, DO NOT MODIFY"))
     gen.write("#include <angelscript.h>")
+
+    if any("glm/gtx/" in include for include in binding.required_cpp_headers):
+        gen.write("#define GLM_ENABLE_EXPERIMENTAL")
+
     gen.write(f'#include "{header_include}"')
 
     for include in binding.required_cpp_headers:
         gen.write(f"#include {_format_cpp_include(include)}")
 
     gen.write("")
-    if inline_function_helpers or inline_operator_helpers or inline_behaviour_helpers:
+    if inline_function_helpers or inline_method_helpers or inline_operator_helpers or inline_behaviour_helpers:
         gen.begin_block("namespace")
 
         for helper_name, as_function in inline_function_helpers:
+            return_type = _resolve_cpp_type(as_function.return_type, type_map)
             declaration = (
-                f"static {as_function.return_type} {helper_name}"
+                f"static {return_type} {helper_name}"
                 f"({_cpp_parameter_list(as_function.cpp_signature or as_function.signature)})"
             )
             gen.begin_function(declaration)
             for line in as_function.inline_body.splitlines():
-                gen.write(line)
+                gen.write(_normalize_inline_body(line))
+            gen.end_block()
+            gen.write("")
+
+        for helper_name, as_type, method in inline_method_helpers:
+            return_type = _resolve_cpp_type(method.return_type, type_map)
+            declaration = (
+                f"static {return_type} {helper_name}"
+                f"({_method_parameter_list(as_type, method, type_map)})"
+            )
+            gen.begin_function(declaration)
+            for line in method.inline_body.splitlines():
+                gen.write(_normalize_inline_body(line))
             gen.end_block()
             gen.write("")
 
         for helper_name, as_type, operator in inline_operator_helpers:
+            return_type = _resolve_cpp_type(operator.return_type, type_map)
             declaration = (
-                f"static {operator.return_type} {helper_name}"
-                f"({_operator_parameter_list(as_type, operator)})"
+                f"static {return_type} {helper_name}"
+                f"({_operator_parameter_list(as_type, operator, type_map)})"
             )
             gen.begin_function(declaration)
             for line in operator.inline_body.splitlines():
-                gen.write(line)
+                gen.write(_normalize_inline_body(line, operator_body=True))
             gen.end_block()
             gen.write("")
 
         for helper_name, as_type, behaviour in inline_behaviour_helpers:
+            return_type = _resolve_cpp_type(
+                as_binding_gen._behaviour_return_type(behaviour, as_type),
+                type_map,
+            )
             declaration = (
-                f"static {as_binding_gen._behaviour_return_type(behaviour, as_type)} {helper_name}"
+                f"static {return_type} {helper_name}"
                 f"({as_binding_gen._behaviour_parameter_list(as_type, behaviour)})"
             )
             gen.begin_function(declaration)
             for line in behaviour.inline_body.splitlines():
-                gen.write(line)
+                gen.write(_normalize_inline_body(line))
             gen.end_block()
             gen.write("")
 
@@ -731,10 +857,11 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
     for class_function in binding.class_functions:
         sig = class_function.cpp_signature or class_function.signature
         params = _cpp_parameter_list(sig)
+        function_name = class_function.generated_name or class_function.name
 
         declaration = (
             f"{class_function.return_type} "
-            f"{CLASS_NAME}::{class_function.name}({params})"
+            f"{CLASS_NAME}::{function_name}({params})"
         )
 
         gen.begin_function(declaration)
@@ -787,10 +914,11 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         as_binding_gen.generate_as_declaration(declaration, gen, binding.namespace)
 
     for class_function in binding.class_functions:
+        function_name = class_function.generated_name or class_function.name
         declaration = f"{class_function.return_type} {class_function.name}({_registration_signature(class_function.signature)})"
         gen.write(f'mScriptEngine.SetDefaultNamespace("{class_function.as_namespace}");')
         gen.write(
-            f'CE_REGISTER_GLOBAL({CLASS_NAME}, this, "{declaration}", {class_function.name});'
+            f'CE_REGISTER_GLOBAL({CLASS_NAME}, this, "{declaration}", {function_name});'
         )
 
     gen.write('mScriptEngine.SetDefaultNamespace("");')
@@ -806,6 +934,9 @@ def generate_cpp_header(binding: ASBindingFile) -> str:
 
     gen.write(generator.generate_comment("GENERATED BY THE CE IDL, DO NOT MODIFY"))
     gen.write("#pragma once")
+
+    if any("glm/gtx/" in include for include in binding.required_cpp_headers):
+        gen.write("#define GLM_ENABLE_EXPERIMENTAL")
 
     for include in binding.required_cpp_headers:
         gen.write(f"#include {_format_cpp_include(include)}")
@@ -827,7 +958,8 @@ def generate_cpp_header(binding: ASBindingFile) -> str:
         for class_function in binding.class_functions:
             sig = class_function.cpp_signature or class_function.signature
             params = _cpp_parameter_list(sig)
-            gen.write(f"{class_function.return_type} {class_function.name}({params});")
+            function_name = class_function.generated_name or class_function.name
+            gen.write(f"{class_function.return_type} {function_name}({params});")
         gen.dedent()
 
     gen.end_class()

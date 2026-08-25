@@ -27,7 +27,7 @@ namespace CE::Renderer::Resources {
       uint64_t id = 0;
 
         // Returns nullptr if unloaded
-        Texture* GetTexture() {
+        Texture* GetTexture() const {
           if (mTexture) {
             return mTexture->texture;
           } else {

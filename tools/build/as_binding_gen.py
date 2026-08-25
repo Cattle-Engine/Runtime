@@ -265,9 +265,10 @@ def generate_as_type_binding(
     for behaviour in as_type.behaviours:
         declaration = _behaviour_declaration(as_type, behaviour)
         function_name = behaviour.generated_name or behaviour.cpp_function
+        function_ref = f"asFUNCTION({function_name})" if behaviour.generated_name else function_name
 
         gen.write(
-            f'CE_REGISTER_OBJECT_BEHAVIOUR("{as_type.name}", {generator.BEHAVIOUR_MAP[behaviour.type]}, "{declaration}", {function_name}, {generator.CALL_CONV_MAP[behaviour.calling_convention]});'
+            f'CE_REGISTER_OBJECT_BEHAVIOUR("{as_type.name}", {generator.BEHAVIOUR_MAP[behaviour.type]}, "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[behaviour.calling_convention]});'
         )
 
     for method in as_type.methods:
@@ -278,8 +279,11 @@ def generate_as_type_binding(
         if method.is_const:
             declaration += " const"
 
+        function_name = method.generated_name or method.cpp_function
+        function_ref = f"asFUNCTION({function_name})" if method.generated_name else function_name
+
         gen.write(
-            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {method.cpp_function}, {generator.CALL_CONV_MAP[method.calling_convention]});'
+            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[method.calling_convention]});'
         )
 
     for operator in as_type.operators:
@@ -290,9 +294,10 @@ def generate_as_type_binding(
             declaration += " const"
 
         function_name = operator.generated_name or operator.cpp_function
+        function_ref = f"asFUNCTION({function_name})" if operator.generated_name else function_name
 
         gen.write(
-            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_name}, {generator.CALL_CONV_MAP[operator.calling_convention]});'
+            f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[operator.calling_convention]});'
         )
 
     for prop in as_type.properties:
@@ -315,9 +320,10 @@ def generate_as_function_binding(
     gen.push_as_namespace(func.namespace)
 
     cpp_function = func.generated_name if func.inline_body and func.generated_name else func.cpp_function
+    function_ref = f"asFUNCTION({cpp_function})" if func.inline_body and func.generated_name else cpp_function
 
     gen.write(
-        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", {cpp_function}, {generator.CALL_CONV_MAP[func.calling_convention]}));'
+        f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", {function_ref}, {generator.CALL_CONV_MAP[func.calling_convention]}));'
     )
 
     gen.pop_as_namespace(restore_namespace)

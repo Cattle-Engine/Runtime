@@ -10,6 +10,7 @@ RequiredCppHeaders:
   - "engine/rendering/resources/texture_manager.hpp"
   - "engine/rendering/resources/material_manager.hpp"
   - "engine/rendering/resources/shader_manager.hpp"
+  - "engine/rendering/resources/gpu_mesh_manager.hpp"
   - "engine/scripting/bindings/stl_vector_binder.hpp"
   - "engine/rendering/renderer.hpp"
 
@@ -42,7 +43,7 @@ ASTypes:
 
       - Type: Destruct
         Body: |
-          self->~mat4();
+          // glm::mat4 is trivially destructible.
         CallingConvention: CDeclObjLast
 
     Operators:
@@ -53,6 +54,7 @@ ASTypes:
           *self = *arg0;
           return *self;
         CallingConvention: CDeclObjLast
+        IsConst: false
 
       - Operator: "+"
         ReturnType: Mat4
@@ -180,7 +182,7 @@ ASTypes:
 
       - Type: Destruct
         Body: |
-          self->~vec4();
+          // glm::vec4 is trivially destructible.
         CallingConvention: CDeclObjLast
 
     Properties:
@@ -208,6 +210,7 @@ ASTypes:
           *self = *arg0;
           return *self;
         CallingConvention: CDeclObjLast
+        IsConst: false
 
       - Operator: "+"
         ReturnType: Vec4
@@ -371,12 +374,13 @@ ASTypes:
     Behaviours:
       - Type: Construct 
         Body: |
-          new(self) CE::Renderer::Colour()
+          new(self) CE::Renderer::Colour();
         CallingConvention: CDeclObjLast
       - Type: Construct
-        Signature: uint8_t uint8_t uint8_t
+        Signature: uint8_t, uint8_t, uint8_t
         Body: |
-          new (self) CE::Renderer::Colour(arg0, arg1, arg2)
+          new(self) CE::Renderer::Colour{arg0, arg1, arg2, 255};
+        CallingConvention: CDeclObjLast
     
     Properties:
       - Type: uint8
@@ -388,6 +392,10 @@ ASTypes:
       - Type: uint8
         CppMember: b
         ASMember: b
+
+      - Type: uint8
+        CppMember: a
+        ASMember: a
 
   - Name: Material
     CppType: CE::Renderer::Resources::MaterialHandle
@@ -515,7 +523,7 @@ ASTypes:
 
       - Type: Destruct
         Body: |
-          self->~vec2();
+          // glm::vec2 is trivially destructible.
         CallingConvention: CDeclObjLast
     
     Properties:
@@ -535,6 +543,7 @@ ASTypes:
           *self = *arg0;
           return *self;
         CallingConvention: CDeclObjLast
+        IsConst: false
 
       - Operator: "+"
         ReturnType: Vec2
@@ -721,7 +730,7 @@ ASTypes:
 
       - Type: Destruct
         Body: |
-          self->~vec3();
+          // glm::vec3 is trivially destructible.
         CallingConvention: CDeclObjLast
 
     Properties:
@@ -745,6 +754,7 @@ ASTypes:
           *self = *arg0;
           return *self;
         CallingConvention: CDeclObjLast
+        IsConst: false
 
       - Operator: "+"
         ReturnType: Vec3
@@ -934,7 +944,7 @@ ASTypes:
 
       - Type: Destructor
         Body: |
-          delete self;
+          self->~Vertex3D();
         CallingConvention: CDeclObjLast
 
     Properties:
@@ -970,12 +980,12 @@ ASTypes:
     Behaviours:
       - Type: Construct
         Body: |
-          self = new CE::Renderer::MeshData();
+          new(self) CE::Renderer::MeshData();
         CallingConvention: CDeclObjLast
 
       - Type: Destructor
         Body: |
-          delete self;
+          self->~MeshData();
         CallingConvention: CDeclObjLast
     
     Properties:
@@ -995,12 +1005,12 @@ ASTypes:
     Behaviours:
       - Type: Constructor
         Body: |
-          self = new CE::Renderer::Transform3D();
+          new(self) CE::Renderer::Transform3D();
         CallingConvention: CDeclObjLast
 
       - Type: Destructor
         Body: |
-          delete self;
+          self->~Transform3D();
         CallingConvention: CDeclObjLast
 
     Properties:
