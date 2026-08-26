@@ -43,7 +43,8 @@ namespace CE::Audio::Resources {
         void StopAll();
         void PauseAll();
         void ResumeAll();
-        void AddEffect(PlayingAudioHandle handle, std::string name, Core::Audio::AudioFilter effect);
+
+        void AddEffect(PlayingAudioHandle handle, std::string name, Core::Audio::AudioEffect effect);
         void RemoveEffect(PlayingAudioHandle handle, std::string name);
         void ClearEffects(PlayingAudioHandle handle);
 
@@ -86,7 +87,7 @@ namespace CE::Audio::Resources {
             Core::Audio::PlayingSound Sound;
             struct NamedEffect {
                 std::string Name;
-                Core::Audio::AudioFilter Effect;
+                Core::Audio::AudioEffect Effect;
             };
             std::vector<NamedEffect> Effects;
             std::string Label;

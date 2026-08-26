@@ -15,8 +15,8 @@ ASEnums:
       - Music
       - Error
 
-  - Name: AudioFilterType
-    CppType: CE::Core::Audio::AudioFilter::Type
+  - Name: AudioEffectType
+    CppType: CE::Core::Audio::AudioEffect::Type
 
     Values:
       - LowPass
@@ -26,8 +26,8 @@ ASEnums:
       - Chorus
 
 ASTypes: 
-  - Name: AudioFilter
-    CppType: CE::Core::Audio::AudioFilter
+  - Name: AudioEffect
+    CppType: CE::Core::Audio::AudioEffect
 
     Flags: 
       - Value
@@ -36,11 +36,11 @@ ASTypes:
       - Type: Constructor
         Signature: "" # nothing required
         Body: |
-          new(self) CE::Core::Audio::AudioFilter();
+          new(self) CE::Core::Audio::AudioEffect();
         CallingConvention: CDeclObjLast
 
     Properties:
-      - Type: AudioFilterType
+      - Type: AudioEffectType
         CppMember: Kind
         ASMember: Type
 

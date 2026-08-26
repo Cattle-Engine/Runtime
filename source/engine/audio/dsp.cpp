@@ -13,7 +13,7 @@ namespace CE::Core::Audio {
             return std::clamp(value, 0.0f, 1.0f);
         }
 
-        static void ResetFilterState(AudioFilter& filter, int sample_rate, int channels) {
+        static void ResetFilterState(AudioEffect& filter, int sample_rate, int channels) {
             filter.SampleRate = sample_rate;
             filter.Channels = channels;
             filter.WriteFrame = 0;
@@ -23,7 +23,7 @@ namespace CE::Core::Audio {
             filter.DelayBuffer.clear();
         }
 
-        static void UpdateAlpha(AudioFilter& filter, int sample_rate) {
+        static void UpdateAlpha(AudioEffect& filter, int sample_rate) {
             const float sr = static_cast<float>(sample_rate);
             const float nyquist = sr * 0.5f;
             const float cutoff = std::clamp(filter.CutoffHz, 10.0f, std::max(10.0f, nyquist - 10.0f));
@@ -31,14 +31,14 @@ namespace CE::Core::Audio {
             const float rc = 1.0f / (kTwoPi * cutoff);
             const float dt = 1.0f / sr;
 
-            if (filter.Kind == AudioFilter::Type::LowPass) {
+            if (filter.Kind == AudioEffect::Type::LowPass) {
                 filter.Alpha = dt / (rc + dt);
             } else {
                 filter.Alpha = rc / (rc + dt);
             }
         }
 
-        static void ApplyOnePole(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
+        static void ApplyOnePole(AudioEffect& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
             if (!filter.Enabled || !spec || !pcm || samples <= 0) {
                 return;
             }
@@ -60,7 +60,7 @@ namespace CE::Core::Audio {
             }
 
             float* cursor = pcm;
-            if (filter.Kind == AudioFilter::Type::LowPass) {
+            if (filter.Kind == AudioEffect::Type::LowPass) {
                 for (int i = 0; i < frames; ++i) {
                     for (int ch = 0; ch < channels; ++ch) {
                         const float x = *cursor;
@@ -84,7 +84,7 @@ namespace CE::Core::Audio {
             }
         }
 
-        static size_t EnsureDelayBuffer(AudioFilter& filter, int sample_rate, int channels, float max_delay_ms) {
+        static size_t EnsureDelayBuffer(AudioEffect& filter, int sample_rate, int channels, float max_delay_ms) {
             const float clamped_ms = std::clamp(max_delay_ms, 1.0f, kMaxDelayMs);
             const int max_delay_frames =
                 std::max(2, static_cast<int>(std::ceil((clamped_ms / 1000.0f) * static_cast<float>(sample_rate))) + 2);
@@ -105,7 +105,7 @@ namespace CE::Core::Audio {
             return required_frames;
         }
 
-        static float ReadDelayedSample(const AudioFilter& filter, size_t buffer_frames, int channels, int channel,
+        static float ReadDelayedSample(const AudioEffect& filter, size_t buffer_frames, int channels, int channel,
                                        float delay_frames) {
             if (buffer_frames == 0 || channels <= 0 || filter.DelayBuffer.empty()) {
                 return 0.0f;
@@ -129,7 +129,7 @@ namespace CE::Core::Audio {
             return sample_a + ((sample_b - sample_a) * fraction);
         }
 
-        static void WriteDelaySample(AudioFilter& filter, size_t buffer_frames, int channels, int channel,
+        static void WriteDelaySample(AudioEffect& filter, size_t buffer_frames, int channels, int channel,
                                      float sample) {
             if (buffer_frames == 0 || channels <= 0 || filter.DelayBuffer.empty()) {
                 return;
@@ -140,14 +140,14 @@ namespace CE::Core::Audio {
             filter.DelayBuffer[idx] = sample;
         }
 
-        static void AdvanceDelayFrame(AudioFilter& filter, size_t buffer_frames) {
+        static void AdvanceDelayFrame(AudioEffect& filter, size_t buffer_frames) {
             if (buffer_frames == 0) {
                 return;
             }
             filter.WriteFrame = (filter.WriteFrame + 1) % buffer_frames;
         }
 
-        static void ApplyDelay(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
+        static void ApplyDelay(AudioEffect& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
             if (!filter.Enabled || !spec || !pcm || samples <= 0) {
                 return;
             }
@@ -178,7 +178,7 @@ namespace CE::Core::Audio {
             }
         }
 
-        static void ApplyChorus(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
+        static void ApplyChorus(AudioEffect& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
             if (!filter.Enabled || !spec || !pcm || samples <= 0) {
                 return;
             }
@@ -218,7 +218,7 @@ namespace CE::Core::Audio {
             }
         }
 
-        static void ApplyReverb(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
+        static void ApplyReverb(AudioEffect& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
             if (!filter.Enabled || !spec || !pcm || samples <= 0) {
                 return;
             }
@@ -257,19 +257,19 @@ namespace CE::Core::Audio {
             }
         }
 
-        static void ApplyEffect(AudioFilter& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
+        static void ApplyEffect(AudioEffect& filter, const SDL_AudioSpec* spec, float* pcm, int samples) {
             switch (filter.Kind) {
-            case AudioFilter::Type::LowPass:
-            case AudioFilter::Type::HighPass:
+            case AudioEffect::Type::LowPass:
+            case AudioEffect::Type::HighPass:
                 ApplyOnePole(filter, spec, pcm, samples);
                 break;
-            case AudioFilter::Type::Reverb:
+            case AudioEffect::Type::Reverb:
                 ApplyReverb(filter, spec, pcm, samples);
                 break;
-            case AudioFilter::Type::Delay:
+            case AudioEffect::Type::Delay:
                 ApplyDelay(filter, spec, pcm, samples);
                 break;
-            case AudioFilter::Type::Chorus:
+            case AudioEffect::Type::Chorus:
                 ApplyChorus(filter, spec, pcm, samples);
                 break;
             }
@@ -289,7 +289,7 @@ namespace CE::Core::Audio {
             return;
         }
 
-        for (AudioFilter& effect : it->second.Effects) {
+        for (AudioEffect& effect : it->second.Effects) {
             ApplyEffect(effect, spec, pcm, samples);
         }
     }
@@ -312,14 +312,14 @@ namespace CE::Core::Audio {
         }
     }
 
-    std::vector<AudioFilter> AudioSystem::BuildEffectChain(const PlayingSound& sound) const {
-        std::vector<AudioFilter> effects;
+    std::vector<AudioEffect> AudioSystem::BuildEffectChain(const PlayingSound& sound) const {
+        std::vector<AudioEffect> effects;
         if (sound.Filter.Enabled) {
             effects.push_back(sound.Filter);
         }
 
         effects.reserve(effects.size() + sound.Effects.size());
-        for (const AudioFilter& effect : sound.Effects) {
+        for (const AudioEffect& effect : sound.Effects) {
             if (effect.Enabled) {
                 effects.push_back(effect);
             }

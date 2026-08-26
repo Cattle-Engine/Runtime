@@ -48,9 +48,9 @@ Internal stuff
 
 
 For the entry point of an CE game will be:
-```void int()```
+```void init()```
 which shall be transformed into:
-```void __ce_user_int()```
+```void __ce_user_init()```
 
 Main script
 ```angelscript
@@ -73,6 +73,7 @@ export int foo_func() {
 ```
 
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
+- [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs
 - [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff

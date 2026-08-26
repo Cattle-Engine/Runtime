@@ -76,3 +76,9 @@ game.exe
 ```
 game.exe loads ce_runtime.dll manually and calls C api functions to load the engine and create an instance.
 At the logical end of the file some core info is (base game data, ce_runtime.dll name as it can be anything) as drum roll please, TDF XD
+
+# Namespace refactor program
+Just a small C++ program that uses clangs libtooling to help with refactoring stuff from 1 namespace to another
+
+# Refactor audio bus system
+Maybe use handles instead of strings for audio buses

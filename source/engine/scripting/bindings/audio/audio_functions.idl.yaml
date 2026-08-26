@@ -3,6 +3,7 @@ RegistrationPriority: 90
 RequiredCppHeaders:
   - "engine/audio/audio.hpp"
   - "engine/audio/audio_resource_manager.hpp"
+  - <cstdint>
   - <string>
 
 ASNamespace: CE::Audio
@@ -66,7 +67,7 @@ ASClassFunctions:
     ReturnType: void
     Signature: const PlayingAudio& in
     CppSignature: const CE::Audio::Resources::PlayingAudioHandle& 
-    Description: Pauses a playing sound and saves playback
+    Description: Pauses a playing sound (saves playback position)
     Function: |
       if (!mRuntime.mAudioManager) return;
       mRuntime.mAudioManager->PauseSound(arg0)
@@ -88,3 +89,113 @@ ASClassFunctions:
     Function: |
       if (!mRuntime.mAudioManager) return;
       mRuntime.mAudioManager->SeekSound(arg0, arg1)
+
+  - Name: StopSound
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle& 
+    Description: Stops a playing sound (doesn't save playback position)
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->StopSound(arg0)
+
+  - Name: StopAllSounds
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Description: Stops all playing sounds (doesn't save playback position)
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->StopAll();
+
+  - Name: PauseAllSounds
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Description: Pauses all playing sounds (saves playback position)
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->PauseAll();
+
+  - Name: ResumeAllSounds
+    ReturnType: void
+    Signature: ""
+    CppSignature: ""
+    Description: Resumes all paused sounds from the playback position
+    Function : |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->ResumeAll();
+
+  - Name: AddEffect 
+    ReturnType: void
+    Signature: const PlayingAudio& in, const string& in, const AudioEffect& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&, const CE::Core::Audio::AudioEffect
+    Description: Adds an effect to playing audio
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->AddEffect(arg0, arg1, arg2);
+
+  - Name: RemoveEffect
+    ReturnType: void
+    Signature: const PlayingAudio& in, const string& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&
+    Description: Removes an effect from playing audio
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->RemoveEffect(arg0, arg1);
+
+  - Name: ClearEffects
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
+    Description: Clears all effects from playing audio
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->ClearEffects(arg0);
+
+  - Name: SetSoundBus
+    ReturnType: void
+    Signature: const PlayingAudio& in, const string& in bus_name
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string& 
+    Description: Sets a playing audio's sound bus
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SetSoundBus(arg0, arg1);
+
+  - Name: GetSoundBus
+    ReturnType: string
+    CppReturnType: std::string
+    Signature: const PlayingAudio&
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
+    Description: Gets a PlayingAudio's sound bus name
+    Function: |
+      if (!mRuntime.mAudioManager) return "";
+      mRuntime.mAudioManager->GetSoundBus(arg0);
+
+  - Name: SetBusVolume
+    ReturnType: void
+    Signature: const string& in bus_name, float volume
+    CppSignature: const std::string& in, float
+    Description: Sets a bus volume
+    Function: |
+      if (!mRuntime.mAudioManager) return "";
+      mRuntime.mAudioManager->SetBusVolume(arg0, arg1);
+
+  - Name: SetBusVoiceLimit
+    ReturnType: void
+    Signature: const string& in bus_name, uint limit
+    CppSignature: const std::string& in, uint32_t limit
+    Description: Sets how many audio instances can play on that bus
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      // Maybe a unsafe conversion on some platforms?
+      mRuntime.mAudioManager->SetBusVoiceLimit(arg0, static_cast<size_t>(arg1));
+
+  - Name: SetSoundVolume
+    ReturnType: void
+    Signature: const PlayingAudio& in, int volume
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, int
+    Description: Sets a playing audio volume
+    Function: |
+      if (!mRuntime.mAudioManager) return; 
+      mRuntime.mAudioManagerSetSoundVolume(arg0, arg1);

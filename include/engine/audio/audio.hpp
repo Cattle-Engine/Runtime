@@ -14,7 +14,7 @@
 namespace CE::Core::Audio {
     enum class AudioType { SFX, Music, Error };
 
-    struct AudioFilter {
+    struct AudioEffect {
         bool Enabled = false;
 
         enum class Type { LowPass, HighPass, Reverb, Delay, Chorus } Kind = Type::LowPass;
@@ -55,8 +55,8 @@ namespace CE::Core::Audio {
         bool IsPlaying = false;
         std::string Bus;
 
-        AudioFilter Filter;
-        std::vector<AudioFilter> Effects;
+        AudioEffect Filter;
+        std::vector<AudioEffect> Effects;
     };
 
     struct AudioDeviceInfo {
@@ -97,7 +97,7 @@ namespace CE::Core::Audio {
             AudioType Type = AudioType::Error;
             int Volume = 128;
             std::string Bus;
-            std::vector<AudioFilter> Effects;
+            std::vector<AudioEffect> Effects;
             uint64_t PlayOrder = 0;
         };
 
@@ -106,7 +106,7 @@ namespace CE::Core::Audio {
         float ComputeTrackGain(const TrackState& state) const;
         void UpdateTrackGain(MIX_Track* track);
         void UpdateAllTrackGains();
-        std::vector<AudioFilter> BuildEffectChain(const PlayingSound& sound) const;
+        std::vector<AudioEffect> BuildEffectChain(const PlayingSound& sound) const;
         bool EnforceVoiceLimits(MIX_Track* requested_track, const std::string& bus);
         static const char* DefaultBusName(AudioType type);
         static bool IsTrackActive(MIX_Track* track);

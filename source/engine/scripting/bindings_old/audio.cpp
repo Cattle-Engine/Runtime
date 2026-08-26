@@ -349,9 +349,9 @@ namespace CE::Scripting {
             return;
         }
 
-        Core::Audio::AudioFilter filter;
+        Core::Audio::AudioEffect filter;
         filter.Enabled = effect.enabled;
-        filter.Kind = static_cast<Core::Audio::AudioFilter::Type>(effect.type);
+        filter.Kind = static_cast<Core::Audio::AudioEffect::Type>(effect.type);
         filter.CutoffHz = effect.cutoffHz;
         filter.WetMix = effect.wetMix;
         filter.Feedback = effect.feedback;

@@ -198,7 +198,7 @@ namespace CE::Audio::Resources {
         return info->Label;
     }
 
-    void AudioManager::AddEffect(PlayingAudioHandle handle, std::string name, Core::Audio::AudioFilter effect) {
+    void AudioManager::AddEffect(PlayingAudioHandle handle, std::string name, Core::Audio::AudioEffect effect) {
         AMPlayingSoundInfo* info = GetSoundInfo(handle);
         if (!info) {
             return;
