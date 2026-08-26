@@ -82,3 +82,31 @@ Just a small C++ program that uses clangs libtooling to help with refactoring st
 
 # Refactor audio bus system
 Maybe use handles instead of strings for audio buses
+
+# Make the documentation in the idl yaml better
+
+```
+- Name: LoadSound
+  ReturnType: void
+  Signature: const string& in filepath, const AudioType& in type, AudioAsset& out handle
+
+  Description: Loads an audio file from the VFS
+
+  Parameters:
+    filepath: Path to the audio file in the VFS
+    type: Type of audio asset to load
+    handle: Receives the loaded audio asset
+
+  Returns: Nothing
+
+  Since: 1.4
+  Category: Audio
+  ThreadSafety: MainThread
+  Notes:
+    - The returned handle remains valid until released.
+    - The file must exist in the VFS.
+
+  Function: |
+    if (!mRuntime.mAudioManager) return;
+    arg2 = mRuntime.mAudioManager->LoadSound(arg0, arg1);
+```
