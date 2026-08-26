@@ -226,13 +226,13 @@ set(ANGELSCRIPT_ADDON_SOURCES
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptmath/scriptmath.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scripthandle/scripthandle.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptstdstring/scriptstdstring.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptstdstring/scriptstdstring_utils.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptbuilder/scriptbuilder.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptarray/scriptarray.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptdictionary/scriptdictionary.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptany/scriptany.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptgrid/scriptgrid.cpp
 )
-
 foreach(ANGELSCRIPT_ADDON_SOURCE ${ANGELSCRIPT_ADDON_SOURCES})
     if(NOT EXISTS "${ANGELSCRIPT_ADDON_SOURCE}")
         message(FATAL_ERROR

@@ -106,7 +106,7 @@ ASTypes:
           return self.id == static_cast<uint32_t>(arg0);
 
 
-  - Name: AudioInstance
+  - Name: PlayingAudio
     CppType: CE::Audio::Resources::PlayingAudioHandle
 
     Flags:

@@ -94,6 +94,19 @@ namespace CE::Scripting {
             return Fail("Failed to create AngelScript script context");
         }
 
+        // enables character literals ('a' is a character literal)
+        mScriptEngine->SetEngineProperty(asEP_USE_CHARACTER_LITERALS, true);
+        // multi-line strings
+        mScriptEngine->SetEngineProperty(asEP_ALLOW_MULTILINE_STRINGS, true);
+        // enable scoped enums likee enum class in C++ 
+        mScriptEngine->SetEngineProperty(asEP_REQUIRE_ENUM_SCOPE, true);
+
+        RegisterStdString(mScriptEngine);
+        RegisterScriptArray(mScriptEngine, true /* enable gc support */);
+        RegisterStdStringUtils(mScriptEngine);
+
+        mScriptEngine->SetMessageCallback(asFUNCTION(MessageCallback), this, asCALL_CDECL);
+
         CE_LOG(LogLevel::Info, "[AngelScript] Runtime initialised");
         return true;
     }

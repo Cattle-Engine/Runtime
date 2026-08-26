@@ -26,4 +26,65 @@ ASClassFunctions:
       if (!mRuntime.mAudioManager) return;
       mRuntime.mAudioManager->UnloadSound(arg0);
 
-  
+  - Name: CreatePlayingAudio
+    ReturnType: void
+    Signature: const AudioAsset& in, PlayingAudio& out
+    CppSignature: const CE::Audio::Resources::AudioHandle& in, CE::Audio::Resources::PlayingAudioHandle& out
+    Description: Creates a PlayingAudio handle
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      arg1 = mRuntime.mAudioManager->CreateSoundInstance(arg0);
+
+  - Name: IsPlaying
+    ReturnType: bool
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
+    Description: Returns false if a PlayAudio's audio is playing audio
+    Function: |
+      if (!mRuntime.mAudioManager) return false;
+      return mRuntime.mAudioManager->IsPlaying(arg0);
+
+  - Name: DestroyPlayingAudio
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
+    Description: Destroys a PlayingAudio handle. If it is playing audio, it is stopped
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->DeleteSoundInstance(arg0);
+
+  - Name: PlaySound
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle& 
+    Description: Plays an audio file from the start
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->PlaySound(arg0)
+
+  - Name: PauseSound
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle& 
+    Description: Pauses a playing sound and saves playback
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->PauseSound(arg0)
+
+  - Name: ResumeSound
+    ReturnType: void
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle& 
+    Description: Resumes a playing sound from where playback was last stopped
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->ResumeSound(arg0)
+
+  - Name: SeekSound
+    ReturnType: void
+    Signature: const PlayingAudio& in, float seconds
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, float
+    Description: Seeks playback in seconds
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SeekSound(arg0, arg1)
