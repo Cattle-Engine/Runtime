@@ -13,3 +13,4 @@
 *.txt text
 Makefile text
 .gitignore text
+tools/bin/lib/*.so* filter=lfs diff=lfs merge=lfs -text

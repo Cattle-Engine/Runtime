@@ -71,7 +71,7 @@ export int foo_func() {
 
 }
 ```
-
+- [ ] Move skybox manager to engine/rendering/resources, remove the RAW POINTERS for refrences and make it handle based
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs

@@ -1,1 +1,4 @@
 RegistrationPriority: 90
+ASNamespace: CE::Graphics::Render3D
+
+
