@@ -52,6 +52,7 @@ namespace CE::Audio::Resources {
         std::string GetSoundBus(PlayingAudioHandle handle);
         void SetBusVolume(const std::string& bus, float volume);
         void SetBusVoiceLimit(const std::string& bus, size_t limit);
+        
         void SetSoundVolume(PlayingAudioHandle handle, int volume);
         void SetMasterVolume(float volume);
         void SetMusicVolume(float volume);

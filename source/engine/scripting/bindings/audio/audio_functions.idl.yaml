@@ -198,4 +198,60 @@ ASClassFunctions:
     Description: Sets a playing audio volume
     Function: |
       if (!mRuntime.mAudioManager) return; 
-      mRuntime.mAudioManagerSetSoundVolume(arg0, arg1);
+      mRuntime.mAudioManager->SetSoundVolume(arg0, arg1);
+
+  - Name: SetMasterVolume
+    ReturnType: void
+    Signature: float
+    CppSignature: float
+    Description: Sets the global volume
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SetMasterVolume(arg0);
+
+  - Name: SetMusicVolume
+    ReturnType: void
+    Signature: float
+    CppSignature: float
+    Description: Sets the music volume
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SetMusicVolume(arg0);
+
+  - Name: SetSFXVolume
+    ReturnType: void
+    Signature: float
+    CppSignature: float
+    Description: Sets the music volume
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SetSFXVolume(arg0);
+
+  - Name: SetSoundMuted
+    ReturnType: void
+    Signature: const PlayingAudio& in, bool muted
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, bool
+    Description: Mutes or unmutes a sound
+    Function: |
+      if (!mRuntime.mAudioManager) return; 
+      mRuntime.mAudioManager->SetSoundMuted(arg0, arg1);
+
+  - Name: SetSoundGain
+    ReturnType: void
+    Signature: const PlayingAudio& in, float gain
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, float
+    Description: Sets a sounds gain
+    Function: |
+      if (!mRuntime.mAudioManager) return; 
+      mRuntime.mAudioManager->SetSoundGain(arg0, arg1);
+
+  - Name: SetSoundLabel
+    ReturnType: void
+    Signature: const PlayingAudio& in, const string in label
+    CppSignature: const CE::Audio::Resources::AudioHandle&, const std::string&
+    Description: Sets a sound label
+    Function: |
+      if (!mRuntime.mAudioManager) return;
+      mRuntime.mAudioManager->SetSoundLabel(arg0, arg1);
+
+  - Name: GetSoundLabel
