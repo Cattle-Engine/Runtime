@@ -5,15 +5,14 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/3d_model_importer.hpp"
-#include "engine/ui/debug_window.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/skybox_manager.hpp"
 #include "engine/audio/audio.hpp"
 #include "engine/audio/audio_resource_manager.hpp"
+#include "engine/common/containers/registries.hpp"
 #include "engine/common/core/event_bus.hpp"
 #include "engine/common/core/game_state.hpp"
-#include "engine/common/containers/registries.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/misc/arguments.hpp"
 #include "engine/input/keyboard.hpp"
@@ -25,6 +24,7 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/scripting/angelscript.hpp"
+#include "engine/ui/debug_window.hpp"
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;

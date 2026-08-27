@@ -12,21 +12,21 @@ namespace CE::Renderer::Resources {
     struct MeshHandle {
         MeshHandle() : id(0) {}
         MeshHandle(const MeshHandle& other) : id(other.id) {}
-        
+
         uint64_t id = 0;
-        
+
         explicit operator bool() const {
-          return id != 0;
+            return id != 0;
         }
-        
+
         bool operator==(const MeshHandle& other) const {
-          return id == other.id;
+            return id == other.id;
         }
     };
-    
+
     struct MeshHandleHash {
         size_t operator()(const MeshHandle& handle) const {
-          return std::hash<uint64_t>{}(handle.id);
+            return std::hash<uint64_t>{}(handle.id);
         }
     };
 

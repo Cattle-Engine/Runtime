@@ -7,9 +7,9 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/audio/audio_resource_manager.hpp"
 #include "engine/assets/fonts.hpp"
 #include "engine/assets/skybox_manager.hpp"
+#include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
@@ -734,8 +734,8 @@ namespace CE::UI {
                            CE::Renderer::Resources::ShaderManager& shaderman,
                            CE::Assets::Skyboxes::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
                            CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                           CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger, CE::Instance& instance,
-                           Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
+                           CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger,
+                           CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
         if (!gOpen) {
             return;
         }

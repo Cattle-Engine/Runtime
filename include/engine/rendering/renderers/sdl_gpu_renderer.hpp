@@ -194,8 +194,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         GPUMesh* CreateGPUMesh(MeshData& mesh) override;
         void DestroyGPUMesh(GPUMesh* mesh) override;
-        void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, [[maybe_unused]] bool error_tex) override;
-        void DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform, [[maybe_unused]] bool error_tex) override;
+        void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform,
+                      [[maybe_unused]] bool error_tex) override;
+        void DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform,
+                          [[maybe_unused]] bool error_tex) override;
         void ChangeCameraPos3D(const Transform3D& transform) override;
         void SetCamera3D(const Camera3D& camera) override;
         void BeginMode3D() override;

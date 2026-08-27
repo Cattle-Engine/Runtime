@@ -98,7 +98,7 @@ namespace CE::Scripting {
         mScriptEngine->SetEngineProperty(asEP_USE_CHARACTER_LITERALS, true);
         // multi-line strings
         mScriptEngine->SetEngineProperty(asEP_ALLOW_MULTILINE_STRINGS, true);
-        // enable scoped enums likee enum class in C++ 
+        // enable scoped enums likee enum class in C++
         mScriptEngine->SetEngineProperty(asEP_REQUIRE_ENUM_SCOPE, true);
 
         RegisterStdString(mScriptEngine);

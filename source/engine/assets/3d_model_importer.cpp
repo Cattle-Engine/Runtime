@@ -283,11 +283,10 @@ namespace CE::Assets::Model3DImporter {
         return result;
     }
 
-    Renderer::Resources::MaterialHandle
-    ModelImporter::LoadAssimpMaterial(const aiScene* scene, const aiMaterial* mat, [[maybe_unused]] Renderer::Resources::Model& model,
-                                      const std::string& model_path, std::vector<TextureInfo>& gpuHandleCache,
-                                      std::unordered_map<std::string, SDL_Surface*>& surfaceCache,
-                                      Renderer::TextureUploadBatch* batch) {
+    Renderer::Resources::MaterialHandle ModelImporter::LoadAssimpMaterial(
+        const aiScene* scene, const aiMaterial* mat, [[maybe_unused]] Renderer::Resources::Model& model,
+        const std::string& model_path, std::vector<TextureInfo>& gpuHandleCache,
+        std::unordered_map<std::string, SDL_Surface*>& surfaceCache, Renderer::TextureUploadBatch* batch) {
         auto getTexPath = [&](aiTextureType type) -> std::string {
             aiString tex_path;
             if (mat->GetTexture(type, 0, &tex_path) == AI_SUCCESS)

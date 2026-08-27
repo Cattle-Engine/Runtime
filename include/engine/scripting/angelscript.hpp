@@ -3,8 +3,9 @@
 #include <string>
 #include <vector>
 
-#include <angelscript.h>
 #include "engine/common/fs/vfs.hpp"
+
+#include <angelscript.h>
 
 // Forward declare a hella lot of stuff to help compile times
 namespace CE {

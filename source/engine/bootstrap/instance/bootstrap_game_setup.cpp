@@ -18,7 +18,8 @@ namespace CE::Bootstrap {
         return 0;
     }
 
-    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, [[maybe_unused]] bool debugmode) {
+    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo,
+                      [[maybe_unused]] bool debugmode) {
         auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
 
         if (!stream) {

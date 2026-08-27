@@ -1,38 +1,36 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
 
 namespace CE::Renderer::Resources {
-  class TextureManager; // Forward declaration
+    class TextureManager; // Forward declaration
 
-  struct TextureHandleState {
-      Texture* texture = nullptr;
+    struct TextureHandleState {
+        Texture* texture = nullptr;
 
-      explicit TextureHandleState(Texture* texture)
-          : texture(texture) {
-      }
-  };
-  
-  struct TextureHandle {
-      TextureHandle() = default;
-      TextureHandle(uint64_t init_id) : id(init_id) {}
+        explicit TextureHandleState(Texture* texture) : texture(texture) {}
+    };
 
-      uint64_t id = 0;
+    struct TextureHandle {
+        TextureHandle() = default;
+        TextureHandle(uint64_t init_id) : id(init_id) {}
+
+        uint64_t id = 0;
 
         // Returns nullptr if unloaded
         Texture* GetTexture() const {
-          if (mTexture) {
-            return mTexture->texture;
-          } else {
-            return nullptr;
-          }
+            if (mTexture) {
+                return mTexture->texture;
+            } else {
+                return nullptr;
+            }
         }
 
         constexpr explicit operator bool() const {
@@ -43,16 +41,16 @@ namespace CE::Renderer::Resources {
             return id == other.id;
         }
 
-        private:
-          // THIS IS NON-OWNING and should ONLY be used for renderer calls that REQUIRE Texture*
-          std::shared_ptr<TextureHandleState> mTexture;
-          friend class TextureManager;
+      private:
+        // THIS IS NON-OWNING and should ONLY be used for renderer calls that REQUIRE Texture*
+        std::shared_ptr<TextureHandleState> mTexture;
+        friend class TextureManager;
     };
-    
+
     struct TextureHandleHash {
-      std::size_t operator()(const TextureHandle& handle) const {
-        return std::hash<uint64_t>{}(handle.id);
-      }
+        std::size_t operator()(const TextureHandle& handle) const {
+            return std::hash<uint64_t>{}(handle.id);
+        }
     };
 
     inline const TextureHandle mInvalidHandle = {};

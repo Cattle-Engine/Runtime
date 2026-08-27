@@ -62,7 +62,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return glm::quat(eulerRadians);
         }
 
-        [[maybe_unused]] 
+        [[maybe_unused]]
         float RoughnessToShininess(float roughness) {
             const float clamped = std::clamp(roughness, 0.0f, 1.0f);
             return std::max(2.0f, 128.0f - clamped * 120.0f);
@@ -758,7 +758,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         delete mesh;
     }
 
-    void SDL_GPU_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, [[maybe_unused]] bool error_tex) {
+    void SDL_GPU_Renderer::DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform,
+                                    [[maybe_unused]] bool error_tex) {
         if (!gFrameActive) {
             if (!mWarnedOutsideFrame) {
                 CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Can't draw mesh outside of BeginFrame/EndFrame");
@@ -807,7 +808,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gMeshCommands.push_back(command);
     }
 
-    void SDL_GPU_Renderer::DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform, [[maybe_unused]] bool error_tex) {
+    void SDL_GPU_Renderer::DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform,
+                                        [[maybe_unused]] bool error_tex) {
         if (!gFrameActive) {
             if (!mWarnedOutsideFrame) {
                 CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Can't draw mesh outside of BeginFrame/EndFrame");
