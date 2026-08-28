@@ -1,8 +1,8 @@
-#include "engine/assets/skybox_manager.hpp"
+#include "engine/rendering/resources/skybox_manager.hpp"
 
 #include "engine/common/tracelog.hpp"
 
-namespace CE::Assets::Skyboxes {
+namespace CE::Renderer::Resources  {
     namespace {
         std::shared_ptr<CE::Renderer::Texture> MakeTextureHandle(CE::Renderer::Texture* texture) {
             return std::shared_ptr<CE::Renderer::Texture>(texture, [](CE::Renderer::Texture*) {});

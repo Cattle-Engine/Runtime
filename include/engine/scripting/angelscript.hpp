@@ -29,11 +29,8 @@ namespace CE {
         class ShaderManager;
         class MaterialManager;
         class GPUMeshManager;
-    } // namespace Renderer::Resources
-
-    namespace Assets::Skyboxes {
         class SkyBoxManager;
-    }
+    } // namespace Renderer::Resources
 
     namespace Assets::Fonts {
         class FontManager;
@@ -62,7 +59,7 @@ namespace CE::Scripting {
       public:
         Runtime(VFS::VFS& vfs, GameInfo& game_info, Settings::SettingsManager& settings_manager, Instance& instance,
                 Renderer::IRenderer& renderer, Renderer::Resources::TextureManager& texture_manager,
-                Renderer::Resources::ShaderManager& shader_manager, Assets::Skyboxes::SkyBoxManager& skybox_manager,
+                Renderer::Resources::ShaderManager& shader_manager, CE::Renderer::Resources::SkyBoxManager& skybox_manager,
                 Assets::Fonts::FontManager& font_manager, Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
                 Renderer::Resources::MaterialManager& material_manager,
                 Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
@@ -91,7 +88,7 @@ namespace CE::Scripting {
         Renderer::IRenderer& mRenderer;
         Renderer::Resources::TextureManager& mTextureManager;
         Renderer::Resources::ShaderManager& mShaderManager;
-        Assets::Skyboxes::SkyBoxManager& mSkyboxManager;
+        CE::Renderer::Resources::SkyBoxManager& mSkyboxManager;
         Assets::Fonts::FontManager& mFontManager;
         Renderer::Resources::GPUMeshManager& mGPUMeshManager;
         Renderer::Resources::MaterialManager& mMaterialManager;

@@ -8,7 +8,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/fonts.hpp"
-#include "engine/assets/skybox_manager.hpp"
+#include "engine/rendering/resources/skybox_manager.hpp"
 #include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
@@ -192,7 +192,7 @@ namespace CE::UI {
     void DebugWindow::DrawPerformanceTab(CE::Renderer::IRenderer& renderer,
                                          CE::Renderer::Resources::TextureManager& texman,
                                          CE::Renderer::Resources::ShaderManager& shaderman,
-                                         CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                                         CE::Renderer::Resources::SkyBoxManager& skyboxman,
                                          const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
                                          float frameTime) {
         (void)renderer;
@@ -381,7 +381,7 @@ namespace CE::UI {
     void DebugWindow::DrawRendererTab(CE::Renderer::IRenderer& renderer, const Settings::SettingsManager& settings,
                                       Renderer::Resources::TextureManager& texman,
                                       CE::Renderer::Resources::ShaderManager& shaderman,
-                                      Assets::Skyboxes::SkyBoxManager& skyboxman, Assets::Fonts::FontManager& fontman) {
+                                      CE::Renderer::Resources::SkyBoxManager& skyboxman, Assets::Fonts::FontManager& fontman) {
         ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
 
         Utils::SpaceSep();
@@ -732,7 +732,7 @@ namespace CE::UI {
 
     void DebugWindow::Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
                            CE::Renderer::Resources::ShaderManager& shaderman,
-                           CE::Assets::Skyboxes::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
+                           CE::Renderer::Resources::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
                            CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
                            CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger,
                            CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
@@ -781,7 +781,7 @@ namespace CE::UI {
     }
 
     void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                     CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Skyboxes::SkyBoxManager& skyboxman,
+                     CE::Renderer::Resources::ShaderManager& shaderman, CE::Renderer::Resources::SkyBoxManager& skyboxman,
                      CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
                      CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman,
                      Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps,

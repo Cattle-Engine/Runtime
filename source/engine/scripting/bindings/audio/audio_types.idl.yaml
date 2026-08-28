@@ -121,7 +121,7 @@ ASTypes:
     Operators:
       - Operator: "=="
         ReturnType: bool
-        Signature: "const AudioInstance&"
+        Signature: "const PlayingAudio&"
         Body: |
           return self.id == arg0.id;
 

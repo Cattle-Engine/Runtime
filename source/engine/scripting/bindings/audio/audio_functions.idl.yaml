@@ -61,7 +61,7 @@ ASClassFunctions:
     Description: Plays an audio file from the start
     Function: |
       if (!mRuntime.mAudioManager) return;
-      mRuntime.mAudioManager->PlaySound(arg0)
+      mRuntime.mAudioManager->PlaySound(arg0);
 
   - Name: PauseSound
     ReturnType: void
@@ -70,7 +70,7 @@ ASClassFunctions:
     Description: Pauses a playing sound (saves playback position)
     Function: |
       if (!mRuntime.mAudioManager) return;
-      mRuntime.mAudioManager->PauseSound(arg0)
+      mRuntime.mAudioManager->PauseSound(arg0);
 
   - Name: ResumeSound
     ReturnType: void
@@ -79,7 +79,7 @@ ASClassFunctions:
     Description: Resumes a playing sound from where playback was last stopped
     Function: |
       if (!mRuntime.mAudioManager) return;
-      mRuntime.mAudioManager->ResumeSound(arg0)
+      mRuntime.mAudioManager->ResumeSound(arg0);
 
   - Name: SeekSound
     ReturnType: void
@@ -88,7 +88,7 @@ ASClassFunctions:
     Description: Seeks playback in seconds
     Function: |
       if (!mRuntime.mAudioManager) return;
-      mRuntime.mAudioManager->SeekSound(arg0, arg1)
+      mRuntime.mAudioManager->SeekSound(arg0, arg1);
 
   - Name: StopSound
     ReturnType: void
@@ -97,7 +97,7 @@ ASClassFunctions:
     Description: Stops a playing sound (doesn't save playback position)
     Function: |
       if (!mRuntime.mAudioManager) return;
-      mRuntime.mAudioManager->StopSound(arg0)
+      mRuntime.mAudioManager->StopSound(arg0);
 
   - Name: StopAllSounds
     ReturnType: void
@@ -129,7 +129,7 @@ ASClassFunctions:
   - Name: AddEffect 
     ReturnType: void
     Signature: const PlayingAudio& in, const string& in, const AudioEffect& in
-    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&, const CE::Core::Audio::AudioEffect
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&, const CE::Core::Audio::AudioEffect&
     Description: Adds an effect to playing audio
     Function: |
       if (!mRuntime.mAudioManager) return;
@@ -170,7 +170,7 @@ ASClassFunctions:
     Description: Gets a PlayingAudio's sound bus name
     Function: |
       if (!mRuntime.mAudioManager) return "";
-      mRuntime.mAudioManager->GetSoundBus(arg0);
+      return mRuntime.mAudioManager->GetSoundBus(arg0);
 
   - Name: SetBusVolume
     ReturnType: void
@@ -178,7 +178,7 @@ ASClassFunctions:
     CppSignature: const std::string& in, float
     Description: Sets a bus volume
     Function: |
-      if (!mRuntime.mAudioManager) return "";
+      if (!mRuntime.mAudioManager) return;
       mRuntime.mAudioManager->SetBusVolume(arg0, arg1);
 
   - Name: SetBusVoiceLimit
@@ -248,10 +248,17 @@ ASClassFunctions:
   - Name: SetSoundLabel
     ReturnType: void
     Signature: const PlayingAudio& in, const string in label
-    CppSignature: const CE::Audio::Resources::AudioHandle&, const std::string&
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&
     Description: Sets a sound label
     Function: |
       if (!mRuntime.mAudioManager) return;
       mRuntime.mAudioManager->SetSoundLabel(arg0, arg1);
 
   - Name: GetSoundLabel
+    ReturnType: string
+    Signature: const PlayingAudio& in
+    CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
+    Description: Get a sound label
+    Function: |
+      if (!mRuntime.mAudioManager) return "";
+      mRuntime.mAudioManager->GetSoundLabel(arg0);

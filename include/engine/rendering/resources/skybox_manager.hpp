@@ -8,7 +8,7 @@
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
 
-namespace CE::Assets::Skyboxes {
+namespace CE::Renderer::Resources {
     class SkyBoxManager {
       public:
         struct DebugSkyBoxInfo {
@@ -58,4 +58,5 @@ namespace CE::Assets::Skyboxes {
         std::unordered_map<std::string, ManagedSkyBox> gSkyBoxes;
         std::string gBoundSkyBoxName;
     };
-} // namespace CE::Assets::Skyboxes
+} // namespace CE::Renderer::Resources
+ // namespace CE::Assets::Skyboxes

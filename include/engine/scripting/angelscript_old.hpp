@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "engine/assets/fonts.hpp"
-#include "engine/assets/skybox_manager.hpp"
+#include "engine/rendering/resources/skybox_manager.hpp"
 #include "engine/common/containers/registries.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/common/misc/gameinfo.hpp"
