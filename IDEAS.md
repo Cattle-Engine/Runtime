@@ -19,6 +19,18 @@ struct TextureEntry {
 ```
 on unloading we do this ```entry->State->Texture = nullptr;``` and when the refcount goes to zero we actually unload the texture
 
+
+# Rework user side, use of skyboxes
+Instead of using a dedicated manager just expose cubemap. 
+I will make "ASCubemap" with initialisers like this:
+
+```cpp
+ASCubemap("", "", "", "", "", "") // Six paths to textures, if empty it just ignores 
+ASCubemap(tex1, tex2, tex3, tex4, tex5, tex6) // Take 6 texture handles, if a texutre handle id is 0 the texture in the actual cubemap object is set to nullptr
+ASCubemap() // All textures nullptr
+```
+
+
 # Update system
 
 Okay so due to having the VFS it makes it easy enough to have an update system. I'm thinking of using a seperate file format for updates.
