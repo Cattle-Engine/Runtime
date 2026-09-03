@@ -158,9 +158,6 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     source/*.c
 )
 
-# REMOVE ME
-list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")
-
 if(WIN32)
     list(FILTER SOURCES EXCLUDE REGEX "/platforms/linux/")
 elseif(APPLE)

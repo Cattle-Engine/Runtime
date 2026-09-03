@@ -28,6 +28,7 @@
 - [X] Refactor the angelscript bindings to have something like IScriptBinding
 - [X] Move audio manager from engine/assets/audio.hpp to engine/audio/audio_resource_manager.hpp, also put its class into CE::Audio::Resources 
 - [X] Migrate audio manager to use a struct and not just uint32_t
+- [X] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -71,11 +72,10 @@ export int foo_func() {
 
 }
 ```
-- [ ] Move skybox manager to engine/rendering/resources, remove the RAW POINTERS for refrences and make it handle based
+- [ ] Remove the skybox manager files and class from the engine. I'm using ASCubemap and making it just bind that
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs
-- [ ] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Connect input binder to instance

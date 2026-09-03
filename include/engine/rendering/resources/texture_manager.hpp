@@ -53,7 +53,7 @@ namespace CE::Renderer::Resources {
         }
     };
 
-    inline const TextureHandle mInvalidHandle = {};
+    inline const TextureHandle kInvalidHandle = {};
 
     class TextureRef {
       public:
