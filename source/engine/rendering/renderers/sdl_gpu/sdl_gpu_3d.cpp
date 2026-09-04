@@ -46,7 +46,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         };
 
         struct SkyboxFace {
-            const std::shared_ptr<Texture>* texture = nullptr;
+            const Texture* texture = nullptr;
             glm::vec3 offset{0.0f};
             glm::vec3 rotation{0.0f};
             float textureRotation;
@@ -75,20 +75,26 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         std::array<SDL_GPUTexture*, 6> GetSkyboxSourceTextures(const CubeMap& skybox) {
             std::array<SDL_GPUTexture*, 6> sourceTextures{};
 
-            const std::array<const std::shared_ptr<Texture>*, 6> faces = {
-                {&skybox.right, &skybox.left, &skybox.top, &skybox.bottom, &skybox.front, &skybox.back}};
+        std::array<Texture*, 6> faces = {
+            skybox.right,
+            skybox.left,
+            skybox.top,
+            skybox.bottom,
+            skybox.front,
+            skybox.back
+        };
 
-            for (size_t i = 0; i < faces.size(); ++i) {
-                const std::shared_ptr<Texture>& face = *faces[i];
-                if (!face || !face->handle) {
-                    continue;
-                }
-
-                auto* texData = static_cast<SDLGPUTexData*>(face->handle);
-                if (texData && texData->gpuTex) {
-                    sourceTextures[i] = texData->gpuTex;
-                }
+        for (size_t i = 0; i < faces.size(); ++i) {
+            Texture* face = faces[i];
+            if (!face || !face->handle) {
+                continue;
             }
+
+            auto* texData = static_cast<SDLGPUTexData*>(face->handle);
+            if (texData && texData->gpuTex) {
+                sourceTextures[i] = texData->gpuTex;
+            }
+        }
 
             return sourceTextures;
         }
@@ -329,7 +335,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return false;
         }
 
-        Texture* rightFace = skybox.right.get();
+        Texture* rightFace = skybox.right;
         if (!rightFace || rightFace->width <= 0 || rightFace->height <= 0) {
             return false;
         }
@@ -875,18 +881,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_BindGPUGraphicsPipeline(renderPass, gSkyboxPipeline);
 
         const std::array<SkyboxFace, 6> faces = {{
-            {&skybox.front, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, 0.0f},
-            {&skybox.back, {0.0f, 0.0f, -1.0f}, {0.0f, glm::radians(180.0f), 0.0f}, 0.0f},
-            {&skybox.left, {-1.0f, 0.0f, 0.0f}, {0.0f, glm::radians(-90.0f), 0.0f}, 0.0f},
-            {&skybox.right, {1.0f, 0.0f, 0.0f}, {0.0f, glm::radians(90.0f), 0.0f}, 0.0f},
-            {&skybox.top,
-             {0.0f, 1.0f, 0.0f},
-             {glm::radians(-90.0f), glm::radians(90.0f), 0.0f},
-             0.0f}, // Pitch -90°, Yaw +90°
-            {&skybox.bottom,
-             {0.0f, -1.0f, 0.0f},
-             {glm::radians(90.0f), glm::radians(90.0f), 0.0f},
-             0.0f}, // Pitch +90°, Yaw +90°
+            {skybox.front, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, 0.0f},
+            {skybox.back, {0.0f, 0.0f, -1.0f}, {0.0f, glm::radians(180.0f), 0.0f}, 0.0f},
+            {skybox.left, {-1.0f, 0.0f, 0.0f}, {0.0f, glm::radians(-90.0f), 0.0f}, 0.0f},
+            {skybox.right, {1.0f, 0.0f, 0.0f}, {0.0f, glm::radians(90.0f), 0.0f}, 0.0f},
+            {skybox.top,
+            {0.0f, 1.0f, 0.0f},
+            {glm::radians(-90.0f), glm::radians(90.0f), 0.0f},
+            0.0f},
+            {skybox.bottom,
+            {0.0f, -1.0f, 0.0f},
+            {glm::radians(90.0f), glm::radians(90.0f), 0.0f},
+            0.0f},
         }};
 
         SDL_GPUBufferBinding vertexBinding{gSkyboxMesh->vertexBuffer, 0};
@@ -895,11 +901,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_BindGPUIndexBuffer(renderPass, &indexBinding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
         for (const auto& face : faces) {
-            if (!face.texture) {
-                continue;
-            }
+            const Texture* faceTexture = face.texture;
 
-            const std::shared_ptr<Texture>& faceTexture = *face.texture;
             if (!faceTexture || !faceTexture->handle) {
                 continue;
             }

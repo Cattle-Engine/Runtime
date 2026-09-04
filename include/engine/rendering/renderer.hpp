@@ -25,14 +25,14 @@ namespace CE::Renderer {
     struct Texture;
 
     struct CubeMap {
-        std::shared_ptr<Texture> right{};
-        std::shared_ptr<Texture> left{};
+        Texture* right = nullptr;
+        Texture* left= nullptr;
 
-        std::shared_ptr<Texture> top{};
-        std::shared_ptr<Texture> bottom{};
+        Texture* top = nullptr;
+        Texture* bottom = nullptr;
 
-        std::shared_ptr<Texture> front{};
-        std::shared_ptr<Texture> back{};
+        Texture* front = nullptr;
+        Texture* back = nullptr;
     };
 
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
