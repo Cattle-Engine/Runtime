@@ -482,6 +482,21 @@ def clean_generated_artifacts(build_dir: Path, *, remove_build_dir: bool) -> Non
             header_path.unlink()
             log(f"Removed {header_path}")
 
+def generate_compiler_enum_impl(compiler: str):
+    generated_path: Path = BUILD_DIR / "generated" / "enum_to_string_impl.inl"
+    source_path: Path = ROOT / "include" / "engine" / "compilers" 
+
+    match compiler:
+        case "GNU":
+            source_path / "gcc"
+        case "Clang":
+            source_path / "clang"
+        case "MSVC":
+            source_path / "msvc"
+
+    source_path + "enum_to_string.impl.inl"
+
+    shutil.copy(source_path, generated_path)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build helper for CE using VCPKG + CMake.")
@@ -499,12 +514,14 @@ def parse_args() -> argparse.Namespace:
             "full",
             "clean",
             "clean-generated",
+            "compiler_enum_impl",
         ],
         help="Operation to run. Defaults to the full build pipeline.",
     )
     parser.add_argument("--build-dir", type=Path, default=BUILD_DIR, help="CMake build directory.")
     parser.add_argument("--triplet", default=detect_triplet(), help="VCPKG target triplet.")
     parser.add_argument("--config", default="Debug", help="CMake configuration on multi-config generators.")
+    parser.add_argument("cpp_compiler", help="C++ compiler cmake uses")
     return parser.parse_args()
 
 
@@ -533,6 +550,9 @@ def main() -> int:
 
     if args.command in {"idl", "full"}:
         build_idl(build_dir)
+
+    if args.command in {"compiler_enum_impl", "full"}:
+        generate_compiler_enum_impl(args.cpp_compiler)
 
     if args.command == "bootstrap":
         return 0

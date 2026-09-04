@@ -138,6 +138,32 @@ endif()
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
+set(CE_COMPILER_ENUM_IMPL
+    "${CMAKE_BINARY_DIR}/generated/enum_to_string_impl.inl"
+)
+
+add_custom_command(
+    OUTPUT "${CE_COMPILER_ENUM_IMPL}"
+    COMMAND
+        "${Python3_EXECUTABLE}"
+        "${CE_BUILD_SCRIPT}"
+        compiler_enum_impl
+        "${CMAKE_CXX_COMPILER_ID}"
+    DEPENDS
+        "${CE_BUILD_SCRIPT}"
+        "${CE_ROOT_DIR}/include/engine/compilers/gcc/enum_to_string.impl.inl"
+        "${CE_ROOT_DIR}/include/engine/compilers/clang/enum_to_string.impl.inl"
+        "${CE_ROOT_DIR}/include/engine/compilers/msvc/enum_to_string.impl.inl"
+    WORKING_DIRECTORY "${CE_ROOT_DIR}"
+    VERBATIM
+)
+
+add_custom_target(ce_generated_compiler_enum
+    DEPENDS "${CE_COMPILER_ENUM_IMPL}"
+)
+
+add_dependencies(ce_engine ce_generated_compiler_enum)
+
 if(WIN32)
     set(HOST_OS "Windows")
     set(PLATFORM_FLAGS -DPLATFORM_WINDOWS)
@@ -435,6 +461,7 @@ add_custom_target(ce_assets ALL DEPENDS "${CE_DATA_FILE_PATH}")
 add_dependencies(ce_assets ce_generated_shaders)
 add_dependencies(
     ce_engine
+    ce_generated_compiler_enum
     ce_generated_shaders
     ce_generated_idl
     ce_assets
