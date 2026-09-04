@@ -71,6 +71,10 @@ namespace CE::Renderer::Resources {
             return mTexture != nullptr;
         }
 
+        uint64_t GetHandleID() {
+            return mHandle.id;
+        }
+
         TextureRef(const TextureRef&) = delete;
         TextureRef& operator=(const TextureRef&) = delete;
 

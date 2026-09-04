@@ -1,4 +1,5 @@
 #include "engine/scripting/bindings/as_cubemap.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::Scripting::Bindings {
     /*
@@ -17,6 +18,8 @@ namespace CE::Scripting::Bindings {
     }
 
     void ASCubemap::SetCubemapFace(TexHandle& handle, Faces face) {
-
+        if (handle == mTextureRefs[static_cast<int>(face)].GetHandleID()) {
+            CE_LOG(CE::LogLevel::Warn, "[Cubemap] Same handle detected for");
+        }
     }
 }
