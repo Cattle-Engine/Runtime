@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "engine/scripting/bindings/as_cubemap.hpp"
 #include "engine/common/utils/enum_to_string.hpp"
 #include "engine/common/tracelog.hpp"
@@ -25,6 +27,7 @@ namespace CE::Scripting::Bindings {
     ASCubemap::ASCubemap(CE::Renderer::Resources::TextureManager& texman) : mTextureManager(texman) {
 
     }
+
     ASCubemap::ASCubemap(
                 CE::Renderer::Resources::TextureManager& texman,
                 const TexHandle& left, const TexHandle& right,
@@ -36,7 +39,24 @@ namespace CE::Scripting::Bindings {
 
     void ASCubemap::SetCubemapFace(TexHandle& handle, Faces face) {
         if (handle == mTextureRefs[static_cast<int>(face)].GetHandleID()) {
-            CE_LOG(CE::LogLevel::Warn, "[Cubemap] Same handle detected for: {}", FaceToString(face));
+            CE_LOG(CE::LogLevel::Warn, "[Cubemap] Same handle detected face for: {}", FaceToString(face));
+        }
+
+        TexRef tex_ref = mTextureManager.Acquire(handle);
+
+        if (!tex_ref.IsValid()) {
+            CE_LOG(LogLevel::Error, "[Cubemap] Invalid texture handle");
+        }
+
+        mTextureRefs[static_cast<int>(face)] = std::move(tex_ref);
+
+        switch (face) {
+            case Faces::Right: mCubemap.right = mTextureRefs[static_cast<int>(face)].Get();
+            case Faces::Left: mCubemap.left = mTextureRefs[static_cast<int>(face)].Get();
+            case Faces::Top: mCubemap.top = mTextureRefs[static_cast<int>(face)].Get();
+            case Faces::Bottom: mCubemap.bottom = mTextureRefs[static_cast<int>(face)].Get();
+            case Faces::Front: mCubemap.front = mTextureRefs[static_cast<int>(face)].Get();
+            case Faces::Back: mCubemap.front = mTextureRefs[static_cast<int>(face)].Get();
         }
     }
 }

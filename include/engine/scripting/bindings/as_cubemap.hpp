@@ -37,6 +37,10 @@ namespace CE::Scripting::Bindings {
 
                 Face(ASCubemap& map, Faces init_face) : host(map), face(init_face) {}
 
+                TexHandle GetTextureHandle() {
+                    return handle;
+                }
+
                 Face& operator=(const TexHandle& in) {
                     handle = in;
                     host.SetCubemapFace(handle, face);
