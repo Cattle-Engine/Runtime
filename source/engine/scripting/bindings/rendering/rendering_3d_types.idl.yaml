@@ -1,0 +1,51 @@
+RegistrationPriority: 90
+ASNamespace: CE::Graphics::Render3D
+
+RequiredCppHeaders: 
+  - "engine/scripting/bindings/as_cubemap.hpp"
+
+ASTypes:    
+  - Name: CubemapFace
+    CppType: CE::Scripting::Bindings::ASCubemap::Face
+    Flags: 
+      - Reference
+      - NoCount
+
+    Operators:
+      - Operator: "="
+        ReturnType: "CubemapFace&"
+        Signature: const Texture& in
+        Body: |
+          *self = arg0;
+          return *self;
+        IsConst: false
+
+      - Operator: "="
+        ReturnType: "CubemapFace&"
+        Signature: const CubemapFace& in
+        Body: |
+          *self = arg0;
+          return *self;
+        CallingConvention: CDeclObjLast
+        Isconst: false
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: const CubemapFace& in
+        Body: |
+          return *self == arg0;
+        CallingConvention: CDeclObjLast
+        IsConst: True
+
+    Methods: 
+      - Name: GetTexture
+        ReturnType: Texture
+        Signature: "Texture"
+        Body: |
+          return self->GetTextureHandle();
+        CallingConvention: Generic
+
+  - Name: Cubemap
+    CppType: CE::Scripting::Bindings::ASCubemap
+    Flags:
+      - Value

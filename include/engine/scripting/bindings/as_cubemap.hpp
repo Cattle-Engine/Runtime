@@ -32,12 +32,12 @@ namespace CE::Scripting::Bindings {
 
             struct Face {
                 ASCubemap& host;
-                TexHandle handle;
+                TexHandle handle = InvalidHandle;
                 Faces face = Faces::Right;
 
                 Face(ASCubemap& map, Faces init_face) : host(map), face(init_face) {}
-
-                TexHandle GetTextureHandle() {
+                
+                TexHandle GetTextureHandle() const {
                     return handle;
                 }
 
@@ -52,6 +52,10 @@ namespace CE::Scripting::Bindings {
                     host.SetCubemapFace(handle, face);
                     return *this;
                 }
+
+                bool operator==(const Face& in) const {
+                    return in.handle == handle && in.face == face;
+                }
             };
 
             Face Right = Face(*this, Faces::Right);
@@ -59,14 +63,14 @@ namespace CE::Scripting::Bindings {
             Face Top = Face(*this, Faces::Top);
             Face Bottom = Face(*this, Faces::Bottom);
             Face Front = Face(*this, Faces::Front);
-            Face Back = Face(*this, Faces::Bottom);
+            Face Back = Face(*this, Faces::Back);
         private:
-            CE::Renderer::CubeMap mCubemap;
+            CE::Renderer::CubeMap mCubemap{};
             CE::Renderer::Resources::TextureManager& mTextureManager;
 
             std::array<TexRef, 6> mTextureRefs;
 
-            void SetCubemapFace(TexHandle& handle, Faces face);       
+            void SetCubemapFace(const TexHandle& handle, Faces face);       
              std::string FaceToString(Faces face);
     };
 }
