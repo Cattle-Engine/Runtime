@@ -98,7 +98,7 @@ namespace CE {
         }
 
         gScriptingManager = std::make_unique<CE::Scripting::Runtime>(
-            *gVFS, *gGameInfo, *gSettingsManager, *this, *gRenderer, *gTextureManager, *gShaderManager, *gSkyBoxManager,
+            *gVFS, *gGameInfo, *gSettingsManager, *this, *gRenderer, *gTextureManager, *gShaderManager,
             *gFontManager, *gGPUMeshManager, *gMaterialManager, *gAnimatedTextureManager, *gKeyboardManger,
             *gMouseManger, *mRendererResourcesNameRegistry, gProgramArguments.OutputDebugASInfo,
             gProgramArguments.OutputDebugASInfoPath, gAudioManager.get());
@@ -206,7 +206,7 @@ namespace CE {
             gRenderer->EndMode2D();
 
             gRenderer->ImGuiStartFrame();
-            gDebugWindow.Draw(*gRenderer, *gTextureManager, *gShaderManager, *gSkyBoxManager, *gFontManager, *gGameInfo,
+            gDebugWindow.Draw(*gRenderer, *gTextureManager, *gShaderManager, *gFontManager, *gGameInfo,
                               *gSettingsManager, gAudioManager.get(), *gKeyboardManger, *this, *gMouseManger,
                               this->GetFPS(), this->GetDeltaTime(), this->GetFrameTime());
             gRenderer->ImGuiEndFrame(gWindow);
@@ -365,7 +365,6 @@ namespace CE {
         g3DModelImporter.reset();
         gFontManager.reset();
         gAnimatedTextureManager.reset();
-        gSkyBoxManager.reset();
         gShaderManager.reset();
         gModelRenderer.reset();
         gGPUMeshManager.reset();

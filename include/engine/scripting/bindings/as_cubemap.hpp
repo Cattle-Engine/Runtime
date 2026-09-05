@@ -63,5 +63,6 @@ namespace CE::Scripting::Bindings {
             std::array<TexRef, 6> mTextureRefs;
 
             void SetCubemapFace(TexHandle& handle, Faces face);       
+             std::string FaceToString(Faces face);
     };
 }

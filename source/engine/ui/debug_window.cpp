@@ -8,7 +8,6 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/fonts.hpp"
-#include "engine/rendering/resources/skybox_manager.hpp"
 #include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
@@ -192,13 +191,11 @@ namespace CE::UI {
     void DebugWindow::DrawPerformanceTab(CE::Renderer::IRenderer& renderer,
                                          CE::Renderer::Resources::TextureManager& texman,
                                          CE::Renderer::Resources::ShaderManager& shaderman,
-                                         CE::Renderer::Resources::SkyBoxManager& skyboxman,
                                          const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
                                          float frameTime) {
         (void)renderer;
         (void)texman;
         (void)shaderman;
-        (void)skyboxman;
         (void)settings;
 
         ImGui::Text("Performance");
@@ -378,10 +375,12 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawRendererTab(CE::Renderer::IRenderer& renderer, const Settings::SettingsManager& settings,
-                                      Renderer::Resources::TextureManager& texman,
-                                      CE::Renderer::Resources::ShaderManager& shaderman,
-                                      CE::Renderer::Resources::SkyBoxManager& skyboxman, Assets::Fonts::FontManager& fontman) {
+    void DebugWindow::DrawRendererTab(
+        CE::Renderer::IRenderer& renderer, const Settings::SettingsManager& settings,
+        Renderer::Resources::TextureManager& texman,
+        CE::Renderer::Resources::ShaderManager& shaderman,
+        Assets::Fonts::FontManager& fontman
+    ) {
         ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
 
         Utils::SpaceSep();
@@ -447,88 +446,6 @@ namespace CE::UI {
             camera3->projection = Renderer::Camera3D::ProjectionMode::Perspective;
 
             camera3->orthoSize = 10.0f;
-        }
-
-        CE::UI::Utils::SpaceSep();
-
-        if (ImGui::CollapsingHeader("SkyBoxes")) {
-            ImGui::Text("Active Skybox: %s", skyboxman.Debug_GetBoundSkyBoxName().c_str());
-            ImGui::Text("Loaded: %d", skyboxman.Debug_LoadedSkyBoxesCount());
-            ImGui::Text("Valid: %d", skyboxman.Debug_LoadedSkyBoxesNoError());
-            ImGui::Text("Errored: %d", skyboxman.Debug_LoadedSkyBoxesError());
-
-            ImGui::SeparatorText("Create / Load");
-            ImGui::InputText("Skybox Name", &gSkyBoxState.name);
-            ImGui::InputText("Front", &gSkyBoxState.front);
-            ImGui::InputText("Back", &gSkyBoxState.back);
-            ImGui::InputText("Left", &gSkyBoxState.left);
-            ImGui::InputText("Right", &gSkyBoxState.right);
-            ImGui::InputText("Top", &gSkyBoxState.top);
-            ImGui::InputText("Bottom", &gSkyBoxState.bottom);
-
-            if (ImGui::Button("Load Skybox")) {
-                skyboxman.Load(gSkyBoxState.front, gSkyBoxState.back, gSkyBoxState.left, gSkyBoxState.right,
-                               gSkyBoxState.top, gSkyBoxState.bottom, gSkyBoxState.name);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set Active")) {
-                skyboxman.Set(gSkyBoxState.name);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Clear Active")) {
-                skyboxman.Set("");
-            }
-
-            CE::UI::Utils::SpaceSep();
-
-            auto skyboxes = skyboxman.Debug_GetSkyBoxes();
-            if (ImGui::TreeNode("Loaded Skyboxes")) {
-                for (const auto& skybox : skyboxes) {
-                    ImGui::PushID(skybox.name.c_str());
-                    if (ImGui::TreeNode(skybox.name.c_str())) {
-                        ImGui::Text("Active: %s", skybox.isActive ? "Yes" : "No");
-                        ImGui::Text("Error Skybox: %s", skybox.isErrorSkyBox ? "Yes" : "No");
-                        ImGui::Text("Front: %s", skybox.frontPath.c_str());
-                        ImGui::Text("Back: %s", skybox.backPath.c_str());
-                        ImGui::Text("Left: %s", skybox.leftPath.c_str());
-                        ImGui::Text("Right: %s", skybox.rightPath.c_str());
-
-                        if (ImGui::Button("Set")) {
-                            skyboxman.Set(skybox.name.c_str());
-                        }
-                        ImGui::SameLine();
-                        if (ImGui::Button("Unload")) {
-                            skyboxman.Unload(skybox.name.c_str());
-                            ImGui::TreePop();
-                            ImGui::PopID();
-                            continue;
-                        }
-
-                        auto previewFace = [&](const char* label, const std::shared_ptr<CE::Renderer::Texture>& face) {
-                            ImGui::Text("%s", label);
-                            if (face) {
-                                void* nativeTexture = renderer.GetNativeTextureHandle(face.get());
-                                if (nativeTexture) {
-                                    ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(96, 96));
-                                } else {
-                                    ImGui::TextDisabled("No native preview available");
-                                }
-                            } else {
-                                ImGui::TextDisabled("Missing face");
-                            }
-                        };
-
-                        previewFace("Front", skybox.cubeMap.front);
-                        previewFace("Back", skybox.cubeMap.back);
-                        previewFace("Left", skybox.cubeMap.left);
-                        previewFace("Right", skybox.cubeMap.right);
-
-                        ImGui::TreePop();
-                    }
-                    ImGui::PopID();
-                }
-                ImGui::TreePop();
-            }
         }
 
         Utils::SpaceSep();
@@ -732,7 +649,7 @@ namespace CE::UI {
 
     void DebugWindow::Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
                            CE::Renderer::Resources::ShaderManager& shaderman,
-                           CE::Renderer::Resources::SkyBoxManager& skyboxman, CE::Assets::Fonts::FontManager& fontman,
+                           CE::Assets::Fonts::FontManager& fontman,
                            CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
                            CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger,
                            CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
@@ -760,7 +677,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Performance")) {
-                DrawPerformanceTab(renderer, texman, shaderman, skyboxman, settings, fps, deltaTime, frameTime);
+                DrawPerformanceTab(renderer, texman, shaderman, settings, fps, deltaTime, frameTime);
                 ImGui::EndTabItem();
             }
 
@@ -770,7 +687,7 @@ namespace CE::UI {
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings, texman, shaderman, skyboxman, fontman);
+                DrawRendererTab(renderer, settings, texman, shaderman, fontman);
                 ImGui::EndTabItem();
             }
 
@@ -781,13 +698,13 @@ namespace CE::UI {
     }
 
     void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                     CE::Renderer::Resources::ShaderManager& shaderman, CE::Renderer::Resources::SkyBoxManager& skyboxman,
+                     CE::Renderer::Resources::ShaderManager& shaderman,
                      CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
                      CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman,
                      Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps,
                      float deltaTime, float frameTime) {
         static DebugWindow window;
-        window.Draw(renderer, texman, shaderman, skyboxman, fontman, gameinfo, settings, audioman, kbmanger, instance,
+        window.Draw(renderer, texman, shaderman, fontman, gameinfo, settings, audioman, kbmanger, instance,
                     msmanager, fps, deltaTime, frameTime);
     }
 } // namespace CE::UI

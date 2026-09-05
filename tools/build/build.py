@@ -484,18 +484,21 @@ def clean_generated_artifacts(build_dir: Path, *, remove_build_dir: bool) -> Non
 
 def generate_compiler_enum_impl(compiler: str):
     generated_path: Path = BUILD_DIR / "generated" / "enum_to_string_impl.inl"
-    source_path: Path = ROOT / "include" / "engine" / "compilers" 
+    source_path: Path = ROOT / "include" / "engine" / "compilers"
 
     match compiler:
         case "GNU":
-            source_path / "gcc"
+            source_path = source_path / "gcc"
         case "Clang":
-            source_path / "clang"
+            source_path = source_path / "clang"
         case "MSVC":
-            source_path / "msvc"
+            source_path = source_path / "msvc"
+        case _:
+            raise ValueError(f"Unsupported compiler: {compiler}")
 
-    source_path + "enum_to_string.impl.inl"
+    source_path = source_path / "enum_to_string_impl.inl"
 
+    generated_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy(source_path, generated_path)
 
 def parse_args() -> argparse.Namespace:
@@ -521,7 +524,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--build-dir", type=Path, default=BUILD_DIR, help="CMake build directory.")
     parser.add_argument("--triplet", default=detect_triplet(), help="VCPKG target triplet.")
     parser.add_argument("--config", default="Debug", help="CMake configuration on multi-config generators.")
-    parser.add_argument("cpp_compiler", help="C++ compiler cmake uses")
+    parser.add_argument("cpp_compiler", nargs="?", help="C++ compiler cmake uses")
     return parser.parse_args()
 
 

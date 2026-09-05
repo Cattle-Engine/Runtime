@@ -5,7 +5,6 @@
 namespace CE {
     int Instance::Bootstrap_RendererResourceManagers() {
         gTextureManager = std::make_unique<CE::Renderer::Resources::TextureManager>(*gVFS, *gRenderer);
-        gSkyBoxManager = std::make_unique<CE::Renderer::Resources::SkyBoxManager>(gRenderer.get(), gVFS.get());
         gFontManager = std::make_unique<CE::Assets::Fonts::FontManager>(*gRenderer, *gVFS, gInstanceID);
 
         gShaderManager = std::make_unique<CE::Renderer::Resources::ShaderManager>(*gVFS, *gRenderer, *gTextureManager);

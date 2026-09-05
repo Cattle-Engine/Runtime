@@ -7,7 +7,6 @@
 #include "engine/assets/3d_model_importer.hpp"
 #include "engine/assets/animated_textures.hpp"
 #include "engine/assets/fonts.hpp"
-#include "engine/rendering/resources/skybox_manager.hpp"
 #include "engine/audio/audio.hpp"
 #include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/containers/registries.hpp"
@@ -76,7 +75,6 @@ namespace CE {
         std::unique_ptr<Renderer::Resources::ModelRenderer> gModelRenderer;
         std::unique_ptr<Renderer::Resources::ShaderManager> gShaderManager;
 
-        std::unique_ptr<CE::Renderer::Resources::SkyBoxManager> gSkyBoxManager;
         std::unique_ptr<Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
         std::unique_ptr<Assets::Model3DImporter::ModelImporter> g3DModelImporter;
         std::unique_ptr<Assets::Fonts::FontManager> gFontManager;

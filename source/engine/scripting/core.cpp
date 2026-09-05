@@ -30,7 +30,7 @@ namespace CE::Scripting {
     Runtime::Runtime(
         VFS::VFS& vfs, GameInfo& game_info, Settings::SettingsManager& settings_manager, Instance& instance,
         Renderer::IRenderer& renderer, Renderer::Resources::TextureManager& texture_manager,
-        Renderer::Resources::ShaderManager& shader_manager, CE::Renderer::Resources::SkyBoxManager& skybox_manager,
+        Renderer::Resources::ShaderManager& shader_manager,
         Assets::Fonts::FontManager& font_manager, Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
         Renderer::Resources::MaterialManager& material_manager,
         Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
@@ -44,7 +44,6 @@ namespace CE::Scripting {
           mRenderer(renderer),
           mTextureManager(texture_manager),
           mShaderManager(shader_manager),
-          mSkyboxManager(skybox_manager),
           mFontManager(font_manager),
           mGPUMeshManager(gpu_mesh_manager),
           mMaterialManager(material_manager),

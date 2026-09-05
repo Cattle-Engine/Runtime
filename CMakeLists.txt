@@ -151,9 +151,9 @@ add_custom_command(
         "${CMAKE_CXX_COMPILER_ID}"
     DEPENDS
         "${CE_BUILD_SCRIPT}"
-        "${CE_ROOT_DIR}/include/engine/compilers/gcc/enum_to_string.impl.inl"
-        "${CE_ROOT_DIR}/include/engine/compilers/clang/enum_to_string.impl.inl"
-        "${CE_ROOT_DIR}/include/engine/compilers/msvc/enum_to_string.impl.inl"
+        "${CE_ROOT_DIR}/include/engine/compilers/gcc/enum_to_string_impl.inl"
+        "${CE_ROOT_DIR}/include/engine/compilers/clang/enum_to_string_impl.inl"
+        "${CE_ROOT_DIR}/include/engine/compilers/msvc/enum_to_string_impl.inl"
     WORKING_DIRECTORY "${CE_ROOT_DIR}"
     VERBATIM
 )
@@ -161,8 +161,6 @@ add_custom_command(
 add_custom_target(ce_generated_compiler_enum
     DEPENDS "${CE_COMPILER_ENUM_IMPL}"
 )
-
-add_dependencies(ce_engine ce_generated_compiler_enum)
 
 if(WIN32)
     set(HOST_OS "Windows")

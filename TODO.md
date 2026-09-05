@@ -29,6 +29,7 @@
 - [X] Move audio manager from engine/assets/audio.hpp to engine/audio/audio_resource_manager.hpp, also put its class into CE::Audio::Resources 
 - [X] Migrate audio manager to use a struct and not just uint32_t
 - [X] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
+- [X] Remove the skybox manager files and class from the engine. I'm using ASCubemap and making it just bind that
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -72,7 +73,7 @@ export int foo_func() {
 
 }
 ```
-- [ ] Remove the skybox manager files and class from the engine. I'm using ASCubemap and making it just bind that
+
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs
