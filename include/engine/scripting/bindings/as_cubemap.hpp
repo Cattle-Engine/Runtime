@@ -20,7 +20,7 @@ namespace CE::Scripting::Bindings {
                 const TexHandle& top = InvalidHandle, const TexHandle& bottom = InvalidHandle,
                 const TexHandle& front = InvalidHandle, const TexHandle& back = InvalidHandle
             );
-
+            CE::Renderer::CubeMap mCubemap{}; // not exposed to AS
             enum class Faces {
                 Right,
                 Left,
@@ -65,7 +65,6 @@ namespace CE::Scripting::Bindings {
             Face Front = Face(*this, Faces::Front);
             Face Back = Face(*this, Faces::Back);
         private:
-            CE::Renderer::CubeMap mCubemap{};
             CE::Renderer::Resources::TextureManager& mTextureManager;
 
             std::array<TexRef, 6> mTextureRefs;

@@ -924,7 +924,6 @@ ASTypes:
           return *self * c + glm::cross(axis, *self) * s + axis * glm::dot(axis, *self) * (1.0f - c);
         CallingConvention: CDeclObjLast
         IsConst: true
-
   # also registers Vertex3DVector into CE::Containers::
   - Name: Vertex3D
     CppType: CE::Renderer::Vertex3D
@@ -1038,3 +1037,8 @@ ASEnums:
       - None
       - Horizontal
       - Vertical
+
+ASConstants:
+  - Name: NoTexture
+    Type: "Texture"
+    Value: CE::Renderer::Resources::kInvalidHandle

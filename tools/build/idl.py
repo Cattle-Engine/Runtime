@@ -45,6 +45,7 @@ class ASBehaviour(ASBindableCallable):
     type: str = ""
     cpp_function: str = ""
     signature: str = ""
+    cpp_signature: str = ""
     calling_convention: str = "CDecl"
 
 
@@ -189,7 +190,8 @@ def parse_as_method(data: dict[str, Any]) -> ASMethod:
         name=data["Name"],
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
-        cpp_function=data.get("CppFunction", ""),
+        cpp_signature=data.get("CppSignature", ""),
+        cpp_function=data.get("CppFunction", data.get("Signature", "")),
         inline_body=data.get("Body", ""),
         is_const=data.get("IsConst", False),
         calling_convention=data.get("CallingConvention", "ThisCall"),

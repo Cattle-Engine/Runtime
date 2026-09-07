@@ -49,3 +49,45 @@ ASTypes:
     CppType: CE::Scripting::Bindings::ASCubemap
     Flags:
       - Value
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Scripting::Bindings::ASCubemap(mRuntime.mTexture);
+        CallingConvention: CDeclObjFirst
+
+      - Type: Construct
+        Signature: Texture& left in, Texture right = NoTexture, Texture top = NoTexture, Texture bottom = NoTexture, Texture front = NoTexture, Texture
+        CppSignature: TexHandle,TexHandle,TexHandle,TexHandle,TexHandle,TexHandle
+        Body: |
+          new(self) CE::Scripting::Bindings::ASCubemap(mRuntime.mTexture,arg0,arg1,arg2,arg3,arg4,arg5);
+
+      - Type: Destructor
+        Body: |
+          delete(self);
+        CallingConvention: CDeclObjFirst
+
+    Properties:
+      - Type: CubemapFace
+        CppMember: Right
+        ASMember: right
+
+      - Type: CubemapFace
+        CppMember: Left
+        ASMember: left
+
+      - Type: CubemapFace
+        CppMember: Top
+        ASMember: top
+      
+      - Type: CubemapFace
+        CppMember: Bottom
+        ASMember: bottom
+
+      - Type: CubemapFace
+        CppMember: Front
+        ASMember: front
+
+      - Type: CubemapFace
+        CppMember: Back
+        ASMember: back

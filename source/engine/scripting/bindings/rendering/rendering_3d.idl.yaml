@@ -1,0 +1,17 @@
+RegistrationPriority: 89
+
+RequiredCppHeaders:
+  - "engine/scripting/bindings/as_cubemap.hpp"
+
+ASNamespace: CE::Graphics::Render3D
+
+ASClassFunctions:
+  - Name: SetSkybox
+    ReturnType: void
+    Signature: const Cubemap& in
+    CppSignature: const ASCubemap&
+    Description: |
+      Sets a Cubemap to be a skybox. 
+      If a cubemap has NoTexture inside a face that face will just use the default clear colour
+    Function: |
+      mRuntime.mRenderer.SetSkyBox(arg0);
