@@ -97,7 +97,7 @@ Maybe use handles instead of strings for audio buses
 
 # Make the documentation in the idl yaml better
 
-```
+```yaml
 - Name: LoadSound
   ReturnType: void
   Signature: const string& in filepath, const AudioType& in type, AudioAsset& out handle
@@ -121,4 +121,33 @@ Maybe use handles instead of strings for audio buses
   Function: |
     if (!mRuntime.mAudioManager) return;
     arg2 = mRuntime.mAudioManager->LoadSound(arg0, arg1);
+```
+
+# Better idea for the ECS idea in TODO.md
+So, ECS's are fun and all but I have a much better idea,
+that doesn't mean the entire engine turns into a fkin ECS framework.
+We take the bulk data storage idea of an ECS BUT, 
+
+For the main class; ACCS: Actor Component Control System
+
+For components do this
+
+```cpp
+struct ComponentTypeID {
+    uint32_t id
+}
+
+class IActorComponent {
+    public:
+        IActorComponent() = default;
+        ~IActorComponent() = default;
+
+        virtual ComponentTypeID GetTypeID() const = 0;
+};
+```
+
+and then for their controller
+
+Then we have an actor class:
+
 ```

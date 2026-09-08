@@ -74,6 +74,20 @@ export int foo_func() {
 }
 ```
 
+List of bindings to do:
+Instance stuff:
+    delta time
+    frame time
+    quitting
+
+Window control
+Input
+VFS
+Settings
+TDF
+hasher (inside engine/common/utils/hasher.hpp)
+
+- [ ] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs
