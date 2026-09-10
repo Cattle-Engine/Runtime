@@ -20,6 +20,7 @@
 #include "engine/settings.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/version.hpp"
+#include "engine/common/window.hpp"
 
 #include "imgui.h"
 #include "imgui_stdlib.h"
@@ -27,6 +28,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+
+constexpr std::array<const char*, static_cast<size_t>(CE::Common::Window::WindowMode::Count)> WindowModeNames = {
+    "Windowed",
+    "Borderless",
+    "Fullscreen"
+};
 
 std::string FormatBytes(std::size_t bytes) {
     constexpr double KB = 1024.0;
@@ -139,7 +146,10 @@ namespace CE::UI {
             ImGui::Text("Window title: %s", gameinfo.windowTitle.c_str());
             ImGui::Text("Window size: %i x %i", gameinfo.windowWidth, gameinfo.windowHeight);
             ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
-            ImGui::Text("Fullscreen: %s", gameinfo.fullscreen ? "Yes" : "No");
+            ImGui::Text(
+                "Window Mode: %s",
+                WindowModeNames[static_cast<size_t>(gameinfo.windowMode)]
+            );
             ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
         }
 
@@ -299,7 +309,16 @@ namespace CE::UI {
         ImGui::InputInt("Width", &s.windowWidth);
         ImGui::InputInt("Height", &s.windowHeight);
 
-        ImGui::Checkbox("Fullscreen", &s.fullscreen);
+        int window_mode = static_cast<int>(s.windowMode);
+        if (ImGui::Combo(
+            "Window Mode",
+            &window_mode,
+            WindowModeNames.data(),
+            static_cast<int>(WindowModeNames.size()))
+        ) {
+            s.windowMode = static_cast<Common::Window::WindowMode>(window_mode);
+        }
+
         ImGui::Checkbox("VSync", &s.enableVSync);
 
         Utils::SpaceSep();

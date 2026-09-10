@@ -4,11 +4,11 @@
 #include <string>
 
 namespace CE {
-    enum LogLevel {
+    enum class LogLevel {
         Info,
         Warn,
         Debug,
-        Error,
+        Error, 
         Fatal,
     };
 

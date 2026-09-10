@@ -1,27 +1,28 @@
+#include <memory>
+#include <stdexcept>
 #include <SDL3/SDL.h>
 
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/fullscreen.hpp"
+#include "engine/instance.hpp"
+#include "engine/common/window.hpp"
+
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/rendering/renderer.hpp"
 
-namespace CE::Bootstrap {
-    int Init_Video(std::unique_ptr<GameInfo>& gameinfo, const Settings::SettingsInfo& settings, bool debugvideo,
-                   std::unique_ptr<CE::Renderer::IRenderer>& renderer, RendererBackend& backend, SDL_Window*& window,
-                   std::unique_ptr<VFS::VFS>& vfs, Renderer::GPUDeviceHandle gpudevice) {
-
-        renderer =
-            std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpudevice->backend, vfs.get()));
-        renderer->PreWinInit();
+namespace CE {
+    int Instance::Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device) {
+        mRenderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpu_device->backend, mVFS.get()));
+        mRenderer->PreWinInit();
 
         std::string window_title;
-        if (gameinfo->windowTitle.empty()) { // If a window title was not provided use the game name
-            window_title = gameinfo->gameNameString;
+        if (mGameInfo->windowTitle.empty()) { // If a window title was not provided use the game name
+            window_title = mGameInfo->gameNameString;
         } else {
-            window_title = gameinfo->windowTitle;
+            window_title = mGameInfo->windowTitle;
         }
+        
+        auto settings = mSettingsManager->Settings;
 
         CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
         CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth,
@@ -30,27 +31,27 @@ namespace CE::Bootstrap {
         CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
 
         SDL_WindowFlags windowFlags = 0;
-        if (backend == RendererBackend::OpenGL)
+        if (gRendererBackend == RendererBackend::OpenGL)
             windowFlags |= SDL_WINDOW_OPENGL;
-        if (gameinfo->resizableWindow)
+        if (mGameInfo->resizableWindow)
             windowFlags |= SDL_WINDOW_RESIZABLE;
 
-        window = SDL_CreateWindow(window_title.c_str(), settings.windowWidth, settings.windowHeight, windowFlags);
-
-        if (window == nullptr) {
-            CE_LOG(CE::LogLevel::Fatal, "[Window] Failed to create game window: {}", SDL_GetError());
+        try {
+            mWindow = std::make_unique<Common::Window>(*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
+        } catch (const std::runtime_error& e) {
             ShowError("Failed to create game window :{");
             return 3;
         }
 
-        if (settings.fullscreen) {
-            if (!CE::ApplyFullscreenMode(window, settings.windowWidth, settings.windowHeight)) {
-                CE_LOG(CE::LogLevel::Fatal, "[Window] Failed to apply fullscreen mode: {}", SDL_GetError());
+        if (settings.windowMode == Common::Window::WindowMode::Fullscreen) {
+            if (!mWindow->SetWindowMode(Common::Window::WindowMode::Fullscreen)) {
+                mWindow->HideWindow(true);
+                ShowError("Failed to set game window to fullscreen");
                 return 4;
             }
         }
 
-        int rei = renderer->Init(window, debugvideo, gpudevice);
+        int rei = mRenderer->Init(mWindow->GetWindow(), gDebug, gpu_device);
         if (rei != 0) {
             return 4 + rei;
         }

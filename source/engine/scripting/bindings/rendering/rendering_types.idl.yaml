@@ -1041,4 +1041,5 @@ ASEnums:
 ASConstants:
   - Name: NoTexture
     Type: "Texture"
-    Value: CE::Renderer::Resources::kInvalidHandle
+    CppType: CE::Renderer::Resources::TextureHandle
+    Value: 0

@@ -23,6 +23,7 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/scripting/angelscript.hpp"
+#include "engine/common/window.hpp"
 #include "engine/ui/debug_window.hpp"
 
 // A global to get all instances
@@ -31,8 +32,13 @@ inline uint64_t GLOBALINSTANCESCOUNTER;
 namespace CE {
     class Instance {
       public:
-        Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
-                 EngineArguements args);
+        Instance(
+          const char* data_file_path, 
+          bool debugmode, 
+          Renderer::GPUDeviceHandle& gpudevice,
+          EngineArguements args
+        );
+
         int Update();
         bool ShouldExit();
         void Exit();
@@ -40,7 +46,6 @@ namespace CE {
         float GetFrameTime() const;
         int GetFPS() const;
         void ReloadSettings(); // Reload settings, that's all it does :shrug:
-        void SetWindowIcon(std::string path);
         int GetInstanceID();
         void SetGameState(const std::string& state);
         const std::string& GetGameState() const;
@@ -54,32 +59,33 @@ namespace CE {
         // Only to be called at startup!
         int Bootstrap_RendererResourceManagers();
         int Bootstrap_AssetImportersAndManagers();
+        int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device);
 
-        std::unique_ptr<VFS::VFS> gVFS;
-        std::unique_ptr<GameInfo> gGameInfo;
+        std::unique_ptr<VFS::VFS> mVFS;
+        std::unique_ptr<GameInfo> mGameInfo;
         std::unique_ptr<Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
-        std::unique_ptr<Settings::SettingsManager> gSettingsManager;
-        std::unique_ptr<Renderer::IRenderer> gRenderer;
+        std::unique_ptr<Settings::SettingsManager> mSettingsManager;
+        std::unique_ptr<Renderer::IRenderer> mRenderer;
 
-        std::unique_ptr<Input::Keyboard> gKeyboardManger;
-        std::unique_ptr<Input::Mouse> gMouseManger;
+        std::unique_ptr<Input::Keyboard> mKeyboardManger;
+        std::unique_ptr<Input::Mouse> mMouseManger;
 
-        std::unique_ptr<Scripting::Runtime> gScriptingManager;
+        std::unique_ptr<Scripting::Runtime> mScriptingManager;
 
-        std::unique_ptr<Core::Audio::AudioSystem> gAudioSystem;
-        std::unique_ptr<Audio::Resources::AudioManager> gAudioManager;
+        std::unique_ptr<Core::Audio::AudioSystem> mAudioSystem;
+        std::unique_ptr<Audio::Resources::AudioManager> mAudioManager;
 
-        std::unique_ptr<Renderer::Resources::GPUMeshManager> gGPUMeshManager;
-        std::unique_ptr<Renderer::Resources::MaterialManager> gMaterialManager;
-        std::unique_ptr<Renderer::Resources::TextureManager> gTextureManager;
-        std::unique_ptr<Renderer::Resources::ModelRenderer> gModelRenderer;
-        std::unique_ptr<Renderer::Resources::ShaderManager> gShaderManager;
+        std::unique_ptr<Renderer::Resources::GPUMeshManager> mGPUMeshManager;
+        std::unique_ptr<Renderer::Resources::MaterialManager> mMaterialManager;
+        std::unique_ptr<Renderer::Resources::TextureManager> mTextureManager;
+        std::unique_ptr<Renderer::Resources::ModelRenderer> mModelRenderer;
+        std::unique_ptr<Renderer::Resources::ShaderManager> mShaderManager;
 
         std::unique_ptr<Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
         std::unique_ptr<Assets::Model3DImporter::ModelImporter> g3DModelImporter;
         std::unique_ptr<Assets::Fonts::FontManager> gFontManager;
 
-        SDL_Window* gWindow = nullptr;
+        std::unique_ptr<Common::Window> mWindow;
         RendererBackend gRendererBackend = RendererBackend::None;
         bool gDebug = false;
         bool gShouldExit = false;

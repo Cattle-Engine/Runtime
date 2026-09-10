@@ -15,6 +15,7 @@ ASTypes:
       - Operator: "="
         ReturnType: "CubemapFace&"
         Signature: const Texture& in
+        CppSignature: const CE::Renderer::Resources::TextureHandle&
         Body: |
           *self = arg0;
           return *self;
@@ -27,7 +28,7 @@ ASTypes:
           *self = arg0;
           return *self;
         CallingConvention: CDeclObjLast
-        Isconst: false
+        IsConst: false
 
       - Operator: "=="
         ReturnType: bool
@@ -40,32 +41,40 @@ ASTypes:
     Methods: 
       - Name: GetTexture
         ReturnType: Texture
-        Signature: "Texture"
-        Body: |
-          return self->GetTextureHandle();
-        CallingConvention: Generic
+        CppFunction: asMETHOD(CE::Scripting::Bindings::ASCubemap::Face, GetTextureHandle)
+        CallingConvention: ThisCall
 
   - Name: Cubemap
     CppType: CE::Scripting::Bindings::ASCubemap
     Flags:
       - Value
 
+    AfterRegister: |
+      CE::Scripting::Bindings::ASCubemap::SetDefaultTextureManager(mRuntime.mTextureManager);
+
     Behaviours:
       - Type: Construct
         Body: |
-          new(self) CE::Scripting::Bindings::ASCubemap(mRuntime.mTexture);
-        CallingConvention: CDeclObjFirst
+          new(self) CE::Scripting::Bindings::ASCubemap();
+        CallingConvention: CDeclObjLast
 
       - Type: Construct
-        Signature: Texture& left in, Texture right = NoTexture, Texture top = NoTexture, Texture bottom = NoTexture, Texture front = NoTexture, Texture
-        CppSignature: TexHandle,TexHandle,TexHandle,TexHandle,TexHandle,TexHandle
+        Signature: Texture left, Texture right = NoTexture, Texture top = NoTexture, Texture bottom = NoTexture, Texture front = NoTexture, Texture back = NoTexture
+        CppSignature: CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle
         Body: |
-          new(self) CE::Scripting::Bindings::ASCubemap(mRuntime.mTexture,arg0,arg1,arg2,arg3,arg4,arg5);
+          new(self) CE::Scripting::Bindings::ASCubemap();
+          self->Left = arg0;
+          self->Right = arg1;
+          self->Top = arg2;
+          self->Bottom = arg3;
+          self->Front = arg4;
+          self->Back = arg5;
+        CallingConvention: CDeclObjLast
 
       - Type: Destructor
         Body: |
-          delete(self);
-        CallingConvention: CDeclObjFirst
+          self->~ASCubemap();
+        CallingConvention: CDeclObjLast
 
     Properties:
       - Type: CubemapFace

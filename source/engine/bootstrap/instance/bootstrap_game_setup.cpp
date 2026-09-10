@@ -6,6 +6,7 @@
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/misc/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/common/window.hpp"
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, [[maybe_unused]] bool debugmode) {
@@ -40,7 +41,7 @@ namespace CE::Bootstrap {
         std::string text = ss.str();
 
         if (!CE::Ini::parse(text, ini, &err, opts)) {
-            CE_LOG(LogLevel::Error, "[Bootstrap] Failed to parse Gameinfo.txt");
+            CE_LOG(LogLevel::Fatal, "[Bootstrap] Failed to parse Gameinfo.txt");
             ShowError("[Bootstrap] Failed to parse Gameinfo.txt");
             return 2;
             ;
@@ -49,9 +50,11 @@ namespace CE::Bootstrap {
         bool gresult = Common::GData_Has(text);
 
         if (!gresult) {
-            CE_LOG(LogLevel::Error, "[Boostrap] Gameinfo.txt is missing required game-info");
+            CE_LOG(LogLevel::Fatal, "[Boostrap] Gameinfo.txt is missing required game-info");
             return 2;
         }
+
+        int window_mode = 0;
 
         gameinfo->gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
         gameinfo->gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
@@ -62,7 +65,7 @@ namespace CE::Bootstrap {
         gameinfo->maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
         gameinfo->rendererName = ini.get_string("Graphics", "Renderer", "None");
         gameinfo->enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
-        gameinfo->fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
+        window_mode = ini.get_int("Graphics", "Window_Mode", 0);
         gameinfo->resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
         gameinfo->startupFileName = ini.get_string("Gameinfo", "Scripting_Startup_File", "startup.as");
         if (ini.has("Gameinfo", "Window_Icon")) {
@@ -85,8 +88,16 @@ namespace CE::Bootstrap {
             std::swap(gameinfo->minWindowHeight, gameinfo->maxWindowHeight);
         }
 
-        CE_LOG(LogLevel::Info, "[Bootstrap info] Game name: {}", gameinfo->gameNameString);
-        CE_LOG(LogLevel::Info, "[Bootstrap Info] Game version: {}", gameinfo->gameVersionString);
+        if (window_mode >= 0 && window_mode <= 2) {
+            gameinfo->windowMode = static_cast<Common::Window::WindowMode>(window_mode);
+        } else {
+            CE_LOG(LogLevel::Error, "[Bootstrap] Window_Mode is out of bounds, using default (windowed)");
+            CE_LOG(LogLevel::Debug, "0 = Fullscreen, 1 = Borderless, 2 = Windowed");
+            gameinfo->windowMode = Common::Window::WindowMode::Windowed;
+        }
+
+        CE_LOG(LogLevel::Info, "[Bootstrap] Game name: {}", gameinfo->gameNameString);
+        CE_LOG(LogLevel::Info, "[Bootstrap] Base game version: {}", gameinfo->gameVersionString);
         return 0;
     }
 } // namespace CE::Bootstrap

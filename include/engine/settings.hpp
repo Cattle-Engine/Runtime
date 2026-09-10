@@ -5,6 +5,7 @@
 
 #include "engine/common/fs/ini.hpp"
 #include "engine/common/misc/gameinfo.hpp"
+#include "engine/common/window.hpp"
 
 namespace CE {
     class Instance;
@@ -17,7 +18,7 @@ namespace CE::Settings {
         int maxFPS;
         bool enableVSync;
         std::string rendererName;
-        bool fullscreen;
+        Common::Window::WindowMode windowMode;
         float masterVolume = 1.0f;
         float musicVolume = 1.0f;
         float sfxVolume = 1.0f;

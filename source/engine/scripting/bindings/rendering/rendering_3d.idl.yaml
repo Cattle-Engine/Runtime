@@ -11,7 +11,7 @@ ASClassFunctions:
     Signature: const Cubemap& in skybox
     CppSignature: const ASCubemap&
     Function: |
-      mRuntime.mRenderer.SetSkyBox(arg0);
+      mRuntime.mRenderer.SetSkyBox(arg0.mCubemap);
 
     Description: |
       Sets a Cubemap to be a skybox. 

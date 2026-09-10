@@ -111,23 +111,23 @@ namespace CE {
         std::string tag;
 
         switch (level) {
-        case Info:
+        case LogLevel::Info:
             colour = blue;
             tag = "[INFO]";
             break;
-        case Warn:
+        case LogLevel::Warn:
             colour = yellow;
             tag = "[WARNING]";
             break;
-        case Debug:
+        case LogLevel::Debug:
             colour = blue;
             tag = "[DEBUG]";
             break;
-        case Error:
+        case LogLevel::Error:
             colour = red;
             tag = "[ERROR]";
             break;
-        case Fatal:
+        case LogLevel::Fatal:
             colour = bold_red;
             tag = "[FATAL]";
             break;

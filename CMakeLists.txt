@@ -424,6 +424,8 @@ add_custom_command(
 
     DEPENDS
         "${CE_BUILD_SCRIPT}"
+        "${CE_ROOT_DIR}/tools/build/idl.py"
+        "${CE_ROOT_DIR}/tools/build/generator.py"
         "${CE_ROOT_DIR}/tools/build/as_binding_gen.py"
         ${CE_IDL_INPUTS}
 

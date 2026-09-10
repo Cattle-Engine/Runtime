@@ -55,6 +55,7 @@ class ASMethod(ASBindableCallable):
     return_type: str = ""
     signature: str = ""
     is_const: bool = False
+    cpp_signature: str = ""
     calling_convention: str = "ThisCall"
 
 
@@ -63,6 +64,7 @@ class ASOperator(ASBindableCallable):
     operator: str = ""
     return_type: str = ""
     signature: str = ""
+    cpp_signature: str = ""
     calling_convention: str = "CDeclObjFirst"
     is_const: bool = True
 
@@ -104,6 +106,7 @@ class ASConstant:
     name: str
     type: str
     value: Any
+    cpp_type: str = ""
     namespace: str = ""
 
 
@@ -181,6 +184,7 @@ def parse_as_behaviour(data: dict[str, Any]) -> ASBehaviour:
         type=data["Type"],
         cpp_function=data.get("CppFunction", ""),
         signature=data.get("Signature", ""),
+        cpp_signature=data.get("CppSignature", ""),
         inline_body=data.get("Body", ""),
         calling_convention=data.get("CallingConvention", "CDecl"),
     )
@@ -203,6 +207,7 @@ def parse_as_operator(data: dict[str, Any]) -> ASOperator:
         operator=data["Operator"],
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
+        cpp_signature=data.get("CppSignature", ""),
         cpp_function=data.get("CppFunction", ""),
         inline_body=data.get("Body", ""),
         calling_convention=data.get("CallingConvention", "CDeclObjFirst"),
@@ -261,6 +266,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 name=x["Name"],
                 type=x["Type"],
                 value=x["Value"],
+                cpp_type=x.get("CppType", ""),
                 namespace=x.get("Namespace", default_namespace),
             )
             for x in data.get("ASConstants", [])
@@ -617,6 +623,7 @@ def _format_cpp_include(include: str) -> str:
 
 
 def _normalize_inline_body(body: str, *, operator_body: bool = False) -> str:
+    # Script value-type references are emitted as C++ references, not pointers.
     body = re.sub(r"\*(arg\d+)", r"\1", body)
     body = body.replace("static_cast<uint64>", "static_cast<uint64_t>")
     body = body.replace("static_cast<uint32>", "static_cast<uint32_t>")
@@ -680,7 +687,7 @@ def _operator_parameter_list(
     self_param = _operator_self_parameter(as_type, operator)
     parts = [
         _resolve_cpp_type(_operator_cpp_parameter_type(as_type, part), type_map or {})
-        for part in _signature_parts(operator.signature)
+        for part in _signature_parts(operator.cpp_signature or operator.signature)
     ]
     params = ", ".join(f"{part} arg{index}" for index, part in enumerate(parts))
 

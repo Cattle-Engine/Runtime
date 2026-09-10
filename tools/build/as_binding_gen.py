@@ -145,9 +145,10 @@ def _behaviour_parameter_list(
     as_type: idl.ASType,
     behaviour: idl.ASBehaviour,
 ) -> str:
+    signature = behaviour.cpp_signature or behaviour.signature
     params = ", ".join(
         f"{_behaviour_cpp_parameter_type(as_type, part)} arg{index}"
-        for index, part in enumerate(_signature_parts(behaviour.signature))
+        for index, part in enumerate(_signature_parts(signature))
     )
     self_param = f"{as_type.cpp_type}* self"
 
@@ -364,9 +365,8 @@ def generate_as_constant(
     else:
         value = str(constant.value)
 
-    gen.write(
-        f"static const {constant.type} s_{constant.name} = {value};"
-    )
+    cpp_type = constant.cpp_type or constant.type
+    gen.write(f"static const {cpp_type} s_{constant.name} = {value};")
 
     gen.write(
         f'CE_CHECK_AS(mScriptEngine.RegisterGlobalProperty("const {constant.type} {constant.name}", (void*)&s_{constant.name}));'

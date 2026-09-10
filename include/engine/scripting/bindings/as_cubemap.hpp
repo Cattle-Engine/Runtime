@@ -13,6 +13,7 @@ namespace CE::Scripting::Bindings {
     class ASCubemap {
         friend struct Face;
         public:
+            ASCubemap();
             ASCubemap(CE::Renderer::Resources::TextureManager& texman);
             ASCubemap(
                 CE::Renderer::Resources::TextureManager& texman,
@@ -21,6 +22,8 @@ namespace CE::Scripting::Bindings {
                 const TexHandle& front = InvalidHandle, const TexHandle& back = InvalidHandle
             );
             CE::Renderer::CubeMap mCubemap{}; // not exposed to AS
+
+            static void SetDefaultTextureManager(CE::Renderer::Resources::TextureManager& texman);
             enum class Faces {
                 Right,
                 Left,
@@ -65,7 +68,9 @@ namespace CE::Scripting::Bindings {
             Face Front = Face(*this, Faces::Front);
             Face Back = Face(*this, Faces::Back);
         private:
-            CE::Renderer::Resources::TextureManager& mTextureManager;
+            CE::Renderer::Resources::TextureManager* mTextureManager = nullptr;
+
+            static CE::Renderer::Resources::TextureManager* sDefaultTextureManager;
 
             std::array<TexRef, 6> mTextureRefs;
 

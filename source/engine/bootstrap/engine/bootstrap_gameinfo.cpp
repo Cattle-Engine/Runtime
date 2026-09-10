@@ -43,6 +43,7 @@ namespace CE::Bootstrap::Engine {
             CE_LOG(LogLevel::Error, "[Common] [Gameinfo Parser] Failed to parse Gameinfo.txt");
             return 3;
         }
+
         gameinfo.gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
         gameinfo.gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
 
@@ -52,7 +53,7 @@ namespace CE::Bootstrap::Engine {
         gameinfo.maxFPS = ini.get_int("Graphics", "Max_FPS", 0);
         gameinfo.rendererName = ini.get_string("Graphics", "Renderer", "None");
         gameinfo.enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
-        gameinfo.fullscreen = ini.get_bool("Graphics", "Fullscreen", false);
+        int window_mode = ini.get_int("Graphics", "Window_Mode", 0);
         gameinfo.resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
         if (gameinfo.minWindowWidth > gameinfo.maxWindowWidth) {
             std::swap(gameinfo.minWindowWidth, gameinfo.maxWindowWidth);
@@ -60,6 +61,14 @@ namespace CE::Bootstrap::Engine {
 
         if (gameinfo.minWindowHeight > gameinfo.maxWindowHeight) {
             std::swap(gameinfo.minWindowHeight, gameinfo.maxWindowHeight);
+        }
+
+        if (window_mode >= 0 && window_mode <= 2) {
+            gameinfo.windowMode = static_cast<Common::Window::WindowMode>(window_mode);
+        } else {
+            CE_LOG(LogLevel::Error, "[Bootstrap] Window_Mode is out of bounds, using default (windowed)");
+            CE_LOG(LogLevel::Debug, "0 = Fullscreen, 1 = Borderless, 2 = Windowed");
+            gameinfo.windowMode = Common::Window::WindowMode::Windowed;
         }
         return 0;
     }
