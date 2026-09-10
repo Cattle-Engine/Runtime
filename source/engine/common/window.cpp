@@ -13,6 +13,9 @@ namespace CE::Common {
             CE_LOG(LogLevel::Error, "[Window] Failed to create window: {}", SDL_GetError());
             throw std::runtime_error("Failed to create window");
         }
+
+        mWindowedSize = size;
+        mFullscreenSize = size;
     }
 
     Window::~Window() {
@@ -69,19 +72,31 @@ namespace CE::Common {
         return (window_flags & SDL_WINDOW_MINIMIZED);
     }
 
-    bool Window::SetWindowSize(WindowSize window_size) {
+    bool Window::SetWindowSize(WindowSize window_size, WindowMode mode) {
         if (!SDL_SetWindowSize(mWindow, window_size.w, window_size.h)) {
             CE_LOG(LogLevel::Error, "[Window] Failed to set window size, {}", SDL_GetError());
             return false;
         }
 
+        if (mode == WindowMode::Fullscreen) {
+            mFullscreenSize = window_size;
+        } else {
+            mWindowedSize = window_size;
+        }
+
+
         return true;
     }
 
-    Window::WindowSize Window::GetWindowSize() {
-        WindowSize size;
-        SDL_GetWindowSizeInPixels(mWindow, &size.w, &size.h);
-        return size;
+    Window::WindowSize Window::GetWindowSize(WindowMode mode) {
+        if (mode == WindowMode::Windowed) {
+            return mWindowedSize;
+        } else if (mode == WindowMode::Fullscreen) {
+            return mFullscreenSize;
+        } else {
+            CE_LOG(LogLevel::Error, "[Window] Borderless window does not have any size");
+            return {0, 0};
+        }
     }
 
     bool Window::SetWindowTitle(const std::string& title) {
@@ -138,7 +153,6 @@ namespace CE::Common {
                 const SDL_DisplayMode* desktop_displaymode =
                     SDL_GetDesktopDisplayMode(display_id);
 
-                const WindowSize window_size = GetWindowSize();
 
                 const float refresh_rate =
                     desktop_displaymode != nullptr
@@ -150,8 +164,8 @@ namespace CE::Common {
                 const bool found_mode =
                     SDL_GetClosestFullscreenDisplayMode(
                         display_id,
-                        window_size.w,
-                        window_size.h,
+                        mFullscreenSize.w,
+                        mFullscreenSize.h,
                         refresh_rate,
                         false,
                         &fullscreen_mode);
@@ -160,8 +174,8 @@ namespace CE::Common {
                     CE_LOG(LogLevel::Warn,
                         "[Window] No matching exclusive fullscreen mode for {}x{}, "
                         "using desktop fullscreen: {}",
-                        window_size.w,
-                        window_size.h,
+                        mFullscreenSize.w,
+                        mFullscreenSize.h,
                         SDL_GetError());
 
                     if (!SDL_SetWindowFullscreenMode(mWindow, nullptr) ||
@@ -245,6 +259,8 @@ namespace CE::Common {
                         SDL_GetError());
                     return false;   
                 }
+
+                SetWindowSize(mWindowedSize, WindowMode::Windowed);
 
                 CE_LOG(LogLevel::Info,
                     "[Window] Windowed mode enabled");

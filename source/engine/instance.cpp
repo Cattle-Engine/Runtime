@@ -95,10 +95,17 @@ namespace CE {
         }
 
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
-            *mVFS, *mGameInfo, *mSettingsManager, *this, *mRenderer, *mTextureManager, *mShaderManager,
-            *gFontManager, *mGPUMeshManager, *mMaterialManager, *gAnimatedTextureManager, *mKeyboardManger,
-            *mMouseManger, *mRendererResourcesNameRegistry, gProgramArguments.OutputDebugASInfo,
-            gProgramArguments.OutputDebugASInfoPath, mAudioManager.get());
+            *mVFS, *mGameInfo, 
+            *mSettingsManager, *this, 
+            *mRenderer, *mTextureManager, 
+            *mShaderManager, *gFontManager, 
+            *mGPUMeshManager, *mMaterialManager, 
+            *gAnimatedTextureManager, *mKeyboardManger,
+            *mMouseManger, *mRendererResourcesNameRegistry, 
+            gProgramArguments.OutputDebugASInfo,
+            gProgramArguments.OutputDebugASInfoPath, 
+            *mWindow,mAudioManager.get()
+        );
 
         if (!mScriptingManager->Init()) {
             ShowError(mScriptingManager->GetLastError());
@@ -289,8 +296,12 @@ namespace CE {
         const int targetW = std::max(1, mSettingsManager->Settings.windowWidth);
         const int targetH = std::max(1, mSettingsManager->Settings.windowHeight);
 
-        mWindow->SetWindowMode(mSettingsManager->Settings.windowMode);
-        mWindow->SetWindowSize({targetW, targetH});
+        mWindow->SetWindowSize({targetW, targetH}, mSettingsManager->Settings.windowMode);
+
+        if (mSettingsManager->Settings.windowMode != mWindow->GetWindowMode()) {
+            mWindow->SetWindowMode(mSettingsManager->Settings.windowMode);
+        }
+
         mRenderer->SetVSync(mSettingsManager->Settings.enableVSync);
 
         if (mAudioManager) {

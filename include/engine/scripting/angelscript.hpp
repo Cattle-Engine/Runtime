@@ -48,6 +48,10 @@ namespace CE {
         class AudioManager;
     }
 
+    namespace Common {
+        class Window;
+    }
+
     namespace Common::Containers {
         struct RendererResourcesNameRegistry;
     }
@@ -64,7 +68,7 @@ namespace CE::Scripting {
                 Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
                 Input::Mouse& mouse,
                 CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
-                bool output_debug_info, std::string output_debug_as_info_path,
+                bool output_debug_info, std::string output_debug_as_info_path, Common::Window& window,
                 Audio::Resources::AudioManager* audio_manager = nullptr);
         ~Runtime();
 
@@ -93,6 +97,7 @@ namespace CE::Scripting {
         Assets::Animations::AnimatedTextureManager& mAnimationManager;
         Input::Keyboard& mKeyboard;
         Input::Mouse& mMouse;
+        Common::Window& mWindow;
         Audio::Resources::AudioManager* mAudioManager = nullptr;
 
       private:

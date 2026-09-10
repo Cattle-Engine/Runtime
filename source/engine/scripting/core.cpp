@@ -35,7 +35,7 @@ namespace CE::Scripting {
         Renderer::Resources::MaterialManager& material_manager,
         Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
         Input::Mouse& mouse, CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
-        bool output_debug_info, std::string output_debug_as_info_path, Audio::Resources::AudioManager* audio_manager)
+        bool output_debug_info, std::string output_debug_as_info_path, Common::Window& window,Audio::Resources::AudioManager* audio_manager)
         : mRendererResourcesNameRegistry(renderer_resources_name_registry),
           mVFS(vfs),
           mGameInfo(game_info),
@@ -50,6 +50,7 @@ namespace CE::Scripting {
           mAnimationManager(animated_texture_manager),
           mKeyboard(keyboard),
           mMouse(mouse),
+          mWindow(window),
           mAudioManager(audio_manager) {
         mOutputDebugASInfo = output_debug_info;
         OutputDebugASInfoPath = output_debug_as_info_path;

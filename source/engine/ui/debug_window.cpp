@@ -30,9 +30,9 @@
 #include <glm/gtc/quaternion.hpp>
 
 constexpr std::array<const char*, static_cast<size_t>(CE::Common::Window::WindowMode::Count)> WindowModeNames = {
-    "Windowed",
+    "Fullscreen",
     "Borderless",
-    "Fullscreen"
+    "Windowed"
 };
 
 std::string FormatBytes(std::size_t bytes) {

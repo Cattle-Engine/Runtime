@@ -1,0 +1,13 @@
+RegistrationPriority: 100
+ASNamespace: CE::Window
+
+RequiredCppHeaders: 
+  - "engine/common/window.hpp"
+
+ASEnums:
+  - Name: WindowMode
+    Type: CE::Common::Window::WindowMode
+    Values:
+        - Fullscreen
+        - Borderless
+        - Windowed

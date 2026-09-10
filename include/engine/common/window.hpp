@@ -39,8 +39,8 @@ namespace CE::Common {
             bool SetWindowMode(WindowMode mode);
             WindowMode GetWindowMode();
 
-            bool SetWindowSize(WindowSize window_size);
-            WindowSize GetWindowSize();
+            bool SetWindowSize(WindowSize window_size, WindowMode mode);
+            WindowSize GetWindowSize(WindowMode mode);
 
             bool SetWindowTitle(const std::string& title);
             // If no title, returns ""
@@ -54,5 +54,7 @@ namespace CE::Common {
             SDL_Window* mWindow;
             VFS::VFS& mVFS; 
             WindowMode mWindowMode = WindowMode::Borderless;
+            WindowSize mWindowedSize;
+            WindowSize mFullscreenSize;
     };
 }
