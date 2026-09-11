@@ -35,7 +35,11 @@ namespace CE::Common {
             void MinimiseWindow(bool minimised);
             bool IsMinimised();
 
-            // lets you set, borderless window, window, fullscreen
+            /*
+                On fullscreen we use a user defined resolution, the same for windowed.
+                On borderless window it will ALWAYS be desktop resloution, the same for window resolution.
+                I will add the ability to set the renderer resolution
+            */
             bool SetWindowMode(WindowMode mode);
             WindowMode GetWindowMode();
 

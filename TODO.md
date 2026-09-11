@@ -88,6 +88,7 @@ TDF
 hasher (inside engine/common/utils/hasher.hpp)
 
 - [ ] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
+- [ ] Allow you to set the renderer resloution so you can have a resloution different from the window
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Make a python script to auto take idl and generate markdown docs
@@ -102,7 +103,6 @@ hasher (inside engine/common/utils/hasher.hpp)
 - [ ] Bloom
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
-- [ ] Update AngelScript bindings for the shaders
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones

@@ -11,3 +11,134 @@ ASEnums:
         - Fullscreen
         - Borderless
         - Windowed
+
+ASTypes:
+  - Name: WindowSize
+    CppType: CE::Common::Window::WindowSize
+    Flags:
+      - Value
+      - POD
+
+    Properties:
+      - Type: int
+        CppMember: w
+        ASMember: w
+
+      - Type: int
+        CppMember: h
+        ASMember: h
+
+ASClassFunctions:
+  - Name: HideWindow
+    ReturnType: void
+    Signature: bool hidden
+    CppSignature: bool
+    Description: |
+      Hides a window. This is different from minimising a window as it doesn't show a window icon on the taskbar,
+      as well as not displaying the window
+    Function: |
+      mRuntime.mWindow.HideWindow(arg0);
+
+  - Name: IsWindowHidden
+    ReturnType: bool
+    Signature: ""
+    CppSignature: ""
+    Description: Returns true/false if the window is hidden or shown
+    Function: |
+      return mRuntime.mWindow.IsHidden();
+
+  - Name: MinimiseWindow
+    ReturnType: void
+    Signature: bool hidden
+    CppSignature: bool
+    Description: |
+      Minimises a window. Unlike hiding a window this still shows an icon for the window on the taskbar
+    Function: |
+      mRuntime.mWindow.MinimiseWindow(arg0);
+
+  - Name: IsWindowMinimised
+    ReturnType: bool
+    Signature: ""
+    CppSignature: ""
+    Description: Returns true/false if a window is minimised or shown
+    Function: |
+      return mRuntime.mWindow.IsMinimised();
+
+  - Name: SetWindowMode
+    ReturnType: bool
+    Signature: WindowMode mode
+    CppSignature: CE::Common::Window::WindowMode
+    Description: |
+      Sets the window mode. On Fullscreen and Windowed this will always follow user defined resolutions.
+      On Borderless windows it uses the desktop resolution and the renderer will use the desktop resolutions.
+      This will be updated so when SetWindowMode is called it will automatically set the renderer resolution to the
+      window resolution.
+    Function: |
+      return  mRuntime.mWindow.SetWindowMode(arg0);
+
+  - Name: GetWindowMode
+    ReturnType: WindowMode
+    CppReturnType: CE::Common::Window::WindowMode
+    CppSignature: ""
+    Signature: ""
+    Description: Returns the current window mode
+    Function: |
+      return mRuntime.mWindow.GetWindowMode();
+
+  - Name: SetWindowSize
+    ReturnType: bool
+    Signature: WindowSize, WindowMode
+    CppSignature: CE::Common::Window::WindowSize, CE::Common::Window::WindowMode
+    Description: Sets the window size for a specified window mode
+    Function: |
+      return mRuntime.mWindow.SetWindowSize(arg0, arg1);
+
+  - Name: GetWindowSize 
+    ReturnType: WindowSize
+    CppReturnType: CE::Common::Window::WindowSize
+    Signature: WindowMode mode
+    CppSignature: CE::Common::Window::WindowMode
+    Description: Gets the window size for the specficied window mode
+    Function: |
+      return mRuntime.mWindow.GetWindowSize(arg0);
+
+  - Name: SetWindowTitle
+    ReturnType: void
+    Signature: string title
+    CppSignature: std::string title
+    Description: Sets the window title
+    Function: |
+      mRuntime.mWindow.SetWindowTitle(arg0);
+
+  - Name: GetWindowTitle
+    ReturnType: string
+    CppReturnType: std::string
+    CppSignature: ""
+    Signature: ""
+    Description: Gets the current window title, if no title it returns ""
+    Function: |
+      return mRuntime.mWindow.GetWindowTitle();
+
+  - Name: SetWindowResizable
+    ReturnType: void
+    Signature: bool resizable
+    CppSignature: bool
+    Description: Sets the window to be resizable or not resizable
+    Function: |
+      mRuntime.mWindow.SetWindowResizable(arg0);
+
+  - Name: IsWindowResizable
+    ReturnType: bool
+    Signature: ""
+    CppSignature: ""
+    Description: Returns true/false if the window is resizable or not
+    Function: |
+      return mRuntime.mWindow.IsWindowResizable();
+
+  - Name: SetWindowIcon
+    ReturnType: bool
+    Signature: string path
+    CppSignature: std::string
+    Description: Sets the window icon
+    Function: |
+      return mRuntime.mWindow.SetWindowIcon(arg0);
