@@ -92,7 +92,7 @@ ASClassFunctions:
     CppSignature: const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Textures
     Function: | 
-      return mRuntime.mTextureManager.GetTexture(arg0) != nullptr;
+      return arg0.GetTexture() != nullptr;
   
   # === Shader functions ===
   - Name: CreateProgram

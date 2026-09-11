@@ -1,4 +1,5 @@
 #include <format>
+#include <memory>
 #include <string>
 
 #include "engine/common/misc/gameinfo.hpp"
@@ -6,6 +7,7 @@
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/private/exceptions.hpp"
 #include "engine/scripting/private/modules.hpp"
+#include "engine/scripting/bindings/bindings_list.hpp"
 
 #include <angelscript.h>
 #include <scriptarray/scriptarray.h>
@@ -54,6 +56,7 @@ namespace CE::Scripting {
           mAudioManager(audio_manager) {
         mOutputDebugASInfo = output_debug_info;
         OutputDebugASInfoPath = output_debug_as_info_path;
+        mScriptBindings = std::make_unique<CE::Scripting::Bindings::ScriptBindings>();
     }
 
     Runtime::~Runtime() {
@@ -88,6 +91,7 @@ namespace CE::Scripting {
         CE_LOG(LogLevel::Info, "[AngelScript] Created AngelScript engine");
 
         // TODO: add the binding registrations here
+        mScriptBindings->RegisterAllBindings(*mScriptEngine, *this);
 
         mContext = mScriptEngine->CreateContext();
         if (mContext == nullptr) {

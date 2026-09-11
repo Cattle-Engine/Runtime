@@ -261,4 +261,4 @@ ASClassFunctions:
     Description: Get a sound label
     Function: |
       if (!mRuntime.mAudioManager) return "";
-      mRuntime.mAudioManager->GetSoundLabel(arg0);
+      return mRuntime.mAudioManager->GetSoundLabel(arg0);

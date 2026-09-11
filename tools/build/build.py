@@ -48,24 +48,33 @@ def generated_path_unique_path(directory: Path, name: str, extension: str) -> Pa
     return directory / f"{name}.generated.{extension}"
 
 def generate_binding_registry(build: Path) -> None:
-    bindings_dir: Path = build / "generated" / "bindings"
-    registry_header: Path = bindings_dir / "binding_registry.hpp"
+    bindings_dir = build / "generated" / "bindings"
+    registry_header = bindings_dir / "binding_registry.hpp"
 
     generated_headers = sorted(bindings_dir.glob("*.generated.hpp"))
 
     bindings: list[tuple[int, str]] = []
 
     for meta in sorted(bindings_dir.glob("*.generated.json")):
-        data = json.loads(meta.read_text())
+        data = json.loads(meta.read_text(encoding="utf-8"))
+
+        class_name = data.get("class")
+        if not class_name:
+            raise RuntimeError(
+                f"Generated metadata '{meta}' is missing 'class'"
+            )
 
         bindings.append((
             data.get("registration_priority", 0),
-            data["class"],
+            class_name,
         ))
 
-    bindings.sort(key=lambda binding: (-binding[0], binding[1])) # bigger numbers have higher priority
+    # Higher registration priority comes first.
+    bindings.sort(
+        key=lambda binding: (-binding[0], binding[1])
+    )
 
-    gen: generator.CodeWriter = generator.CodeWriter()
+    gen = generator.CodeWriter()
 
     gen.write("#pragma once")
     gen.write("")
@@ -77,7 +86,11 @@ def generate_binding_registry(build: Path) -> None:
     gen.write('#include "engine/scripting/angelscript.hpp"')
 
     gen.write("")
-    gen.write(generator.generate_comment("Includes for the generated includes"))
+    gen.write(
+        generator.generate_comment(
+            "Includes for the generated includes"
+        )
+    )
 
     for header in generated_headers:
         gen.write(f'#include "{header.name}"')
@@ -91,20 +104,24 @@ def generate_binding_registry(build: Path) -> None:
     gen.begin_struct("Entry")
     gen.write("std::string_view name;")
     gen.write(
-        "std::unique_ptr<IScriptBinding> (*create)(Runtime&, asIScriptEngine&);"
+        "std::unique_ptr<IScriptBinding> "
+        "(*create)(Runtime&, asIScriptEngine&);"
     )
     gen.end_struct()
 
     gen.write("")
 
-    gen.write(f"std::array<Entry, {len(bindings)}> bindings =")
-    gen.write("{")
+    gen.write(
+        f"std::array<Entry, {len(bindings)}> bindings ="
+    )
+    gen.write("{{")
 
     gen.indent()
 
     for priority, class_name in bindings:
         gen.write("{")
         gen.indent()
+
         gen.write(f'"{class_name}",')
         gen.write(
             "[](Runtime& runtime, asIScriptEngine& engine) "
@@ -112,22 +129,29 @@ def generate_binding_registry(build: Path) -> None:
         )
         gen.write("{")
         gen.indent()
+
         gen.write(
             f"return std::make_unique<{class_name}>(runtime, engine);"
         )
+
         gen.dedent()
         gen.write("}")
+
         gen.dedent()
         gen.write("},")
 
     gen.dedent()
 
-    gen.write("};")
+    gen.write("}};")
 
     gen.end_struct()
     gen.end_namespace()
 
-    registry_header.write_text(gen.build(), encoding="utf-8")
+    registry_header.write_text(
+        gen.build(),
+        encoding="utf-8",
+    )
+
 def build_idl(build_dir: Path) -> None:
     generated_dir = build_dir / "generated" / "bindings"
     generated_dir.mkdir(parents=True, exist_ok=True)
@@ -139,9 +163,11 @@ def build_idl(build_dir: Path) -> None:
 
         header = generated_dir / f"{name}.generated.hpp"
         source = generated_dir / f"{name}.generated.cpp"
+        metadata = generated_dir / f"{name}.generated.json"
 
         expected_files.add(header)
         expected_files.add(source)
+        expected_files.add(metadata)
 
         run([
             sys.executable,

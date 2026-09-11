@@ -13,6 +13,8 @@ namespace CE::Renderer::Resources {
         MeshHandle() : id(0) {}
         MeshHandle(const MeshHandle& other) : id(other.id) {}
 
+        MeshHandle& operator=(const MeshHandle&) = default;
+
         uint64_t id = 0;
 
         explicit operator bool() const {

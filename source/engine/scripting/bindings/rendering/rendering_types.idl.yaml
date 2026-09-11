@@ -44,6 +44,7 @@ ASTypes:
       - Type: Destruct
         Body: |
           // glm::mat4 is trivially destructible.
+          (void) self;
         CallingConvention: CDeclObjLast
 
     Operators:
@@ -183,6 +184,7 @@ ASTypes:
       - Type: Destruct
         Body: |
           // glm::vec4 is trivially destructible.
+          (void) self;
         CallingConvention: CDeclObjLast
 
     Properties:
@@ -524,6 +526,7 @@ ASTypes:
       - Type: Destruct
         Body: |
           // glm::vec2 is trivially destructible.
+          (void) self;
         CallingConvention: CDeclObjLast
     
     Properties:
@@ -731,6 +734,7 @@ ASTypes:
       - Type: Destruct
         Body: |
           // glm::vec3 is trivially destructible.
+          (void) self;
         CallingConvention: CDeclObjLast
 
     Properties:

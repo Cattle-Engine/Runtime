@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,10 @@ namespace CE {
 
     namespace Common::Containers {
         struct RendererResourcesNameRegistry;
+    }
+
+    namespace Scripting::Bindings {
+        class ScriptBindings;
     }
 } // namespace CE
 
@@ -119,6 +124,8 @@ namespace CE::Scripting {
         asIScriptFunction* mUpdateFunc = nullptr;
         asIScriptContext* mUpdateCtx = nullptr;
         std::vector<ScriptCallbackRegistration> mStateCallbacks;
+
+        std::unique_ptr<Bindings::ScriptBindings> mScriptBindings;
 
         std::string mLastError = "";
         std::string OutputDebugASInfoPath = "";

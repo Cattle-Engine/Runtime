@@ -6,7 +6,7 @@ RequiredCppHeaders:
 
 ASEnums:
   - Name: WindowMode
-    Type: CE::Common::Window::WindowMode
+    CppType: CE::Common::Window::WindowMode
     Values:
         - Fullscreen
         - Borderless
