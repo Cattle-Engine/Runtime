@@ -97,9 +97,49 @@ def _escape_string(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def _type_flags(flags: Iterable[str]) -> str:
-    rendered = [generator.FLAG_MAP[flag] for flag in flags]
+def _type_flags(flags: Iterable[str], cpp_type: str) -> str:
+    rendered = [
+        f"asGetTypeTraits<{cpp_type}>()"
+        if flag == "AutoGetFlags"
+        else generator.FLAG_MAP[flag]
+        for flag in flags
+    ]
     return " | ".join(rendered) if rendered else "0"
+
+
+def _generic_function_ref(function_name: str, callable: idl.ASBindableCallable) -> str:
+    """Return the autowrapper expression for a free function."""
+    # A generated helper has a unique, unambiguous symbol. For an application
+    # function CppSignature selects the explicit-signature variant, which is
+    # also how overloaded functions are disambiguated.
+    if callable.cpp_signature and not callable.generated_name:
+        return f"WRAP_FN_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
+    return f"WRAP_FN({function_name})"
+
+
+def _generic_object_ref(
+    function_name: str,
+    callable: idl.ASBindableCallable,
+    calling_convention: str,
+) -> str:
+    wrapper = "WRAP_OBJ_FIRST" if calling_convention == "CDeclObjFirst" else "WRAP_OBJ_LAST"
+    if callable.cpp_signature and not callable.generated_name:
+        return f"{wrapper}_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
+    return f"{wrapper}({function_name})"
+
+
+def _generic_method_ref(as_type: idl.ASType, method: idl.ASMethod) -> str:
+    if method.cpp_function.startswith("asMETHOD("):
+        raise ValueError(
+            f"Generic method '{method.name}' in '{as_type.name}' must use an unwrapped CppFunction name"
+        )
+    suffix = " const" if method.is_const else ""
+    if method.cpp_signature:
+        return (
+            f"WRAP_MFN_PR({as_type.cpp_type}, {method.cpp_function}, "
+            f"({method.cpp_signature}){suffix}, {method.cpp_return_type})"
+        )
+    return f"WRAP_MFN({as_type.cpp_type}, {method.cpp_function})"
 
 
 def _sanitize_symbol_part(value: str) -> str:
@@ -249,7 +289,7 @@ def generate_as_type_binding(
     gen.push_as_namespace(as_type.namespace)
 
     gen.write(
-        f'CE_REGISTER_TYPE("{as_type.name}", sizeof({as_type.cpp_type}), {_type_flags(as_type.flags)});'
+        f'CE_REGISTER_TYPE("{as_type.name}", sizeof({as_type.cpp_type}), {_type_flags(as_type.flags, as_type.cpp_type)});'
     )
 
     for ctor in as_type.constructors:
@@ -266,7 +306,18 @@ def generate_as_type_binding(
     for behaviour in as_type.behaviours:
         declaration = _behaviour_declaration(as_type, behaviour)
         function_name = behaviour.generated_name or behaviour.cpp_function
-        function_ref = f"asFUNCTION({function_name})" if behaviour.generated_name else function_name
+        if behaviour.calling_convention == "Generic":
+            if behaviour.type in {"Destruct", "Destructor"} and not behaviour.generated_name:
+                function_ref = f"WRAP_DES({as_type.cpp_type})"
+            elif behaviour.type in {"Construct", "Constructor"} and not behaviour.generated_name:
+                signature = behaviour.cpp_signature or behaviour.signature
+                function_ref = f"WRAP_CON({as_type.cpp_type}, ({signature}))"
+            elif behaviour.type == "Factory":
+                function_ref = _generic_function_ref(function_name, behaviour)
+            else:
+                function_ref = _generic_object_ref(function_name, behaviour, "CDeclObjLast")
+        else:
+            function_ref = f"asFUNCTION({function_name})" if behaviour.generated_name else function_name
 
         gen.write(
             f'CE_REGISTER_OBJECT_BEHAVIOUR("{as_type.name}", {generator.BEHAVIOUR_MAP[behaviour.type]}, "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[behaviour.calling_convention]});'
@@ -281,7 +332,14 @@ def generate_as_type_binding(
             declaration += " const"
 
         function_name = method.generated_name or method.cpp_function
-        function_ref = f"asFUNCTION({function_name})" if method.generated_name else function_name
+        if method.calling_convention == "Generic":
+            function_ref = (
+                _generic_object_ref(function_name, method, "CDeclObjFirst")
+                if method.generated_name
+                else _generic_method_ref(as_type, method)
+            )
+        else:
+            function_ref = f"asFUNCTION({function_name})" if method.generated_name else function_name
 
         gen.write(
             f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[method.calling_convention]});'
@@ -295,7 +353,14 @@ def generate_as_type_binding(
             declaration += " const"
 
         function_name = operator.generated_name or operator.cpp_function
-        function_ref = f"asFUNCTION({function_name})" if operator.generated_name else function_name
+        if operator.calling_convention == "Generic":
+            function_ref = _generic_object_ref(
+                function_name,
+                operator,
+                "CDeclObjFirst",
+            )
+        else:
+            function_ref = f"asFUNCTION({function_name})" if operator.generated_name else function_name
 
         gen.write(
             f'CE_REGISTER_OBJECT_METHOD("{as_type.name}", "{declaration}", {function_ref}, {generator.CALL_CONV_MAP[operator.calling_convention]});'
@@ -321,7 +386,11 @@ def generate_as_function_binding(
     gen.push_as_namespace(func.namespace)
 
     cpp_function = func.generated_name if func.inline_body and func.generated_name else func.cpp_function
-    function_ref = f"asFUNCTION({cpp_function})" if func.inline_body and func.generated_name else cpp_function
+    function_ref = (
+        _generic_function_ref(cpp_function, func)
+        if func.calling_convention == "Generic"
+        else (f"asFUNCTION({cpp_function})" if func.inline_body and func.generated_name else cpp_function)
+    )
 
     gen.write(
         f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", {function_ref}, {generator.CALL_CONV_MAP[func.calling_convention]}));'

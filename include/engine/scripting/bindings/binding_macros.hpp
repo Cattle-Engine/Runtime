@@ -2,6 +2,7 @@
 // Shared macros used by bindings
 
 #include "engine/common/tracelog.hpp"
+#include <angelscript/autowrapper/aswrappedcall.h>
 
 // The below functions must only be called from a function that returns false and is in IScriptBinding
 #define CE_REGISTER_TYPE(name, size, flags)                                                                            \
@@ -25,6 +26,17 @@
                    (decl), result);                                                                                     \
             return false;                                                                                               \
         }                                                                                                               \
+    } while (false)
+
+#define CE_REGISTER_GLOBAL_GENERIC(obj, decl, func_ptr)                                                                 \
+    do {                                                                                                                 \
+        const int result = mScriptEngine.RegisterGlobalFunction(decl, func_ptr, asCALL_GENERIC, obj);                  \
+        if (result < 0) {                                                                                                \
+            CE_LOG(CE::LogLevel::Error,                                                                                 \
+                   "AngelScript RegisterGlobalFunction failed: declaration='{}', result={}",                            \
+                   (decl), result);                                                                                     \
+            return false;                                                                                                \
+        }                                                                                                                \
     } while (false)
 
 #define CE_REGISTER_OBJECT_BEHAVIOUR(obj, behaviour, declaration, func_ptr, call_conv)                                 \

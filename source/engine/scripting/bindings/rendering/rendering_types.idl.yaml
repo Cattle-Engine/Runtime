@@ -311,7 +311,25 @@ ASTypes:
 
     Flags:
       - Value
-      - POD
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Resources::ShaderHandle();
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: const Shader& in
+        CppSignature: const CE::Renderer::Resources::ShaderHandle&
+        Body: |
+          new(self) CE::Renderer::Resources::ShaderHandle(arg0);
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~ShaderHandle();
+        CallingConvention: CDeclObjLast
 
     Properties:
       - Type: uint64
@@ -335,7 +353,26 @@ ASTypes:
     CppType: CE::Renderer::Resources::TextureHandle
 
     Flags:
-      - Value 
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Resources::TextureHandle();
+        CallingConvention: CDeclObjLast
+
+      - Type: Construct
+        Signature: const Texture& in
+        CppSignature: const CE::Renderer::Resources::TextureHandle&
+        Body: |
+          new(self) CE::Renderer::Resources::TextureHandle(arg0);
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~TextureHandle();
+        CallingConvention: CDeclObjLast
 
     Properties:
       - Type: uint64
@@ -354,6 +391,13 @@ ASTypes:
         Signature: "int64"
         Body: |
           return self.id == static_cast<uint64>(arg0);
+
+      - Operator: "="
+        ReturnType: Texture
+        Signature: "Texture & in"
+        Body: |
+          auto& mutable_handle = const_cast<CE::Renderer::Resources::TextureHandle&>(self);
+          return mutable_handle = arg0;
 
   - Name: Vec2
     CppType: glm::vec2

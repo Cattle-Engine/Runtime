@@ -71,12 +71,13 @@ ASClassFunctions:
   
   # === Texture functions ===
   - Name: LoadTexture
-    ReturnType: void
-    Signature: const string& in path, Texture& out texture
-    CppSignature: const std::string&, CE::Renderer::Resources::TextureHandle&
+    ReturnType: CE::Texture
+    CppReturnType: CE::Renderer::Resources::TextureHandle
+    Signature: const string& in path
+    CppSignature: const std::string&
     Namespace: CE::Graphics::Textures
     Function: |
-      arg1 = mRuntime.mTextureManager.Load(arg0);
+      return mRuntime.mTextureManager.Load(arg0);
   
   - Name: UnloadTexture
     ReturnType: void 
@@ -107,7 +108,8 @@ ASClassFunctions:
     ReturnType: Shader
     CppReturnType: CE::Renderer::Resources::ShaderHandle
     Signature: const string& in filepath, int fragment_sampler_count = 4
-    CppSignature: const std::string&, int, CE::Renderer::Resources::ShaderHandle&
+    CppSignature: const std::string&, int
+    CallingConvention: Generic
     Namespace: CE::Graphics::Shaders
     Function: |
       return mRuntime.mShaderManager.Load(arg0, arg1);

@@ -10,13 +10,15 @@ ASNamespace: CE::Audio
 
 ASClassFunctions:
   - Name: LoadSound
-    ReturnType: void
-    Signature: const string& in filepath, const AudioType& in type, AudioAsset& out handle
-    CppSignature: const std::string&, const CE::Core::Audio::AudioType&, CE::Audio::Resources::AudioHandle&
+    ReturnType: AudioAsset
+    CppReturnType: CE::Audio::Resources::AudioHandle
+    Signature: const string& in filepath, const AudioType& in type
+    CppSignature: const std::string&, const CE::Core::Audio::AudioType&
     Description: Loads an audio file from the VFS
+    CallingConvention: Generic
     Function: |
-      if (!mRuntime.mAudioManager) return;
-      arg2 = mRuntime.mAudioManager->LoadSound(arg0, arg1);
+      if (!mRuntime.mAudioManager) return {};
+      return mRuntime.mAudioManager->LoadSound(arg0, arg1);
 
   - Name: UnloadSound
     ReturnType: void
@@ -28,13 +30,15 @@ ASClassFunctions:
       mRuntime.mAudioManager->UnloadSound(arg0);
 
   - Name: CreatePlayingAudio
-    ReturnType: void
-    Signature: const AudioAsset& in, PlayingAudio& out
-    CppSignature: const CE::Audio::Resources::AudioHandle& in, CE::Audio::Resources::PlayingAudioHandle& out
+    ReturnType: PlayingAudio
+    CppReturnType: CE::Audio::Resources::PlayingAudioHandle
+    Signature: const AudioAsset& in
+    CppSignature: const CE::Audio::Resources::AudioHandle& in
     Description: Creates a PlayingAudio handle
+    CallingConvention: Generic
     Function: |
-      if (!mRuntime.mAudioManager) return;
-      arg1 = mRuntime.mAudioManager->CreateSoundInstance(arg0);
+      if (!mRuntime.mAudioManager) return {};
+      return mRuntime.mAudioManager->CreateSoundInstance(arg0);
 
   - Name: IsPlaying
     ReturnType: bool

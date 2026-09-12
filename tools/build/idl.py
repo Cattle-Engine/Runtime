@@ -56,6 +56,7 @@ class ASMethod(ASBindableCallable):
     signature: str = ""
     is_const: bool = False
     cpp_signature: str = ""
+    cpp_return_type: str = ""
     calling_convention: str = "ThisCall"
 
 
@@ -65,6 +66,7 @@ class ASOperator(ASBindableCallable):
     return_type: str = ""
     signature: str = ""
     cpp_signature: str = ""
+    cpp_return_type: str = ""
     calling_convention: str = "CDeclObjFirst"
     is_const: bool = True
 
@@ -89,6 +91,7 @@ class ASFunction(ASBindableCallable):
     return_type: str = ""
     signature: str = ""
     cpp_signature: str = ""
+    cpp_return_type: str = ""
     namespace: str = ""
     calling_convention: str = "CDecl"
 
@@ -195,6 +198,7 @@ def parse_as_method(data: dict[str, Any]) -> ASMethod:
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
         cpp_signature=data.get("CppSignature", ""),
+        cpp_return_type=data.get("CppReturnType", data.get("ReturnType", "")),
         cpp_function=data.get("CppFunction", data.get("Signature", "")),
         inline_body=data.get("Body", ""),
         is_const=data.get("IsConst", False),
@@ -208,6 +212,7 @@ def parse_as_operator(data: dict[str, Any]) -> ASOperator:
         return_type=data["ReturnType"],
         signature=data.get("Signature", ""),
         cpp_signature=data.get("CppSignature", ""),
+        cpp_return_type=data.get("CppReturnType", data.get("ReturnType", "")),
         cpp_function=data.get("CppFunction", ""),
         inline_body=data.get("Body", ""),
         calling_convention=data.get("CallingConvention", "CDeclObjFirst"),
@@ -245,6 +250,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 return_type=x["ReturnType"],
                 signature=x.get("Signature", ""),
                 cpp_signature=x.get("CppSignature", ""),
+                cpp_return_type=x.get("CppReturnType", x.get("ReturnType", "")),
                 cpp_function=x.get("CppFunction", ""),
                 inline_body=x.get("Body", ""),
                 generated_name=x.get("GeneratedName", ""),
@@ -311,6 +317,16 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
 def validate_binding_file(binding: ASBindingFile) -> list[str]:
     errors: list[str] = []
 
+    def validate_generic_arity(description: str, signature: str) -> None:
+        # AngelScript's bundled autowrapper generates overloads for up to four
+        # script arguments. Fail at IDL validation instead of producing an
+        # opaque C++ template-instantiation error.
+        if len(_signature_parts(signature)) > 4:
+            errors.append(
+                f"Generic {description} has more than 4 parameters; "
+                "the AngelScript autowrapper supports at most 4"
+            )
+
     if not binding.namespace:
         errors.append("Missing ASNamespace")
 
@@ -367,6 +383,15 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Behaviour '{behaviour.type}' in '{as_type.name}' has unknown calling convention '{behaviour.calling_convention}'"
                 )
+            if behaviour.calling_convention == "Generic" and behaviour.type in {"Construct", "Constructor"} and not behaviour.inline_body and not behaviour.cpp_signature:
+                errors.append(
+                    f"Generic constructor in '{as_type.name}' requires CppSignature"
+                )
+            if behaviour.calling_convention == "Generic":
+                validate_generic_arity(
+                    f"behaviour '{behaviour.type}' in '{as_type.name}'",
+                    behaviour.signature,
+                )
 
         method_names: set[str] = set()
         for method in as_type.methods:
@@ -384,6 +409,16 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Method '{method.name}' in '{as_type.name}' has unknown calling convention '{method.calling_convention}'"
                 )
+            if method.calling_convention == "Generic":
+                validate_generic_arity(
+                    f"method '{method.name}' in '{as_type.name}'",
+                    method.signature,
+                )
+                if not method.inline_body and method.cpp_function.startswith("asMETHOD("):
+                    errors.append(
+                        f"Generic method '{method.name}' in '{as_type.name}' "
+                        "must use an unwrapped CppFunction name"
+                    )
             if method.name in method_names:
                 errors.append(f"Duplicate method '{method.name}' in '{as_type.name}'")
             method_names.add(method.name)
@@ -399,9 +434,14 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Operator '{operator.operator}' in '{as_type.name}' missing CppFunction or Body"
                 )
-            if operator.calling_convention not in {"CDeclObjFirst", "CDeclObjLast"}:
+            if operator.calling_convention not in {"CDeclObjFirst", "CDeclObjLast", "Generic"}:
                 errors.append(
                     f"Operator '{operator.operator}' in '{as_type.name}' has unsupported calling convention '{operator.calling_convention}'"
+                )
+            if operator.calling_convention == "Generic":
+                validate_generic_arity(
+                    f"operator '{operator.operator}' in '{as_type.name}'",
+                    operator.signature,
                 )
 
     function_names: set[str] = set()
@@ -416,6 +456,8 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append(
                 f"Function '{function.name}' has unknown calling convention '{function.calling_convention}'"
             )
+        if function.calling_convention == "Generic":
+            validate_generic_arity(f"function '{function.name}'", function.signature)
         if function.name in function_names:
             errors.append(f"Duplicate ASFunction '{function.name}'")
         function_names.add(function.name)
@@ -483,6 +525,11 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append(
                 f"ASClassFunction '{class_function.name}' has unknown "
                 f"calling convention '{class_function.calling_convention}'"
+            )
+        if class_function.calling_convention == "Generic":
+            validate_generic_arity(
+                f"class function '{class_function.name}'",
+                class_function.signature,
             )
 
     return errors
@@ -705,6 +752,16 @@ def _method_helper_name(as_type: ASType, method: ASMethod, index: int) -> str:
 def _class_function_helper_name(func: ASClassFunction, index: int) -> str:
     suffix = "" if index == 0 else f"_{index}"
     return _sanitize_symbol_part(f"{func.name}_Generated{suffix}")
+
+
+def _generic_class_function_ref(func: ASClassFunction, function_name: str) -> str:
+    """Wrap a binding instance method for RegisterGlobalFunction(..., Generic)."""
+    if func.cpp_signature:
+        return (
+            f"WRAP_MFN_GLOBAL_PR({CLASS_NAME}, {function_name}, "
+            f"({func.cpp_signature}), {func.cpp_return_type})"
+        )
+    return f"WRAP_MFN_GLOBAL({CLASS_NAME}, {function_name})"
 
 
 def _method_parameter_list(
@@ -931,9 +988,15 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         function_name = class_function.generated_name or class_function.name
         declaration = f"{class_function.return_type} {class_function.name}({_registration_signature(class_function.signature)})"
         gen.write(f'mScriptEngine.SetDefaultNamespace("{class_function.as_namespace}");')
-        gen.write(
-            f'CE_REGISTER_GLOBAL({CLASS_NAME}, this, "{declaration}", {function_name});'
-        )
+        if class_function.calling_convention == "Generic":
+            gen.write(
+                f'CE_REGISTER_GLOBAL_GENERIC(this, "{declaration}", '
+                f'{_generic_class_function_ref(class_function, function_name)});'
+            )
+        else:
+            gen.write(
+                f'CE_REGISTER_GLOBAL({CLASS_NAME}, this, "{declaration}", {function_name});'
+            )
 
     gen.write('mScriptEngine.SetDefaultNamespace("");')
     gen.write("return true;")

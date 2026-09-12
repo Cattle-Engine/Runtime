@@ -92,6 +92,7 @@ ASTypes:
     Flags:
       - Value
       - POD
+      - AutoGetFlags
 
     Properties:
       - Type: uint32
@@ -110,7 +111,14 @@ ASTypes:
         Signature: "uint"
         Body: |
           return self.id == static_cast<uint32_t>(arg0);
-
+      
+      - Operator: "="
+        ReturnType: AudioAsset
+        Signature: "AudioAsset & in"
+        Body: |
+          auto& mutable_handle = const_cast<CE::Audio::Resources::AudioHandle&>(self);
+          return mutable_handle = arg0;
+        CallingConvention: Generic
 
   - Name: PlayingAudio
     CppType: CE::Audio::Resources::PlayingAudioHandle
@@ -118,6 +126,7 @@ ASTypes:
     Flags:
       - Value
       - POD
+      - AutoGetFlags
 
     Properties:
       - Type: uint32
@@ -136,3 +145,11 @@ ASTypes:
         Signature: "uint"
         Body: |
           return self.id == static_cast<uint32_t>(arg0);
+
+      - Operator: "="
+        ReturnType: PlayingAudio
+        Signature: "const PlayingAudio & in"
+        Body: |
+          auto& mutable_handle = const_cast<CE::Audio::Resources::PlayingAudioHandle&>(self);
+          return mutable_handle = arg0;
+        CallingConvention: Generic

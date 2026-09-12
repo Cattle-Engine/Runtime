@@ -41,8 +41,9 @@ ASTypes:
     Methods: 
       - Name: GetTexture
         ReturnType: Texture
-        CppFunction: asMETHOD(CE::Scripting::Bindings::ASCubemap::Face, GetTextureHandle)
-        CallingConvention: ThisCall
+        CppReturnType: CE::Renderer::Resources::TextureHandle
+        CppFunction: GetTextureHandle
+        CallingConvention: Generic
 
   - Name: Cubemap
     CppType: CE::Scripting::Bindings::ASCubemap
@@ -59,8 +60,8 @@ ASTypes:
         CallingConvention: CDeclObjLast
 
       - Type: Construct
-        Signature: Texture left, Texture right = NoTexture, Texture top = NoTexture, Texture bottom = NoTexture, Texture front = NoTexture, Texture back = NoTexture
-        CppSignature: CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle, CE::Renderer::Resources::TextureHandle
+        Signature: const Texture& in left, const Texture& in right = NoTexture, const Texture& in top = NoTexture, const Texture& in bottom = NoTexture, const Texture& in front = NoTexture, const Texture& in back = NoTexture
+        CppSignature: const CE::Renderer::Resources::TextureHandle&, const CE::Renderer::Resources::TextureHandle&, const CE::Renderer::Resources::TextureHandle&, const CE::Renderer::Resources::TextureHandle&, const CE::Renderer::Resources::TextureHandle&, const CE::Renderer::Resources::TextureHandle&
         Body: |
           new(self) CE::Scripting::Bindings::ASCubemap();
           self->Left = arg0;

@@ -48,6 +48,10 @@ FLAG_MAP = {
 
     # Additional constructors
     "AppClassMoreConstructors": "asOBJ_APP_CLASS_MORE_CONSTRUCTORS",
+
+    # Expands to asGetTypeTraits<T>() using the ASType's CppType. This is kept
+    # as a flag so IDL files can combine it with asOBJ_VALUE and other flags.
+    "AutoGetFlags": "",
 }
 
 BEHAVIOUR_MAP = {

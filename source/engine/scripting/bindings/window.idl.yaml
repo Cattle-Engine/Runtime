@@ -18,6 +18,7 @@ ASTypes:
     Flags:
       - Value
       - POD
+      - AutoGetFlags
 
     Properties:
       - Type: int
@@ -89,6 +90,7 @@ ASClassFunctions:
     ReturnType: bool
     Signature: WindowSize, WindowMode
     CppSignature: CE::Common::Window::WindowSize, CE::Common::Window::WindowMode
+    CallingConvention: Generic
     Description: Sets the window size for a specified window mode
     Function: |
       return mRuntime.mWindow.SetWindowSize(arg0, arg1);
@@ -98,6 +100,7 @@ ASClassFunctions:
     CppReturnType: CE::Common::Window::WindowSize
     Signature: WindowMode mode
     CppSignature: CE::Common::Window::WindowMode
+    CallingConvention: Generic
     Description: Gets the window size for the specficied window mode
     Function: |
       return mRuntime.mWindow.GetWindowSize(arg0);
