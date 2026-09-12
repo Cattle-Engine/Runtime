@@ -1,0 +1,27 @@
+RegistrationPriority: 100
+ASNamespace: CE::Performance
+
+RequiredCppHeaders:
+  - "engine/instance.hpp"
+
+ASClassFunctions:
+  - Name: GetFPS
+    ReturnType: int
+    Signature: ""
+    Description: Gets the FPS
+    Function: |
+      return mRuntime.mInstance.GetFPS();
+
+  - Name: GetDeltaTime
+    ReturnType: float
+    Signature: ""
+    Description: Gets the delta time
+    Function: |
+      return mRuntime.mInstance.GetDeltaTime();
+
+  - Name: GetFrameTime
+    ReturnType: float
+    Signature: ""
+    Description: Gets the frame time
+    Function: |
+      return mRuntime.mInstance.GetFrameTime();

@@ -27,6 +27,13 @@ CMake clean helper:
 
 - Generated files only: `cmake --build build --target ce_clean_generated`
 
+## Developer material
+For those of you who'd like to help with development or just mess around with the engine, you're in luck I have provided some stuff to make development a bit more sane.
+
+For the idl you can find a schema you can use with your IDE. In the root you can find:
+```settings_for_vscode.json```
+put this into .vscode/ and rename it to: "settings.json" to use the schema for the IDL.
+
 ## ROADMAP!
 
 > [!NOTE]

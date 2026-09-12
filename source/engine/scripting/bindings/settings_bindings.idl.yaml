@@ -1,0 +1,124 @@
+ASNamespace: CE::Settings
+
+RequiredCppHeaders:
+  - "engine/settings.hpp"
+
+ASTypes:
+  - Name: SettingsInfo
+    CppType: CE::Settings::SettingsInfo
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Signature: ""
+        Body: |
+          new(self) CE::Settings::SettingsInfo();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destructor
+        Body: |
+          self.~SettingsInfo();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: int
+        CppMember: windowHeight 
+        ASMember: window_height
+
+      - Type: int 
+        CppMember: windowWidth
+        ASMember: window_width
+
+      - Type: int
+        CppMember: maxFPS
+        ASMember: max_fps
+      
+      - Type: bool
+        CppMember: enableVSync
+        ASMember: enable_vsync
+
+      - Type: string
+        CppMember: rendererName
+        ASMember: renderer_name
+
+      - Type: CE::Window::WindowMode
+        CppMember: windowMode
+        ASMember: window_mode
+
+      - Type: float
+        CppMember: masterVolume
+        ASMember: master_volume
+      
+      - Type: float
+        CppMember: musicVolume
+        ASMember: music_volume
+      
+      - Type: float
+        CppMember: sfxVolume
+        ASMember: sfx_volume
+
+ASClassFunctions:
+  - Name: GetSettingsInfo
+    ReturnType: SettingsInfo
+    CppReturnType: CE::Settings::SettingsInfo
+    Signature: ""
+    Description: Gets the current SettingsInfo
+    Body: |
+      return mRuntime.mSettingsManager.Settings;
+    CallingConvention: Generic
+
+  - Name: SetSettingsInfo
+    ReturnType: void
+    Signature: const SettingsInfo& in
+    CppSignature: const CE::Settings::SettingsInfo&
+    Description: Sets a SettingsInfo to the settings manager
+    Body: |
+      mRuntime.mSettingsManager.Settings = arg0;
+
+  - Name: ReloadSettings
+    ReturnType: bool
+    Signature: ""
+    Description: Reloads settings from disk and applies them
+    Body: |
+      return mRuntime.mSettings.ReloadSettings();
+
+  - Name: FlushSettings
+    ReturnType: void
+    Signature: ""
+    Description: Flushes the current set SettingsInfo to disk
+    Body: |
+      mRuntime.mSettings.FlushSettings();
+
+  - Name: GetInteger
+    ReturnType: int
+    Signature: const string& in key, const string& in section, const int fallback
+    CppSignature: const std::string&, const std::string&, const int
+    Description: Gets a 32bit integer from settings
+    Body: |
+      return mRuntime.mSettings.Custom_GetInteger(arg0, arg1, arg2);
+
+  - Name: GetFloat
+    ReturnType: float
+    Signature: const string& in key, const string& in section, const float fallback
+    CppSignature: const std::string&, const std::string&, const float
+    Description: Gets a 32bit float from settings
+    Body: |
+      return mRuntime.mSettings.Custom_GetFloat(arg0, arg1, arg2);
+
+  - Name: GetBool
+    ReturnType: bool
+    Signature: const string& in key, const string& in section, const bool fallback
+    CppSignature: const std::string&, const std::string&, const bool
+    Description: Gets a bool from settings 
+    Body: |
+      return mRuntime.mSettings.Custom_GetBool(arg0, arg1, arg2);
+
+  - Name: GetString
+    ReturnType: string
+    CppReturnType: std::string
+    Signature: const string& in key, const string& in section, const string& in fallback
+    Description: Gets a string from settings
+    Body: |
+      return mRutnime.mSettings.Custom_GetString(arg0, arg1, arg2);

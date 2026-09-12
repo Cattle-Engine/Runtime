@@ -1,0 +1,8 @@
+{
+  "yaml.schemas": {
+    "./schemas/idl_schema.json": [
+      "*.idl.yaml",
+      "**/*.idl.yaml"
+    ]
+  }
+}

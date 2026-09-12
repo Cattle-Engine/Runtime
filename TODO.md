@@ -75,17 +75,17 @@ export int foo_func() {
 ```
 
 List of bindings to do:
-Instance stuff:
-    delta time
-    frame time
-    quitting
-
-Window control
-Input
-VFS
-Settings
-TDF
-hasher (inside engine/common/utils/hasher.hpp)
+- [ ] Instance stuff:
+    - [X] delta time
+    - [X] frame time
+    - [X] quitting
+- [ ] 3D stuff
+- [X] Window control
+- [ ] Input
+- [ ] VFS
+- [ ] Settings
+- [ ] TDF
+- [ ] Hasher (inside engine/common/utils/hasher.hpp)
 
 - [ ] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
 - [ ] Allow you to set the renderer resloution so you can have a resloution different from the window

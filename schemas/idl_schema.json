@@ -1,0 +1,541 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/ce-angelscript-idl.schema.json",
+  "title": "CE AngelScript Binding IDL",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ASNamespace"
+  ],
+  "properties": {
+    "ASNamespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "RequiredCppHeaders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "RegistrationPriority": {
+      "type": "integer"
+    },
+    "ASTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASType"
+      }
+    },
+    "ASFunctions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASFunction"
+      }
+    },
+    "ASEnums": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASEnum"
+      }
+    },
+    "ASConstants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASConstant"
+      }
+    },
+    "ASTypeAliases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASTypeAlias"
+      }
+    },
+    "ASDeclarations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASDeclaration"
+      }
+    },
+    "ASClassFunctions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ASClassFunction"
+      }
+    }
+  },
+  "$defs": {
+    "ASType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "CppType"
+      ],
+      "properties": {
+        "Description": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "CppType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Namespace": {
+          "type": "string"
+        },
+        "AfterRegister": {
+          "type": "string"
+        },
+        "Flags": {
+          "$ref": "#/$defs/Flags"
+        },
+        "ASFlags": {
+          "$ref": "#/$defs/Flags"
+        },
+        "Properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ASProperty"
+          }
+        },
+        "Constructors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ASConstructor"
+          }
+        },
+        "Behaviours": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ASBehaviour"
+          }
+        },
+        "Methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ASMethod"
+          }
+        },
+        "Operators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ASOperator"
+          }
+        }
+      }
+    },
+
+    "ASProperty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Type",
+        "CppMember",
+        "ASMember"
+      ],
+      "properties": {
+        "Type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "CppMember": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ASMember": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "ASConstructor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "CppFunction"
+      ],
+      "properties": {
+        "Signature": {
+          "type": "string"
+        },
+        "CppFunction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "ASBehaviour": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Type"
+      ],
+      "properties": {
+        "Type": {
+          "$ref": "#/$defs/BehaviourType"
+        },
+        "CppFunction": {
+          "type": "string"
+        },
+        "Signature": {
+          "type": "string"
+        },
+        "CppSignature": {
+          "type": "string"
+        },
+        "Body": {
+          "type": "string"
+        },
+        "CallingConvention": {
+          "$ref": "#/$defs/CallingConvention"
+        }
+      }
+    },
+
+    "ASMethod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "ReturnType"
+      ],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ReturnType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Signature": {
+          "type": "string"
+        },
+        "CppSignature": {
+          "type": "string"
+        },
+        "CppReturnType": {
+          "type": "string"
+        },
+        "CppFunction": {
+          "type": "string"
+        },
+        "Body": {
+          "type": "string"
+        },
+        "IsConst": {
+          "type": "boolean"
+        },
+        "CallingConvention": {
+          "$ref": "#/$defs/CallingConvention"
+        }
+      }
+    },
+
+    "ASOperator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Operator",
+        "ReturnType"
+      ],
+      "properties": {
+        "Operator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ReturnType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Signature": {
+          "type": "string"
+        },
+        "CppSignature": {
+          "type": "string"
+        },
+        "CppReturnType": {
+          "type": "string"
+        },
+        "CppFunction": {
+          "type": "string"
+        },
+        "Body": {
+          "type": "string"
+        },
+        "CallingConvention": {
+          "type": "string",
+          "enum": [
+            "CDeclObjFirst",
+            "CDeclObjLast",
+            "Generic"
+          ]
+        },
+        "IsConst": {
+          "type": "boolean"
+        }
+      }
+    },
+
+    "ASFunction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "ReturnType"
+      ],
+      "properties": {
+        "Description": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Namespace": {
+          "type": "string"
+        },
+        "ReturnType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Signature": {
+          "type": "string"
+        },
+        "CppSignature": {
+          "type": "string"
+        },
+        "CppReturnType": {
+          "type": "string"
+        },
+        "CppFunction": {
+          "type": "string"
+        },
+        "Body": {
+          "type": "string"
+        },
+        "GeneratedName": {
+          "type": "string"
+        },
+        "CallingConvention": {
+          "$ref": "#/$defs/CallingConvention"
+        }
+      }
+    },
+
+    "ASEnum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name"
+      ],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "CppType": {
+          "type": "string"
+        },
+        "Values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "Namespace": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ASConstant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "Type",
+        "Value"
+      ],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Value": {},
+        "CppType": {
+          "type": "string"
+        },
+        "Namespace": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ASTypeAlias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "Target"
+      ],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Namespace": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ASDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name"
+      ],
+      "properties": {
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "Namespace": {
+          "type": "string"
+        }
+      }
+    },
+
+    "ASClassFunction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Name",
+        "ReturnType"
+      ],
+      "properties": {
+        "Description": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ReturnType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "CppReturnType": {
+          "type": "string"
+        },
+        "Signature": {
+          "type": "string"
+        },
+        "CppSignature": {
+          "type": "string"
+        },
+        "Class": {
+          "type": "string"
+        },
+        "CppMethod": {
+          "type": "string"
+        },
+        "Function": {
+          "type": "string"
+        },
+        "Body": {
+          "type": "string"
+        },
+        "GeneratedName": {
+          "type": "string"
+        },
+        "Namespace": {
+          "type": "string"
+        },
+        "CallingConvention": {
+          "$ref": "#/$defs/CallingConvention"
+        }
+      }
+    },
+
+    "BehaviourType": {
+      "type": "string",
+      "enum": [
+        "Construct",
+        "Constructor",
+        "Factory",
+        "Destruct",
+        "Destructor",
+        "AddRef",
+        "Release",
+        "CopyConstruct",
+        "Init"
+      ]
+    },
+
+    "CallingConvention": {
+      "type": "string",
+      "enum": [
+        "CDecl",
+        "CDeclObjFirst",
+        "CDeclObjLast",
+        "ThisCall",
+        "ThisCallAsGlobal",
+        "Generic"
+      ]
+    },
+
+    "Flags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "Value",
+          "Reference",
+          "GarbageCollected",
+          "NoCount",
+          "Scoped",
+          "Template",
+          "Shared",
+          "NoInherit",
+          "POD",
+          "AppPrimitive",
+          "AppFloat",
+          "AppArray",
+          "AppClass",
+          "AppClassConstructor",
+          "AppClassDestructor",
+          "AppClassAssignment",
+          "AppClassCopyConstructor",
+          "AppClassCDA",
+          "AppClassCDAK",
+          "AppClassAllInts",
+          "AppClassAllFloats",
+          "AppClassAlign8",
+          "AppClassAlign16",
+          "AppClassMoreConstructors",
+          "AutoGetFlags"
+        ]
+      }
+    }
+  }
+}
