@@ -14,8 +14,12 @@ namespace CE::Scripting::Bindings {
             std::vector<std::unique_ptr<IScriptBinding>> mScriptBindings;
     };
 
+    ScriptBindings::~ScriptBindings() {
+        delete mImpl;
+    }
+
     bool ScriptBindings::RegisterAllBindings(asIScriptEngine& script_engine, Runtime& runtime) {
-        mImpl = std::make_unique<Impl>();
+        mImpl = new(Impl);
         script_engine.SetDefaultNamespace("CE::Containers");
         RegisterVector<asUINT>(&script_engine, "Uint32Vector", "uint32");
         script_engine.SetDefaultNamespace("");

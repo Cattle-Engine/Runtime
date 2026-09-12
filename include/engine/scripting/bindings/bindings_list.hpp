@@ -11,9 +11,9 @@ namespace CE::Scripting::Bindings {
     class ScriptBindings {
       public:
         bool RegisterAllBindings(asIScriptEngine& script_engine, Runtime& runtime);
-
+        ~ScriptBindings();
       private:
         class Impl;
-        std::unique_ptr<Impl> mImpl;
+        Impl* mImpl = nullptr;
     };
 } // namespace CE::Scripting::Bindings

@@ -90,8 +90,19 @@ namespace CE::Scripting {
         }
         CE_LOG(LogLevel::Info, "[AngelScript] Created AngelScript engine");
 
+        if (mScriptEngine->SetMessageCallback(asFUNCTION(MessageCallback), this, asCALL_CDECL) != 0) {
+            CE_LOG(LogLevel::Error, "[Angelscript] Failed to set message callback");
+            return false;
+        }
+
+        RegisterStdString(mScriptEngine);
+        RegisterScriptArray(mScriptEngine, true /* enable gc support */);
+        RegisterStdStringUtils(mScriptEngine);
+
         // TODO: add the binding registrations here
-        mScriptBindings->RegisterAllBindings(*mScriptEngine, *this);
+        if (!mScriptBindings->RegisterAllBindings(*mScriptEngine, *this)) {
+            return false    ;
+        }
 
         mContext = mScriptEngine->CreateContext();
         if (mContext == nullptr) {
@@ -104,12 +115,6 @@ namespace CE::Scripting {
         mScriptEngine->SetEngineProperty(asEP_ALLOW_MULTILINE_STRINGS, true);
         // enable scoped enums likee enum class in C++
         mScriptEngine->SetEngineProperty(asEP_REQUIRE_ENUM_SCOPE, true);
-
-        RegisterStdString(mScriptEngine);
-        RegisterScriptArray(mScriptEngine, true /* enable gc support */);
-        RegisterStdStringUtils(mScriptEngine);
-
-        mScriptEngine->SetMessageCallback(asFUNCTION(MessageCallback), this, asCALL_CDECL);
 
         CE_LOG(LogLevel::Info, "[AngelScript] Runtime initialised");
         return true;
