@@ -165,7 +165,7 @@ ASClassFunctions:
   - Name: GetSoundBus
     ReturnType: string
     CppReturnType: std::string
-    Signature: const PlayingAudio&
+    Signature: const PlayingAudio& in
     CppSignature: const CE::Audio::Resources::PlayingAudioHandle&
     Description: Gets a PlayingAudio's sound bus name
     Function: |
@@ -247,7 +247,7 @@ ASClassFunctions:
 
   - Name: SetSoundLabel
     ReturnType: void
-    Signature: const PlayingAudio& in, const string in label
+    Signature: const PlayingAudio& in, const string& in label
     CppSignature: const CE::Audio::Resources::PlayingAudioHandle&, const std::string&
     Description: Sets a sound label
     Function: |

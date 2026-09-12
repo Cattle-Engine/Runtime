@@ -22,6 +22,7 @@ ASTypes:
 
     Flags:
       - Value
+      - AppClassCDAK
 
     Behaviours:
       - Type: Construct
@@ -334,8 +335,7 @@ ASTypes:
     CppType: CE::Renderer::Resources::TextureHandle
 
     Flags:
-      - Value
-      - POD
+      - Value 
 
     Properties:
       - Type: uint64
@@ -360,6 +360,7 @@ ASTypes:
 
     Flags:
       - Value
+      - AppClassCDAK
 
     Behaviours:
       - Type: Construct
@@ -374,7 +375,8 @@ ASTypes:
         CallingConvention: CDeclObjLast
 
       - Type: Construct
-        Signature: "const Vec2 & in"
+        Signature: "const Vec2& in"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           new(self) glm::vec2(*arg0);
         CallingConvention: CDeclObjLast
@@ -398,7 +400,7 @@ ASTypes:
       - Operator: "="
         ReturnType: "Vec2 &"
         Signature: "const Vec2& in"
-        CppSignature: "const glm::vec2&"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           *self = *arg0;
           return *self;
@@ -408,31 +410,31 @@ ASTypes:
       - Operator: "+"
         ReturnType: Vec2
         Signature: "const Vec2& in"
-        CppSignature: "const glm::vec2"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           return *self + *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "-"
         ReturnType: Vec2
-        Signature: "const Vec2 & in"
-        CppSignature: "const glm::vec2"
+        Signature: "const Vec2& in"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           return *self - *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "/"
         ReturnType: Vec2
-        Signature: "const Vec2 & in"
-        CppSignature: "const glm::vec2"
+        Signature: "const Vec2& in"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           return *self / *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "*"
         ReturnType: Vec2
-        Signature: "const Vec2 & in"
-        CppSignature: "const glm::vec2"
+        Signature: "const Vec2& in"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           return *self * *arg0;
         CallingConvention: CDeclObjLast
@@ -440,7 +442,7 @@ ASTypes:
       - Operator: "=="
         ReturnType: bool
         Signature: "const Vec2 & in"
-        CppSignature: "const glm::vec2"
+        CppSignature: "const glm::vec2& arg0"
         Body: |
           return *self == *arg0;
         CallingConvention: CDeclObjLast
@@ -574,6 +576,7 @@ ASTypes:
 
     Flags:
       - Value
+      - AppClassCDAK
 
     Behaviours:
       - Type: Construct
@@ -588,7 +591,8 @@ ASTypes:
         CallingConvention: CDeclObjLast
 
       - Type: Construct
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
+        CppSignature: "const glm::vec3&"
         Body: |
           new(self) glm::vec3(*arg0);
         CallingConvention: CDeclObjLast
@@ -615,7 +619,7 @@ ASTypes:
     Operators:
       - Operator: "="
         ReturnType: "Vec3&"
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           *self = *arg0;
           return *self;
@@ -624,35 +628,35 @@ ASTypes:
 
       - Operator: "+"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           return *self + *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "-"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           return *self - *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "/"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           return *self / *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "*"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           return *self * *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "=="
         ReturnType: bool
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           return *self == *arg0;
         CallingConvention: CDeclObjLast
@@ -684,7 +688,8 @@ ASTypes:
 
       - Name: "Dot"
         ReturnType: float
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
+        CppSignature: "const glm::vec3 arg0"
         Body: |
           return glm::dot(*self, *arg0);
         CallingConvention: CDeclObjLast
@@ -692,7 +697,8 @@ ASTypes:
 
       - Name: "Cross"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
+        CppSignature: "const glm::vec3 arg0"
         Body: |
           return glm::cross(*self, *arg0);
         CallingConvention: CDeclObjLast
@@ -700,7 +706,8 @@ ASTypes:
 
       - Name: "Distance"
         ReturnType: float
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
+        CppSignature: "const glm::vec3 arg0"
         Body: |
           return glm::distance(*self, *arg0);
         CallingConvention: CDeclObjLast
@@ -708,7 +715,8 @@ ASTypes:
 
       - Name: "Lerp"
         ReturnType: Vec3
-        Signature: "const Vec3&, float"
+        Signature: "const Vec3& in, float"
+        CppSignature: "const glm::vec3 arg0, float arg1"
         Body: |
           return glm::mix(*self, *arg0, arg1);
         CallingConvention: CDeclObjLast
@@ -716,7 +724,8 @@ ASTypes:
 
       - Name: "Reflect"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
+        CppSignature: "const glm::vec3 arg0"
         Body: |
           return glm::reflect(*self, *arg0);
         CallingConvention: CDeclObjLast
@@ -724,7 +733,8 @@ ASTypes:
 
       - Name: "Refract"
         ReturnType: Vec3
-        Signature: "const Vec3&, float"
+        Signature: "const Vec3& in, float"
+        CppSignature: "const glm::vec3 arg0, float arg1"
         Body: |
           return glm::refract(*self, *arg0, arg1);
         CallingConvention: CDeclObjLast
@@ -732,7 +742,8 @@ ASTypes:
 
       - Name: "Clamp"
         ReturnType: Vec3
-        Signature: "const Vec3&, const Vec3&"
+        Signature: "const Vec3& in, const Vec3& in"
+        CppSignature: "const glm::vec3 arg0, const glm::vec3 arg1"
         Body: |
           return glm::clamp(*self, *arg0, *arg1);
         CallingConvention: CDeclObjLast
@@ -782,7 +793,8 @@ ASTypes:
 
       - Name: "Rotate"
         ReturnType: Vec3
-        Signature: "float, const Vec3&"
+        Signature: "float, const Vec3& in"
+        CppSignature: "float arg0, const glm::vec3&"
         Body: |
           glm::vec3 axis = glm::normalize(*arg1);
           float c = glm::cos(arg0);
@@ -896,6 +908,7 @@ ASTypes:
 
     Flags:
       - Value
+      - AppClassCDAK
 
     Behaviours:
       - Type: Construct
@@ -955,14 +968,14 @@ ASTypes:
 
       - Operator: "*"
         ReturnType: Vec4
-        Signature: "const Vec4&"
+        Signature: "const Vec4& in"
         Body: |
           return *self * *arg0;
         CallingConvention: CDeclObjLast
 
       - Operator: "=="
         ReturnType: bool
-        Signature: "const Mat4&"
+        Signature: "const Mat4& in"
         Body: |
           return *self == *arg0;
         CallingConvention: CDeclObjLast
@@ -1018,7 +1031,7 @@ ASTypes:
 
       - Name: "Scale"
         ReturnType: void
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         Body: |
           *self = glm::scale(*self, *arg0);
         CallingConvention: CDeclObjLast
@@ -1026,7 +1039,7 @@ ASTypes:
 
       - Name: "Rotate"
         ReturnType: void
-        Signature: "float, const Vec3&"
+        Signature: "float, const Vec3& in"
         Body: |
           *self = glm::rotate(*self, arg0, *arg1);
         CallingConvention: CDeclObjLast

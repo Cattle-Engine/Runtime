@@ -104,12 +104,13 @@ ASClassFunctions:
       arg0 = mRuntime.mShaderManager.CreateProgram(); 
 
   - Name: LoadShader
-    ReturnType: void
-    Signature: const string& in filepath, int fragment_sampler_count = 4, Shader& out shader
+    ReturnType: Shader
+    CppReturnType: CE::Renderer::Resources::ShaderHandle
+    Signature: const string& in filepath, int fragment_sampler_count = 4
     CppSignature: const std::string&, int, CE::Renderer::Resources::ShaderHandle&
     Namespace: CE::Graphics::Shaders
     Function: |
-      arg2 = mRuntime.mShaderManager.Load(arg0, arg1);
+      return mRuntime.mShaderManager.Load(arg0, arg1);
 
   - Name: LoadStage
     ReturnType: bool

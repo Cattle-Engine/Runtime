@@ -39,6 +39,12 @@ ASTypes:
           new(self) CE::Core::Audio::AudioEffect();
         CallingConvention: CDeclObjLast
 
+      - Type: Destruct
+        Signature: ""
+        Body: |
+          delete(self);
+        CallingConvention: CDeclObjLast
+
     Properties:
       - Type: AudioEffectType
         CppMember: Kind

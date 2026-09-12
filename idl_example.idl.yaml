@@ -56,19 +56,19 @@ ASTypes:
 
       - Name: Dot
         ReturnType: float
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         IsConst: true
         CppFunction: CE::Scripting::Bindings::Vec3Dot
 
     Operators: # AngelScript operator overloads
       - Operator: "+"
         ReturnType: Vec3
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         CppFunction: CE::Scripting::Bindings::Vec3Add
 
       - Operator: "=="
         ReturnType: bool
-        Signature: "const Vec3&"
+        Signature: "const Vec3& in"
         CppFunction: CE::Scripting::Bindings::Vec3Equals
 
   - Name: TextureHandle

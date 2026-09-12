@@ -101,7 +101,7 @@ namespace CE::Scripting {
 
         // TODO: add the binding registrations here
         if (!mScriptBindings->RegisterAllBindings(*mScriptEngine, *this)) {
-            return false    ;
+            return false;
         }
 
         mContext = mScriptEngine->CreateContext();
