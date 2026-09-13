@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "engine/common/fs/vfs.hpp"
+#include "engine/input/text.hpp"
 
 #include <angelscript.h>
 
@@ -43,6 +44,7 @@ namespace CE {
     namespace Input {
         class Mouse;
         class Keyboard;
+        class TextInput;
     } // namespace Input
 
     namespace Audio::Resources {
@@ -71,10 +73,11 @@ namespace CE::Scripting {
                 Assets::Fonts::FontManager& font_manager, Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
                 Renderer::Resources::MaterialManager& material_manager,
                 Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
-                Input::Mouse& mouse,
+                Input::Mouse& mouse, Input::TextInput& text_input_manager,
                 CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
                 bool output_debug_info, std::string output_debug_as_info_path, Common::Window& window,
-                Audio::Resources::AudioManager* audio_manager = nullptr);
+                Audio::Resources::AudioManager* audio_manager = nullptr
+            );
         ~Runtime();
 
         bool RunStartup();
@@ -102,6 +105,7 @@ namespace CE::Scripting {
         Assets::Animations::AnimatedTextureManager& mAnimationManager;
         Input::Keyboard& mKeyboard;
         Input::Mouse& mMouse;
+        Input::TextInput& mTextInput;
         Common::Window& mWindow;
         Audio::Resources::AudioManager* mAudioManager = nullptr;
 

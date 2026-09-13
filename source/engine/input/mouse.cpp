@@ -10,11 +10,11 @@ namespace CE::Input {
 
     constexpr int Mouse::ToIndex(MouseButtons button) {
         switch (button) {
-        case MouseButtons::LEFT:
+        case MouseButtons::Left:
             return 0;
-        case MouseButtons::MIDDLE:
+        case MouseButtons::Middle:
             return 1;
-        case MouseButtons::RIGHT:
+        case MouseButtons::Right:
             return 2;
         case MouseButtons::X1:
             return 3;

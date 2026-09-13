@@ -4,6 +4,7 @@
 
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/input/text.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/private/exceptions.hpp"
 #include "engine/scripting/private/modules.hpp"
@@ -36,7 +37,7 @@ namespace CE::Scripting {
         Assets::Fonts::FontManager& font_manager, Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
         Renderer::Resources::MaterialManager& material_manager,
         Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
-        Input::Mouse& mouse, CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
+        Input::Mouse& mouse, Input::TextInput& text_input, CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
         bool output_debug_info, std::string output_debug_as_info_path, Common::Window& window,Audio::Resources::AudioManager* audio_manager)
         : mRendererResourcesNameRegistry(renderer_resources_name_registry),
           mVFS(vfs),
@@ -52,6 +53,7 @@ namespace CE::Scripting {
           mAnimationManager(animated_texture_manager),
           mKeyboard(keyboard),
           mMouse(mouse),
+          mTextInput(text_input),
           mWindow(window),
           mAudioManager(audio_manager) {
         mOutputDebugASInfo = output_debug_info;

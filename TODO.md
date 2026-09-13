@@ -75,15 +75,21 @@ export int foo_func() {
 ```
 
 List of bindings to do:
-- [ ] Instance stuff:
+- [X] Instance stuff:
     - [X] delta time
     - [X] frame time
     - [X] quitting
+- [ ] 2D stuff
+    - [ ] font manager
 - [ ] 3D stuff
 - [X] Window control
 - [ ] Input
+    - [X] Text
+    - [X] Mouse
+    - [ ] Input binder
+    - [X] Keyboard
 - [ ] VFS
-- [ ] Settings
+- [X] Settings
 - [ ] TDF
 - [ ] Hasher (inside engine/common/utils/hasher.hpp)
 

@@ -2,6 +2,7 @@
 #include <utility>
 
 #include "engine/common/tracelog.hpp"
+#include "engine/scripting/bindings/input/keyboard_enum_registerer.hpp"
 #include "engine/scripting/bindings/bindings_list.hpp"
 #include "engine/scripting/bindings/script_binding_class.hpp"
 #include "engine/scripting/bindings/stl_vector_binder.hpp"
@@ -23,6 +24,10 @@ namespace CE::Scripting::Bindings {
         script_engine.SetDefaultNamespace("CE::Containers");
         RegisterVector<asUINT>(&script_engine, "Uint32Vector", "uint32");
         script_engine.SetDefaultNamespace("");
+
+        script_engine.SetDefaultNamespace("CE::Input::Keyboard");
+        RegisterKeyboardEnum(&script_engine);
+        script_engine.SetDefaultNamespace((""));
 
         for (const auto& entry : mImpl->mBindings.bindings) {
             auto binding = entry.create(runtime, script_engine);

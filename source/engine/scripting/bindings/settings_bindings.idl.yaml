@@ -19,7 +19,7 @@ ASTypes:
 
       - Type: Destructor
         Body: |
-          self.~SettingsInfo();
+          (void) self;
         CallingConvention: CDeclObjLast
 
     Properties:
@@ -82,14 +82,14 @@ ASClassFunctions:
     Signature: ""
     Description: Reloads settings from disk and applies them
     Body: |
-      return mRuntime.mSettings.ReloadSettings();
+      return mRuntime.mSettingsManager.ReloadSettings();
 
   - Name: FlushSettings
     ReturnType: void
     Signature: ""
     Description: Flushes the current set SettingsInfo to disk
     Body: |
-      mRuntime.mSettings.FlushSettings();
+      mRuntime.mSettingsManager.FlushSettings();
 
   - Name: GetInteger
     ReturnType: int
@@ -97,7 +97,7 @@ ASClassFunctions:
     CppSignature: const std::string&, const std::string&, const int
     Description: Gets a 32bit integer from settings
     Body: |
-      return mRuntime.mSettings.Custom_GetInteger(arg0, arg1, arg2);
+      return mRuntime.mSettingsManager.Custom_GetInteger(arg0, arg1, arg2);
 
   - Name: GetFloat
     ReturnType: float
@@ -105,7 +105,7 @@ ASClassFunctions:
     CppSignature: const std::string&, const std::string&, const float
     Description: Gets a 32bit float from settings
     Body: |
-      return mRuntime.mSettings.Custom_GetFloat(arg0, arg1, arg2);
+      return mRuntime.mSettingsManager.Custom_GetFloat(arg0, arg1, arg2);
 
   - Name: GetBool
     ReturnType: bool
@@ -113,22 +113,23 @@ ASClassFunctions:
     CppSignature: const std::string&, const std::string&, const bool
     Description: Gets a bool from settings 
     Body: |
-      return mRuntime.mSettings.Custom_GetBool(arg0, arg1, arg2);
+      return mRuntime.mSettingsManager.Custom_GetBool(arg0, arg1, arg2);
 
   - Name: GetString
     ReturnType: string
     CppReturnType: std::string
     Signature: const string& in key, const string& in section, const string& in fallback
+    CppSignature: const std::string&, const std::string&, const std::string&
     Description: Gets a string from settings
     Body: |
-      return mRuntime.mSettings.Custom_GetString(arg0, arg1, arg2);
+      return mRuntime.mSettingsManager.Custom_GetString(arg0, arg1, arg2);
 
   - Name: SetInteger
     ReturnType: void
     Signature: const string& in key, const string& in section, const int value
-    CppSignature: const std::string&, const std::string, const int
+    CppSignature: const std::string&, const std::string&, const int
     Description: Sets an int into settings
-    Class: mSettings
+    Class: mSettingsManager
     CppMethod: Custom_SetInteger
 
   - Name: SetFloat
@@ -136,7 +137,7 @@ ASClassFunctions:
     Signature: const string& in key, const string& in section, const float value
     CppSignature: const std::string&, const std::string&, const float
     Description: Sets a float into settings
-    Class: mSettings
+    Class: mSettingsManager
     CppMethod: Custom_SetFloat
 
   - Name: SetBool
@@ -144,13 +145,13 @@ ASClassFunctions:
     Signature: const string& in key, const string& in section, const bool value
     CppSignature: const std::string&, const std::string&, const bool
     Description: Sets a boolean into settings
-    Class: mSettings
+    Class: mSettingsManager
     CppMethod: Custom_SetBool
 
   - Name: SetString
     ReturnType: void
-    Signature: const string& in key, const string& in section, const string& value
+    Signature: const string& in key, const string& in section, const string& in value
     CppSignature: const std::string&, const std::string&, const std::string&
     Description: Sets a string into settings
-    Class: mSettings
+    Class: mSettingsManager
     CppMethod: Custom_SetString

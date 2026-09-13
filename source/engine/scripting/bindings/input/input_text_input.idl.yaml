@@ -1,0 +1,37 @@
+RegistrationPriority: 100
+ASNamespace: CE::Input::Text
+
+RequiredCppHeaders:
+  - "engine/input/text.hpp"
+
+ASClassFunctions:
+  - Name: Begin
+    ReturnType: void
+    Signature: ""
+    Description: Begins text input, it is a good idea to stop these when not needed
+    Class: mTextInput
+    CppMethod: Begin
+
+  - Name: End
+    ReturnType: void
+    Signature: ""
+    Description: Ends text input
+    Class: mTextInput
+    CppMethod: End
+
+  - Name: GetFinalText
+    ReturnType: string
+    Signature: ""
+    CppReturnType: std::string
+    Description: Gets the text/characters the user has actually typed in for the current frame
+    Class: mTextInput
+    CppMethod: GetFinalText
+
+  - Name: GetEditingText
+    ReturnType: string
+    CppReturnType: std::string
+    Signature: ""
+    Description: |
+      Gives the temp text the IME text that the user is working on
+    Class: mTextInput
+    CppMethod: GetEditingText

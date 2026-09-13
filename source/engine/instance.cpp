@@ -2,6 +2,7 @@
 
 #include <format>
 #include <memory>
+#include <stdexcept>
 
 #include <SDL3/SDL.h>
 
@@ -75,9 +76,12 @@ namespace CE {
                 std::format("[Instance {}] Failed to init asset importers and managers {}", gInstanceID, aiam));
         }
 
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
-        mKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
-        mMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
+        int bootstrap_input_return = Bootstrap_InputManagers();
+        if (bootstrap_input_return != 0) {
+            throw std::runtime_error(
+                std::format("[Instance {}] Failed to init input managers", gInstanceID)
+            );
+        }
 
         try {
             CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
@@ -101,7 +105,7 @@ namespace CE {
             *mShaderManager, *gFontManager, 
             *mGPUMeshManager, *mMaterialManager, 
             *gAnimatedTextureManager, *mKeyboardManger,
-            *mMouseManger, *mRendererResourcesNameRegistry, 
+            *mMouseManger, *mTextInputManager, *mRendererResourcesNameRegistry, 
             gProgramArguments.OutputDebugASInfo,
             gProgramArguments.OutputDebugASInfoPath, 
             *mWindow,mAudioManager.get()
@@ -133,6 +137,7 @@ namespace CE {
 
         mKeyboardManger->Update();
         mMouseManger->Update();
+        mTextInputManager->Update();
 
         auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
 

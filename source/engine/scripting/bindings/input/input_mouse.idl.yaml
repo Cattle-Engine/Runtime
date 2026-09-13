@@ -1,0 +1,107 @@
+RegistrationPriority: 100
+
+RequiredCppHeaders:
+  - "engine/input/mouse.hpp"
+
+ASNamespace: CE::Input::Mouse
+
+ASEnums:
+  - Name: MouseButtons
+    CppType: CE::Input::MouseButtons
+    Values:
+      - Left
+      - Middle
+      - Right
+      - X1
+      - X2
+
+  - Name: MouseVisiblity
+    CppType: CE::Input::MouseVisibility
+    Values:
+      - Hidden
+      - Shown
+
+ASClassFunctions:
+  - Name: GetX
+    ReturnType: int
+    Signature: ""
+    Description: Gets the X position of the mouse pointer
+    Class: mMouse
+    CppMethod: GetX
+
+  - Name: GetY
+    ReturnType: int
+    Signature: ""
+    Description: Gets the Y position of the mouse pointer
+    Class: mMouse
+    CppMethod: GetY
+
+  - Name: GetDeltaX
+    ReturnType: int
+    Signature: ""
+    Description: Gets how much the mouse pointer has moved since the last frame, on the X axis
+    Class: mMouse
+    CppMethod: GetDeltaX
+
+  - Name: GetDeltaY
+    ReturnType: int
+    Signature: ""
+    Description: Gets how much the mousep ointer has moved since the last frame, on the Y axis
+    Class: mMouse
+    CppMethod: GetDeltaY
+
+  - Name: GetWheelX
+    ReturnType: int
+    Signature: ""
+    Description: Gets how much the mouse wheel has moved since the last frame, on the X axis (up/down)
+    Class: mMouse
+    CppMethod: GetWheelX
+  
+  - Name: GetWheelY
+    ReturnType: int
+    Signature: ""
+    Description: |
+      Gets how much the mouse wheel has moved since the last frame on the Y axis (left/right).
+      This is really a feature of trackpads and not mouse wheels, or trackballs ig.
+    Class: mMouse
+    CppMethod: GetWheelY
+
+  - Name: SetCursorVisibilty
+    ReturnType: void
+    Signature: MouseVisiblity visiblity
+    CppSignature: CE::Input::MouseVisibility
+    Description: Shows or hides the cursor
+    Class: mMouse
+    CppMethod: SetCursorVisibility
+
+  - Name: LockCursor
+    ReturnType: void
+    Signature: bool lock
+    CppSignature: bool
+    Description: Locks the cursor to the center of the screen if true
+    Class: mMouse
+    CppMethod: LockCursor
+
+  - Name: IsButtonDown
+    ReturnType: bool
+    Signature: MouseButtons button
+    CppSignature: CE::Input::MouseButtons
+    Description: Checks if a mouse button is down
+    Class: mMouse
+    CppMethod: IsButtonDown
+
+  - Name: IsButtonPressed
+    ReturnType: bool
+    Signature: MouseButtons button
+    CppSignature: CE::Input::MouseButtons
+    Description: Checks if a mouse button is pressed
+    Class: mMouse
+    CppMethod: IsButtonDown
+
+  - Name: IsButtonReleased
+    ReturnType: bool
+    Signature: MouseButtons
+    CppSignature: CE::Input::MouseButtons
+    Description: Checks if a mouse button is not pressed
+    Class: mMouse
+    CppMethod: IsButtonReleased

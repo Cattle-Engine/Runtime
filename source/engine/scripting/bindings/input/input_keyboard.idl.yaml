@@ -1,0 +1,29 @@
+ASNamespace: CE::Input::Keyboard
+
+RequiredCppHeaders:
+  - "engine/input/keyboard.hpp"
+
+ASClassFunctions:
+  - Name: IsKeyRleased
+    ReturnType: bool
+    Signature: KeyboardKeys key
+    CppSignature: CE::Input::KeyboardKeys
+    Description: Returns true if a key is released
+    Class: mKeyboard
+    CppMethod: IsKeyReleased
+
+  - Name: IsKeyPressed
+    ReturnType: bool
+    Signature: KeyboardKeys key
+    CppSignature: CE::Input::KeyboardKeys
+    Description: Returns true if a key is pressed
+    Class: mKeyboard
+    CppMethod: IsKeyReleased
+
+  - Name: IsKeyDown
+    ReturnType: bool
+    Signature: KeyboardKeys key
+    CppSignature: CE::Input::KeyboardKeys
+    Description: Returns true if a key is held down
+    Class: mKeyboard
+    CppMethod: IsKeyDown

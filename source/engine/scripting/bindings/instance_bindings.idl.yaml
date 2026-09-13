@@ -9,4 +9,4 @@ ASClassFunctions:
     ReturnType: void
     Description: Quits the Instance angelscript is being ran on. This does not quit the engine fully
     Function: |
-      mRuntime.mInstance.Exit()
+      mRuntime.mInstance.Exit();

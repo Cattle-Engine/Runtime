@@ -8,9 +8,9 @@
 namespace CE::Input {
 
     enum class MouseButtons {
-        LEFT = SDL_BUTTON_LEFT,
-        MIDDLE = SDL_BUTTON_MIDDLE,
-        RIGHT = SDL_BUTTON_RIGHT,
+        Left = SDL_BUTTON_LEFT,
+        Middle = SDL_BUTTON_MIDDLE,
+        Right = SDL_BUTTON_RIGHT,
         X1 = SDL_BUTTON_X1,
         X2 = SDL_BUTTON_X2
     };
@@ -21,6 +21,7 @@ namespace CE::Input {
       public:
         Mouse(int windowID);
 
+        // Called by instance every frame
         void Update();
 
         bool IsButtonDown(MouseButtons button) const;
