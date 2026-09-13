@@ -121,4 +121,36 @@ ASClassFunctions:
     Signature: const string& in key, const string& in section, const string& in fallback
     Description: Gets a string from settings
     Body: |
-      return mRutnime.mSettings.Custom_GetString(arg0, arg1, arg2);
+      return mRuntime.mSettings.Custom_GetString(arg0, arg1, arg2);
+
+  - Name: SetInteger
+    ReturnType: void
+    Signature: const string& in key, const string& in section, const int value
+    CppSignature: const std::string&, const std::string, const int
+    Description: Sets an int into settings
+    Class: mSettings
+    CppMethod: Custom_SetInteger
+
+  - Name: SetFloat
+    ReturnType: void
+    Signature: const string& in key, const string& in section, const float value
+    CppSignature: const std::string&, const std::string&, const float
+    Description: Sets a float into settings
+    Class: mSettings
+    CppMethod: Custom_SetFloat
+
+  - Name: SetBool
+    ReturnType: void
+    Signature: const string& in key, const string& in section, const bool value
+    CppSignature: const std::string&, const std::string&, const bool
+    Description: Sets a boolean into settings
+    Class: mSettings
+    CppMethod: Custom_SetBool
+
+  - Name: SetString
+    ReturnType: void
+    Signature: const string& in key, const string& in section, const string& value
+    CppSignature: const std::string&, const std::string&, const std::string&
+    Description: Sets a string into settings
+    Class: mSettings
+    CppMethod: Custom_SetString
