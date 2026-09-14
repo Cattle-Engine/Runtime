@@ -2,6 +2,8 @@ RegistrationPriority: 89
 
 RequiredCppHeaders:
   - "engine/scripting/bindings/as_cubemap.hpp"
+  - "engine/rendering/resources/model_renderer.hpp"
+  - "engine/assets/3d_model_importer.hpp"
 
 ASNamespace: CE::Graphics::Render3D
 
@@ -12,12 +14,31 @@ ASClassFunctions:
     CppSignature: const ASCubemap&
     Function: |
       mRuntime.mRenderer.SetSkyBox(arg0.mCubemap);
-
     Description: |
       Sets a Cubemap to be a skybox. 
       If a cubemap has NoTexture inside a face that face will just use the default clear colour
-    ParameterDescription:
-      skybox: The skybox to set
-    Category: Rendering 3D
 
-  # 3D Camera
+  - Name: DrawModel
+    ReturnType: void
+    Signature: const Model& in model, const Transform3D& in transform
+    CppSignature: const CE::Renderer::Resources::Model&, const CE::Renderer::Transform3D&
+    Description: Draws a model
+    Class: mModelRenderer
+    CppMethod: RenderModel
+
+  - Name: DestroyModel
+    ReturnType: void
+    Signature: Model& in model
+    CppSignature: CE::Renderer::Resources::Model&
+    Description: Easily destroys a model in one call
+    Class: mModelRenderer
+    CppMethod: DestroyModel
+
+  - Name: LoadModel
+    ReturnType: Model
+    CppReturnType: CE::Renderer::Resources::Model
+    Signature: const string& in model_path
+    CppSignature: const std::string&
+    Description: Easily load a model (eg, gltf, fbx) from the VFS
+    Class: m3DModelImporter
+    CppMethod: ImportModel

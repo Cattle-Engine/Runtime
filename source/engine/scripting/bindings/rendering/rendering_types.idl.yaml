@@ -258,6 +258,10 @@ ASTypes:
 
   - Name: Material
     CppType: CE::Renderer::Resources::MaterialHandle
+    AfterRegister: |
+      mScriptEngine.SetDefaultNamespace("CE::Containers");
+      CE::Scripting::Bindings::RegisterVector<CE::Renderer::Resources::MaterialHandle>(&mScriptEngine, "MaterialVector", "Material");
+      mScriptEngine.SetDefaultNamespace("CE");
 
     Flags:
       - Value
@@ -283,6 +287,11 @@ ASTypes:
 
   - Name: Mesh
     CppType: CE::Renderer::Resources::MeshHandle
+    AfterRegister: |
+      mScriptEngine.SetDefaultNamespace("CE::Containers");
+      CE::Scripting::Bindings::RegisterVector<CE::Renderer::Resources::MeshHandle>(&mScriptEngine, "MeshVector", "Mesh");
+      mScriptEngine.SetDefaultNamespace("CE");
+
 
     Flags:
       - Value

@@ -6,6 +6,7 @@
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/input/text.hpp"
+#include "engine/rendering/resources/model_renderer.hpp"
 
 #include <angelscript.h>
 
@@ -31,10 +32,15 @@ namespace CE {
         class ShaderManager;
         class MaterialManager;
         class GPUMeshManager;
+        class ModelRenderer;
     } // namespace Renderer::Resources
 
     namespace Assets::Fonts {
         class FontManager;
+    }
+
+    namespace Assets::Model3DImporter {
+        class ModelImporter;
     }
 
     namespace Assets::Animations {
@@ -67,17 +73,29 @@ namespace CE {
 namespace CE::Scripting {
     class Runtime {
       public:
-        Runtime(VFS::VFS& vfs, GameInfo& game_info, Settings::SettingsManager& settings_manager, Instance& instance,
-                Renderer::IRenderer& renderer, Renderer::Resources::TextureManager& texture_manager,
-                Renderer::Resources::ShaderManager& shader_manager,
-                Assets::Fonts::FontManager& font_manager, Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
-                Renderer::Resources::MaterialManager& material_manager,
-                Assets::Animations::AnimatedTextureManager& animated_texture_manager, Input::Keyboard& keyboard,
-                Input::Mouse& mouse, Input::TextInput& text_input_manager,
-                CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
-                bool output_debug_info, std::string output_debug_as_info_path, Common::Window& window,
-                Audio::Resources::AudioManager* audio_manager = nullptr
-            );
+        Runtime(
+            VFS::VFS& vfs, 
+            GameInfo& game_info, 
+            Settings::SettingsManager& settings_manager, 
+            Instance& instance,
+            Renderer::IRenderer& renderer, 
+            Renderer::Resources::ModelRenderer& model_renderer,
+            Renderer::Resources::TextureManager& texture_manager,
+            Renderer::Resources::ShaderManager& shader_manager,
+            Assets::Fonts::FontManager& font_manager,
+            Assets::Model3DImporter::ModelImporter& model_importer,
+            Renderer::Resources::GPUMeshManager& gpu_mesh_manager,
+            Renderer::Resources::MaterialManager& material_manager,
+            Assets::Animations::AnimatedTextureManager& animated_texture_manager, 
+            Input::Keyboard& keyboard,
+            Input::Mouse& mouse, Input::TextInput& text_input_manager,
+            CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
+            bool output_debug_info, 
+            std::string output_debug_as_info_path, 
+            Common::Window& window,
+            Audio::Resources::AudioManager* audio_manager = nullptr
+        );
+
         ~Runtime();
 
         bool RunStartup();
@@ -97,9 +115,11 @@ namespace CE::Scripting {
         Settings::SettingsManager& mSettingsManager;
         Instance& mInstance;
         Renderer::IRenderer& mRenderer;
+        Renderer::Resources::ModelRenderer& mModelRenderer;
         Renderer::Resources::TextureManager& mTextureManager;
         Renderer::Resources::ShaderManager& mShaderManager;
         Assets::Fonts::FontManager& mFontManager;
+        Assets::Model3DImporter::ModelImporter& m3DModelImporter;
         Renderer::Resources::GPUMeshManager& mGPUMeshManager;
         Renderer::Resources::MaterialManager& mMaterialManager;
         Assets::Animations::AnimatedTextureManager& mAnimationManager;

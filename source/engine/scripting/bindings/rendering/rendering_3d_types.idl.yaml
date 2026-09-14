@@ -3,6 +3,8 @@ ASNamespace: CE::Graphics::Render3D
 
 RequiredCppHeaders: 
   - "engine/scripting/bindings/as_cubemap.hpp"
+  - "engine/scripting/bindings/stl_vector_binder.hpp"
+  - "engine/rendering/resources/model_renderer.hpp"
 
 ASTypes:    
   - Name: CubemapFace
@@ -44,6 +46,79 @@ ASTypes:
         CppReturnType: CE::Renderer::Resources::TextureHandle
         CppFunction: GetTextureHandle
         CallingConvention: Generic
+
+  - Name: ModelNode
+    CppType: CE::Renderer::Resources::Model::Node
+    AfterRegister: |
+      mScriptEngine.SetDefaultNamespace("CE::Containers");
+      CE::Scripting::Bindings::RegisterVector<CE::Renderer::Resources::Model::Node>(&mScriptEngine, "ModelNodeVector", "CE::Graphics::Render3D::ModelNode");
+      mScriptEngine.SetDefaultNamespace("CE");
+
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Resources::Model::Node();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~Node();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: Mat4
+        CppMember: Transform
+        ASMember: Transform
+
+      - Type: CE::Containers::Uint32Vector
+        CppMember: MeshIndices
+        ASMember: mesh_indices
+
+      - Type: CE::Containers::Uint32Vector
+        CppMember: Children
+        ASMember: children
+
+  - Name: Model
+    CppType: CE::Renderer::Resources::Model
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Resources::Model();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~Model();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: CE::Containers::MeshVector
+        CppMember: Meshes
+        ASMember: meshes
+
+      - Type: CE::Containers::MaterialVector
+        CppMember: Materials
+        ASMember: materials
+
+      - Type: CE::Containers::Uint32Vector
+        CppMember: MeshMaterialIndices
+        ASMember: mesh_material_indices
+
+      - Type: CE::Containers::ModelNodeVector
+        CppMember: Nodes
+        ASMember: nodes
+
+      - Type: uint
+        CppMember: RootNode
+        ASMember: root_node
 
   - Name: Cubemap
     CppType: CE::Scripting::Bindings::ASCubemap

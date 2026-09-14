@@ -101,8 +101,8 @@ namespace CE {
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *mVFS, *mGameInfo, 
             *mSettingsManager, *this, 
-            *mRenderer, *mTextureManager, 
-            *mShaderManager, *gFontManager, 
+            *mRenderer, *mModelRenderer,*mTextureManager, 
+            *mShaderManager, *gFontManager, *g3DModelImporter,
             *mGPUMeshManager, *mMaterialManager, 
             *gAnimatedTextureManager, *mKeyboardManger,
             *mMouseManger, *mTextInputManager, *mRendererResourcesNameRegistry, 
