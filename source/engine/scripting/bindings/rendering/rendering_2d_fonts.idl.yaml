@@ -1,0 +1,60 @@
+RequiredCppHeaders:
+  - "engine/assets/fonts.hpp"
+
+ASNamespace: CE::Graphics::Render2D::Text
+
+ASClassFunctions:
+  - Name: DrawText
+    ReturnType: void
+    Signature: const string& in text, int x, int y, float size
+    CppSignature: const std::string&, int, int, float
+    Description: Draws text using the default font, and the colour is black
+    Function: |
+      mRuntime.mFontManager.Draw(arg0, arg1, arg2, arg3, CE::Renderer::Colour::Black);
+
+  - Name: DrawText
+    ReturnType: void
+    Signature: const string& in text, int x, int y, float size, Colour& in colour
+    CppSignature: const std::string&, int, int, float, CE::Renderer::Colour&
+    Description: Draws text using the default font
+    Class: mFontManager
+    CppMethod: Draw
+
+  - Name: DrawText
+    ReturnType: void  
+    Signature: const string& in text, const string& in name, int x, int y, float size, Colour& in colour
+    CppSignature: const std::string&, const std::string&, int, int, float, CE::Renderer::Colour&
+    Description: Draws text using the font name specified
+    Class: mFontManager
+    CppMethod: DrawEx
+
+  - Name: LoadFont
+    ReturnType: bool
+    Signature: const string& in path, const string& in name
+    CppSignature: const std::string&, const std::string&
+    Description: Loads a font from the VFS, returns false if failed, true if succeded
+    Class: mFontManager
+    CppMethod: Load
+
+  - Name: SetDefaultFont
+    ReturnType: void
+    Signature: const string& in font_name
+    CppSignature: const std::string&
+    Description: Sets the default font for DrawText to use
+    Class: mFontManager
+    CppMethod: SetDefault
+
+  - Name: UnloadFont
+    ReturnType: void
+    Signature: const string& in font_name
+    CppSignature: const std::string&
+    Description: Unloads the specified font
+    Class: mFontManager
+    CppMethod: Unload
+
+  - Name: UnloadAllFonts
+    ReturnType: void
+    Signature: ""
+    Description: Unloads all loaded fonts
+    Class: mFontManager
+    CppMethod: UnloadAll

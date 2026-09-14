@@ -82,6 +82,7 @@ List of bindings to do:
 - [ ] 2D stuff
     - [ ] font manager
 - [ ] 3D stuff
+    - [ ] model's
 - [X] Window control
 - [ ] Input
     - [X] Text
