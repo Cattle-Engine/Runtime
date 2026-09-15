@@ -24,8 +24,8 @@ namespace CE {
         std::string windowIcon;
 
         std::string startupFileName;
-        // TODO: Figure why the fuck this is const char* and change it to std::string
-        const char* dataFileName;
+
+        std::string dataFileName;
 
         int minWindowWidth;
         int minWindowHeight;
