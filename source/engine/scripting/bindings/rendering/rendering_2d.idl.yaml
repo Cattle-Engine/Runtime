@@ -133,3 +133,11 @@ ASClassFunctions:
     Description: Draw a 2D line
     Function: |
       mRuntime.mRenderer.DrawLine(arg0, arg1, arg2, arg3, arg4, arg5.r, arg5.g, arg5.b, arg5.a);
+
+  - Name: Set2DCameraPos
+    ReturnType: void
+    Signature: Camera2D& in camera
+    CppSignature: CE::Renderer::Camera2D&
+    Description: Sets the 2D camera position
+    Function: |
+      mRuntime.mRenderer.ChangeCameraPos2D(arg0.x, arg0.y, arg0.zoom);

@@ -1,0 +1,26 @@
+RegistrationPriority: 89
+
+ASNamespace: CE::Graphics::Render2D
+RequiredCppHeaders:
+  - "engine/rendering/renderer.hpp"
+
+ASTypes:
+  - Name: Camera2D
+    CppType: CE::Renderer::Camera2D
+    Flags:
+      - POD
+      - Value
+      - AutoGetFlags
+
+    Properties:
+      - Type: float
+        CppMember: x
+        ASMember: x
+
+      - Type: float
+        CppMember: "y"
+        ASMember: "y"
+
+      - Type: float
+        CppMember: zoom
+        ASMember: zoom

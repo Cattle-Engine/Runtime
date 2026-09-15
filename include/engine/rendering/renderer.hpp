@@ -206,8 +206,11 @@ namespace CE::Renderer {
         virtual int Shutdown(SDL_Window* window) = 0;
 
         virtual void ChangeCameraPos2D(float X, float Y, float zoom) = 0;
+
         virtual void ChangeCameraPos3D(const Transform3D& transform) = 0;
+
         virtual void SetCamera3D(const Camera3D& camera) {
+
             mCamera3DState = camera;
             ChangeCameraPos3D({camera.position, camera.rotation, glm::vec3(1.0f)});
         }

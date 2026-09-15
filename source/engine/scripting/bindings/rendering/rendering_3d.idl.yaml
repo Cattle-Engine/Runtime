@@ -42,3 +42,19 @@ ASClassFunctions:
     Description: Easily load a model (eg, gltf, fbx) from the VFS
     Class: m3DModelImporter
     CppMethod: ImportModel
+
+  - Name: Set3DCameraPos
+    ReturnType: void
+    Signature: const Transform3D& in transform
+    CppSignature: const CE::Renderer::Transform3D&
+    Description: Sets the 3D camera position, rotation and scale
+    Class: mRenderer
+    CppMethod: ChangeCameraPos3D
+
+  - Name: SetCamera3D
+    ReturnType: void
+    Signature: Camera3D& in camera
+    CppSignature: CE::Renderer::Camera3D
+    Description: Sets the camera 3d and updates the position
+    Class: mRenderer
+    CppMethod: SetCamera3D

@@ -5,6 +5,14 @@ RequiredCppHeaders:
   - "engine/scripting/bindings/as_cubemap.hpp"
   - "engine/scripting/bindings/stl_vector_binder.hpp"
   - "engine/rendering/resources/model_renderer.hpp"
+  - "engine/rendering/renderer.hpp"
+
+ASEnums:
+  - Name: Camera3DProjectionMode
+    CppType: CE::Renderer::Camera3D::ProjectionMode
+    Values:
+      - Perspective
+      - Orthographic
 
 ASTypes:    
   - Name: CubemapFace
@@ -176,3 +184,66 @@ ASTypes:
       - Type: CubemapFace
         CppMember: Back
         ASMember: back
+
+  - Name: Camera3D
+    CppType: CE::Renderer::Camera3D
+
+    Flags: 
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Renderer::Camera3D();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Body: |
+          self->~Camera3D();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: Vec3
+        CppMember: position
+        ASMember:  position
+
+      - Type: Vec3
+        CppMember: rotation
+        ASMember: rotation
+
+      - Type: Vec3
+        CppMember: target
+        ASMember: target
+      
+      - Type: Vec3
+        CppMember: up
+        ASMember: up
+
+      - Type: float
+        CppMember: fov
+        ASMember: fov
+
+      - Type: float
+        CppMember: nearClip
+        ASMember: near_clip
+
+      - Type: float
+        CppMember: farClip
+        ASMember: far_clip
+
+      - Type: float
+        CppMember: orthoSize
+        ASMember: ortho_size
+
+      - Type: float
+        CppMember: aspectOverride
+        ASMember: aspect_override
+
+      - Type: bool
+        CppMember: useTarget
+        ASMember: use_target
+
+      - Type: Camera3DProjectionMode
+        CppMember: projection
+        ASMember: projection_mode
