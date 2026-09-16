@@ -11,6 +11,7 @@
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
+#include "engine/scripting/bindings/as_cubemap.hpp"
 #include "engine/platforms.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/settings.hpp"
@@ -138,7 +139,7 @@ namespace CE {
         mKeyboardManger->Update();
         mMouseManger->Update();
         mTextInputManager->Update();
-
+        CE::Scripting::Bindings::ASCubemap::SetDefaultTextureManager(*mTextureManager);
         auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
 
         for (size_t i : indices) {
@@ -201,7 +202,7 @@ namespace CE {
             return 0;
         }
 
-        mRenderer->SetClearColor(255, 255, 255, 255);
+        mRenderer->SetClearColour(255, 255, 255, 255);
         gGameStateManager.Emit("Update");
         if (gShouldRender) {
             int bfr = mRenderer->BeginFrame(mWindow->GetWindow());

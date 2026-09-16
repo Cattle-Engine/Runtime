@@ -1,7 +1,8 @@
 # Cattle Engine - NO BULLSHIT
 
 It's in a somewhat usable state? 
-Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3, it uses AngelScript for the actual game making stuff with a few custom extension (a custom import/export system) the docs for all this can be found inside [docs.md](docs.md).
+Cattle engine (abbreviated to CE), is a general 2D game engine currently using SDL3. 
+It uses AngelScript for the actual game making stuff with a few custom extension (a custom import/export system).
 
 Documentation can be found [here](documentation/README.md)
 

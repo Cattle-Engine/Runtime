@@ -33,7 +33,7 @@ namespace CE::Renderer::Software {
                         uint8_t a) override;
         void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
                       uint8_t a) override;
-        void SetClearColor(float r, float g, float b, float a) override;
+        void SetClearColour(float r, float g, float b, float a) override;
 
         Texture* LoadTex(const char* path) override;
         Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format, int pitch = 0,

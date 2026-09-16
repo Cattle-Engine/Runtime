@@ -223,7 +223,7 @@ namespace CE::Renderer {
         virtual void BeginMode3D() = 0;
         virtual void EndMode3D() = 0;
 
-        virtual void SetClearColor(float r, float g, float b, float a) = 0;
+        virtual void SetClearColour(float r, float g, float b, float a) = 0;
         virtual Texture* LoadTex(const char* path) = 0;
         virtual Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
                                                int pitch = 0, TextureFilter filter = TextureFilter::Linear,

@@ -1298,7 +1298,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         gCamera = {X, Y, zoom};
     }
 
-    void SDL_GPU_Renderer::SetClearColor(float r, float g, float b, float a) {
+    void SDL_GPU_Renderer::SetClearColour(float r, float g, float b, float a) {
         const bool looksLikeByteColor = (r > 1.0f) || (g > 1.0f) || (b > 1.0f) || (a > 1.0f);
 
         if (looksLikeByteColor) {

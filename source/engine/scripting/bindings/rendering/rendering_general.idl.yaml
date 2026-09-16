@@ -1,0 +1,13 @@
+ASNamespace: CE::Graphics
+
+RequiredCppHeaders:
+  - "engine/rendering/renderer.hpp"
+
+ASClassFunctions:
+  - Name: SetClearColour
+    ReturnType: void
+    Signature: const Colour& in colour
+    CppSignature: const CE::Renderer::Colour&
+    Description: Sets the background colour for 2D rendering, and when a skybox face is missing
+    Function: |
+      mRuntime.mRenderer.SetClearColour(arg0.r, arg0.g, arg0.b, arg0.a);

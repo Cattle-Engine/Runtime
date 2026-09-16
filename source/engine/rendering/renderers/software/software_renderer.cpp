@@ -252,7 +252,7 @@ namespace CE::Renderer::Software {
         SDL_RenderGeometry(mRenderer, nullptr, verts, 4, indices, 6);
     }
 
-    void Software_Renderer::SetClearColor(float r, float g, float b, float a) {
+    void Software_Renderer::SetClearColour(float r, float g, float b, float a) {
         auto clamp = [](float value) -> uint8_t { return static_cast<uint8_t>(std::clamp(value, 0.0f, 255.0f)); };
 
         mClearColor = SDL_Color{clamp(r), clamp(g), clamp(b), clamp(a)};
