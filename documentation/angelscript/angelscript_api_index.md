@@ -2,6 +2,7 @@
 
 - [audio_functions](audio_functions.md)
 - [audio_types](audio_types.md)
+- [input_binder](input_binder.md)
 - [input_keyboard](input_keyboard.md)
 - [input_mouse](input_mouse.md)
 - [input_text_input](input_text_input.md)
@@ -12,6 +13,7 @@
 - [rendering_2d_types](rendering_2d_types.md)
 - [rendering_3d](rendering_3d.md)
 - [rendering_3d_types](rendering_3d_types.md)
+- [rendering_general](rendering_general.md)
 - [rendering_resources](rendering_resources.md)
 - [rendering_types](rendering_types.md)
 - [settings_bindings](settings_bindings.md)
