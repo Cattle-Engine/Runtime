@@ -23,7 +23,7 @@ class MarkdownWriter:
         self._lines.append(f"***{text}***")
 
     def write_single_line_codeblock(self, code: str, language: str):
-            self._lines.append(f"```\n{language}\n{code}\n```")
+            self._lines.append(f"```{language}\n{code}\n```")
 
     def write_text(self, text: str):
             self._lines.append(text)
