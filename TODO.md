@@ -79,16 +79,17 @@ List of bindings to do:
     - [X] delta time
     - [X] frame time
     - [X] quitting
-- [ ] 2D stuff
-    - [ ] font manager
-- [ ] 3D stuff
-    - [ ] model's
+- [X] 2D stuff
+    - [X] font manager
+- [X] 3D stuff
+    - [X] model's
 - [X] Window control
 - [ ] Input
     - [X] Text
     - [X] Mouse
     - [ ] Input binder
     - [X] Keyboard
+- [ ] State callbacks and state control
 - [ ] VFS
 - [X] Settings
 - [ ] TDF
