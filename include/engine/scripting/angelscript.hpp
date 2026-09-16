@@ -51,6 +51,9 @@ namespace CE {
         class Mouse;
         class Keyboard;
         class TextInput;
+        namespace Bindings {
+            class BindingManager;
+        }
     } // namespace Input
 
     namespace Audio::Resources {
@@ -88,7 +91,9 @@ namespace CE::Scripting {
             Renderer::Resources::MaterialManager& material_manager,
             Assets::Animations::AnimatedTextureManager& animated_texture_manager, 
             Input::Keyboard& keyboard,
-            Input::Mouse& mouse, Input::TextInput& text_input_manager,
+            Input::Mouse& mouse, 
+            Input::TextInput& text_input_manager,
+            Input::Bindings::BindingManager& binding_manager,
             CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
             bool output_debug_info, 
             std::string output_debug_as_info_path, 
@@ -125,6 +130,7 @@ namespace CE::Scripting {
         Assets::Animations::AnimatedTextureManager& mAnimationManager;
         Input::Keyboard& mKeyboard;
         Input::Mouse& mMouse;
+        Input::Bindings::BindingManager& mInputBindingManager;
         Input::TextInput& mTextInput;
         Common::Window& mWindow;
         Audio::Resources::AudioManager* mAudioManager = nullptr;

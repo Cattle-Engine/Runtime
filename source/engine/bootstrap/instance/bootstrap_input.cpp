@@ -1,4 +1,5 @@
 #include <memory>
+#include "engine/input/input_binder.hpp"
 #include "engine/input/text.hpp"
 #include "engine/instance.hpp"
 #include "engine/common/tracelog.hpp"
@@ -10,6 +11,7 @@ namespace CE {
         mKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
         mMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
         mTextInputManager = std::make_unique<CE::Input::TextInput>(gInstanceWindowID, *mWindow);
+        mInputBindingManager = std::make_unique<CE::Input::Bindings::BindingManager>(*mVFS, *mKeyboardManger, *mMouseManger);
         return 0;
     }
 }

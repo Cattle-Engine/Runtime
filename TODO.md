@@ -81,6 +81,7 @@ List of bindings to do:
     - [X] quitting
 - [X] 2D stuff
     - [X] font manager
+    - [ ] animated texture (I think that needs a refactor tho)
 - [X] 3D stuff
     - [X] model's
 - [X] Window control

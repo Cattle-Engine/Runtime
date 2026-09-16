@@ -17,6 +17,7 @@
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/text.hpp"
+#include "engine/input/input_binder.hpp"
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
 #include "engine/rendering/resources/material_manager.hpp"
@@ -72,6 +73,7 @@ namespace CE {
         std::unique_ptr<Input::Keyboard> mKeyboardManger;
         std::unique_ptr<Input::Mouse> mMouseManger;
         std::unique_ptr<Input::TextInput> mTextInputManager;
+        std::unique_ptr<Input::Bindings::BindingManager> mInputBindingManager;
 
         std::unique_ptr<Scripting::Runtime> mScriptingManager;
 

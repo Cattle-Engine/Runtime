@@ -4,6 +4,7 @@
 
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/input/input_binder.hpp"
 #include "engine/input/text.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/private/exceptions.hpp"
@@ -45,7 +46,9 @@ namespace CE::Scripting {
         Renderer::Resources::MaterialManager& material_manager,
         Assets::Animations::AnimatedTextureManager& animated_texture_manager, 
         Input::Keyboard& keyboard,
-        Input::Mouse& mouse, Input::TextInput& text_input, 
+        Input::Mouse& mouse, 
+        Input::TextInput& text_input,
+        Input::Bindings::BindingManager& binding_manager, 
         CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
         bool output_debug_info, 
         std::string output_debug_as_info_path, 
@@ -67,6 +70,7 @@ namespace CE::Scripting {
           mAnimationManager(animated_texture_manager),
           mKeyboard(keyboard),
           mMouse(mouse),
+          mInputBindingManager(binding_manager),
           mTextInput(text_input),
           mWindow(window),
           mAudioManager(audio_manager) {

@@ -1,7 +1,8 @@
 ASNamespace: CE::Input::Keyboard
-
 RequiredCppHeaders:
   - "engine/input/keyboard.hpp"
+
+RegistrationPriority: 100
 
 ASClassFunctions:
   - Name: IsKeyRleased

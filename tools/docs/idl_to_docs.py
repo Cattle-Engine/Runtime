@@ -42,6 +42,7 @@ class EnumDocumentation:
 @dataclass
 class BindingDocumentation:
     namespace: str = ""
+    global_description: str = ""
     types: list[TypeDocumentation] = field(default_factory=list)
     functions: list[DocumentationInfo] = field(default_factory=list)
     enums: list[EnumDocumentation] = field(default_factory=list)
@@ -67,7 +68,7 @@ def parse_binding_file(binding_file: Path) -> BindingDocumentation:
 
     return BindingDocumentation(
         namespace=default_namespace,
-
+        global_description=data.get("Documentation", ""),
         types=[
             TypeDocumentation(
                 name=x["Name"],
@@ -433,6 +434,10 @@ def generate_declaration_docs(
 
 def generate_markdown(binding: BindingDocumentation) -> str:
     generator = markdown_generator.MarkdownWriter()
+
+    if binding.global_description:
+        generator.write_header("Description", 1)
+        generator.write_text(binding.global_description)
 
     if binding.namespace:
         generator.write_header(binding.namespace, 1)

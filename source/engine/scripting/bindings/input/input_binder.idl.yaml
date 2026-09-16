@@ -1,0 +1,102 @@
+ASNamespace: CE::Input::Bindings
+
+RequiredCppHeaders:
+  - "engine/input/input_binder.hpp"
+  - "engine/input/keyboard.hpp"
+  - "engine/input/mouse.hpp"
+
+RegistrationPriority: 99
+
+Documentation: |
+  CE will not auto load bindings. You will have to do it manually.
+
+ASClassFunctions:
+  - Name: IsBindingPressed
+    ReturnType: bool
+    Signature: const string& in binding_name
+    CppSignature: const std::string&
+    Description: Returns true or false if a binding is pressed for this frame
+    Class: mInputBindingManager
+    CppMethod: IsBindingPressed
+
+  - Name: IsBindingDown
+    ReturnType: bool
+    Signature: const string& in binding_name
+    CppSignature: const std::string&
+    Description: Returns true or false if a binding is down at the current frame
+    Class: mInputBindingManager
+    CppMethod: IsBindingDown
+
+  - Name: IsBindingReleased
+    ReturnType: bool
+    Signature: const string& in binding_name
+    CppSignature: const std::string&
+    Description: Returns true or false if a key was released this frame
+    Class: mInputBindingManager
+    CppMethod: IsBindingReleased
+
+  - Name: AddBinding
+    ReturnType: void
+    Signature: const string& in name, const CE::Input::Keyboard::KeyboardKeys& in key
+    CppSignature: const std::string&, const CE::Input::KeyboardKeys&
+    Description: Adds a binding using the name and keyboard key
+    Class: mInputBindingManager
+    CppMethod: AddBinding
+
+  - Name: AddBinding
+    ReturnType: void
+    Signature: const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+    CppSignature: const std::string&, const CE::Input::MouseButtons&
+    Description: Adds a binding using the name and mouse button
+    Class: mInputBindingManager
+    CppMethod: AddBinding
+
+  - Name: RemoveBinding
+    ReturnType: void
+    Signature: const string& in name, const CE::Input::Keyboard::KeyboardKeys& in key
+    CppSignature: const std::string&, const CE::Input::KeyboardKeys&
+    Description: Removes just one keyboard binding
+    Class: mInputBindingManager
+    CppMethod: RemoveBinding
+
+  - Name: RemoveBinding
+    ReturnType: void
+    Signature: const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+    CppSignature: const std::string&, const CE::Input::MouseButtons&
+    Description: Removes just one button binding 
+    Class: mInputBindingManager
+    CppMethod: RemoveBinding
+
+  - Name: RemoveEntireBinding
+    ReturnType: void
+    Signature: const string& in binding_name
+    CppSignature: const std::string&
+    Description: Removes all keys/buttons from a binding
+    Class: mInputBindingManager
+    CppMethod: RemoveEntireBinding
+
+  - Name: FlushBindings
+    ReturnType: void
+    Signature: const string& in path
+    CppSignature: const std::string&
+    Description: |
+      Flushes the current bindings to a file.
+      The path is on the VFS and must be writeable. 
+      Check the VFS docs to see what mounts are writeable.
+    Class: mInputBindingManager
+    CppMethod: FlushBindings
+
+  - Name: LoadBindings
+    ReturnType: void
+    Signature: const string& in path
+    CppSignature: const std::string&
+    Description: Loads a binding file from the VFS
+    Class: mInputBindingManager
+    CppMethod: FlushBindings
+
+  - Name: ResetBindings
+    ReturnType: void
+    Signature: ""
+    Description: Remove all bindings set
+    Class: mInputBindingManager
+    CppMethod: ResetBindings
