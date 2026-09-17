@@ -14,7 +14,7 @@ namespace CE::Input::Bindings {
     class BindingManager {
       public:
         BindingManager(VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr);
-        ~BindingManager();
+        ~BindingManager() = default;
 
         bool IsBindingPressed(const std::string& binding_name);
         bool IsBindingDown(const std::string& binding_name);

@@ -5,7 +5,7 @@ RequiredCppHeaders:
   - "engine/input/keyboard.hpp"
   - "engine/input/mouse.hpp"
 
-RegistrationPriority: 99
+RegistrationPriority: 90
 
 Documentation: |
   CE will not auto load bindings. You will have to do it manually.
@@ -45,7 +45,7 @@ ASClassFunctions:
 
   - Name: AddBinding
     ReturnType: void
-    Signature: const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+    Signature: const string& in name, const CE::Input::Mouse::MouseButtons& in key
     CppSignature: const std::string&, const CE::Input::MouseButtons&
     Description: Adds a binding using the name and mouse button
     Class: mInputBindingManager
@@ -61,7 +61,7 @@ ASClassFunctions:
 
   - Name: RemoveBinding
     ReturnType: void
-    Signature: const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+    Signature: const string& in name, const CE::Input::Mouse::MouseButtons& in key
     CppSignature: const std::string&, const CE::Input::MouseButtons&
     Description: Removes just one button binding 
     Class: mInputBindingManager

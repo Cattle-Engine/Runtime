@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -36,33 +37,51 @@ namespace CE::Assets::Animations {
         Renderer::Colour Tint = {255, 255, 255, 255};
     };
 
+    struct AnimationInstanceHandle {
+        uint32_t id;
+
+        bool operator==(const AnimationInstanceHandle& o) const {
+            return id == o.id;
+        }
+    };
+
+    struct AnimationInstanceHandleHash {
+        std::size_t operator()(const AnimationInstanceHandle& s) const noexcept {
+            return std::hash<uint32_t>{}(s.id);
+        }
+    };
+
     class AnimatedTextureManager {
       public:
         AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
 
-        void Load(std::string name, std::string path);
-        void Unload(std::string name);
-        uint32_t CreateInstance(std::string name);
-        void DeleteInstance(uint32_t handle);
+        // path must be a tdf file on VFS
+        bool Load(std::string name, std::string path);
+        bool Unload(std::string name);
+        AnimationInstanceHandle CreateInstance(std::string name);
+        bool DeleteInstance(AnimationInstanceHandle handle);
 
-        void Play(uint32_t handle, int x, int y, bool loop, bool auto_render);
-        void PlayRot(uint32_t handle, int x, int y, bool loop, float rotation, bool auto_render);
-        void SetPosition(uint32_t handle, int x, int y, float rotation);
-        void Seek(uint32_t handle, uint32_t frame);
-        void SetDrawMode(uint32_t handle, bool auto_render);
-        void SetLooping(uint32_t handle, bool loop);
-        void SetTint(uint32_t handle, Renderer::Colour colour);
-        void Pause(uint32_t handle);
-        void Stop(uint32_t handle);
-        void DrawFrame(uint32_t handle);
+        void Play(AnimationInstanceHandle handle, int x, int y, bool loop, bool auto_render);
+        void PlayRot(AnimationInstanceHandle handle, int x, int y, bool loop, float rotation, bool auto_render);
+        void SetPosition(AnimationInstanceHandle handle, int x, int y, float rotation);
+        void Seek(AnimationInstanceHandle handle, uint32_t frame);
+        void SetDrawMode(AnimationInstanceHandle handle, bool auto_render);
+        void SetLooping(AnimationInstanceHandle handle, bool loop);
+        void SetTint(AnimationInstanceHandle handle, Renderer::Colour colour);
+        // stops an animation playing and keeps the current playback position
+        void Pause(AnimationInstanceHandle handle);
+        // stops an animation and does not keep the current playback position
+        void Stop(AnimationInstanceHandle handle);
+
+        void DrawFrame(AnimationInstanceHandle handle);
 
         void Update(float dt);
         void Render();
 
       private:
-        AnimationInstance* GetAnimationInfo(uint32_t handle);
+        AnimationInstance* GetAnimationInfo(AnimationInstanceHandle handle);
         std::unordered_map<std::string, std::shared_ptr<AnimationInfo>> mAnimations;
-        std::unordered_map<uint32_t, AnimationInstance> mAnimationInstances;
+        std::unordered_map<AnimationInstanceHandle, AnimationInstance, AnimationInstanceHandleHash> mAnimationInstances;
         VFS::VFS& mVFS;
         Renderer::IRenderer& mRenderer;
         uint32_t mNextHandleID;

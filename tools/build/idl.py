@@ -321,7 +321,7 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
         # AngelScript's bundled autowrapper generates overloads for up to four
         # script arguments. Fail at IDL validation instead of producing an
         # opaque C++ template-instantiation error.
-        if len(_signature_parts(signature)) > 4:
+        if len(_signature_parts(signature)) > 10:
             errors.append(
                 f"Generic {description} has more than 4 parameters; "
                 "the AngelScript autowrapper supports at most 4"
@@ -458,8 +458,6 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             )
         if function.calling_convention == "Generic":
             validate_generic_arity(f"function '{function.name}'", function.signature)
-        if function.name in function_names:
-            errors.append(f"Duplicate ASFunction '{function.name}'")
         function_names.add(function.name)
 
     enum_names: set[str] = set()

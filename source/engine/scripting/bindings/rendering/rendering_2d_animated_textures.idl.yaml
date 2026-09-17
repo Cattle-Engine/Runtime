@@ -1,0 +1,159 @@
+ASNamespace: CE::Graphics::Render2D::AnimatedTextures
+
+RequiredCppHeaders:
+  - "engine/assets/animated_textures.hpp"
+
+ASTypes:
+  - Name: AnimationInstance
+    CppType: CE::Assets::Animations::AnimationInstanceHandle
+    Flags:
+      - Value
+      - POD
+      - AutoGetFlags
+
+    Description: |
+      A handle type for an animation instance.
+      0 Means invalid.
+
+    Properties:
+      - Type: uint
+        CppMember: id 
+        ASMember: id
+
+ASClassFunctions:
+  - Name: Load
+    ReturnType: bool
+    Signature: const string& in name, const string& in path
+    CppSignature: const std::string&, const std::string&
+    Description: |
+      Loads a animation from the VFS. Returns false if it has failed.
+      For more infomation on the animation format used check (here)[/documentation/animated_texture_format.md]
+    Class: mAnimationManager
+    CppMethod: Load
+
+  - Name: Unload
+    ReturnType: bool
+    Signature: const string& in name
+    CppSignature: const std::string&
+    Description: |
+      Unloads an animated texture. 
+      If this returns false you probably gave a stale/invalid handle
+    Class: mAnimationManager
+    CppMethod: Unload
+
+  - Name: CreateInstance
+    ReturnType: AnimationInstance
+    CppReturnType: CE::Assets::Animations::AnimationInstanceHandle
+    Signature: const string& in animation_name
+    CppSignature: const std::string&
+    Description: |
+      Creates an animation instance. This is basically a playing animation
+    Class: mAnimationManager
+    CppMethod: CreateInstance
+    CallingConvention: Generic
+
+  - Name: DestroyInstance
+    ReturnType: bool
+    Signature: const AnimationInstance& in instance
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&
+    Description: |
+      Destroys an animation instance.
+      If this returns false you've probably given a stale/invalid handle
+    Class: mAnimationManager
+    CppMethod: DeleteInstance
+
+  - Name: PlayAnimation
+    ReturnType: void
+    Signature: const AnimationInstance& in animation, int x, int y, bool loop, bool auto_render
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, int, int, bool, bool
+    Description: |
+      Starts an animation.
+      If ```auto_render``` is true this will make the animation play at the end of 2D rendering.
+      If it is false you will have to call "DrawFrame" to draw a frame.
+    Class: mAnimationManager
+    CppMethod: Play
+
+  - Name: PlayAnimation
+    ReturnType: void
+    Signature: const AnimationInstance& in animation, int x, int y, bool loop, float rotation, bool auto_render
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, int, int, bool, float, bool
+    Description: |
+      Starts an animation with rotation.
+      Rotation is in radians.
+      If ```auto_render``` is true this will make the animation play at the end of 2D rendering.
+      If it is false you will have to call "DrawFrame" to draw a frame.
+    Class: mAnimationManager
+    CppMethod: PlayRot
+
+  - Name: SetPlaybackPosition
+    ReturnType: void
+    Signature: const AnimationInstance& in, uint frame
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, uint32_t
+    Description: Seeks to the specified frame on an animation instance
+    Class: mAnimationManager
+    CppMethod: Seek
+
+  - Name: SetPosition
+    ReturnType: void
+    Signature: const AnimationInstance& in, int x, int y, float rotation = 0.0f
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, int, int, float
+    Description: Sets the position of an animation instance. Rotation is in radians
+    Class: mAnimationManager
+    CppMethod: SetPosition
+
+  - Name: SeekFrame
+    ReturnType: void
+    Signature: const AnimationInstance& in, uint frame
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, uint32_t
+    Description: Seeks the current frame of an animation instance
+    Class: mAnimationManager
+    CppMethod: Seek
+
+  - Name: SetDrawMode
+    ReturnType: void
+    Signature: const AnimationInstance& in, bool auto_render
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, bool
+    Description: Sets the draw mode (draw at the end of 2D rendering or you manually draw).
+    Class: mAnimationManager
+    CppMethod: SetDrawMode
+
+  - Name: SetLooping
+    ReturnType: void
+    Signature: const AnimationInstance& in, bool loop
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, bool
+    Description: Sets if an animation should loop
+    Class: mAnimationManager
+    CppMethod: SetLooping
+
+  - Name: SetTint
+    ReturnType: void
+    Signature: const AnimationInstance& in, Colour& in colour
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&, CE::Renderer::Colour&
+    Description: Sets the tint of the animation
+    Class: mAnimationManager
+    CppMethod: SetTint
+  
+  - Name: PauseAnimation
+    ReturnType: void
+    Signature: const AnimationInstance& in
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&
+    Description: Pauses an animation. This saves the playback position.
+    Class: mAnimationManager
+    CppMethod: Pause
+
+  - Name: StopAnimation
+    ReturnType: void
+    Signature: const AnimationInstance& in
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&
+    Description: Stops an animation. This resets the playback position to 0
+    Class: mAnimationManager
+    CppMethod: Stop
+
+  - Name: DrawFrame
+    ReturnType: void
+    Signature: const AnimationInstance& in
+    CppSignature: const CE::Assets::Animations::AnimationInstanceHandle&
+    Description: |
+      This is when for when auto_render is set to false and you want to draw an animation frame.
+    Class: mAnimationManager
+    CppMethod: DrawFrame

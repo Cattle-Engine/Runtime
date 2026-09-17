@@ -9,6 +9,7 @@
 - [instance_bindings](instance_bindings.md)
 - [math](math.md)
 - [rendering_2d](rendering_2d.md)
+- [rendering_2d_animated_textures](rendering_2d_animated_textures.md)
 - [rendering_2d_fonts](rendering_2d_fonts.md)
 - [rendering_2d_types](rendering_2d_types.md)
 - [rendering_3d](rendering_3d.md)

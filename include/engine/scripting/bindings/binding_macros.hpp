@@ -2,7 +2,7 @@
 // Shared macros used by bindings
 
 #include "engine/common/tracelog.hpp"
-#include <angelscript/autowrapper/aswrappedcall.h>
+#include "angelscript/aswrappedcall.h"
 
 // The below functions must only be called from a function that returns false and is in IScriptBinding
 #define CE_REGISTER_TYPE(name, size, flags)                                                                            \

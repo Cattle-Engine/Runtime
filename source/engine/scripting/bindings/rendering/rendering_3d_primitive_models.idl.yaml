@@ -1,0 +1,142 @@
+ASNamespace: CE::Graphics::Render3D::Primitives
+
+RequiredCppHeaders:
+  - "engine/rendering/common/primitives_3d.hpp"
+  - "engine/rendering/renderer.hpp"
+  - "glm/glm.hpp"
+
+ASFunctions:
+  - Name: CreateCube
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: const Vec3 size = {1.0f, 1.0f, 1.0f}
+    CppSignature: const glm::vec3
+    Description: Creates a 3D cube mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCube
+
+  - Name: CreateCube
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: const Vec3 size, const Colour colour
+    CppSignature: const glm::vec3, const CE::Renderer::Colour&
+    Description: Creates a 3D cube mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCube
+
+  - Name: CreatePlane
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: const Vec2 size = {1.0f, 1.0f}
+    CppSignature: const glm::vec2
+    Description: Creates a 3D plane mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreatePlane
+
+  - Name: CreatePlane
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: const Vec2 size, const Colour colour
+    CppSignature: const glm::vec2, const CE::Renderer::Colour&
+    Description: Creates a 3D plane mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreatePlane
+
+  - Name: CreateSphere
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius = 0.5f, int segments = 16, int rings = 16
+    CppSignature: float, int, int
+    Description: Creates a 3D sphere
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateSphere
+
+  - Name: CreateSphere
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius, int segments, int rings, Colour colour
+    CppSignature: float, int, int, const CE::Renderer::Colour&
+    Description: Creates a 3D sphere with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateSphere
+
+  - Name: CreateCapsule
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius = 0.5f, float height = 1.0f, int segments = 16
+    CppSignature: float, float, int
+    Description: Creates a 3D capsule mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCapsule
+
+  - Name: CreateCapsule
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius, float height, int segments, Colour colour
+    CppSignature: float, float, int, const CE::Renderer::Colour&
+    Description: Creates a 3D capsule mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCapsule
+
+  - Name: CreateCylinder
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius = 0.5f, float height = 1.0f, int segments = 16
+    CppSignature: float, float, int
+    Description: Creates a 3D cylinder mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCylinder
+
+  - Name: CreateCylinder
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius, float height, int segments, Colour colour
+    CppSignature: float, float, int, const CE::Renderer::Colour&
+    Description: Creates a 3D cylinder mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCylinder
+
+  - Name: CreateTorus
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius = 1.0f, float tubeRadius = 0.25f, int segments = 24, int tubeSegments = 12
+    CppSignature: float, float, int, int
+    Description: Creates a 3D torus mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateTorus
+
+  - Name: CreateTorus
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius, float tubeRadius, int segments, int tubeSegments, Colour colour
+    CppSignature: float, float, int, int, const CE::Renderer::Colour&
+    Description: Creates a 3D torus mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateTorus
+
+  - Name: CreateCone
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius = 0.5f, float height = 1.0f, int segments = 16
+    CppSignature: float, float, int
+    Description: Creates a 3D cone mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCone
+
+  - Name: CreateCone
+    ReturnType: MeshData
+    CppReturnType: CE::Renderer::MeshData
+    Signature: float radius, float height, int segments, Colour colour
+    CppSignature: float, float, int, const CE::Renderer::Colour&
+    Description: Creates a 3D cone mesh with colour
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::CreateCone
+
+  - Name: SetMeshColour
+    ReturnType: void
+    CppReturnType: void
+    Signature: MeshData& in mesh, const Colour colour
+    CppSignature: CE::Renderer::MeshData&, const CE::Renderer::Colour&
+    Description: Sets the colour of a mesh
+    CallingConvention: Generic
+    CppFunction: CE::Renderer::Primitives3D::SetMeshColour

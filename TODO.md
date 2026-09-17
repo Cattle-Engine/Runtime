@@ -30,6 +30,10 @@
 - [X] Migrate audio manager to use a struct and not just uint32_t
 - [X] REMOVE ```list(FILTER SOURCES EXCLUDE REGEX "/bindings_old/")``` from line 162 in the CMakeLists.txt
 - [X] Remove the skybox manager files and class from the engine. I'm using ASCubemap and making it just bind that
+- [X] Make a python script to auto take idl and generate markdown docs
+- [X] Connect input binder to instance
+- [X] Bindings for the input binder in angelscript
+- [X] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -81,14 +85,16 @@ List of bindings to do:
     - [X] quitting
 - [X] 2D stuff
     - [X] font manager
-    - [ ] animated texture (I think that needs a refactor tho)
+    - [X] animated texture (I think that needs a refactor tho)
 - [X] 3D stuff
     - [X] model's
+    - [X] mesh primitive bindings
+    - [ ] Mesh drawing
 - [X] Window control
-- [ ] Input
+- [X] Input
     - [X] Text
     - [X] Mouse
-    - [ ] Input binder
+    - [X] Input binder
     - [X] Keyboard
 - [ ] State callbacks and state control
 - [ ] VFS
@@ -96,15 +102,12 @@ List of bindings to do:
 - [ ] TDF
 - [ ] Hasher (inside engine/common/utils/hasher.hpp)
 
-- [ ] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
+- [ ] Make the animated textures thing be able to be used with materials
 - [ ] Allow you to set the renderer resloution so you can have a resloution different from the window
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
-- [ ] Make a python script to auto take idl and generate markdown docs
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
-- [ ] Connect input binder to instance
-- [ ] Bindings for the input binder in angelscript
 - [ ] Add support for setting shader/s on a material
 - [ ] Emission textures
 - [ ] HDR rendering

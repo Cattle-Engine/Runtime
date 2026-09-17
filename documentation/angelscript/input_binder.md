@@ -49,7 +49,7 @@ Return type: `void`
 
 Signature:
 ```angelscript
-const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+const string& in name, const CE::Input::Mouse::MouseButtons& in key
 ```
 
 Adds a binding using the name and mouse button
@@ -69,7 +69,7 @@ Return type: `void`
 
 Signature:
 ```angelscript
-const string& in name, const CE::Input::Mouse::MouseButtonss& in key
+const string& in name, const CE::Input::Mouse::MouseButtons& in key
 ```
 
 Removes just one button binding
