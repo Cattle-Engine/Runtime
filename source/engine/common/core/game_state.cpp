@@ -1,3 +1,4 @@
+#include <utility>
 #include "engine/common/core/game_state.hpp"
 
 namespace CE::Core::GameState {
@@ -33,5 +34,21 @@ namespace CE::Core::GameState {
         mEventBus.Emit(mCurrentState, "Enter");
 
         mEventBus.Emit(StateChangedEvent{old, mCurrentState});
+    }
+
+    int GameStateManager::Subscribe(
+        const std::string& state,
+        const std::string& eventName,
+        EventBus::StateHandler handler
+    ) {
+      return mEventBus.Subscribe(state, eventName, std::move(handler));
+    }
+
+    void GameStateManager::Unsubscribe(
+        const std::string& state,
+        const std::string& eventName,
+        int id
+    ) {
+        mEventBus.Unsubscribe(state, eventName, id);
     }
 } // namespace CE::Core::GameState

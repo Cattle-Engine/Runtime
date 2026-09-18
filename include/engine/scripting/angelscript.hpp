@@ -115,6 +115,14 @@ namespace CE::Scripting {
 
         const std::string& GetLastError() const;
 
+        int SubscribeStateEvent(
+            const std::string& state,
+            const std::string& eventName,
+            asIScriptFunction* function
+        );
+
+        void UnsubscribeStateEvent(int id);
+
         /**
          * Exposed publicly because all the IScriptBinding impls require access to at-least one of these.
          * Keeping them as public means we don't need to write a ton of trival getter functions

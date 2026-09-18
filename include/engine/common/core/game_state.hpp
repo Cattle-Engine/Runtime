@@ -25,6 +25,19 @@ namespace CE::Core::GameState {
 
         void ChangeState(std::string state);
         void Emit(const std::string& eventName) const;
+
+        int Subscribe(
+            const std::string& state,
+            const std::string& eventName,
+            EventBus::StateHandler handler
+        );
+
+        void Unsubscribe(
+            const std::string& state,
+            const std::string& eventName,
+            int id
+        );
+
         bool IsState(std::string_view state) const;
         const std::string& GetState() const;
 
