@@ -2,6 +2,7 @@
 
 - [audio_functions](audio_functions.md)
 - [audio_types](audio_types.md)
+- [game_state](game_state.md)
 - [input_binder](input_binder.md)
 - [input_keyboard](input_keyboard.md)
 - [input_mouse](input_mouse.md)

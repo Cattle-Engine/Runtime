@@ -24,14 +24,14 @@ namespace CE::Core::GameState {
 
         if (mCurrentState != "None") {
             mEventBus.Emit(StateExitEvent{mCurrentState});
-            mEventBus.Emit(mCurrentState, "Exit");
+            mEventBus.Emit(mCurrentState, "STATE_EXIT");
         }
 
         std::string old = mCurrentState;
         mCurrentState = next;
 
         mEventBus.Emit(StateEnterEvent{mCurrentState});
-        mEventBus.Emit(mCurrentState, "Enter");
+        mEventBus.Emit(mCurrentState, "STATE_ENTER");
 
         mEventBus.Emit(StateChangedEvent{old, mCurrentState});
     }

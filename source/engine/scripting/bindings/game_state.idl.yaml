@@ -1,0 +1,58 @@
+ASNamespace: CE::GameState
+RegistrationPriority: 100
+
+RequiredCppHeaders:
+  - "engine/common/core/game_state.hpp"
+  - <string>
+
+Documentation: |
+  The signature required for a function subscribed is: ```const string& in state, const string& in event_name```
+
+ASClassFunctions:
+  - Name: ChangeState
+    ReturnType: void
+    Signature: const string& in state_name
+    CppSignature: const std::string&
+    Description: Changes the current game state
+    Class: mGameStateManager
+    CppMethod: ChangeState
+
+  - Name: Emit
+    ReturnType: void
+    Signature: const string& in event_name
+    CppSignature: const std::string&
+    Description: Emits an event to happen in the current game state
+    Class: mGameStateManager
+    CppMethod: Emit
+
+  - Name: GetState
+    ReturnType: string
+    CppReturnType: const std::string
+    Signature: ""
+    Description: Gets the current state name
+    Class: mGameStateManager
+    CppMethod: GetState
+
+  - Name: IsState
+    ReturnType: bool
+    Signature: const string& in state
+    CppSignature: const std::string&
+    Description: Checks if the specified state is the current one.
+    Class: mGameStateManager
+    CppMethod: IsState
+
+  - Name: Subscribe
+    ReturnType: int
+    Signature: const string& in state_name, const string& in event_name, StateEventCallback@ callback
+    CppSignature: const std::string&, const std::string&, asIScriptFunction*
+    Description: Subscribes a script callback to an event in the specified game state. Returns an ID that can be used to unsubscribe.
+    Class: mRuntime
+    CppMethod: SubscribeStateEvent
+
+  - Name: Unsubscribe
+    ReturnType: void
+    Signature: int subscription_id
+    CppSignature: int
+    Description: Unsubscribes a previously registered state event callback using its subscription ID.
+    Class: mRuntime
+    CppMethod: UnsubscribeStateEvent

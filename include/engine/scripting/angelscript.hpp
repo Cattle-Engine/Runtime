@@ -127,6 +127,7 @@ namespace CE::Scripting {
          * Exposed publicly because all the IScriptBinding impls require access to at-least one of these.
          * Keeping them as public means we don't need to write a ton of trival getter functions
          */
+        Runtime& mRuntime = *this;
         CE::Common::Containers::RendererResourcesNameRegistry& mRendererResourcesNameRegistry;
         VFS::VFS& mVFS;
         GameInfo& mGameInfo;
