@@ -120,7 +120,9 @@ namespace CE {
             *mRendererResourcesNameRegistry, 
             gProgramArguments.OutputDebugASInfo,
             gProgramArguments.OutputDebugASInfoPath, 
-            *mWindow,mAudioManager.get()
+            *mWindow,
+            gGameStateManager,
+            mAudioManager.get()
         );
 
         if (!mScriptingManager->Init()) {

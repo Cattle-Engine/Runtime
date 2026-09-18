@@ -89,7 +89,7 @@ List of bindings to do:
 - [X] 3D stuff
     - [X] model's
     - [X] mesh primitive bindings
-    - [ ] Mesh drawing
+    - [X] Mesh drawing
 - [X] Window control
 - [X] Input
     - [X] Text

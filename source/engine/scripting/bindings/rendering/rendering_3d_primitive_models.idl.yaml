@@ -9,7 +9,7 @@ ASFunctions:
   - Name: CreateCube
     ReturnType: MeshData
     CppReturnType: CE::Renderer::MeshData
-    Signature: const Vec3 size = {1.0f, 1.0f, 1.0f}
+    Signature: const Vec3 size = Vec3(1.0f, 1.0f, 1.0f)
     CppSignature: const glm::vec3
     Description: Creates a 3D cube mesh
     CallingConvention: Generic
@@ -27,7 +27,7 @@ ASFunctions:
   - Name: CreatePlane
     ReturnType: MeshData
     CppReturnType: CE::Renderer::MeshData
-    Signature: const Vec2 size = {1.0f, 1.0f}
+    Signature: const Vec2 size = Vec2(1.0f, 1.0f)
     CppSignature: const glm::vec2
     Description: Creates a 3D plane mesh
     CallingConvention: Generic
@@ -110,7 +110,7 @@ ASFunctions:
     CppReturnType: CE::Renderer::MeshData
     Signature: float radius, float tubeRadius, int segments, int tubeSegments, Colour colour
     CppSignature: float, float, int, int, const CE::Renderer::Colour&
-    Description: Creates a 3D torus mesh with colour
+    Description: Creates a 3D torus mesh
     CallingConvention: Generic
     CppFunction: CE::Renderer::Primitives3D::CreateTorus
 
@@ -128,7 +128,7 @@ ASFunctions:
     CppReturnType: CE::Renderer::MeshData
     Signature: float radius, float height, int segments, Colour colour
     CppSignature: float, float, int, const CE::Renderer::Colour&
-    Description: Creates a 3D cone mesh with colour
+    Description: Creates a 3D cone mesh
     CallingConvention: Generic
     CppFunction: CE::Renderer::Primitives3D::CreateCone
 

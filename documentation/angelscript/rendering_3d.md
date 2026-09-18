@@ -60,4 +60,44 @@ Signature:
 Camera3D& in camera
 ```
 
-Sets the camera 3d and updates the position
+Sets the camera 3D and updates the position
+
+### CompileMesh
+Return type: `Mesh`
+
+Signature:
+```angelscript
+MeshData& in mesh_data
+```
+
+Before you can draw a MeshData you must compile it into something the GPU understands
+
+### DrawMesh
+Return type: `void`
+
+Signature:
+```angelscript
+const Mesh& in mesh, const Transform3D& in transform, const Material& in material, bool error_texture = false
+```
+
+Draws a mesh. If error_texture is set to true if material albedo is missing it uses the error texture
+
+### DrawMesh
+Return type: `void`
+
+Signature:
+```angelscript
+const Mesh& in mesh, const Mat4& in transform, const Material& in material, bool error_texture = false
+```
+
+Draws a mesh, using mat4 as its position. If error_texture is set to true if material albedo is missing it uses the error texture
+
+### DestroyMesh
+Return type: `void`
+
+Signature:
+```angelscript
+const Mesh& in mesh
+```
+
+Destroys a mesh

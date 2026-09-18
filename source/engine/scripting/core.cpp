@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 
+#include "engine/common/core/game_state.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/input/input_binder.hpp"
@@ -52,13 +53,16 @@ namespace CE::Scripting {
         CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry,
         bool output_debug_info, 
         std::string output_debug_as_info_path, 
-        Common::Window& window,Audio::Resources::AudioManager* audio_manager
+        Common::Window& window,
+        Core::GameState::GameStateManager& game_state_manager,
+        Audio::Resources::AudioManager* audio_manager
     )
         : mRendererResourcesNameRegistry(renderer_resources_name_registry),
           mVFS(vfs),
           mGameInfo(game_info),
           mSettingsManager(settings_manager),
           mInstance(instance),
+          mGameStateManager(game_state_manager),
           mRenderer(renderer),
           mModelRenderer(model_renderer),
           mTextureManager(texture_manager),

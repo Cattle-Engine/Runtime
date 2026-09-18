@@ -55,6 +55,40 @@ ASClassFunctions:
     ReturnType: void
     Signature: Camera3D& in camera
     CppSignature: CE::Renderer::Camera3D
-    Description: Sets the camera 3d and updates the position
+    Description: Sets the camera 3D and updates the position
     Class: mRenderer
     CppMethod: SetCamera3D
+
+  - Name: CompileMesh
+    ReturnType: Mesh
+    CppReturnType: CE::Renderer::Resources::MeshHandle
+    Signature: MeshData& in mesh_data
+    CppSignature: CE::Renderer::MeshData&
+    Description: Before you can draw a MeshData you must compile it into something the GPU understands
+    Class: mGPUMeshManager
+    CppMethod: CreateMeshHandle
+    CallingConvention: Generic
+
+  - Name: DrawMesh
+    ReturnType: void
+    Signature: const Mesh& in mesh, const Transform3D& in transform, const Material& in material, bool error_texture = false
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, const CE::Renderer::Transform3D&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Description: Draws a mesh. If error_texture is set to true if material albedo is missing it uses the error texture
+    Class: mGPUMeshManager
+    CppMethod: DrawMeshHandle
+
+  - Name: DrawMesh
+    ReturnType: void
+    Signature: const Mesh& in mesh, const Mat4& in transform, const Material& in material, bool error_texture = false
+    CppSignature: const CE::Renderer::Resources::MeshHandle&, const glm::mat4&, const CE::Renderer::Resources::MaterialHandle&, bool
+    Description: Draws a mesh, using mat4 as its position. If error_texture is set to true if material albedo is missing it uses the error texture
+    Class: mGPUMeshManager
+    CppMethod: DrawMeshHandleMat4
+
+  - Name: DestroyMesh
+    ReturnType: void
+    Signature: const Mesh& in mesh
+    CppSignature: const CE::Renderer::Resources::MeshHandle&
+    Description: Destroys a mesh
+    Class: mGPUMeshManager
+    CppMethod: DestroyMesh

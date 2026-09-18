@@ -189,6 +189,12 @@ namespace CE::Scripting::Impl::Lexer {
                     }
                 }
 
+                // Floating-point suffix
+                if (position < data.size() && (data[position] == 'f' || data[position] == 'F')) {
+                    value += data[position];
+                    advance();
+                }
+
                 Token token;
                 token.Location = tokenLocation;
                 token.Type = Token::TokenType::Number;

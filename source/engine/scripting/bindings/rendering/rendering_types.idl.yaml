@@ -906,6 +906,7 @@ ASTypes:
     CppType: CE::Renderer::MeshData
     Flags: 
       - Value
+      - AutoGetFlags
 
     Behaviours:
       - Type: Construct
@@ -917,6 +918,15 @@ ASTypes:
         Body: |
           self->~MeshData();
         CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        Signature: MeshData& in other
+        CppSignature: CE::Renderer::MeshData&
+        ReturnType: MeshData&
+        Body: |
+          return const_cast<CE::Renderer::MeshData&>(self) = arg0;
+        IsConst: false
     
     Properties:
       - Type: CE::Containers::Vertex3DVector
@@ -931,6 +941,7 @@ ASTypes:
     CppType: CE::Renderer::Transform3D
     Flags: 
       - Value
+      - AutoGetFlags
 
     Behaviours:
       - Type: Constructor
@@ -942,6 +953,15 @@ ASTypes:
         Body: |
           self->~Transform3D();
         CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        ReturnType: Transform3D&
+        Signature: Transform3D& in other
+        CppSignature: CE::Renderer::Transform3D&
+        Body: |
+          return const_cast<CE::Renderer::Transform3D&>(self) = arg0;
+        IsConst: false
 
     Properties:
       - Type: Vec3

@@ -19,6 +19,10 @@ namespace CE {
         class VFS;
     }
 
+    namespace Core::GameState {
+        class GameStateManager;
+    }
+
     namespace Settings {
         class SettingsManager;
     }
@@ -98,6 +102,7 @@ namespace CE::Scripting {
             bool output_debug_info, 
             std::string output_debug_as_info_path, 
             Common::Window& window,
+            Core::GameState::GameStateManager& game_state_manager,
             Audio::Resources::AudioManager* audio_manager = nullptr
         );
 
@@ -119,6 +124,7 @@ namespace CE::Scripting {
         GameInfo& mGameInfo;
         Settings::SettingsManager& mSettingsManager;
         Instance& mInstance;
+        Core::GameState::GameStateManager& mGameStateManager;
         Renderer::IRenderer& mRenderer;
         Renderer::Resources::ModelRenderer& mModelRenderer;
         Renderer::Resources::TextureManager& mTextureManager;

@@ -13,6 +13,7 @@
 - [rendering_2d_fonts](rendering_2d_fonts.md)
 - [rendering_2d_types](rendering_2d_types.md)
 - [rendering_3d](rendering_3d.md)
+- [rendering_3d_primitive_models](rendering_3d_primitive_models.md)
 - [rendering_3d_types](rendering_3d_types.md)
 - [rendering_general](rendering_general.md)
 - [rendering_resources](rendering_resources.md)

@@ -862,7 +862,7 @@ Type: `float`
 ## MeshData
 C++ type: `CE::Renderer::MeshData`
 
-Flags: `Value`
+Flags: `Value`, `AutoGetFlags`
 
 No description given
 
@@ -878,11 +878,21 @@ Type: `CE::Containers::Uint32Vector`
 
 #### Destructor
 
+### Operators
+#### =
+Return type: `MeshData&`
+
+Signature:
+```angelscript
+MeshData& in other
+```
+
+
 
 ## Transform3D
 C++ type: `CE::Renderer::Transform3D`
 
-Flags: `Value`
+Flags: `Value`, `AutoGetFlags`
 
 No description given
 
@@ -900,6 +910,16 @@ Type: `Vec3`
 #### Constructor
 
 #### Destructor
+
+### Operators
+#### =
+Return type: `Transform3D&`
+
+Signature:
+```angelscript
+Transform3D& in other
+```
+
 
 
 ## Mat4
