@@ -193,7 +193,7 @@ namespace CE {
                     }
                     gShouldRender = true;
                     if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAIMED_FULLSCREEN");
+                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
                     } else if (window_mode == Common::Window::WindowMode::Borderless) {
                         gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
                     } else {

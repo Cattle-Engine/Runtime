@@ -3,3 +3,5 @@
 For the Angelscript docs please refer to [here](angelscript/README.md)
 
 VFS Documentation can be found [here](vfs_docs.md)
+
+Gamestate events can be found [here](game_state_events.md)

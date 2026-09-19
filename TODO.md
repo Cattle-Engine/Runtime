@@ -96,7 +96,7 @@ List of bindings to do:
     - [X] Mouse
     - [X] Input binder
     - [X] Keyboard
-- [ ] State callbacks and state control
+- [X] State callbacks and state control
 - [ ] VFS
 - [X] Settings
 - [ ] TDF
