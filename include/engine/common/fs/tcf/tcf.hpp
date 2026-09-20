@@ -147,7 +147,8 @@ namespace CE::Common::FS::TCF {
 
             // if you use negative numbers this will move the offset backwards
             bool Seek(int64_t offset, SeekMode mode);
-            uint64_t Tell();
+            uint64_t Tell() const;
+            uint64_t Size() const;
             // moves the current offset forward by how many bytes size is
             // size is in bytes
             bool Read(void* destination, size_t size);

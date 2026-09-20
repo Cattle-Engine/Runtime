@@ -730,8 +730,17 @@ namespace CE::Common::FS::TCF {
         return false;
     }
 
-    uint64_t TCFFile::Tell() {
+    uint64_t TCFFile::Tell() const {
         return mCurrentOffset;
+    }
+
+    uint64_t TCFFile::Size() const {
+        uint64_t size = 0;
+        for (const auto& chunk : mTCFArchive.mFiles[FileID].chunks) {
+            size += chunk.uncompressed_size;
+        }
+
+        return size;
     }
 
     bool TCFFile::Seek(int64_t offset, SeekMode mode) {

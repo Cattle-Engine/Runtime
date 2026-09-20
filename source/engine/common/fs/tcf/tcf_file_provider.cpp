@@ -51,4 +51,20 @@ namespace CE::Common::FS::TCF {
                 case VFS::SeekOrigin::Current: return mFile.Seek(offset, SeekMode::Current); break;
             }
         }
+
+        bool VfsTcfFile::Read(void* buffer, size_t bytes) {
+            return mFile.Read(buffer, bytes);
+        }
+
+        uint64_t VfsTcfFile::Tell() const {
+            return mFile.Tell();
+        }
+
+        uint64_t VfsTcfFile::Size() const {
+            return mFile.Size();
+        }
+
+        bool VfsTcfFile::IsOpen() const {
+            return mFile.IsValid();
+        }
 }
