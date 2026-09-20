@@ -730,6 +730,10 @@ namespace CE::Common::FS::TCF {
         return false;
     }
 
+    uint64_t TCFFile::Tell() {
+        return mCurrentOffset;
+    }
+
     bool TCFFile::Seek(int64_t offset, SeekMode mode) {
         uint64_t base_offset = 0;
 
@@ -788,6 +792,10 @@ namespace CE::Common::FS::TCF {
 
     bool TCFFile::IsValid() const {
         return mValid;
+    }
+
+    bool TCFFile::Eof() const {
+        return mCurrentOffset >= mEndOffset;
     }
 
     TCFFile TCFArchive::OpenFile(const std::string& path) {
@@ -1040,6 +1048,34 @@ namespace CE::Common::FS::TCF {
             }
 
             chunk_start = chunk_end;
+        }
+
+        return false;
+    }
+
+    bool TCFArchive::GetFileSize(const std::string& path, uint64_t& size) const {
+        for (const auto& file : mFiles) {
+            if (file.file_path != path) {
+                continue;
+            }
+
+            size = 0;
+
+            for (const auto& chunk : file.chunks) {
+                if (chunk.uncompressed_size >
+                    std::numeric_limits<uint64_t>::max() - size) {
+                    CE_LOG(
+                        LogLevel::Error,
+                        "[TCFArchive] File '{}' size overflow!",
+                        path
+                    );
+                    return false;
+                }
+
+                size += chunk.uncompressed_size;
+            }
+
+            return true;
         }
 
         return false;

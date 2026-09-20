@@ -23,6 +23,7 @@ namespace CE::Common::FS::TCF {
             TCFFile OpenFile(const std::string& path);
             void CloseFile(TCFFile& file);
             bool FileExists(const std::string& path) const;
+            bool GetFileSize(const std::string& path, uint64_t& size) const;
         private:
             friend class TCFFile;
 
@@ -146,10 +147,12 @@ namespace CE::Common::FS::TCF {
 
             // if you use negative numbers this will move the offset backwards
             bool Seek(int64_t offset, SeekMode mode);
+            uint64_t Tell();
             // moves the current offset forward by how many bytes size is
             // size is in bytes
             bool Read(void* destination, size_t size);
             bool IsValid() const;
+            bool Eof() const;
         private:
             friend class TCFArchive;
 
