@@ -44,19 +44,21 @@ namespace CE::Common::FS::TCF {
             return mFile.Eof();
         }
 
-        bool VfsTcfFile::Seek(int64_t offset, VFS::SeekOrigin origin) {
+        bool VfsTcfFile::SeekR(int64_t offset, VFS::SeekOrigin origin) {
             switch (origin) {
                 case VFS::SeekOrigin::Begin: return mFile.Seek(offset, SeekMode::Start); break;
                 case VFS::SeekOrigin::End: return mFile.Seek(offset, SeekMode::End); break;
                 case VFS::SeekOrigin::Current: return mFile.Seek(offset, SeekMode::Current); break;
             }
+
+            return false;
         }
 
         bool VfsTcfFile::Read(void* buffer, size_t bytes) {
             return mFile.Read(buffer, bytes);
         }
 
-        uint64_t VfsTcfFile::Tell() const {
+        uint64_t VfsTcfFile::TellR() {
             return mFile.Tell();
         }
 
@@ -66,5 +68,13 @@ namespace CE::Common::FS::TCF {
 
         bool VfsTcfFile::IsOpen() const {
             return mFile.IsValid();
+        }
+
+        bool VfsTcfFile::SeekW([[maybe_unused]] int64_t offset, [[maybe_unused]] VFS::SeekOrigin origin) {
+            return false;
+        }
+
+        uint64_t VfsTcfFile::TellW() {
+            return false;
         }
 }
