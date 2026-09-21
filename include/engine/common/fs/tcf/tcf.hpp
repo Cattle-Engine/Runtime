@@ -113,7 +113,8 @@ namespace CE::Common::FS::TCF {
             Directory IDs are global to the archive and increase monotonically from 0. There can be NO dupilcate IDS
 
             For file info on disk we do:
-            [file_id][int64_date_modified][uint64_directory_parent][uint64_chunk_count][uint64_chunks_start_offset]
+            For file info on disk we do:
+    [file_id][int64_date_modified][uint32_name_size][name_data][uint64_directory_parent][uint64_chunk_count][uint64_chunks_start_offset]
 
             For the chunk on disk we have this info. Chunks are stored in a contiguous block
             [uint64_chunk_id][uint32_crc32][uint8_compression_type][compressed_size][uncompressed_size][uint64_data_end_offset][data][0x0]
