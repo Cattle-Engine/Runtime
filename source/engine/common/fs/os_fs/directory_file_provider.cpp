@@ -1,12 +1,11 @@
+#include "engine/common/fs/os_fs/directory_file_provider.hpp"
+
 #include <filesystem>
 #include <fstream>
+#include <memory>
 
 #include "engine/common/fs/file_provider.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/common/fs/os_fs/directory_file_provider.hpp"
-
-#include <fstream>
-#include <memory>
 
 namespace CE::Common::FS::OSFS {
     std::ios::openmode ToOpenMode(VFS::OpenFlags flags) {
@@ -33,7 +32,7 @@ namespace CE::Common::FS::OSFS {
         return mode;
     }
 
-    DirectoryFileProvider::DirectoryFileProvider(const fs::path& path) :mBasePath(path) {}
+    DirectoryFileProvider::DirectoryFileProvider(const fs::path& path) : mBasePath(path) {}
 
     bool DirectoryFileProvider::GetFileSize(std::string_view relative_path, uint64_t& size) const {
         const fs::path file = mBasePath / relative_path;
@@ -91,9 +90,15 @@ namespace CE::Common::FS::OSFS {
 
     bool DirectoryFile::SeekR(int64_t offset, VFS::SeekOrigin origin) {
         switch (origin) {
-            case VFS::SeekOrigin::Begin: mFile.seekg(offset, std::ios::beg); return !mFile.fail();
-            case VFS::SeekOrigin::Current: mFile.seekg(offset, std::ios::cur); return !mFile.fail();
-            case VFS::SeekOrigin::End: mFile.seekg(offset, std::ios::end); return !mFile.fail();
+        case VFS::SeekOrigin::Begin:
+            mFile.seekg(offset, std::ios::beg);
+            return !mFile.fail();
+        case VFS::SeekOrigin::Current:
+            mFile.seekg(offset, std::ios::cur);
+            return !mFile.fail();
+        case VFS::SeekOrigin::End:
+            mFile.seekg(offset, std::ios::end);
+            return !mFile.fail();
         }
 
         return false;
@@ -111,9 +116,15 @@ namespace CE::Common::FS::OSFS {
 
     bool DirectoryFile::SeekW(int64_t offset, VFS::SeekOrigin origin) {
         switch (origin) {
-            case VFS::SeekOrigin::Begin: mFile.seekp(offset, std::ios::beg); return !mFile.fail();
-            case VFS::SeekOrigin::Current: mFile.seekp(offset, std::ios::cur); return !mFile.fail();
-            case VFS::SeekOrigin::End: mFile.seekp(offset, std::ios::end); return !mFile.fail();
+        case VFS::SeekOrigin::Begin:
+            mFile.seekp(offset, std::ios::beg);
+            return !mFile.fail();
+        case VFS::SeekOrigin::Current:
+            mFile.seekp(offset, std::ios::cur);
+            return !mFile.fail();
+        case VFS::SeekOrigin::End:
+            mFile.seekp(offset, std::ios::end);
+            return !mFile.fail();
         }
     }
 
@@ -129,4 +140,4 @@ namespace CE::Common::FS::OSFS {
     bool DirectoryFile::Eof() const {
         return mFile.eof();
     }
-}
+} // namespace CE::Common::FS::OSFS

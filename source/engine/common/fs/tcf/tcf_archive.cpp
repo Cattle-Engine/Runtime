@@ -1,27 +1,33 @@
-#include "engine/common/fs/tcf/tcf.hpp"
-
 #include <algorithm>
 #include <array>
 #include <filesystem>
-#include <stdexcept>
 #include <limits>
+#include <stdexcept>
+#include <string_view>
+#include <unordered_set>
 #include <utility>
-#include <cstring>
-
-#include <zstd.h>
-#include <lz4.h>
+#include <vector>
 
 #include "engine/common/fs/binary_reader.hpp"
+#include "engine/common/fs/tcf/tcf.hpp"
 #include "engine/common/tracelog.hpp"
 
-#define TCF_READ_OR_ERROR(expr, message) \
-    if (!(expr)) { \
-        CE_LOG(LogLevel::Error, "[TCFArchive] {}", message); \
-        return false; \
+#include <lz4.h>
+#include <zstd.h>
+
+#define TCF_READ_OR_ERROR(expr, message)                                                                               \
+    if (!(expr)) {                                                                                                     \
+        CE_LOG(LogLevel::Error, "[TCFArchive] {}", message);                                                           \
+        return false;                                                                                                  \
     }
 
 namespace CE::Common::FS::TCF {
     namespace {
+        constexpr uint64_t kChunkHeaderSize = sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint8_t) + sizeof(uint64_t) +
+                                              sizeof(uint64_t) + sizeof(uint64_t);
+
+        constexpr uint64_t kDirectoryContentSize = sizeof(uint8_t) + sizeof(uint64_t);
+
         uint32_t Crc32(const uint8_t* data, size_t size) {
             static const std::array<uint32_t, 256> table = [] {
                 std::array<uint32_t, 256> result{};
@@ -30,9 +36,7 @@ namespace CE::Common::FS::TCF {
                     uint32_t crc = i;
 
                     for (int bit = 0; bit < 8; ++bit) {
-                        crc = (crc & 1)
-                            ? (0xEDB88320u ^ (crc >> 1))
-                            : (crc >> 1);
+                        crc = (crc & 1) ? (0xEDB88320u ^ (crc >> 1)) : (crc >> 1);
                     }
 
                     result[i] = crc;
@@ -49,7 +53,85 @@ namespace CE::Common::FS::TCF {
 
             return crc ^ 0xFFFFFFFFu;
         }
-    }
+
+        bool ValidateName(std::string_view name, uint64_t max_size, std::string_view object_description) {
+            if (name.empty()) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] {} has an empty name!", object_description);
+                return false;
+            }
+
+            if (name.size() > max_size) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] {} name is too large. Maximum {}, got {}", object_description,
+                       max_size, name.size());
+                return false;
+            }
+
+            if (name == "." || name == "..") {
+                CE_LOG(LogLevel::Error, "[TCFArchive] {} has forbidden name '{}'", object_description, name);
+                return false;
+            }
+
+            for (char c : name) {
+                if (c == '/' || c == '\\' || c == '\0') {
+                    CE_LOG(LogLevel::Error, "[TCFArchive] {} contains an invalid character!", object_description);
+                    return false;
+                }
+
+                if (static_cast<unsigned char>(c) > 0x7F) {
+                    CE_LOG(LogLevel::Error, "[TCFArchive] {} contains a non-ASCII character!", object_description);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        bool ValidatePath(std::string_view path) {
+            if (path.empty()) {
+                return false;
+            }
+
+            if (path.front() == '/' || path.back() == '/') {
+                return false;
+            }
+
+            size_t component_start = 0;
+
+            while (component_start < path.size()) {
+                const size_t separator = path.find('/', component_start);
+
+                const size_t component_end = separator == std::string_view::npos ? path.size() : separator;
+
+                const std::string_view component(path.data() + component_start, component_end - component_start);
+
+                if (component.empty()) {
+                    return false;
+                }
+
+                if (component == "." || component == "..") {
+                    return false;
+                }
+
+                for (char c : component) {
+                    if (c == '\\' || c == '\0') {
+                        return false;
+                    }
+
+                    if (static_cast<unsigned char>(c) > 0x7F) {
+                        return false;
+                    }
+                }
+
+                if (separator == std::string_view::npos) {
+                    break;
+                }
+
+                component_start = separator + 1;
+            }
+
+            return true;
+        }
+    } // namespace
 
     TCFArchive::TCFArchive(const fs::path& path) {
         if (!fs::exists(path)) {
@@ -65,6 +147,7 @@ namespace CE::Common::FS::TCF {
         mArchiveSize = fs::file_size(path);
 
         BinaryReader reader(mFile);
+
         if (!ReadHeader(reader)) {
             throw std::runtime_error("Failed to read header!");
         }
@@ -72,24 +155,24 @@ namespace CE::Common::FS::TCF {
         if (!ReadFileInfo(reader)) {
             throw std::runtime_error("Failed to parse file info");
         }
+
+        if (!ReadDirectoryInfo(reader)) {
+            throw std::runtime_error("Failed to parse directory info");
+        }
     }
 
     bool TCFArchive::ReadHeader(BinaryReader& reader) {
         if (mArchiveSize < kHeaderSize) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Archive is smaller than the TCF header. Size {}, expected at least {}",
-                mArchiveSize,
-                kHeaderSize
-            );
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Archive is smaller than the TCF header. "
+                   "Size {}, expected at least {}",
+                   mArchiveSize, kHeaderSize);
             return false;
         }
 
         /*
-            Read the entire fixed-size header into a buffer so we can
-            CRC32 it before trusting any field inside it.
+            Fixed-size TCF header:
 
-            Layout (see header):
                 0x00  3   magic "TCF"
                 0x03  1   version
                 0x04  1   endianness
@@ -98,158 +181,187 @@ namespace CE::Common::FS::TCF {
                 0x10  8   file_count
                 0x18  8   data_offset
                 0x20  4   header crc32
-                0x24  92  reserved
+                0x24  8   directory_table_offset
+                0x2C  8   directory_count
+                0x34  76  reserved
         */
+
         std::array<uint8_t, kHeaderSize> header_bytes{};
 
-        TCF_READ_OR_ERROR(
-            reader.Read(header_bytes.data(), header_bytes.size()),
-            "Failed to read TCF header bytes!"
-        );
+        TCF_READ_OR_ERROR(reader.Read(header_bytes.data(), header_bytes.size()), "Failed to read TCF header bytes!");
 
-        if (std::string_view(
-                reinterpret_cast<const char*>(header_bytes.data()),
-                kTCFMagic.size()
-            ) != kTCFMagic) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] TCF magic does not match, expected 'TCF' got '{}'",
-                std::string_view(
-                    reinterpret_cast<const char*>(header_bytes.data()),
-                    kTCFMagic.size()
-                )
-            );
+        if (std::string_view(reinterpret_cast<const char*>(header_bytes.data()), kTCFMagic.size()) != kTCFMagic) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] TCF magic does not match, expected 'TCF' got '{}'",
+                   std::string_view(reinterpret_cast<const char*>(header_bytes.data()), kTCFMagic.size()));
             return false;
         }
 
         mHeaderInfo.version = header_bytes[3];
 
         if (mHeaderInfo.version != kVersion) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] TCF archive version is not supported. Expected: {}, got {}",
-                kVersion,
-                mHeaderInfo.version
-            );
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] TCF archive version is not supported. "
+                   "Expected: {}, got {}",
+                   kVersion, mHeaderInfo.version);
             return false;
         }
 
         const uint8_t endianness = header_bytes[4];
 
         if (static_cast<Endianness>(endianness) != kEndianness) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Endianness set in TCF is not supported!"
-            );
+            CE_LOG(LogLevel::Error, "[TCFArchive] Endianness set in TCF is not supported!");
             return false;
         }
 
         for (size_t i = 5; i < 8; ++i) {
             if (header_bytes[i] != 0) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] Header reserved bytes must be zero!"
-                );
+                CE_LOG(LogLevel::Error, "[TCFArchive] Header reserved bytes must be zero!");
                 return false;
             }
         }
 
         mHeaderInfo.file_info_offset = ReadLEU64(header_bytes.data() + 0x08);
-        mHeaderInfo.file_count       = ReadLEU64(header_bytes.data() + 0x10);
-        mHeaderInfo.data_offset      = ReadLEU64(header_bytes.data() + 0x18);
-        mHeaderInfo.crc              = ReadLEU32(header_bytes.data() + 0x20);
 
-        for (size_t i = 0x24; i < kHeaderSize; ++i) {
+        mHeaderInfo.file_count = ReadLEU64(header_bytes.data() + 0x10);
+
+        mHeaderInfo.data_offset = ReadLEU64(header_bytes.data() + 0x18);
+
+        mHeaderInfo.crc = ReadLEU32(header_bytes.data() + 0x20);
+
+        mHeaderInfo.directory_table_offset = ReadLEU64(header_bytes.data() + 0x24);
+
+        mHeaderInfo.directory_count = ReadLEU64(header_bytes.data() + 0x2C);
+
+        for (size_t i = 0x34; i < kHeaderSize; ++i) {
             if (header_bytes[i] != 0) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] Header reserved bytes must be zero!"
-                );
+                CE_LOG(LogLevel::Error, "[TCFArchive] Header reserved bytes must be zero!");
                 return false;
             }
         }
 
         /*
             The header CRC is computed over the first kHeaderCrcLen bytes
-            of the header (everything before the CRC field itself).
+            of the header, which is everything before the CRC field.
         */
-        const uint32_t computed_crc =
-            Crc32(header_bytes.data(), kHeaderCrcLen);
+        const uint32_t computed_crc = Crc32(header_bytes.data(), kHeaderCrcLen);
 
         if (computed_crc != mHeaderInfo.crc) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Header CRC32 mismatch. Expected {}, got {}",
-                mHeaderInfo.crc,
-                computed_crc
-            );
+            CE_LOG(LogLevel::Error, "[TCFArchive] Header CRC32 mismatch. Expected {}, got {}", mHeaderInfo.crc,
+                   computed_crc);
             return false;
         }
 
         if (mHeaderInfo.data_offset < kHeaderSize) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Data offset {} is inside the header!",
-                mHeaderInfo.data_offset
-            );
+            CE_LOG(LogLevel::Error, "[TCFArchive] Data offset {} is inside the header!", mHeaderInfo.data_offset);
             return false;
         }
 
         if (mHeaderInfo.data_offset > mArchiveSize) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Data offset {} is outside the archive. Archive size is {}",
-                mHeaderInfo.data_offset,
-                mArchiveSize
-            );
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Data offset {} is outside the archive. "
+                   "Archive size is {}",
+                   mHeaderInfo.data_offset, mArchiveSize);
             return false;
         }
 
         if (mHeaderInfo.file_info_offset < mHeaderInfo.data_offset) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] File info offset {} is before the data region (starts at {})!",
-                mHeaderInfo.file_info_offset,
-                mHeaderInfo.data_offset
-            );
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] File info offset {} is before the data region "
+                   "which starts at {}!",
+                   mHeaderInfo.file_info_offset, mHeaderInfo.data_offset);
             return false;
         }
 
         if (mHeaderInfo.file_info_offset > mArchiveSize) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] File info offset {} is outside the archive. Archive size is {}",
-                mHeaderInfo.file_info_offset,
-                mArchiveSize
-            );
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] File info offset {} is outside the archive. "
+                   "Archive size is {}",
+                   mHeaderInfo.file_info_offset, mArchiveSize);
+            return false;
+        }
+
+        if (mHeaderInfo.directory_table_offset < mHeaderInfo.file_info_offset) {
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Directory table offset {} is before the "
+                   "file info region at {}!",
+                   mHeaderInfo.directory_table_offset, mHeaderInfo.file_info_offset);
+            return false;
+        }
+
+        if (mHeaderInfo.directory_table_offset > mArchiveSize) {
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Directory table offset {} is outside the "
+                   "archive. Archive size is {}",
+                   mHeaderInfo.directory_table_offset, mArchiveSize);
+            return false;
+        }
+
+        if (mHeaderInfo.directory_count == 0) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] TCF archive must contain a root directory!");
             return false;
         }
 
         if (mHeaderInfo.file_count > kMaxFileCount) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Max file count exceeded. Max {}, got {}",
-                kMaxFileCount,
-                mHeaderInfo.file_count
-            );
+            CE_LOG(LogLevel::Error, "[TCFArchive] Max file count exceeded. Max {}, got {}", kMaxFileCount,
+                   mHeaderInfo.file_count);
             return false;
         }
 
-        if (mHeaderInfo.file_count > 0) {
-            const uint64_t file_info_size =
-                mArchiveSize - mHeaderInfo.file_info_offset;
+        if (mHeaderInfo.directory_count > kMaxFileCount) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] Max directory count exceeded. Max {}, got {}", kMaxFileCount,
+                   mHeaderInfo.directory_count);
+            return false;
+        }
 
-            constexpr uint64_t kMinimumFileInfoSize =
-                sizeof(uint64_t) +
-                sizeof(uint64_t) +
-                sizeof(uint64_t);
+        /*
+            A file record has a minimum size of:
+
+                uint64 file_id
+                int64  date_modified
+                uint32 name_size
+                uint64 parent_directory
+                uint64 chunk_count
+                uint64 chunks_start_offset
+
+            The name itself may be zero bytes here because the size check
+            is only being used to make sure the record count can physically
+            fit in the region.
+        */
+        if (mHeaderInfo.file_count > 0) {
+            constexpr uint64_t kMinimumFileInfoSize = sizeof(uint64_t) + sizeof(int64_t) + sizeof(uint32_t) +
+                                                      sizeof(uint64_t) + sizeof(uint64_t) + sizeof(uint64_t);
+
+            const uint64_t file_info_size = mHeaderInfo.directory_table_offset - mHeaderInfo.file_info_offset;
 
             if (file_info_size < kMinimumFileInfoSize ||
                 mHeaderInfo.file_count > file_info_size / kMinimumFileInfoSize) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File count cannot fit inside the file info region!"
-                );
+                CE_LOG(LogLevel::Error, "[TCFArchive] File count cannot fit inside the "
+                                        "file info region!");
+                return false;
+            }
+        }
+
+        /*
+            A directory record has a minimum size of:
+
+                uint64 id
+                int64  date_modified
+                uint32 name_size
+                uint64 parent
+                uint64 content_end
+
+            Directory contents are additional variable-sized records.
+        */
+        if (mHeaderInfo.directory_count > 0) {
+            constexpr uint64_t kMinimumDirectoryInfoSize =
+                sizeof(uint64_t) + sizeof(int64_t) + sizeof(uint32_t) + sizeof(uint64_t) + sizeof(uint64_t);
+
+            const uint64_t directory_region_size = mArchiveSize - mHeaderInfo.directory_table_offset;
+
+            if (directory_region_size < kMinimumDirectoryInfoSize ||
+                mHeaderInfo.directory_count > directory_region_size / kMinimumDirectoryInfoSize) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Directory count cannot fit inside the "
+                                        "directory table region!");
                 return false;
             }
         }
@@ -259,11 +371,8 @@ namespace CE::Common::FS::TCF {
 
     bool TCFArchive::ReadFileInfo(BinaryReader& reader) {
         if (!reader.Seek(mHeaderInfo.file_info_offset, std::ios::beg)) {
-            CE_LOG(
-                LogLevel::Error,
-                "[TCFArchive] Failed to seek to file info at offset {}!",
-                mHeaderInfo.file_info_offset
-            );
+            CE_LOG(LogLevel::Error, "[TCFArchive] Failed to seek to file info at offset {}!",
+                   mHeaderInfo.file_info_offset);
             return false;
         }
 
@@ -278,214 +387,113 @@ namespace CE::Common::FS::TCF {
         std::vector<ChunkBlockRange> chunk_blocks;
         chunk_blocks.reserve(mHeaderInfo.file_count);
 
-        for (uint64_t file_id = 0; file_id < mHeaderInfo.file_count; ++file_id) {
+        for (uint64_t expected_file_id = 0; expected_file_id < mHeaderInfo.file_count; ++expected_file_id) {
             FileInfo info;
 
-            uint64_t path_size = 0;
+            uint64_t stored_file_id = 0;
 
-            TCF_READ_OR_ERROR(
-                reader.ReadU64(path_size),
-                "Failed to read path size"
-            );
+            TCF_READ_OR_ERROR(reader.ReadU64(stored_file_id), "Failed to read file ID!");
 
-            if (path_size == 0) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File {} has an empty path!",
-                    file_id
-                );
+            if (stored_file_id != expected_file_id) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Expected file ID {}, got {}", expected_file_id, stored_file_id);
                 return false;
             }
 
-            if (path_size > kMaxPathSize) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File {} path size is too large. Maximum {}, got {}",
-                    file_id,
-                    kMaxPathSize,
-                    path_size
-                );
+            info.id = stored_file_id;
+
+            TCF_READ_OR_ERROR(reader.ReadI64(info.date_modified), "Failed to read file modification date!");
+
+            uint32_t name_size = 0;
+
+            TCF_READ_OR_ERROR(reader.ReadU32(name_size), "Failed to read file name size!");
+
+            if (name_size == 0) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] File {} has an empty name!", expected_file_id);
                 return false;
             }
 
-            info.file_path.resize(path_size);
-
-            TCF_READ_OR_ERROR(
-                reader.Read(info.file_path.data(), path_size),
-                "Failed to read file path!"
-            );
-
-            // Validate the archive path.
-            if (info.file_path.front() == '/' ||
-                info.file_path.back() == '/') {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File {} has an invalid path '{}': leading/trailing '/'",
-                    file_id,
-                    info.file_path
-                );
+            if (name_size > kMaxNameSize) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File {} name is too large. "
+                       "Maximum {}, got {}",
+                       expected_file_id, kMaxNameSize, name_size);
                 return false;
             }
 
-            size_t component_start = 0;
+            info.name.resize(name_size);
 
-            while (component_start < info.file_path.size()) {
-                const size_t separator =
-                    info.file_path.find('/', component_start);
+            TCF_READ_OR_ERROR(reader.Read(info.name.data(), name_size), "Failed to read file name!");
 
-                const size_t component_end =
-                    separator == std::string::npos
-                        ? info.file_path.size()
-                        : separator;
-
-                const std::string_view component(
-                    info.file_path.data() + component_start,
-                    component_end - component_start
-                );
-
-                if (component.empty()) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] File {} has an empty path component: '{}'",
-                        file_id,
-                        info.file_path
-                    );
-                    return false;
-                }
-
-                if (component == "." || component == "..") {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] File {} contains forbidden path component in '{}'",
-                        file_id,
-                        info.file_path
-                    );
-                    return false;
-                }
-
-                for (char c : component) {
-                    if (c == '\\' || c == '\0') {
-                        CE_LOG(
-                            LogLevel::Error,
-                            "[TCFArchive] File {} contains an invalid character in path '{}'",
-                            file_id,
-                            info.file_path
-                        );
-                        return false;
-                    }
-
-                    // The TCF format specifies ASCII paths.
-                    if (static_cast<unsigned char>(c) > 0x7F) {
-                        CE_LOG(
-                            LogLevel::Error,
-                            "[TCFArchive] File {} contains a non-ASCII character in path '{}'",
-                            file_id,
-                            info.file_path
-                        );
-                        return false;
-                    }
-                }
-
-                if (separator == std::string::npos) {
-                    break;
-                }
-
-                component_start = separator + 1;
+            if (!ValidateName(info.name, kMaxNameSize, "File")) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] File {} has invalid name '{}'", expected_file_id, info.name);
+                return false;
             }
 
-            TCF_READ_OR_ERROR(
-                reader.ReadU64(info.chunk_count),
-                "Failed to read chunk count"
-            );
+            TCF_READ_OR_ERROR(reader.ReadU64(info.parent_directory), "Failed to read file parent directory!");
+
+            if (info.parent_directory >= mHeaderInfo.directory_count) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File {} references invalid parent "
+                       "directory {}",
+                       expected_file_id, info.parent_directory);
+                return false;
+            }
+
+            TCF_READ_OR_ERROR(reader.ReadU64(info.chunk_count), "Failed to read chunk count!");
 
             if (info.chunk_count > kMaxChunksPerFile) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File '{}' has too many chunks. Maximum {}, got {}",
-                    info.file_path,
-                    kMaxChunksPerFile,
-                    info.chunk_count
-                );
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File '{}' has too many chunks. "
+                       "Maximum {}, got {}",
+                       info.name, kMaxChunksPerFile, info.chunk_count);
                 return false;
             }
 
-            TCF_READ_OR_ERROR(
-                reader.ReadU64(info.chunk_block_offset),
-                "Failed to read chunk block offset!"
-            );
+            TCF_READ_OR_ERROR(reader.ReadU64(info.chunk_block_offset), "Failed to read chunk block offset!");
 
+            /*
+                An empty file has no chunk block. The offset is therefore
+                not used for parsing it.
+
+                For a non-empty file, the chunk block must live entirely
+                between the data region and file-info region.
+            */
             if (info.chunk_count == 0) {
-                if (info.chunk_block_offset != mHeaderInfo.file_info_offset) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] File '{}' has no chunks but its chunk block offset "
-                        "does not point to the file info region!",
-                        info.file_path
-                    );
-                    return false;
-                }
-
                 mFiles.push_back(std::move(info));
                 continue;
             }
 
             if (info.chunk_block_offset < mHeaderInfo.data_offset) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File '{}' chunk block starts inside the header!",
-                    info.file_path
-                );
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File '{}' chunk block starts before "
+                       "the data region!",
+                       info.name);
                 return false;
             }
 
             if (info.chunk_block_offset >= mHeaderInfo.file_info_offset) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File '{}' chunk block starts inside or after the file info region!",
-                    info.file_path
-                );
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File '{}' chunk block starts inside "
+                       "or after the file info region!",
+                       info.name);
                 return false;
             }
 
-            /*
-                A chunk is laid out as:
+            const uint64_t available_chunk_region = mHeaderInfo.file_info_offset - info.chunk_block_offset;
 
-                [uint64_chunk_id]
-                [uint32_crc32]
-                [uint8_compression_type]
-                [uint64_compressed_size]
-                [uint64_uncompressed_size]
-                [uint64_data_end_offset]
-                [data]
-                [0x00]
-
-                The fixed-size chunk header is therefore 37 bytes.
-            */
-            constexpr uint64_t kChunkHeaderSize =
-                sizeof(uint64_t) +
-                sizeof(uint32_t) +
-                sizeof(uint8_t) +
-                sizeof(uint64_t) +
-                sizeof(uint64_t) +
-                sizeof(uint64_t);
-
-            if (info.chunk_count >
-                (mHeaderInfo.file_info_offset - info.chunk_block_offset) /
-                    (kChunkHeaderSize + 1)) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File '{}' has too many chunks to fit inside its chunk region!",
-                    info.file_path
-                );
+            if (info.chunk_count > available_chunk_region / (kChunkHeaderSize + 1)) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File '{}' has too many chunks to fit "
+                       "inside its chunk region!",
+                       info.name);
                 return false;
             }
 
             if (!reader.Seek(info.chunk_block_offset, std::ios::beg)) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] Failed to seek to chunk block for file '{}'!",
-                    info.file_path
-                );
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Failed to seek to chunk block for "
+                       "file '{}'!",
+                       info.name);
                 return false;
             }
 
@@ -493,226 +501,161 @@ namespace CE::Common::FS::TCF {
 
             uint64_t expected_offset = info.chunk_block_offset;
 
-            for (uint64_t chunk_id = 0;
-                 chunk_id < info.chunk_count;
-                 ++chunk_id) {
-                uint64_t stored_chunk_id = 0;
-
-                TCF_READ_OR_ERROR(
-                    reader.ReadU64(stored_chunk_id),
-                    "Failed to read chunk ID!"
-                );
-
-                if (stored_chunk_id != chunk_id) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] File '{}' expected chunk ID {}, got {}",
-                        info.file_path,
-                        chunk_id,
-                        stored_chunk_id
-                    );
+            for (uint64_t expected_chunk_id = 0; expected_chunk_id < info.chunk_count; ++expected_chunk_id) {
+                if (!reader.Seek(expected_offset, std::ios::beg)) {
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Failed to seek to chunk {} "
+                           "of file '{}'!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
-                auto& chunk = info.chunks[chunk_id];
+                uint64_t stored_chunk_id = 0;
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU32(chunk.crc32),
-                    "Failed to read chunk CRC32!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU64(stored_chunk_id), "Failed to read chunk ID!");
+
+                if (stored_chunk_id != expected_chunk_id) {
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] File '{}' expected chunk ID {}, "
+                           "got {}",
+                           info.name, expected_chunk_id, stored_chunk_id);
+                    return false;
+                }
+
+                auto& chunk = info.chunks[expected_chunk_id];
+
+                TCF_READ_OR_ERROR(reader.ReadU32(chunk.crc32), "Failed to read chunk CRC32!");
 
                 uint8_t compression = 0;
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU8(compression),
-                    "Failed to read chunk compression type!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU8(compression), "Failed to read chunk compression type!");
 
                 if (compression > static_cast<uint8_t>(CompressionType::None)) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Invalid compression type {} for file '{}'",
-                        compression,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Invalid compression type {} "
+                           "for file '{}'",
+                           compression, info.name);
                     return false;
                 }
 
                 chunk.compression = static_cast<CompressionType>(compression);
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU64(chunk.compressed_size),
-                    "Failed to read chunk compressed size!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU64(chunk.compressed_size), "Failed to read chunk compressed size!");
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU64(chunk.uncompressed_size),
-                    "Failed to read chunk uncompressed size!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU64(chunk.uncompressed_size), "Failed to read chunk uncompressed size!");
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU64(chunk.offset),
-                    "Failed to read chunk data end offset!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU64(chunk.offset), "Failed to read chunk data end offset!");
 
                 /*
-                    reader is now positioned immediately after the chunk
-                    header, which is the beginning of the compressed data.
+                    reader is now immediately after the chunk header.
                 */
-                const uint64_t data_start =
-                    expected_offset + kChunkHeaderSize;
+                const uint64_t data_start = expected_offset + kChunkHeaderSize;
 
                 if (chunk.offset < data_start) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' has an end offset "
-                        "before its data begins!",
-                        chunk_id,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' has an "
+                           "end offset before its data begins!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
                 if (chunk.offset >= mHeaderInfo.file_info_offset) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' extends into the file info region!",
-                        chunk_id,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' extends "
+                           "into the file info region!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
-                const uint64_t physical_compressed_size =
-                    chunk.offset - data_start;
+                const uint64_t physical_compressed_size = chunk.offset - data_start;
 
                 if (chunk.compressed_size != physical_compressed_size) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' has an invalid "
-                        "compressed size. Metadata says {}, physical size is {}",
-                        chunk_id,
-                        info.file_path,
-                        chunk.compressed_size,
-                        physical_compressed_size
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' has an "
+                           "invalid compressed size. Metadata says {}, "
+                           "physical size is {}",
+                           expected_chunk_id, info.name, chunk.compressed_size, physical_compressed_size);
                     return false;
                 }
 
                 if (chunk.uncompressed_size > kFileChunkSize) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' has an uncompressed "
-                        "size larger than the maximum chunk size. Maximum {}, got {}",
-                        chunk_id,
-                        info.file_path,
-                        kFileChunkSize,
-                        chunk.uncompressed_size
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' has an "
+                           "uncompressed size larger than the maximum "
+                           "chunk size. Maximum {}, got {}",
+                           expected_chunk_id, info.name, kFileChunkSize, chunk.uncompressed_size);
                     return false;
                 }
 
-                if (chunk.compression == CompressionType::None &&
-                    chunk.compressed_size != chunk.uncompressed_size) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Uncompressed chunk {} in file '{}' has "
-                        "different compressed and uncompressed sizes!",
-                        chunk_id,
-                        info.file_path
-                    );
+                if (chunk.compression == CompressionType::None && chunk.compressed_size != chunk.uncompressed_size) {
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Uncompressed chunk {} in file '{}' "
+                           "has different compressed and uncompressed sizes!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
                 /*
-                    The byte at data_end_offset is the chunk terminator.
+                    data_end_offset points to the terminator byte.
                 */
                 if (!reader.Seek(chunk.offset, std::ios::beg)) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Failed to seek to chunk terminator!"
-                    );
+                    CE_LOG(LogLevel::Error, "[TCFArchive] Failed to seek to chunk terminator!");
                     return false;
                 }
 
                 uint8_t terminator = 0;
 
-                TCF_READ_OR_ERROR(
-                    reader.ReadU8(terminator),
-                    "Failed to read chunk terminator!"
-                );
+                TCF_READ_OR_ERROR(reader.ReadU8(terminator), "Failed to read chunk terminator!");
 
                 if (terminator != 0) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' is missing its "
-                        "0x00 terminator!",
-                        chunk_id,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' is missing "
+                           "its 0x00 terminator!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
                 if (chunk.offset == UINT64_MAX) {
-                    // Defensive check before adding one below.
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' has an invalid end offset!",
-                        chunk_id,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' has an "
+                           "invalid end offset!",
+                           expected_chunk_id, info.name);
                     return false;
                 }
 
                 expected_offset = chunk.offset + 1;
 
                 if (expected_offset > mHeaderInfo.file_info_offset) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] Chunk {} in file '{}' extends beyond "
-                        "the chunk data region!",
-                        chunk_id,
-                        info.file_path
-                    );
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Chunk {} in file '{}' extends "
+                           "beyond the chunk data region!",
+                           expected_chunk_id, info.name);
                     return false;
-                }
-
-                if (chunk_id + 1 < info.chunk_count) {
-                    if (!reader.Seek(expected_offset, std::ios::beg)) {
-                        CE_LOG(
-                            LogLevel::Error,
-                            "[TCFArchive] Failed to seek to next chunk!"
-                        );
-                        return false;
-                    }
                 }
             }
 
-            chunk_blocks.push_back({
-                info.chunk_block_offset,
-                expected_offset
-            });
+            chunk_blocks.push_back({info.chunk_block_offset, expected_offset});
 
             mFiles.push_back(std::move(info));
         }
 
         /*
+            File metadata must end exactly where the directory table starts.
+        */
+        if (!reader.Seek(mHeaderInfo.directory_table_offset, std::ios::beg)) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] Failed to seek to the directory table!");
+            return false;
+        }
+
+        /*
             Make sure different files don't claim overlapping chunk blocks.
         */
-        std::sort(
-            chunk_blocks.begin(),
-            chunk_blocks.end(),
-            [](const ChunkBlockRange& a, const ChunkBlockRange& b) {
-                return a.start < b.start;
-            }
-        );
+        std::sort(chunk_blocks.begin(), chunk_blocks.end(),
+                  [](const ChunkBlockRange& a, const ChunkBlockRange& b) { return a.start < b.start; });
 
         for (size_t i = 1; i < chunk_blocks.size(); ++i) {
             if (chunk_blocks[i].start < chunk_blocks[i - 1].end) {
-                CE_LOG(
-                    LogLevel::Error,
-                    "[TCFArchive] File chunk blocks overlap!"
-                );
+                CE_LOG(LogLevel::Error, "[TCFArchive] File chunk blocks overlap!");
                 return false;
             }
         }
@@ -720,41 +663,600 @@ namespace CE::Common::FS::TCF {
         return true;
     }
 
-    bool TCFArchive::FileExists(const std::string& path) const {
-        for (const auto& file : mFiles) {
-            if (file.file_path == path) {
-                return true;
+    bool TCFArchive::ReadDirectoryInfo(BinaryReader& reader) {
+        if (!reader.Seek(mHeaderInfo.directory_table_offset, std::ios::beg)) {
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Failed to seek to directory table at "
+                   "offset {}!",
+                   mHeaderInfo.directory_table_offset);
+            return false;
+        }
+
+        mDirectories.clear();
+        mDirectories.reserve(mHeaderInfo.directory_count);
+
+        for (uint64_t expected_directory_id = 0; expected_directory_id < mHeaderInfo.directory_count;
+             ++expected_directory_id) {
+            DirectoryInfo info;
+
+            uint64_t stored_directory_id = 0;
+
+            TCF_READ_OR_ERROR(reader.ReadU64(stored_directory_id), "Failed to read directory ID!");
+
+            if (stored_directory_id != expected_directory_id) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Expected directory ID {}, got {}", expected_directory_id,
+                       stored_directory_id);
+                return false;
             }
+
+            info.id = stored_directory_id;
+
+            TCF_READ_OR_ERROR(reader.ReadI64(info.date_modified), "Failed to read directory modification date!");
+
+            uint32_t name_size = 0;
+
+            TCF_READ_OR_ERROR(reader.ReadU32(name_size), "Failed to read directory name size!");
+
+            if (name_size > kMaxNameSize) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} name is too large. "
+                       "Maximum {}, got {}",
+                       expected_directory_id, kMaxNameSize, name_size);
+                return false;
+            }
+
+            /*
+                The root directory is represented by directory ID 0 and
+                has an empty name.
+
+                All other directories must have a normal component name.
+            */
+            if (name_size == 0 && expected_directory_id != 0) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Non-root directory {} has an empty name!", expected_directory_id);
+                return false;
+            }
+
+            info.name.resize(name_size);
+
+            if (name_size > 0) {
+                TCF_READ_OR_ERROR(reader.Read(info.name.data(), name_size), "Failed to read directory name!");
+            }
+
+            if (expected_directory_id == 0) {
+                if (!info.name.empty()) {
+                    CE_LOG(LogLevel::Error, "[TCFArchive] Root directory must have an empty name!");
+                    return false;
+                }
+            } else {
+                if (!ValidateName(info.name, kMaxNameSize, "Directory")) {
+                    CE_LOG(LogLevel::Error, "[TCFArchive] Directory {} has invalid name '{}'", expected_directory_id,
+                           info.name);
+                    return false;
+                }
+            }
+
+            TCF_READ_OR_ERROR(reader.ReadU64(info.parent), "Failed to read directory parent!");
+
+            if (expected_directory_id == 0) {
+                if (info.parent != 0) {
+                    CE_LOG(LogLevel::Error, "[TCFArchive] Root directory must have itself "
+                                            "as its parent!");
+                    return false;
+                }
+            } else if (info.parent >= mHeaderInfo.directory_count) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} references invalid "
+                       "parent directory {}",
+                       expected_directory_id, info.parent);
+                return false;
+            } else if (info.parent == expected_directory_id) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Directory {} cannot be its own parent!", expected_directory_id);
+                return false;
+            }
+
+            uint64_t content_end = 0;
+
+            TCF_READ_OR_ERROR(reader.ReadU64(content_end), "Failed to read directory content end!");
+
+            /*
+                At this point reader is positioned at the beginning of
+                this directory's content block.
+            */
+            const uint64_t content_start =
+                mHeaderInfo.directory_table_offset + 0; // overwritten below by seeking-relative position
+
+            /*
+                BinaryReader does not need to expose its current position
+                here. We know the current position from the serialized
+                record, so seek to content_end only after validating it
+                against the archive bounds.
+
+                The exact current position is reconstructed by reading
+                the fixed fields above from the archive. To avoid relying
+                on sizeof() or C++ struct padding, calculate it explicitly.
+            */
+            const uint64_t current_position = reader.Tell();
+
+            if (content_end < current_position) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} has a content end offset "
+                       "before the beginning of its content!",
+                       expected_directory_id);
+                return false;
+            }
+
+            if (content_end > mArchiveSize) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} content end {} is outside "
+                       "the archive. Archive size is {}",
+                       expected_directory_id, content_end, mArchiveSize);
+                return false;
+            }
+
+            const uint64_t content_size = content_end - current_position;
+
+            if (content_size % kDirectoryContentSize != 0) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} content block has an "
+                       "invalid size of {} bytes!",
+                       expected_directory_id, content_size);
+                return false;
+            }
+
+            const uint64_t content_count = content_size / kDirectoryContentSize;
+
+            const uint64_t maximum_content_count = mHeaderInfo.file_count + mHeaderInfo.directory_count;
+
+            if (content_count > maximum_content_count) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} contains {} entries, "
+                       "which exceeds the maximum possible number of "
+                       "archive objects!",
+                       expected_directory_id, content_count);
+                return false;
+            }
+
+            info.contents.reserve(static_cast<size_t>(content_count));
+
+            for (uint64_t content_index = 0; content_index < content_count; ++content_index) {
+                DirectoryContent content;
+
+                uint8_t type = 0;
+
+                TCF_READ_OR_ERROR(reader.ReadU8(type), "Failed to read directory content type!");
+
+                if (type > static_cast<uint8_t>(DirectoryContentType::File)) {
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Directory {} contains an "
+                           "invalid content type {}",
+                           expected_directory_id, type);
+                    return false;
+                }
+
+                content.type = static_cast<DirectoryContentType>(type);
+
+                TCF_READ_OR_ERROR(reader.ReadU64(content.id), "Failed to read directory content ID!");
+
+                if (content.type == DirectoryContentType::Directory) {
+                    if (content.id >= mHeaderInfo.directory_count) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains a "
+                               "reference to invalid directory {}",
+                               expected_directory_id, content.id);
+                        return false;
+                    }
+
+                    if (content.id == 0) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains the "
+                               "root directory as a child!",
+                               expected_directory_id);
+                        return false;
+                    }
+
+                    if (content.id == expected_directory_id) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains itself "
+                               "as a child!",
+                               expected_directory_id);
+                        return false;
+                    }
+                } else {
+                    if (content.id >= mHeaderInfo.file_count) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains a "
+                               "reference to invalid file {}",
+                               expected_directory_id, content.id);
+                        return false;
+                    }
+                }
+
+                info.contents.push_back(content);
+            }
+
+            /*
+                content_end must be exactly where the next directory
+                record starts.
+            */
+            if (!reader.Seek(content_end, std::ios::beg)) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Failed to seek to the end of "
+                       "directory {} content!",
+                       expected_directory_id);
+                return false;
+            }
+
+            mDirectories.push_back(std::move(info));
+        }
+
+        /*
+            The directory table is the final region of the archive.
+            Therefore, after reading the final directory, we should be
+            exactly at EOF.
+        */
+        if (!reader.Seek(mHeaderInfo.directory_table_offset, std::ios::beg)) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] Failed to re-seek to directory table!");
+            return false;
+        }
+
+        /*
+            Re-walk the table from the parsed in-memory representation
+            to validate parent/child relationships and names.
+
+            This also guarantees:
+              - every file appears exactly once
+              - every non-root directory appears exactly once
+              - file parent metadata matches its directory entry
+              - directory parent metadata matches its directory entry
+              - sibling names are unique
+        */
+
+        std::vector<uint32_t> file_reference_count(mHeaderInfo.file_count, 0);
+
+        std::vector<uint32_t> directory_reference_count(mHeaderInfo.directory_count, 0);
+
+        for (const DirectoryInfo& directory : mDirectories) {
+            std::unordered_set<std::string> child_names;
+            child_names.reserve(directory.contents.size());
+
+            for (const DirectoryContent& content : directory.contents) {
+                std::string child_name;
+
+                if (content.type == DirectoryContentType::Directory) {
+                    const DirectoryInfo& child = mDirectories[content.id];
+
+                    child_name = child.name;
+
+                    if (child.parent != directory.id) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains directory {}, "
+                               "but its parent is {}!",
+                               directory.id, child.id, child.parent);
+                        return false;
+                    }
+
+                    if (++directory_reference_count[content.id] != 1) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} is referenced more "
+                               "than once!",
+                               content.id);
+                        return false;
+                    }
+                } else {
+                    const FileInfo& file = mFiles[content.id];
+
+                    child_name = file.name;
+
+                    if (file.parent_directory != directory.id) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] Directory {} contains file {}, "
+                               "but the file's parent is {}!",
+                               directory.id, file.id, file.parent_directory);
+                        return false;
+                    }
+
+                    if (++file_reference_count[content.id] != 1) {
+                        CE_LOG(LogLevel::Error,
+                               "[TCFArchive] File {} is referenced more "
+                               "than once!",
+                               content.id);
+                        return false;
+                    }
+                }
+
+                if (!child_names.insert(std::move(child_name)).second) {
+                    CE_LOG(LogLevel::Error,
+                           "[TCFArchive] Directory {} contains duplicate "
+                           "child name!",
+                           directory.id);
+                    return false;
+                }
+            }
+        }
+
+        /*
+            Every file must be reachable from exactly one directory.
+        */
+        for (uint64_t file_id = 0; file_id < mHeaderInfo.file_count; ++file_id) {
+            if (file_reference_count[file_id] != 1) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] File {} is referenced {} times. "
+                       "Every file must belong to exactly one directory!",
+                       file_id, file_reference_count[file_id]);
+                return false;
+            }
+        }
+
+        /*
+            Every non-root directory must be reachable from exactly one
+            parent directory. The root is the only directory that does
+            not appear as a child.
+        */
+        for (uint64_t directory_id = 1; directory_id < mHeaderInfo.directory_count; ++directory_id) {
+            if (directory_reference_count[directory_id] != 1) {
+                CE_LOG(LogLevel::Error,
+                       "[TCFArchive] Directory {} is referenced {} times. "
+                       "Every non-root directory must belong to exactly "
+                       "one parent directory!",
+                       directory_id, directory_reference_count[directory_id]);
+                return false;
+            }
+        }
+
+        /*
+            Detect parent cycles.
+
+            Directory IDs do not have to be ordered according to their
+            hierarchy, so we cannot simply require parent < child.
+        */
+        std::vector<uint8_t> directory_state(mHeaderInfo.directory_count, 0);
+
+        directory_state[0] = 2;
+
+        for (uint64_t start = 1; start < mHeaderInfo.directory_count; ++start) {
+            if (directory_state[start] == 2) {
+                continue;
+            }
+
+            std::vector<uint64_t> path;
+            uint64_t current = start;
+
+            while (current != 0 && directory_state[current] == 0) {
+                directory_state[current] = 1;
+                path.push_back(current);
+                current = mDirectories[current].parent;
+            }
+
+            if (current != 0 && directory_state[current] == 1) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] Directory hierarchy contains a cycle!");
+                return false;
+            }
+
+            for (uint64_t directory_id : path) {
+                directory_state[directory_id] = 2;
+            }
+        }
+
+        if (reader.Tell() != mArchiveSize) {
+            CE_LOG(LogLevel::Error,
+                   "[TCFArchive] Directory table does not end at the end "
+                   "of the archive. Directory table ended at {}, archive "
+                   "size is {}",
+                   reader.Tell(), mArchiveSize);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool TCFArchive::FileExists(const std::string& path) const {
+        if (!ValidatePath(path)) {
+            return false;
+        }
+
+        uint64_t current_directory = 0;
+
+        size_t component_start = 0;
+
+        while (component_start < path.size()) {
+            const size_t separator = path.find('/', component_start);
+
+            const size_t component_end = separator == std::string::npos ? path.size() : separator;
+
+            const std::string_view component(path.data() + component_start, component_end - component_start);
+
+            const bool last_component = separator == std::string::npos;
+
+            const DirectoryInfo& directory = mDirectories[current_directory];
+
+            bool found = false;
+
+            for (const DirectoryContent& content : directory.contents) {
+                if (content.type == DirectoryContentType::Directory) {
+                    const DirectoryInfo& child = mDirectories[content.id];
+
+                    if (child.name != component) {
+                        continue;
+                    }
+
+                    if (last_component) {
+                        /*
+                            The requested path names a directory, not a
+                            file, so FileExists() is false.
+                        */
+                        return false;
+                    }
+
+                    current_directory = child.id;
+                    found = true;
+                    break;
+                }
+
+                if (last_component) {
+                    const FileInfo& file = mFiles[content.id];
+
+                    if (file.name == component) {
+                        return true;
+                    }
+                }
+            }
+
+            if (!found && !last_component) {
+                return false;
+            }
+
+            if (separator == std::string::npos) {
+                break;
+            }
+
+            component_start = separator + 1;
         }
 
         return false;
     }
 
     bool TCFArchive::GetFileSize(const std::string& path, uint64_t& size) const {
-        for (const auto& file : mFiles) {
-            if (file.file_path != path) {
-                continue;
-            }
+        if (!ValidatePath(path)) {
+            return false;
+        }
 
-            size = 0;
+        uint64_t current_directory = 0;
+        const FileInfo* found_file = nullptr;
 
-            for (const auto& chunk : file.chunks) {
-                if (chunk.uncompressed_size >
-                    std::numeric_limits<uint64_t>::max() - size) {
-                    CE_LOG(
-                        LogLevel::Error,
-                        "[TCFArchive] File '{}' size overflow!",
-                        path
-                    );
-                    return false;
+        size_t component_start = 0;
+
+        while (component_start < path.size()) {
+            const size_t separator = path.find('/', component_start);
+
+            const size_t component_end = separator == std::string::npos ? path.size() : separator;
+
+            const std::string_view component(path.data() + component_start, component_end - component_start);
+
+            const bool last_component = separator == std::string::npos;
+
+            const DirectoryInfo& directory = mDirectories[current_directory];
+
+            bool found = false;
+
+            for (const DirectoryContent& content : directory.contents) {
+                if (content.type == DirectoryContentType::Directory) {
+                    const DirectoryInfo& child = mDirectories[content.id];
+
+                    if (child.name != component) {
+                        continue;
+                    }
+
+                    if (last_component) {
+                        return false;
+                    }
+
+                    current_directory = child.id;
+                    found = true;
+                    break;
                 }
 
-                size += chunk.uncompressed_size;
+                if (last_component) {
+                    const FileInfo& file = mFiles[content.id];
+
+                    if (file.name == component) {
+                        found_file = &file;
+                        break;
+                    }
+                }
             }
 
-            return true;
+            if (found_file != nullptr) {
+                break;
+            }
+
+            if (!found && !last_component) {
+                return false;
+            }
+
+            if (separator == std::string::npos) {
+                break;
+            }
+
+            component_start = separator + 1;
+        }
+
+        if (found_file == nullptr) {
+            return false;
+        }
+
+        size = 0;
+
+        for (const auto& chunk : found_file->chunks) {
+            if (chunk.uncompressed_size > std::numeric_limits<uint64_t>::max() - size) {
+                CE_LOG(LogLevel::Error, "[TCFArchive] File '{}' size overflow!", path);
+                return false;
+            }
+
+            size += chunk.uncompressed_size;
+        }
+
+        return true;
+    }
+
+    bool TCFArchive::FindFile(const std::string& path, FileId& file_id) const {
+        if (!ValidatePath(path)) {
+            return false;
+        }
+
+        DirectoryId current_directory = 0;
+
+        size_t component_start = 0;
+
+        while (component_start < path.size()) {
+            const size_t separator = path.find('/', component_start);
+            const size_t component_end = separator == std::string::npos ? path.size() : separator;
+
+            const std::string_view component(path.data() + component_start, component_end - component_start);
+
+            const bool last_component = separator == std::string::npos;
+
+            const DirectoryInfo& directory = mDirectories[current_directory];
+
+            bool found = false;
+
+            for (const DirectoryContent& content : directory.contents) {
+                if (content.type == DirectoryContentType::Directory) {
+                    const DirectoryInfo& child = mDirectories[content.id];
+
+                    if (child.name != component) {
+                        continue;
+                    }
+
+                    if (last_component) {
+                        return false;
+                    }
+
+                    current_directory = child.id;
+                    found = true;
+                    break;
+                }
+
+                if (last_component) {
+                    const FileInfo& file = mFiles[content.id];
+
+                    if (file.name == component) {
+                        file_id = file.id;
+                        return true;
+                    }
+                }
+            }
+
+            if (!found && !last_component) {
+                return false;
+            }
+
+            if (separator == std::string::npos) {
+                break;
+            }
+
+            component_start = separator + 1;
         }
 
         return false;
     }
-}
+} // namespace CE::Common::FS::TCF
