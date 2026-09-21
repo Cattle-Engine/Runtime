@@ -17,6 +17,21 @@ using DirectoryId = uint64_t;
 using ChunkId = uint64_t;
 
 namespace CE::Common::FS::TCF {
+    struct TCFDirectoryContents {
+        struct File {
+            std::string name;
+            int64_t data_modified = 0;
+        };
+
+        struct Directory {
+            std::string name;
+            int64_t data_modified = 0;
+        };
+
+        std::vector<File> files;
+        std::vector<Directory> directories;
+    };
+
     class TCFFile;
 
     class TCFArchive {
@@ -30,7 +45,8 @@ namespace CE::Common::FS::TCF {
         void CloseFile(TCFFile& file);
         bool FileExists(const std::string& path) const;
         bool GetFileSize(const std::string& path, uint64_t& size) const;
-
+        bool DirExists(const std::string& path) const;
+        TCFDirectoryContents ListDirectory(const std::string& path);
       private:
         friend class TCFFile;
 
@@ -175,7 +191,8 @@ namespace CE::Common::FS::TCF {
         bool ReadHeader(BinaryReader& reader);
         bool ReadDirectoryInfo(BinaryReader& reader);
         bool ReadFileInfo(BinaryReader& reader);
-        bool FindFile(const std::string& path, FileId& file_id) const ;
+        bool FindFile(const std::string& path, FileId& file_id) const;
+        bool ResolvePath(const std::string& path, DirectoryContentType type, uint64_t& id) const;
     };
 
     enum class SeekMode {

@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <string_view>
 
 #include "engine/common/fs/file_provider.hpp"
 #include "engine/common/fs/tcf/tcf.hpp"
@@ -36,6 +37,7 @@ namespace CE::Common::FS::TCF {
         bool CreateFile(std::string_view relative_path) override;
         bool IsReadOnly() const override;
         std::string GetProviderName() const override;
+        bool DirExists(const std::string_view path) const override;
 
       private:
         TCFArchive mArchive;

@@ -1050,69 +1050,8 @@ namespace CE::Common::FS::TCF {
     }
 
     bool TCFArchive::FileExists(const std::string& path) const {
-        if (!ValidatePath(path)) {
-            return false;
-        }
-
-        uint64_t current_directory = 0;
-
-        size_t component_start = 0;
-
-        while (component_start < path.size()) {
-            const size_t separator = path.find('/', component_start);
-
-            const size_t component_end = separator == std::string::npos ? path.size() : separator;
-
-            const std::string_view component(path.data() + component_start, component_end - component_start);
-
-            const bool last_component = separator == std::string::npos;
-
-            const DirectoryInfo& directory = mDirectories[current_directory];
-
-            bool found = false;
-
-            for (const DirectoryContent& content : directory.contents) {
-                if (content.type == DirectoryContentType::Directory) {
-                    const DirectoryInfo& child = mDirectories[content.id];
-
-                    if (child.name != component) {
-                        continue;
-                    }
-
-                    if (last_component) {
-                        /*
-                            The requested path names a directory, not a
-                            file, so FileExists() is false.
-                        */
-                        return false;
-                    }
-
-                    current_directory = child.id;
-                    found = true;
-                    break;
-                }
-
-                if (last_component) {
-                    const FileInfo& file = mFiles[content.id];
-
-                    if (file.name == component) {
-                        return true;
-                    }
-                }
-            }
-
-            if (!found && !last_component) {
-                return false;
-            }
-
-            if (separator == std::string::npos) {
-                break;
-            }
-
-            component_start = separator + 1;
-        }
-
-        return false;
+        FileId file_id = 0;
+        return ResolvePath(path, DirectoryContentType::File, file_id);
     }
 
     bool TCFArchive::GetFileSize(const std::string& path, uint64_t& size) const {
@@ -1198,13 +1137,21 @@ namespace CE::Common::FS::TCF {
         return true;
     }
 
-    bool TCFArchive::FindFile(const std::string& path, FileId& file_id) const {
+    bool TCFArchive::ResolvePath(const std::string& path, DirectoryContentType type, uint64_t& id) const {
+        if (path.empty()) {
+            if (type == DirectoryContentType::Directory) {
+                id = 0;
+                return true;
+            }
+
+            return false;
+        }
+
         if (!ValidatePath(path)) {
             return false;
         }
 
         DirectoryId current_directory = 0;
-
         size_t component_start = 0;
 
         while (component_start < path.size()) {
@@ -1212,7 +1159,6 @@ namespace CE::Common::FS::TCF {
             const size_t component_end = separator == std::string::npos ? path.size() : separator;
 
             const std::string_view component(path.data() + component_start, component_end - component_start);
-
             const bool last_component = separator == std::string::npos;
 
             const DirectoryInfo& directory = mDirectories[current_directory];
@@ -1220,43 +1166,74 @@ namespace CE::Common::FS::TCF {
             bool found = false;
 
             for (const DirectoryContent& content : directory.contents) {
-                if (content.type == DirectoryContentType::Directory) {
-                    const DirectoryInfo& child = mDirectories[content.id];
+                if (content.type == type && last_component) {
+                    const uint64_t content_id = content.id;
 
-                    if (child.name != component) {
-                        continue;
+                    if (type == DirectoryContentType::Directory) {
+                        if (mDirectories[content_id].name == component) {
+                            id = content_id;
+                            return true;
+                        }
+                    } else {
+                        if (mFiles[content_id].name == component) {
+                            id = content_id;
+                            return true;
+                        }
                     }
 
-                    if (last_component) {
-                        return false;
-                    }
-
-                    current_directory = child.id;
-                    found = true;
-                    break;
+                    continue;
                 }
 
-                if (last_component) {
-                    const FileInfo& file = mFiles[content.id];
-
-                    if (file.name == component) {
-                        file_id = file.id;
-                        return true;
-                    }
+                if (content.type != DirectoryContentType::Directory) {
+                    continue;
                 }
-            }
 
-            if (!found && !last_component) {
-                return false;
-            }
+                const DirectoryInfo& child = mDirectories[content.id];
 
-            if (separator == std::string::npos) {
+                if (child.name != component) {
+                    continue;
+                }
+
+                current_directory = child.id;
+                found = true;
                 break;
+            }
+
+            if (!found) {
+                return false;
             }
 
             component_start = separator + 1;
         }
 
         return false;
+    }
+
+    bool TCFArchive::FindFile(const std::string& path, FileId& file_id) const {
+        return ResolvePath(path, DirectoryContentType::File, file_id);
+    }
+
+    bool TCFArchive::DirExists(const std::string& path) const {
+        DirectoryId directory_id = 0;
+        return ResolvePath(path, DirectoryContentType::Directory, directory_id);
+    }
+
+    TCFDirectoryContents TCFArchive::ListDirectory(const std::string& path) {
+        DirectoryId dir_id = 0;
+        if(!ResolvePath(path, DirectoryContentType::Directory, dir_id)) {
+            return {};
+        }
+
+        TCFDirectoryContents out;
+
+        for (auto& content : mDirectories[dir_id].contents) {
+            if (content.type == DirectoryContentType::File) {
+                out.files.push_back({mFiles[content.id].name, mFiles[content.id].date_modified});
+            } else {
+                out.directories.push_back({mDirectories[content.id].name, mDirectories[content.id].date_modified});
+            }
+        }
+
+        return out;
     }
 } // namespace CE::Common::FS::TCF

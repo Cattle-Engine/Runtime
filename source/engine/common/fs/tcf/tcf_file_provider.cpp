@@ -86,4 +86,8 @@ namespace CE::Common::FS::TCF {
     uint64_t VfsTcfFile::TellW() {
         return false;
     }
+
+    bool TCFFileProvider::DirExists(const std::string_view path) const {
+        return mArchive.DirExists(std::string(path));
+    }
 } // namespace CE::Common::FS::TCF
