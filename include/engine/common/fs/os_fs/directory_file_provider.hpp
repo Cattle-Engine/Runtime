@@ -11,6 +11,7 @@ namespace fs = std::filesystem;
 namespace CE::Common::FS::OSFS {
     class DirectoryFile final : public VFS::IFile {
       public:
+        int64_t GetDateModified() override;
         DirectoryFile(const fs::path& path, VFS::OpenFlags flags);
 
         bool IsOpen() const override;
@@ -31,6 +32,19 @@ namespace CE::Common::FS::OSFS {
 
     class DirectoryFileProvider final : VFS::IFileProvider {
       public:
+        bool DeleteFile(std::string_view relative_path) override;
+        bool DirExists(std::string_view relative_path) const override;
+
+        std::vector<VFS::DirectoryContent> ListDirectory(std::string_view relative_path) const override;
+
+        bool CreateDir(std::string_view relative_path) override;
+
+        bool DeleteDir(std::string_view relative_path) override;
+
+        bool MoveFile(std::string_view old_path, std::string_view new_path) override;
+
+        bool MoveDir(std::string_view old_path, std::string_view new_path) override;
+        bool GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) override;
         // Base path must be an absloute path (eg: /home/arthur_dent/.config)
         DirectoryFileProvider(const fs::path& base_path);
 

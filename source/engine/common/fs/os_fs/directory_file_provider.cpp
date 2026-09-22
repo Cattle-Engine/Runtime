@@ -1,8 +1,10 @@
 #include "engine/common/fs/os_fs/directory_file_provider.hpp"
 
+#include <complex>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <system_error>
 
 #include "engine/common/fs/file_provider.hpp"
 #include "engine/common/tracelog.hpp"
@@ -51,7 +53,7 @@ namespace CE::Common::FS::OSFS {
 
     bool DirectoryFileProvider::FileExists(std::string_view relative_path) const {
         fs::path file = mBasePath / relative_path;
-        return fs::exists(file);
+        return fs::is_regular_file(file);
     }
 
     bool DirectoryFileProvider::CreateFile(std::string_view relative_path) {
@@ -139,5 +141,137 @@ namespace CE::Common::FS::OSFS {
 
     bool DirectoryFile::Eof() const {
         return mFile.eof();
+    }
+
+    int64_t DirectoryFile::GetDateModified() {
+        const auto ftime = std::filesystem::last_write_time(mPath);
+        const auto system_time = decltype(ftime)::clock::to_sys(ftime);
+
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            system_time.time_since_epoch()
+        ).count();
+    }
+
+    bool DirectoryFileProvider::DeleteFile(std::string_view relative_path) {
+        fs::path path = mBasePath / relative_path;
+        
+        if (!fs::is_regular_file(path)) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", path.string());
+            return true;
+        }
+
+        std::error_code ec;
+        fs::remove(path, ec);
+
+        if (ec) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to delete file: {}", ec.message());
+            return false;
+        }
+        return true;
+    }
+
+    bool DirectoryFileProvider::DirExists(std::string_view relative_path) const {
+        fs::path path = mBasePath / relative_path;
+        return fs::is_directory(path);
+    }
+
+    bool DirectoryFileProvider::CreateDir(std::string_view relative_path) {
+        std::error_code ec;
+        fs::create_directory(mBasePath / relative_path, ec);
+
+        if (ec) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to create directory: {}", ec.message());
+            return false;
+        }
+
+        return true;
+    }
+
+    bool DirectoryFileProvider::DeleteDir(std::string_view relative_path) {
+        fs::path path = mBasePath / relative_path;
+        
+        if (!fs::is_directory(path)) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", path.string());
+            return true;
+        }
+
+        std::error_code ec;
+        fs::remove(path, ec);
+
+        if (ec) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to delete file: {}", ec.message());
+            return false;
+        }
+        return true;
+    }
+
+    bool DirectoryFileProvider::MoveFile(std::string_view old_path, std::string_view new_path) {
+        fs::path oldn = mBasePath / old_path;
+
+        if (!fs::is_regular_file(oldn)) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a file", oldn.string());
+            return false;
+        }
+
+        std::error_code ec;
+        fs::path newn = mBasePath / new_path;
+
+        fs::rename(oldn, newn, ec);
+
+        if (!ec) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to move {} to {}, {}", oldn.string(), newn.string(), ec.message());
+            return false;
+        }
+        return true;
+    }
+
+    bool DirectoryFileProvider::MoveDir(std::string_view old_path, std::string_view new_path) {
+        fs::path oldn = mBasePath / old_path;
+
+        if (!fs::is_directory(oldn)) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a file", oldn.string());
+            return false;
+        }
+
+        std::error_code ec;
+        fs::path newn = mBasePath / new_path;
+
+        fs::rename(oldn, newn, ec);
+
+        if (!ec) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to move {} to {}, {}", oldn.string(), newn.string(), ec.message());
+            return false;
+        }
+        return true;
+    }
+
+    bool DirectoryFileProvider::GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) {
+        fs::path full_path = mBasePath / path;
+        
+        if (!fs::is_directory(full_path)) {
+            CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", full_path.string());
+            return false;
+        }
+
+        const auto ftime = std::filesystem::last_write_time(full_path);
+        const auto system_time = decltype(ftime)::clock::to_sys(ftime);
+
+        timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+            system_time.time_since_epoch()
+        ).count();
+        return true;
+    }
+
+    std::vector<VFS::DirectoryContent> DirectoryFileProvider::ListDirectory(std::string_view relative_path) const {
+        std::vector<VFS::DirectoryContent> contents;
+        for (const auto& content : fs::directory_iterator(mBasePath / relative_path)) {
+            if (content.is_regular_file()) {
+                contents.push_back({content.path().filename().string(), VFS::DirectoryContent::Type::File});
+            } else if (content.is_directory()) {
+                contents.push_back({content.path().filename().string(), VFS::DirectoryContent::Type::Directory});
+            }
+        }
+
+        return contents;
     }
 } // namespace CE::Common::FS::OSFS
