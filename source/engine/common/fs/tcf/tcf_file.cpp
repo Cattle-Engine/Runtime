@@ -348,4 +348,8 @@ namespace CE::Common::FS::TCF {
         data = &cached.data;
         return true;
     }
+
+    int64_t TCFFile::GetLastModifiedTimestamp() const {
+        return mTCFArchive.mFiles[FileID].date_modified;
+    }
 } // namespace CE::Common::FS::TCF

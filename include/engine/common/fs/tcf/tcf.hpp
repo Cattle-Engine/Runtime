@@ -46,7 +46,10 @@ namespace CE::Common::FS::TCF {
         bool FileExists(const std::string& path) const;
         bool GetFileSize(const std::string& path, uint64_t& size) const;
         bool DirExists(const std::string& path) const;
-        TCFDirectoryContents ListDirectory(const std::string& path);
+        TCFDirectoryContents ListDirectory(const std::string& path) const;
+        // Returns the time stamp that a directory was last modified. This is a Unix milisecond timestamp
+        // returns false if the dir was not found
+        bool GetDirLastModified(const std::string& path, int64_t& timestamp_ms);
       private:
         friend class TCFFile;
 
@@ -113,7 +116,7 @@ namespace CE::Common::FS::TCF {
             Directory IDs are global to the archive and increase monotonically from 0. There can be NO dupilcate IDS
 
             For file info on disk we do:
-           [file_id][int64_date_modified][uint32_name_size][name_data][uint64_directory_parent][uint64_chunk_count][uint64_chunks_start_offset]
+            [file_id][int64_date_modified][uint32_name_size][name_data][uint64_directory_parent][uint64_chunk_count][uint64_chunks_start_offset]
 
             For the chunk on disk we have this info. Chunks are stored in a contiguous block
             [uint64_chunk_id][uint32_crc32][uint8_compression_type][compressed_size][uncompressed_size][uint64_data_end_offset][data][0x0]
@@ -214,7 +217,8 @@ namespace CE::Common::FS::TCF {
         bool Read(void* destination, size_t size);
         bool IsValid() const;
         bool Eof() const;
-
+        // Returns the time stamp that this file was last modified. This is a Unix milisecond timestamp
+        int64_t GetLastModifiedTimestamp() const;
       private:
         friend class TCFArchive;
 

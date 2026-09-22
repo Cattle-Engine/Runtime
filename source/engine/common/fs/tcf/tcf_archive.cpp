@@ -1218,14 +1218,13 @@ namespace CE::Common::FS::TCF {
         return ResolvePath(path, DirectoryContentType::Directory, directory_id);
     }
 
-    TCFDirectoryContents TCFArchive::ListDirectory(const std::string& path) {
+    TCFDirectoryContents TCFArchive::ListDirectory(const std::string& path) const {
         DirectoryId dir_id = 0;
         if(!ResolvePath(path, DirectoryContentType::Directory, dir_id)) {
             return {};
         }
 
         TCFDirectoryContents out;
-
         for (auto& content : mDirectories[dir_id].contents) {
             if (content.type == DirectoryContentType::File) {
                 out.files.push_back({mFiles[content.id].name, mFiles[content.id].date_modified});
@@ -1235,5 +1234,16 @@ namespace CE::Common::FS::TCF {
         }
 
         return out;
+    }
+
+    bool TCFArchive::GetDirLastModified(const std::string& path, int64_t& timestamp_ms) {
+        DirectoryId dir = 0;
+        if (!ResolvePath(path, DirectoryContentType::Directory, dir)) {
+            CE_LOG(LogLevel::Error, "[TCFArchive] Could not find directory: {}", path);
+            return false;
+        }
+
+        timestamp_ms = mDirectories[dir].date_modified;
+        return true;
     }
 } // namespace CE::Common::FS::TCF

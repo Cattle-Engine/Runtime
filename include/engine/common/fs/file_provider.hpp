@@ -49,6 +49,8 @@ namespace CE::Common::FS::VFS {
       public:
         virtual ~IFileProvider() = default;
 
+        // File providers that are read only will return false for anything that requires writing.
+        // Eg MoveFile or DeleteDir
         virtual std::unique_ptr<IFile> OpenFile(std::string_view relative_path, OpenFlags flags) = 0;
         virtual bool GetFileSize(std::string_view relative_path, uint64_t& size) const = 0;
         virtual bool FileExists(std::string_view relative_path) const = 0;
@@ -62,6 +64,9 @@ namespace CE::Common::FS::VFS {
 
         virtual bool MoveFile(std::string_view old_path, std::string_view new_path) = 0;
         virtual bool MoveDir(std::string_view old_path, std::string_view new_path) = 0;
+
+        // Most return a unix timestamp in miliseconds since the unix epoch
+        virtual bool GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) = 0;
 
         virtual bool IsReadOnly() const = 0;
         virtual std::string GetProviderName() const = 0;
@@ -78,6 +83,8 @@ namespace CE::Common::FS::VFS {
         virtual bool Read(void* buffer, size_t bytes) = 0;
         virtual bool Write(const void* buffer, size_t bytes) = 0;
         virtual bool SeekW(int64_t offset, SeekOrigin origin) = 0;
+        // Most return a unix timestamp in miliseconds since the unix epoch
+        virtual int64_t GetDateModified() = 0;
         virtual uint64_t TellW() = 0;
         virtual bool Flush() = 0;
         virtual bool Eof() const = 0;

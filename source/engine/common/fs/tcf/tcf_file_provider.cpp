@@ -90,4 +90,27 @@ namespace CE::Common::FS::TCF {
     bool TCFFileProvider::DirExists(const std::string_view path) const {
         return mArchive.DirExists(std::string(path));
     }
+
+    bool TCFFileProvider::GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) {
+        return mArchive.GetDirLastModified(std::string(path), timestamp);
+    }
+    
+    int64_t VfsTcfFile::GetDateModified() {
+        return mFile.GetLastModifiedTimestamp();
+    }
+
+    std::vector<VFS::DirectoryContent> TCFFileProvider::ListDirectory(std::string_view relative_path) const  {
+        auto tcf_dir = mArchive.ListDirectory(std::string(relative_path));
+
+        std::vector<VFS::DirectoryContent> out;
+        for (const auto& dir : tcf_dir.directories) {
+            out.push_back({dir.name, VFS::DirectoryContent::Type::Directory});
+        }
+
+        for (const auto& file : tcf_dir.files) {
+            out.push_back({file.name, VFS::DirectoryContent::Type::File});
+        }
+
+        return out;
+    }
 } // namespace CE::Common::FS::TCF
