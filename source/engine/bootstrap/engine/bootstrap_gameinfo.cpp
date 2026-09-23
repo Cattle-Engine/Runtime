@@ -3,20 +3,19 @@
 #include "engine/bootstrap/engine.hpp"
 #include "engine/common/fs/ini.hpp"
 #include "engine/common/fs/vfs.hpp"
-#include "engine/common/fs/vfs_stl.hpp"
+#include "engine/common/fs/tcf/tcf_file_provider.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/misc/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Bootstrap::Engine {
     int GetGameInfo(GameInfo& gameinfo, std::string& gdata_name, [[maybe_unused]] bool debug) {
-        VFS::VFS tmp_vfs;
+        Common::FS::VFS::VFS tmp_vfs;
 
-        tmp_vfs.MountArchive(gdata_name.c_str(), "/", LoadMode::OnDemand);
+        tmp_vfs.AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, gdata_name);
 
-        auto stream = VFS::OpenIStream(tmp_vfs, "Gameinfo.txt");
-
-        if (!stream) {
+        auto file = tmp_vfs.OpenFile("Gameinfo.txt");
+        if (!file) {
             CE_LOG(LogLevel::Error, "[Engine] Unable to open Gameinfo.txt :'(");
             return 1;
         }
@@ -28,9 +27,11 @@ namespace CE::Bootstrap::Engine {
         opts.allow_colon_delim = true;
         opts.allow_empty_values = false;
 
-        std::ostringstream ss;
-        ss << stream->rdbuf();
-        std::string text = ss.str();
+        std::string text(file->Size(), '\0');
+        if (!text.empty() && !file->Read(text.data(), text.size())) {
+            CE_LOG(LogLevel::Error, "[Engine] Unable to read Gameinfo.txt");
+            return 1;
+        }
 
         bool gresult = Common::GData_Has(text);
 

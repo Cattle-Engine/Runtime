@@ -29,7 +29,7 @@ namespace CE::Scripting::Impl {
         return {};
     }
 
-    ModuleImporter::ModuleImporter(VFS::VFS& vfs) : mVFS(vfs) {}
+    ModuleImporter::ModuleImporter(::CE::Common::FS::VFS::VFS& vfs) : mVFS(vfs) {}
 
     std::string ModuleImporter::LoadFile(const std::string& filepath) {
         if (!mVFS.FileExists(filepath.c_str())) {

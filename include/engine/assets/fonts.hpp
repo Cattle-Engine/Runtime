@@ -33,7 +33,7 @@ namespace CE::Assets::Fonts {
 
     class FontManager {
       public:
-        FontManager(Renderer::IRenderer& renderer, VFS::VFS& vfs, uint64_t instance_id);
+        FontManager(Renderer::IRenderer& renderer, Common::FS::VFS::VFS& vfs, uint64_t instance_id);
         ~FontManager();
 
         void Update();
@@ -92,12 +92,13 @@ namespace CE::Assets::Fonts {
         std::string mDefaultFontName;
         std::unordered_map<int, TTF_Font*> mFallbackFonts;
 
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         Renderer::IRenderer& mRenderer;
 
         std::unordered_map<std::string, FontFamily> mFamilies;
         std::unordered_map<TTF_Font*, FontSource> mFontSources;
-        std::unordered_map<TTF_Font*, VirtualFile*> mOpenFontFiles;
+        // SDL_ttf reads lazily from its stream, so VFS-backed font bytes must outlive the font.
+        std::unordered_map<TTF_Font*, std::vector<uint8_t>> mOpenFontFiles;
 
         int mInstanceID;
         std::unordered_map<std::string, FontAtlas> mAtlases;

@@ -33,7 +33,7 @@ namespace {
 
 namespace CE::Scripting {
     Runtime::Runtime(
-        VFS::VFS& vfs, 
+        Common::FS::VFS::VFS& vfs, 
         GameInfo& game_info, 
         Settings::SettingsManager& settings_manager, 
         Instance& instance,

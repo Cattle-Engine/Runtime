@@ -367,6 +367,12 @@ endif()
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(ce_engine PRIVATE glm::glm)
 
+find_package(zstd CONFIG REQUIRED)
+target_link_libraries(ce_engine PRIVATE zstd::libzstd)
+
+find_package(lz4 CONFIG REQUIRED)
+target_link_libraries(ce_engine PRIVATE lz4::lz4)
+
 find_package(xxHash CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 

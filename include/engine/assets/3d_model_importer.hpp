@@ -20,7 +20,7 @@
 namespace CE::Assets::Model3DImporter {
     class ModelImporter {
       public:
-        ModelImporter(VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
+        ModelImporter(Common::FS::VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
                       Renderer::Resources::MaterialManager& mat_manager, Renderer::Resources::TextureManager& tex_man,
                       Renderer::IRenderer& renderer);
 
@@ -58,7 +58,7 @@ namespace CE::Assets::Model3DImporter {
                            std::unordered_map<std::string, SDL_Surface*>& surfaceCache,
                            Renderer::TextureUploadBatch* batch);
 
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         Renderer::Resources::GPUMeshManager& mGPUMeshManager;
         Renderer::Resources::MaterialManager& mMaterialManager;
         Renderer::Resources::TextureManager& mTextureManager;

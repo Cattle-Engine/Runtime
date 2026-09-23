@@ -81,7 +81,7 @@ namespace CE::Scripting {
     class Runtime {
       public:
         Runtime(
-            VFS::VFS& vfs, 
+            Common::FS::VFS::VFS& vfs, 
             GameInfo& game_info, 
             Settings::SettingsManager& settings_manager, 
             Instance& instance,
@@ -129,7 +129,7 @@ namespace CE::Scripting {
          */
         Runtime& mRuntime = *this;
         CE::Common::Containers::RendererResourcesNameRegistry& mRendererResourcesNameRegistry;
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         GameInfo& mGameInfo;
         Settings::SettingsManager& mSettingsManager;
         Instance& mInstance;
@@ -179,5 +179,5 @@ namespace CE::Scripting {
 } // namespace CE::Scripting
 
 namespace CE::Scripting::Utils {
-    std::string LoadScript(VFS::VFS& vfs, const char* path);
+    std::string LoadScript(Common::FS::VFS::VFS& vfs, const char* path);
 }

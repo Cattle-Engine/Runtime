@@ -53,7 +53,7 @@ namespace CE::Assets::Animations {
 
     class AnimatedTextureManager {
       public:
-        AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
+        AnimatedTextureManager(Common::FS::VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id);
 
         // path must be a tdf file on VFS
         bool Load(std::string name, std::string path);
@@ -82,7 +82,7 @@ namespace CE::Assets::Animations {
         AnimationInstance* GetAnimationInfo(AnimationInstanceHandle handle);
         std::unordered_map<std::string, std::shared_ptr<AnimationInfo>> mAnimations;
         std::unordered_map<AnimationInstanceHandle, AnimationInstance, AnimationInstanceHandleHash> mAnimationInstances;
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         Renderer::IRenderer& mRenderer;
         uint32_t mNextHandleID;
         int mInstanceID;

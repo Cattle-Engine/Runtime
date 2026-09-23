@@ -43,6 +43,7 @@ namespace CE::Core::Audio {
         MIX_Audio* Audio = nullptr;
         AudioType Type = AudioType::Error;
         std::string Path;
+        std::vector<uint8_t> SourceBytes;
         bool IsError = false;
         bool IsLoaded = false;
     };
@@ -66,7 +67,7 @@ namespace CE::Core::Audio {
 
     class AudioSystem {
       public:
-        AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
+        AudioSystem(Common::FS::VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
         ~AudioSystem();
 
         std::vector<AudioDeviceInfo> ListAudioDevices();
@@ -112,7 +113,7 @@ namespace CE::Core::Audio {
         static bool IsTrackActive(MIX_Track* track);
         float GetSoundPositionSeconds(MIX_Track* track);
 
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         int mInstanceID;
         MIX_Mixer* mMixer = nullptr;
         SDL_AudioSpec mMixerSpec = {};

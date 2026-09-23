@@ -3,42 +3,35 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets {
-    VFSIOStream::VFSIOStream(VirtualFile* file, CE::VFS::VFS* vfs) : mFile(file), mVFS(vfs) {}
+    VFSIOStream::VFSIOStream(std::unique_ptr<CE::Common::FS::VFS::IFile> file) : mFile(std::move(file)) {}
 
-    VFSIOStream::~VFSIOStream() {
-        if (mFile && mVFS) {
-            mVFS->CloseFile(mFile);
-            mFile = nullptr;
-        }
-    }
+    VFSIOStream::~VFSIOStream() = default;
 
     size_t VFSIOStream::Read(void* pvBuffer, size_t pSize, size_t pCount) {
-        if (!mFile || !mVFS)
+        if (!mFile || pSize == 0)
             return 0;
-
-        return mVFS->ReadFile(mFile, pvBuffer, pSize * pCount) / pSize;
+        return mFile->Read(pvBuffer, pSize * pCount) ? pCount : 0;
     }
 
     size_t VFSIOStream::Write(const void* pvBuffer, size_t pSize, size_t pCount) {
-        if (!mFile || !mVFS)
+        if (!mFile || pSize == 0)
             return 0;
-
-        return mVFS->WriteFile(mFile, pvBuffer, pSize * pCount) / pSize;
+        return mFile->Write(pvBuffer, pSize * pCount) ? pCount : 0;
     }
 
     aiReturn VFSIOStream::Seek(size_t pOffset, aiOrigin pOrigin) {
-        if (!mFile || !mVFS)
+        if (!mFile)
             return aiReturn_FAILURE;
 
         int64_t offset = static_cast<int64_t>(pOffset);
 
-        int whence = SEEK_SET;
+        CE::Common::FS::VFS::SeekOrigin origin = CE::Common::FS::VFS::SeekOrigin::Begin;
         if (pOrigin == aiOrigin_CUR)
-            whence = SEEK_CUR;
+            origin = CE::Common::FS::VFS::SeekOrigin::Current;
         else if (pOrigin == aiOrigin_END)
-            whence = SEEK_END;
+            origin = CE::Common::FS::VFS::SeekOrigin::End;
 
-        bool success = mVFS->SeekFile(mFile, offset, whence);
+        bool success = mFile->SeekR(offset, origin);
         if (!success) {
             CE_LOG(LogLevel::Error, "[VFS] Seek failure at offset {}", offset);
         }
@@ -47,27 +40,23 @@ namespace CE::Assets {
     }
 
     size_t VFSIOStream::Tell() const {
-        if (!mFile || !mVFS)
+        if (!mFile)
             return 0;
-
-        return (size_t)mVFS->TellFile(mFile);
+        return static_cast<size_t>(mFile->TellR());
     }
 
     size_t VFSIOStream::FileSize() const {
-        if (!mFile || !mVFS)
+        if (!mFile)
             return 0;
-
-        uint64_t size = 0;
-        mVFS->GetFileSize(mFile->path.c_str(), size);
-        return (size_t)size;
+        return static_cast<size_t>(mFile->Size());
     }
 
     void VFSIOStream::Flush() {
-        if (mFile && mVFS)
-            mVFS->FlushFile(mFile);
+        if (mFile)
+            mFile->Flush();
     }
 
-    VFSIOSystem::VFSIOSystem(CE::VFS::VFS* vfs) : mVFS(vfs) {}
+    VFSIOSystem::VFSIOSystem(CE::Common::FS::VFS::VFS* vfs) : mVFS(vfs) {}
 
     bool VFSIOSystem::Exists(const char* pFile) const {
         if (!mVFS)
@@ -86,12 +75,12 @@ namespace CE::Assets {
         if (!mVFS)
             return nullptr;
 
-        VirtualFile* file = mVFS->OpenFile(pFile, "rb");
+        auto file = mVFS->OpenFile(pFile);
 
         if (!file)
             return nullptr;
 
-        return new VFSIOStream(file, mVFS);
+        return new VFSIOStream(std::move(file));
     }
 
     void VFSIOSystem::Close(Assimp::IOStream* pFile) {

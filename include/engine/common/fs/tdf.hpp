@@ -46,8 +46,8 @@ namespace CE::TDF {
         std::unordered_map<std::string, Value> entries;
 
 #if defined(TDF_MODE_CE)
-        void save(VFS::VFS& vfs, const std::string& path, uint8_t version) const;
-        void load(VFS::VFS& vfs, const std::string& path);
+        void save(Common::FS::VFS::VFS& vfs, const std::string& path, uint8_t version) const;
+        void load(Common::FS::VFS::VFS& vfs, const std::string& path);
 #endif
 #if defined(TDF_MODE_EXTERN)
         void save(const std::filesystem::path& path, uint8_t version) const;
@@ -100,7 +100,7 @@ namespace CE::TDF {
         static Value arrayElement(const Value& v, size_t index);
 
 #if defined(TDF_MODE_CE)
-        static void readValue(::VirtualFile* file, Value& v);
+        static void readValue(Common::FS::VFS::IFile* file, Value& v);
 #endif
 
         static bool isArray(Type t);

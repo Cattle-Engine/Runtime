@@ -67,7 +67,7 @@ namespace {
 
 namespace CE::Assets::Model3DImporter {
 
-    ModelImporter::ModelImporter(VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
+    ModelImporter::ModelImporter(Common::FS::VFS::VFS& vfs, Renderer::Resources::GPUMeshManager& mesh_manager,
                                  Renderer::Resources::MaterialManager& mat_manager,
                                  Renderer::Resources::TextureManager& tex_man, Renderer::IRenderer& renderer)
         : mVFS(vfs),
@@ -258,14 +258,26 @@ namespace CE::Assets::Model3DImporter {
         } else {
             std::filesystem::path base(mdl_path);
             std::filesystem::path combined = base / assimp_path;
-            std::string virtual_path = mVFS.NormalizeVirtualPath(combined.generic_string());
+            std::string virtual_path = combined.generic_string();
 
             if (!mVFS.FileExists(virtual_path.c_str())) {
                 CE_LOG(LogLevel::Error, "[3D Model Importer] Texture doesn't exist: {}", virtual_path);
                 result = CreateWhiteSurface();
             } else {
-                VirtualFile* file = mVFS.OpenFile(virtual_path.c_str());
-                SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
+                auto file = mVFS.OpenFile(virtual_path);
+                if (!file) {
+                    result = CreateWhiteSurface();
+                    surfaceCache[assimp_path] = result;
+                    return result;
+                }
+                std::vector<uint8_t> bytes(file->Size());
+                if (!bytes.empty() && !file->Read(bytes.data(), bytes.size())) {
+                    result = CreateWhiteSurface();
+                    surfaceCache[assimp_path] = result;
+                    return result;
+                }
+                SDL_IOStream* stream = SDL_IOFromConstMem(bytes.data(), bytes.size());
+                SDL_Surface* surface = stream ? IMG_Load_IO(stream, true) : nullptr;
                 if (!surface) {
                     CE_LOG(LogLevel::Error, "[3D Model Importer] Failed to load texture: {}", virtual_path);
                     result = CreateWhiteSurface();

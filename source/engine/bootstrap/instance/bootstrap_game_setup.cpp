@@ -2,28 +2,28 @@
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fs/ini.hpp"
-#include "engine/common/fs/vfs_stl.hpp"
+#include "engine/common/fs/os_fs/directory_file_provider.hpp"
+#include "engine/common/fs/tcf/tcf_file_provider.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/misc/gdat_has.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, [[maybe_unused]] bool debugmode) {
+    int Init_GameData(std::unique_ptr<Common::FS::VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
         CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
-        vfs->MountArchive(datafilename, "/", LoadMode::OnDemand);
+        vfs->AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, datafilename);
 
-        /*if (debugmode) {
-            vfs->MountFolder("assets/", "/", LoadMode::OnDemand, 10);
-        }*/
+        if (debugmode) {
+            vfs->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 10, "assets/");
+        }
         return 0;
     }
 
-    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo,
+    int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo,
                       [[maybe_unused]] bool debugmode) {
-        auto stream = CE::VFS::OpenIStream(*vfs, "/Gameinfo.txt");
-
-        if (!stream) {
+        auto file = vfs->OpenFile("/Gameinfo.txt");
+        if (!file) {
             CE_LOG(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
             ShowError("[Bootstrap] Gameinfo.txt is missing");
             return 1;
@@ -36,9 +36,11 @@ namespace CE::Bootstrap {
         opts.allow_colon_delim = true;
         opts.allow_empty_values = false;
 
-        std::ostringstream ss;
-        ss << stream->rdbuf();
-        std::string text = ss.str();
+        std::string text(file->Size(), '\0');
+        if (!text.empty() && !file->Read(text.data(), text.size())) {
+            CE_LOG(LogLevel::Fatal, "[Bootstrap] Unable to read Gameinfo.txt");
+            return 1;
+        }
 
         if (!CE::Ini::parse(text, ini, &err, opts)) {
             CE_LOG(LogLevel::Fatal, "[Bootstrap] Failed to parse Gameinfo.txt");

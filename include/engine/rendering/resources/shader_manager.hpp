@@ -79,7 +79,7 @@ namespace CE::Renderer::Resources {
             bool isBound = false;
         };
 
-        ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man);
+        ShaderManager(Common::FS::VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man);
 
         /**
          * @brief For long term use of a shader, Eg using it in the material struct
@@ -146,7 +146,7 @@ namespace CE::Renderer::Resources {
 
         ShaderEntry* GetShaderEntry(ShaderHandle handle);
 
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         IRenderer& mRenderer;
         TextureManager& mTextureManager;
         uint64_t mNextShaderHandleID = 0;

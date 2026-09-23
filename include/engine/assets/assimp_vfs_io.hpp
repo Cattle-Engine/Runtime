@@ -12,7 +12,7 @@ namespace CE::Assets {
 
     class VFSIOStream final : public Assimp::IOStream {
       public:
-        VFSIOStream(VirtualFile* file, CE::VFS::VFS* vfs);
+        explicit VFSIOStream(std::unique_ptr<CE::Common::FS::VFS::IFile> file);
         ~VFSIOStream() override;
 
         size_t Read(void* pvBuffer, size_t pSize, size_t pCount) override;
@@ -24,13 +24,12 @@ namespace CE::Assets {
         void Flush() override;
 
       private:
-        VirtualFile* mFile = nullptr;
-        CE::VFS::VFS* mVFS = nullptr;
+        std::unique_ptr<CE::Common::FS::VFS::IFile> mFile;
     };
 
     class VFSIOSystem final : public Assimp::IOSystem {
       public:
-        explicit VFSIOSystem(CE::VFS::VFS* vfs);
+        explicit VFSIOSystem(CE::Common::FS::VFS::VFS* vfs);
         ~VFSIOSystem() override = default;
 
         bool Exists(const char* pFile) const override;
@@ -40,7 +39,7 @@ namespace CE::Assets {
         void Close(Assimp::IOStream* pFile) override;
 
       private:
-        CE::VFS::VFS* mVFS = nullptr;
+        CE::Common::FS::VFS::VFS* mVFS = nullptr;
     };
 
 } // namespace CE::Assets

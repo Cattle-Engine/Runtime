@@ -10,6 +10,6 @@
 #include "engine/settings.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(std::unique_ptr<VFS::VFS>& vfs, const char* datafilename, bool debugmode);
-    int Init_GameInfo(std::unique_ptr<VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, bool debugmode);
+    int Init_GameData(std::unique_ptr<Common::FS::VFS::VFS>& vfs, const char* datafilename, bool debugmode);
+    int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, bool debugmode);
 } // namespace CE::Bootstrap

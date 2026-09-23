@@ -42,7 +42,7 @@ namespace CE::Scripting::Impl::Semantics {
          *
          * @param vfs The virtual file system.
          */
-        SymanticAnalyser(VFS::VFS& vfs);
+        SymanticAnalyser(::CE::Common::FS::VFS::VFS& vfs);
 
         /**
          * @brief Analyses a module for semantic errors and adds to the mono script if no errors
@@ -87,7 +87,7 @@ namespace CE::Scripting::Impl::Semantics {
             FunctionSignature Signature;
         };
 
-        VFS::VFS& mVFS;
+        ::CE::Common::FS::VFS::VFS& mVFS;
         // Each module owns its private declarations. Cross-module visibility is
         // controlled exclusively by mModuleExports.
         std::unordered_map<std::string, SymbolTable> mModuleSymbols;

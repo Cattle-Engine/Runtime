@@ -22,7 +22,7 @@ namespace CE::Common {
             };
 
             // Can throw std::runtime error if failed
-            Window(VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags);
+            Window(Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags);
             ~Window();
 
             SDL_Window* GetWindow();
@@ -56,7 +56,7 @@ namespace CE::Common {
             bool SetWindowIcon(const std::string& path);
         private:
             SDL_Window* mWindow;
-            VFS::VFS& mVFS; 
+            Common::FS::VFS::VFS& mVFS; 
             WindowMode mWindowMode = WindowMode::Borderless;
             WindowSize mWindowedSize;
             WindowSize mFullscreenSize;

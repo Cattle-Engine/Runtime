@@ -52,7 +52,7 @@ namespace CE::Renderer::Resources {
 } // namespace CE::Renderer::Resources
 
 namespace CE::Renderer::Resources {
-    ShaderManager::ShaderManager(VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man)
+    ShaderManager::ShaderManager(Common::FS::VFS::VFS& vfs, IRenderer& renderer, TextureManager& tex_man)
         : mVFS(vfs), mRenderer(renderer), mTextureManager(tex_man) {}
 
     ShaderManager::ShaderEntry* ShaderManager::GetShaderEntry(ShaderHandle handle) {

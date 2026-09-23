@@ -117,7 +117,7 @@ namespace CE::Scripting {
 
     class Runtime {
       public:
-        Runtime(VFS::VFS& vfs, CE::GameInfo& gameInfo, Settings::SettingsManager& settingsManager, Instance& instance,
+        Runtime(Common::FS::VFS::VFS& vfs, CE::GameInfo& gameInfo, Settings::SettingsManager& settingsManager, Instance& instance,
                 Renderer::IRenderer& renderer, Renderer::Resources::TextureManager& textureManager,
                 Renderer::Resources::ShaderManager& shaderManager, Assets::Skyboxes::SkyBoxManager& skyboxManager,
                 Assets::Fonts::FontManager& fontManager, Renderer::Resources::GPUMeshManager& gpuMeshManager,
@@ -329,7 +329,7 @@ namespace CE::Scripting {
         std::string mLastError;
 
         CE::Common::Containers::RendererResourcesNameRegistry& mRendererResourcesNameRegistry;
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         CE::GameInfo& mGameInfo;
         Settings::SettingsManager& mSettingsManager;
         Instance& mInstance;
@@ -348,5 +348,5 @@ namespace CE::Scripting {
 } // namespace CE::Scripting
 
 namespace CE::Scripting::Utils {
-    std::string LoadScript(VFS::VFS& vfs, const char* path);
+    std::string LoadScript(Common::FS::VFS::VFS& vfs, const char* path);
 }

@@ -9,7 +9,7 @@ namespace CE::Core::Audio {
         std::atomic_int gMixInitRefCount{0};
     }
 
-    AudioSystem::AudioSystem(VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero) : mVFS(vfs) {
+    AudioSystem::AudioSystem(Common::FS::VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero) : mVFS(vfs) {
         mInstanceID = instanceid;
         if (gMixInitRefCount.fetch_add(1) == 0) {
             if (!MIX_Init()) {

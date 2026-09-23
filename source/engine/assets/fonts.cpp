@@ -23,7 +23,7 @@ namespace CE::Assets::Fonts {
         const std::string kFallbackFamilyName = "__ce_internal_fallback";
     } // namespace
 
-    FontManager::FontManager(Renderer::IRenderer& renderer, VFS::VFS& vfs, uint64_t instance_id)
+    FontManager::FontManager(Renderer::IRenderer& renderer, Common::FS::VFS::VFS& vfs, uint64_t instance_id)
         : mVFS(vfs), mRenderer(renderer) {
         mInstanceID = instance_id;
         TTF_Init();
@@ -42,10 +42,7 @@ namespace CE::Assets::Fonts {
 
             TTF_CloseFont(font);
 
-            if (auto it = mOpenFontFiles.find(font); it != mOpenFontFiles.end()) {
-                mVFS.CloseFile(it->second);
-                mOpenFontFiles.erase(it);
-            }
+            mOpenFontFiles.erase(font);
 
             mFontSources.erase(font);
             closed.insert(font);
@@ -100,18 +97,26 @@ namespace CE::Assets::Fonts {
     }
 
     TTF_Font* FontManager::LoadFontFromVFS(const std::string& path, int size) {
-        VirtualFile* file = mVFS.OpenFile(path.c_str());
-        if (!file || !file->sdl_stream)
+        auto file = mVFS.OpenFile(path);
+        if (!file)
             return nullptr;
 
-        TTF_Font* font = TTF_OpenFontIO(file->sdl_stream, 0, size);
+        std::vector<uint8_t> bytes(file->Size());
+        if (!bytes.empty() && !file->Read(bytes.data(), bytes.size()))
+            return nullptr;
+
+        SDL_IOStream* stream = SDL_IOFromConstMem(bytes.data(), bytes.size());
+        if (!stream)
+            return nullptr;
+
+        TTF_Font* font = TTF_OpenFontIO(stream, true, size);
         if (font) {
             mFontSources[font] = {path, false};
-            mOpenFontFiles[font] = file;
+            mOpenFontFiles.emplace(font, std::move(bytes));
             return font;
         }
 
-        mVFS.CloseFile(file);
+        SDL_CloseIO(stream);
         return nullptr;
     }
 
@@ -336,10 +341,7 @@ namespace CE::Assets::Fonts {
                 TTF_CloseFont(atlas.font);
                 mFontSources.erase(atlas.font);
 
-                if (auto openIt = mOpenFontFiles.find(atlas.font); openIt != mOpenFontFiles.end()) {
-                    mVFS.CloseFile(openIt->second);
-                    mOpenFontFiles.erase(openIt);
-                }
+                mOpenFontFiles.erase(atlas.font);
 
                 closed.insert(atlas.font);
             }
@@ -362,10 +364,7 @@ namespace CE::Assets::Fonts {
 
             TTF_CloseFont(font);
 
-            if (auto it = mOpenFontFiles.find(font); it != mOpenFontFiles.end()) {
-                mVFS.CloseFile(it->second);
-                mOpenFontFiles.erase(it);
-            }
+            mOpenFontFiles.erase(font);
 
             mFontSources.erase(font);
             closed.insert(font);

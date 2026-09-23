@@ -1,157 +1,102 @@
 #pragma once
 
-#include <climits>
+#include <cassert>
 #include <cstdint>
-#include <cstdio>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <string_view>
+#include <utility>
 #include <vector>
+#include <type_traits>
 
-#include <SDL3/SDL_iostream.h>
+#include "engine/common/fs/file_provider.hpp"
 
-#include "engine/common/fs/tcf.h"
+namespace CE::Common::FS::VFS {
+    struct MountPoint {
+        struct MountID {
+            MountID(const uint32_t id) : mount_id(id) {}
 
-enum LoadMode {
-    OnDemand,
-    All,
-};
+            uint32_t mount_id;
 
-struct LoadedFile {
-    std::vector<uint8_t> data;
-    uint64_t size() const;
-    const uint8_t* data_ptr() const;
-};
+            bool operator==(const MountID& other) const {
+                return mount_id == other.mount_id;
+            }
+        };
 
-struct MountPoint {
-    std::string mount_path;
-    std::string source_path;
-    bool is_archive;
-    LoadMode load_mode;
-    int priority;
-    uint64_t mount_order;
-    tcf_vfs_t* tcf_handle;
-
-    std::unordered_map<std::string, std::unique_ptr<LoadedFile>> loaded_files;
-
-    MountPoint(const std::string& mount, const std::string& source, bool archive, LoadMode mode, int priority,
-               uint64_t mount_order);
-
-    ~MountPoint();
-};
-
-struct VirtualFile {
-    MountPoint* mount;
-    std::string path;
-    uint64_t position;
-    uint64_t size;
-    bool writable;
-
-    tcf_file_t* tcf_handle;
-    FILE* dir_handle;
-
-    const LoadedFile* loaded_data;
-
-    SDL_IOStream* sdl_stream;
-
-    bool eof;
-    bool error;
-
-    VirtualFile();
-    ~VirtualFile();
-};
-
-namespace CE::VFS::Returns {
-    extern const int LOAD_SUCCESS;
-    extern const int LOAD_FAIL;
-    extern const int NO_SUCH_FILE_OR_DIRECTORY;
-} // namespace CE::VFS::Returns
-
-namespace CE::VFS {
-    class VFS {
-      public:
-        // Mounts are resolved by:
-        //  1) most-specific virtual mount path
-        //  2) higher priority (larger value wins)
-        //  3) newer mount (later call wins)
-        int MountArchive(const char* archive_path, const char* v_mount_path, const LoadMode loadmode, int priority = 0);
-
-        int MountFolder(const char* folder_path, const char* v_mount_path, const LoadMode loadmode, int priority = 0);
-
-        bool Unmount(const char* v_mount_path);
-
-        bool FileExists(const char* virtual_path);
-
-        bool GetFileSize(const char* virtual_path, uint64_t& out_size);
-        bool CreateFile(const char* virtual_path);
-
-        VirtualFile* OpenFile(const char* virtual_path);
-        VirtualFile* OpenFile(const char* virtual_path, const char* mode);
-
-        size_t ReadFile(VirtualFile* file, void* buffer, size_t size);
-        size_t WriteFile(VirtualFile* file, const void* buffer, size_t size);
-        bool FlushFile(VirtualFile* file);
-
-        bool SeekFile(VirtualFile* file, int64_t offset, int whence);
-
-        int64_t TellFile(VirtualFile* file);
-
-        void CloseFile(VirtualFile* file);
-
-        void ListMounts();
-
-        VirtualFile* V_fopen(const char* virtual_path, const char* mode);
-        size_t V_fread(void* ptr, size_t size, size_t nmemb, VirtualFile* stream);
-        size_t V_fwrite(const void* ptr, size_t size, size_t nmemb, VirtualFile* stream);
-        int V_fseek(VirtualFile* stream, long offset, int whence);
-        long V_ftell(VirtualFile* stream);
-        int V_fclose(VirtualFile* stream);
-        int V_fflush(VirtualFile* stream);
-        int V_feof(VirtualFile* stream);
-        int V_ferror(VirtualFile* stream);
-        void V_clearerr(VirtualFile* stream);
-        void V_rewind(VirtualFile* stream);
-        int V_fgetc(VirtualFile* stream);
-        char* V_fgets(char* s, int n, VirtualFile* stream);
-        std::string NormalizeVirtualPath(const std::string& path);
-
-      private:
-        std::vector<std::unique_ptr<MountPoint>> mounts;
-        uint64_t next_mount_order = 1;
-
-        std::string NormalizePath(const std::string& path);
-        std::string ResolveVirtualPath(const std::string& path);
-
-        std::string GetRelativePath(const std::string& virtual_path, const std::string& mount_path);
-
-        MountPoint* FindMount(const std::string& virtual_path, std::string& relative_path);
-        MountPoint* FindWritableMount(const std::string& virtual_path, std::string& relative_path);
-
-        bool LoadEntireFolder(MountPoint* mount);
-
-        bool LoadEntireArchive(MountPoint* mount);
-
-        bool LoadFromTCF(MountPoint* mount, const std::string& rel_path, std::vector<uint8_t>& out_data);
-
-        bool load_file_from_directory(MountPoint* mount, const std::string& rel_path, std::vector<uint8_t>& out_data);
+        std::string mount_point;
+        std::shared_ptr<IFileProvider> file_provider;
+        int priority = 0;
+        MountID mount_id;
     };
 
-    inline VirtualFile* virtual_fopen(VFS* vfs, const char* virtual_path, const char* mode) {
-        return vfs ? vfs->V_fopen(virtual_path, mode) : nullptr;
-    }
-    inline bool virtual_create_file(VFS* vfs, const char* virtual_path) {
-        return vfs ? vfs->CreateFile(virtual_path) : false;
-    }
-    inline size_t virtual_fread(VFS* vfs, void* ptr, size_t size, size_t nmemb, VirtualFile* stream) {
-        return vfs ? vfs->V_fread(ptr, size, nmemb, stream) : 0;
-    }
-    inline int virtual_fseek(VFS* vfs, VirtualFile* stream, long offset, int whence) {
-        return vfs ? vfs->V_fseek(stream, offset, whence) : -1;
-    }
-    inline long virtual_ftell(VFS* vfs, VirtualFile* stream) {
-        return vfs ? vfs->V_ftell(stream) : -1;
-    }
-    inline int virtual_fclose(VFS* vfs, VirtualFile* stream) {
-        return vfs ? vfs->V_fclose(stream) : -1;
-    }
-} // namespace CE::VFS
+    class VFS {
+      public:
+        template <typename T, typename... Args>
+        MountPoint::MountID AddMountPoint(const std::string& v_mount_path, int priority, Args&&... args) {
+            static_assert(std::is_base_of_v<IFileProvider, T>, "T must inherit from IFileProvider");
+
+            MountPoint mount{.mount_point = NormalisePath(v_mount_path),
+                             .file_provider = std::make_shared<T>(std::forward<Args>(args)...),
+                             .priority = priority,
+                             .mount_id = MountPoint::MountID(mNextMountID++)};
+
+            mMountPoints.push_back(std::move(mount));
+            return mMountPoints.back().mount_id;
+        }
+
+        std::string GetProviderNameOfMountPath(std::string v_path);
+        void Unmount(MountPoint::MountID mount);
+        bool FileExists(std::string_view path);
+        bool GetFileSize(std::string_view path, uint64_t& out_size);
+        bool IsWritable(std::string_view path);
+
+        // creates a file with 0 bytes
+        bool CreateFile(std::string_view path);
+
+        // OpenFile resolves the path differently depending on the requested access mode.
+        //
+        // Read-only access:
+        //   The highest-priority mounted provider containing the file is selected.
+        //   Read-only providers are valid here (e.g. tcf).
+        //
+        // Write/create/append access:
+        //   The highest-priority writable provider covering the path is selected.
+        //   The file does not need to already exist, allowing creation in writable
+        //   mounts even when a higher-priority read-only mount does not contain it.
+        //
+        // This means reads resolve to the highest-priority existing file, while
+        // writes resolve to the highest-priority location capable of accepting them.
+        std::unique_ptr<IFile> OpenFile(std::string_view path, OpenFlags flags = OpenFlags::Read);
+
+        // These can return false if it failed or its a read only mount
+        bool DeleteFile(const std::string_view path);
+        bool MoveFile(const std::string_view old_path, const std::string_view new_path);
+
+        bool DirExists(const std::string_view path);
+        std::vector<DirectoryContent> ListDirectory(const std::string_view path);
+        bool IsDir(const std::string_view path);
+        bool IsFile(const std::string_view path);
+        bool DeleteDir(const std::string_view path);
+        bool MoveDir(const std::string path);
+
+      private:
+        struct ResolvedPath {
+            IFileProvider* provider;
+            std::string relative_path;
+        };
+
+        static std::string NormalisePath(const std::string& v_path);
+        static std::string ResolveVirtualPath(const std::string& path);
+        /*
+            Resolve's a path like this:
+            1. Most specific mount path
+            2. Highest priority
+            3. Newest mount
+        */
+        ResolvedPath ResolvePath(std::string_view path);
+        ResolvedPath ResolvePathForWrite(std::string_view path);
+
+        uint32_t mNextMountID = 0;
+        std::vector<MountPoint> mMountPoints;
+    };
+} // namespace CE::Common::FS::VFS

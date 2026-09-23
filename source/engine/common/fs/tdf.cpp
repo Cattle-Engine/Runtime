@@ -45,16 +45,15 @@ namespace CE::TDF {
             }
         }
 
-        void readExact(::VirtualFile* file, void* buffer, size_t size) {
-            if (!file || !file->sdl_stream) {
+        void readExact(Common::FS::VFS::IFile* file, void* buffer, size_t size) {
+            if (!file) {
                 throwFormat("invalid stream");
             }
             if (size == 0) {
                 return;
             }
 
-            const size_t read = SDL_ReadIO(file->sdl_stream, buffer, size);
-            if (read != size) {
+            if (!file->Read(buffer, size)) {
                 throwFormat("unexpected EOF in stream");
             }
         }
@@ -572,38 +571,36 @@ namespace CE::TDF {
     } // namespace
 
 #if defined(TDF_MODE_CE)
-    void File::save(VFS::VFS& vfs, const std::string& path, uint8_t version) const {
+    void File::save(Common::FS::VFS::VFS& vfs, const std::string& path, uint8_t version) const {
         const auto bytes = serializeToBytes(*this, version);
 
-        ::VirtualFile* f = vfs.V_fopen(path.c_str(), "wb");
+        auto f = vfs.OpenFile(path, Common::FS::VFS::OpenFlags::Write | Common::FS::VFS::OpenFlags::Create);
         if (!f) {
             throw std::runtime_error("TDF: VFS write fail");
         }
 
         size_t written = 0;
         if (!bytes.empty()) {
-            written = vfs.V_fwrite(bytes.data(), 1, bytes.size(), f);
+            written = f->Write(bytes.data(), bytes.size()) ? bytes.size() : 0;
         }
 
-        const bool ok = written == bytes.size() && vfs.V_fflush(f);
-        vfs.V_fclose(f);
+        const bool ok = written == bytes.size() && f->Flush();
 
         if (!ok) {
             throw std::runtime_error("TDF: incomplete write");
         }
     }
 
-    void File::load(VFS::VFS& vfs, const std::string& path) {
-        ::VirtualFile* f = vfs.OpenFile(path.c_str());
+    void File::load(Common::FS::VFS::VFS& vfs, const std::string& path) {
+        auto f = vfs.OpenFile(path);
         if (!f) {
             throw std::runtime_error("TDF: VFS open fail");
         }
 
-        const size_t size = static_cast<size_t>(f->size);
+        const size_t size = static_cast<size_t>(f->Size());
         std::vector<uint8_t> buffer(size);
 
-        const size_t read = vfs.ReadFile(f, buffer.data(), buffer.size());
-        vfs.CloseFile(f);
+        const size_t read = f->Read(buffer.data(), buffer.size()) ? buffer.size() : 0;
 
         if (read != buffer.size()) {
             throw std::runtime_error("TDF: incomplete read");
@@ -885,7 +882,7 @@ namespace CE::TDF {
     }
 
 #if defined(TDF_MODE_CE)
-    void File::readValue(::VirtualFile* file, Value& v) {
+    void File::readValue(Common::FS::VFS::IFile* file, Value& v) {
         switch (v.type) {
         case Type::Null:
             v.data.clear();

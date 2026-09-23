@@ -30,7 +30,7 @@ namespace CE::Common::FS::OSFS {
         fs::path mPath;
     };
 
-    class DirectoryFileProvider final : VFS::IFileProvider {
+    class DirectoryFileProvider final : public VFS::IFileProvider {
       public:
         bool DeleteFile(std::string_view relative_path) override;
         bool DirExists(std::string_view relative_path) const override;

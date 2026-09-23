@@ -5,7 +5,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Audio::Resources {
-    AudioManager::AudioManager(Core::Audio::AudioSystem& audio_system, VFS::VFS& vfs, int instance_id)
+    AudioManager::AudioManager(Core::Audio::AudioSystem& audio_system, Common::FS::VFS::VFS& vfs, int instance_id)
         : mVFS(vfs), mAudioSys(audio_system) {
         mInstanceID = instance_id;
     }

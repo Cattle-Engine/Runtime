@@ -12,21 +12,27 @@ namespace CE::Core::Audio {
             return nullptr;
         }
 
-        VirtualFile* file = mVFS.OpenFile(path.c_str());
-        if (!file || !file->sdl_stream) {
+        auto file = mVFS.OpenFile(path);
+        if (!file) {
             delete clip;
             return nullptr;
         }
-        clip->Audio = MIX_LoadAudio_IO(mMixer, file->sdl_stream, false, false);
+        clip->SourceBytes.resize(file->Size());
+        if (!clip->SourceBytes.empty() && !file->Read(clip->SourceBytes.data(), clip->SourceBytes.size())) {
+            delete clip;
+            return nullptr;
+        }
+        SDL_IOStream* stream = SDL_IOFromConstMem(clip->SourceBytes.data(), clip->SourceBytes.size());
+        if (!stream) {
+            delete clip;
+            return nullptr;
+        }
+        clip->Audio = MIX_LoadAudio_IO(mMixer, stream, true, false);
         if (!clip->Audio) {
             CE_LOG(LogLevel::Error, "[Audio {}] Failed to load audio file: {}", mInstanceID, path);
-            delete file;
             delete clip;
             return nullptr;
         }
-
-        SDL_CloseIO(file->sdl_stream);
-        delete file;
 
         clip->IsError = false;
         clip->IsLoaded = true;

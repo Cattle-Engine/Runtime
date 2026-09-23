@@ -13,7 +13,7 @@
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {
     SDL_GPUShader* LoadShader(SDL_GPUDevice* device, const std::string& shaderfilename, Uint32 samplercount,
                               Uint32 uniformbuffercount, Uint32 storagebuffercount, Uint32 storagetexturecount,
-                              CE::VFS::VFS* vfs, const std::string& basePath) {
+                              CE::Common::FS::VFS::VFS* vfs, const std::string& basePath) {
         if (vfs == nullptr) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] VFS is null");
             return nullptr;
@@ -54,7 +54,7 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         }
 
         // Load shader data from VFS
-        auto* shaderFile = vfs->V_fopen(fullPath.c_str(), "rb");
+        auto shaderFile = vfs->OpenFile(fullPath);
         if (!shaderFile) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to open shader file: {}", fullPath);
             return nullptr;
@@ -64,16 +64,14 @@ namespace CE::Renderer::SDL_GPU_Renderer::Utils {
         uint64_t fileSize = 0;
         if (!vfs->GetFileSize(fullPath.c_str(), fileSize)) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to get shader file size: {}", fullPath);
-            vfs->V_fclose(shaderFile);
             return nullptr;
         }
 
         // Read shader data
         std::vector<uint8_t> shaderData(fileSize);
-        size_t bytesRead = vfs->V_fread(shaderData.data(), 1, fileSize, shaderFile);
-        vfs->V_fclose(shaderFile);
+        const bool readOk = shaderFile->Read(shaderData.data(), fileSize);
 
-        if (bytesRead != fileSize) {
+        if (!readOk) {
             CE_LOG(LogLevel::Error, "[Renderer Utils] [LoadShader] Failed to read shader file: {}", fullPath);
             return nullptr;
         }

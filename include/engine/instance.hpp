@@ -12,7 +12,9 @@
 #include "engine/common/containers/registries.hpp"
 #include "engine/common/core/event_bus.hpp"
 #include "engine/common/core/game_state.hpp"
+
 #include "engine/common/fs/vfs.hpp"
+
 #include "engine/common/misc/arguments.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
@@ -64,7 +66,7 @@ namespace CE {
         int Bootstrap_AssetImportersAndManagers();
         int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device);
 
-        std::unique_ptr<VFS::VFS> mVFS;
+        std::unique_ptr<Common::FS::VFS::VFS> mVFS;
         std::unique_ptr<GameInfo> mGameInfo;
         std::unique_ptr<Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
         std::unique_ptr<Settings::SettingsManager> mSettingsManager;

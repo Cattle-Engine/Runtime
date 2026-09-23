@@ -208,6 +208,6 @@ namespace CE::Input::Bindings {
     void BindingManager::ResetBindings() {
         mBindings.clear();
     }
-    BindingManager::BindingManager(VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr)
+    BindingManager::BindingManager(Common::FS::VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr)
         : mVFS(vfs), mKeyboardManager(keyboard_mgr), mMouseManager(mouse_mgr) {}
 } // namespace CE::Input::Bindings

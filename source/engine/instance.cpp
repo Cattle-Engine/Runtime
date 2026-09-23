@@ -8,6 +8,7 @@
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/error_box.hpp"
+#include "engine/common/fs/os_fs/directory_file_provider.hpp"
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
@@ -29,7 +30,7 @@ namespace CE {
         gPerformanceFrequency = SDL_GetPerformanceFrequency();
         gLastFrameCounter = SDL_GetPerformanceCounter();
 
-        mVFS = std::make_unique<CE::VFS::VFS>();
+        mVFS = std::make_unique<CE::Common::FS::VFS::VFS>();
         mGameInfo = std::make_unique<CE::GameInfo>();
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
@@ -45,8 +46,8 @@ namespace CE {
             throw std::runtime_error(
                 std::format("[Instance {}] Failed to get gameinfo with code: {}", gInstanceID, gis_return));
         }
-        mVFS->MountFolder(Platforms::GetConfigPath(mGameInfo->gameNameString).c_str(), "/config", LoadMode::OnDemand,
-                          100);
+        mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/config", 100,
+                                                                       Platforms::GetConfigPath(mGameInfo->gameNameString));
 
         mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, gInstanceID);
         mSettingsManager->SetInstance(*this);

@@ -120,7 +120,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     class SDL_GPU_Renderer : public Renderer::IRenderer {
       public:
-        SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs);
+        SDL_GPU_Renderer(RendererBackend backend, CE::Common::FS::VFS::VFS* vfs);
 
         void PreWinInit() override;
 
@@ -292,7 +292,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         bool mWarnedOutsideFrame = false;
         bool m3DModeActive = false;
         bool m2DModeActive = false;
-        CE::VFS::VFS* gVFS;
+        CE::Common::FS::VFS::VFS* gVFS;
 
         std::vector<DeferredDeleteEntry> gDeferredDeletes;
         std::vector<MeshDrawCommand> gMeshCommands;
@@ -320,7 +320,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 namespace CE::Renderer::SDL_GPU_Renderer::Utils {
     SDL_GPUShader* LoadShader(SDL_GPUDevice* device, const std::string& shaderfilename, Uint32 samplercount,
                               Uint32 uniformbuffercount, Uint32 storagebuffercount, Uint32 storagetexturecount,
-                              CE::VFS::VFS* vfs, const std::string& basePath = "/shaders/");
+                              CE::Common::FS::VFS::VFS* vfs, const std::string& basePath = "/shaders/");
     glm::mat4 GetView(const Camera2D& cam);
     glm::mat4 GetProjection(float width, float height);
     glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h);

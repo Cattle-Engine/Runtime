@@ -3,25 +3,21 @@
 #include <algorithm>
 
 namespace CE::Scripting::Impl::Common {
-    std::string GetScriptFromVFS(const std::string& path, VFS::VFS& vfs) {
-        VirtualFile* file = vfs.OpenFile(path.c_str());
+    std::string GetScriptFromVFS(const std::string& path, ::CE::Common::FS::VFS::VFS& vfs) {
+        auto file = vfs.OpenFile(path);
         if (file == nullptr) {
             return {};
         }
 
         uint64_t size = 0;
-        if (!vfs.GetFileSize(path.c_str(), size)) {
-            vfs.CloseFile(file);
-            return {};
-        }
+        size = file->Size();
         std::string data(size, '\0');
-        const size_t read = size == 0 ? 0 : vfs.ReadFile(file, data.data(), data.size());
-        vfs.CloseFile(file);
+        const size_t read = size == 0 ? 0 : (file->Read(data.data(), data.size()) ? size : 0);
         data.resize(read);
         return data;
     }
 
-    std::string Import2Path(const AST::ASTImport& import, VFS::VFS& vfs) {
+    std::string Import2Path(const AST::ASTImport& import, ::CE::Common::FS::VFS::VFS& vfs) {
         size_t module_components =
             import.Symbol.has_value() && !import.Path.empty() ? import.Path.size() - 1 : import.Path.size();
 

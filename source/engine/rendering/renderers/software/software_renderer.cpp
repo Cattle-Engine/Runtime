@@ -76,7 +76,7 @@ namespace CE::Renderer::Software {
         point.y = cy + dx * sinA + dy * cosA;
     }
 
-    Software_Renderer::Software_Renderer(VFS::VFS* vfs) : mVFS(vfs) {}
+    Software_Renderer::Software_Renderer(Common::FS::VFS::VFS* vfs) : mVFS(vfs) {}
 
     Software_Renderer::~Software_Renderer() {
         Shutdown(nullptr);
@@ -305,18 +305,16 @@ namespace CE::Renderer::Software {
             return GetErrorTexture();
         }
 
-        VirtualFile* file = mVFS->OpenFile(path);
+        auto file = mVFS->OpenFile(path);
         if (file == nullptr) {
             return GetErrorTexture();
         }
 
-        if (file->sdl_stream == nullptr) {
-            mVFS->CloseFile(file);
+        std::vector<uint8_t> bytes(file->Size());
+        if (!bytes.empty() && !file->Read(bytes.data(), bytes.size()))
             return GetErrorTexture();
-        }
-
-        SDL_Surface* surface = IMG_Load_IO(file->sdl_stream, false);
-        mVFS->CloseFile(file);
+        SDL_IOStream* stream = SDL_IOFromConstMem(bytes.data(), bytes.size());
+        SDL_Surface* surface = stream ? IMG_Load_IO(stream, true) : nullptr;
         if (surface == nullptr) {
             return GetErrorTexture();
         }

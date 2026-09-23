@@ -7,7 +7,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Assets::Animations {
-    AnimatedTextureManager::AnimatedTextureManager(VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
+    AnimatedTextureManager::AnimatedTextureManager(Common::FS::VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)
         : mVFS(vfs), mRenderer(renderer) {
         mInstanceID = instance_id;
         mNextHandleID = 1;

@@ -107,7 +107,7 @@ namespace CE::Scripting::Impl::Semantics {
     }
 
     // Symantic parser functions
-    SymanticAnalyser::SymanticAnalyser(VFS::VFS& vfs) : mVFS(vfs) {}
+    SymanticAnalyser::SymanticAnalyser(::CE::Common::FS::VFS::VFS& vfs) : mVFS(vfs) {}
 
     std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) const {
         std::string signature;
@@ -366,7 +366,7 @@ namespace CE::Scripting::Impl::Semantics {
             if (import.IsUsing)
                 continue; // already handled
 
-            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
+            const std::string imported_path = Common::Import2Path(import, const_cast<::CE::Common::FS::VFS::VFS&>(mVFS));
             auto exports = mModuleExports.find(imported_path);
             if (exports == mModuleExports.end()) {
                 continue;
@@ -456,7 +456,7 @@ namespace CE::Scripting::Impl::Semantics {
 
         // debug loop show imports and exports
         for (const auto& import : parsed->second.Imports) {
-            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
+            const std::string imported_path = Common::Import2Path(import, const_cast<::CE::Common::FS::VFS::VFS&>(mVFS));
 
             CE_LOG(LogLevel::Debug, "Import {} -> {}", import.Path.empty() ? "empty" : import.Path[0], imported_path);
 
@@ -476,7 +476,7 @@ namespace CE::Scripting::Impl::Semantics {
             if (import.IsUsing)
                 continue;
 
-            const std::string imported_path = Common::Import2Path(import, const_cast<VFS::VFS&>(mVFS));
+            const std::string imported_path = Common::Import2Path(import, const_cast<::CE::Common::FS::VFS::VFS&>(mVFS));
 
             auto exports = mModuleExports.find(imported_path);
 

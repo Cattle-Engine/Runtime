@@ -792,7 +792,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     Texture* SDL_GPU_Renderer::LoadTex(const char* path) {
-        CE::VFS::VFS& vfs = *gVFS;
+        CE::Common::FS::VFS::VFS& vfs = *gVFS;
 
         uint64_t sz = 0;
         if (!vfs.GetFileSize(path, sz) || sz == 0) {
@@ -800,15 +800,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        VirtualFile* vf = vfs.OpenFile(path);
+        auto vf = vfs.OpenFile(path);
         if (!vf) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not open '{}'", path);
             return nullptr;
         }
 
         std::vector<uint8_t> fileBytes((size_t)sz);
-        vfs.ReadFile(vf, fileBytes.data(), fileBytes.size());
-        vfs.CloseFile(vf);
+        if (!vf->Read(fileBytes.data(), fileBytes.size())) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not read '{}'", path);
+            return nullptr;
+        }
 
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {
@@ -1365,7 +1367,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return data ? data->gpuTex : nullptr;
     }
 
-    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::VFS::VFS* vfs) {
+    SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend backend, CE::Common::FS::VFS::VFS* vfs) {
         gBackend = backend;
         gVFS = vfs;
     }

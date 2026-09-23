@@ -13,7 +13,7 @@ namespace CE::Input::Bindings {
     using Binding = std::variant<KeyboardKeys, MouseButtons>;
     class BindingManager {
       public:
-        BindingManager(VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr);
+        BindingManager(Common::FS::VFS::VFS& vfs, Keyboard& keyboard_mgr, Mouse& mouse_mgr);
         ~BindingManager() = default;
 
         bool IsBindingPressed(const std::string& binding_name);
@@ -31,7 +31,7 @@ namespace CE::Input::Bindings {
       private:
         const std::vector<Binding>& GetBinding(const std::string& name);
         std::string Binding2String(const Binding& b);
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         Keyboard& mKeyboardManager;
         Mouse& mMouseManager;
         std::unordered_map<std::string, std::vector<Binding>> mBindings;

@@ -7,7 +7,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Common {
-    Window::Window(VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags) : mVFS(vfs) {
+    Window::Window(Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags) : mVFS(vfs) {
         mWindow = SDL_CreateWindow(window_title.c_str(), size.w, size.h, flags);
         if (!mWindow) {
             CE_LOG(LogLevel::Error, "[Window] Failed to create window: {}", SDL_GetError());
@@ -283,15 +283,17 @@ namespace CE::Common {
             return false;
         }
 
-        VirtualFile* vf = mVFS.OpenFile(path.c_str());
+        auto vf = mVFS.OpenFile(path);
         if (!vf) {
             CE_LOG(LogLevel::Error, "[Window] VFS could not open '{}'", path);
             return false;
         }
 
         std::vector<uint8_t> fileBytes((size_t)sz);
-        mVFS.ReadFile(vf, fileBytes.data(), fileBytes.size());
-        mVFS.CloseFile(vf);
+        if (!vf->Read(fileBytes.data(), fileBytes.size())) {
+            CE_LOG(LogLevel::Error, "[Window] VFS could not read '{}'", path);
+            return false;
+        }
 
         SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
         if (!mem) {

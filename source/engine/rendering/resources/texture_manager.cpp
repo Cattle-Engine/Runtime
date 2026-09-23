@@ -47,7 +47,7 @@ namespace CE::Renderer::Resources {
 } // namespace CE::Renderer::Resources
 
 namespace CE::Renderer::Resources {
-    TextureManager::TextureManager(VFS::VFS& vfs, IRenderer& renderer) : mRenderer(renderer), mVFS(vfs) {}
+    TextureManager::TextureManager(Common::FS::VFS::VFS& vfs, IRenderer& renderer) : mRenderer(renderer), mVFS(vfs) {}
 
     TextureManager::TextureEntry* TextureManager::GetTextureEntry(TextureHandle handle) {
         auto list = mTextureCache.find(handle);

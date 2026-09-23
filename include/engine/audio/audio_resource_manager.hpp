@@ -26,7 +26,7 @@ namespace CE::Audio::Resources {
 
     class AudioManager {
       public:
-        AudioManager(Core::Audio::AudioSystem& audio_system, VFS::VFS& vfs, int instance_id);
+        AudioManager(Core::Audio::AudioSystem& audio_system, Common::FS::VFS::VFS& vfs, int instance_id);
 
         AudioHandle LoadSound(const std::string& path, Core::Audio::AudioType type);
         void UnloadSound(AudioHandle handle);
@@ -99,7 +99,7 @@ namespace CE::Audio::Resources {
         uint32_t NextAudioHandleID = 1;
         uint32_t NextPlayingAudioHandleID = 1;
         int mInstanceID;
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         Core::Audio::AudioSystem& mAudioSys;
         std::unordered_map<uint32_t, Core::Audio::AudioClip*> mAudioCache;
         std::unordered_map<uint32_t, AMPlayingSoundInfo> mPlayingSounds;

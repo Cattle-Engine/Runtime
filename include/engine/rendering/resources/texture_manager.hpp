@@ -89,7 +89,7 @@ namespace CE::Renderer::Resources {
 
     class TextureManager {
       public:
-        TextureManager(VFS::VFS& vfs, IRenderer& renderer);
+        TextureManager(Common::FS::VFS::VFS& vfs, IRenderer& renderer);
         ~TextureManager();
         // Internal use for other systems only!
         TextureRef Acquire(TextureHandle handle);
@@ -155,7 +155,7 @@ namespace CE::Renderer::Resources {
         TextureEntry* GetTextureEntry(TextureHandle handle);
 
         IRenderer& mRenderer;
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         uint64_t mNextHandleID = 0;
         std::unordered_map<TextureHandle, TextureEntry, TextureHandleHash> mTextureCache;
         std::unordered_map<std::string, TextureHandle> mPathCache;

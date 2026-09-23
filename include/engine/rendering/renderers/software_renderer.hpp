@@ -17,7 +17,7 @@ namespace CE::Renderer::Software {
 
     class Software_Renderer : public Renderer::IRenderer {
       public:
-        Software_Renderer(VFS::VFS* vfs);
+        Software_Renderer(Common::FS::VFS::VFS* vfs);
         ~Software_Renderer() override;
 
         void PreWinInit() override;
@@ -124,7 +124,7 @@ namespace CE::Renderer::Software {
         SDL_Color mClearColor{0, 0, 0, 255};
         Texture* mWhiteTexture = nullptr;
         Texture* mErrorTexture = nullptr;
-        VFS::VFS* mVFS = nullptr;
+        Common::FS::VFS::VFS* mVFS = nullptr;
         bool mVSyncEnabled = true;
         bool m2DFrameActive = false; // This is here to enforce API usage game side
         bool mFrameActive = false;   // This as well

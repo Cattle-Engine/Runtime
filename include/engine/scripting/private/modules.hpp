@@ -53,7 +53,7 @@ namespace CE::Scripting::Impl {
 
     class ModuleImporter {
       public:
-        ModuleImporter(VFS::VFS& vfs);
+        ModuleImporter(Common::FS::VFS::VFS& vfs);
 
         /**
          * @brief Used to load 1 script file and resolve it's imports
@@ -66,7 +66,7 @@ namespace CE::Scripting::Impl {
       private:
         std::string GenerateCombinedScripts();
 
-        VFS::VFS& mVFS;
+        Common::FS::VFS::VFS& mVFS;
         std::vector<std::string> mLoadModules;
         std::unordered_map<std::string, std::string> mEntrypoints;
     };

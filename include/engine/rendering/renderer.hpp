@@ -37,7 +37,7 @@ namespace CE::Renderer {
 
     using GPUDeviceHandle = std::shared_ptr<GPUDevice>;
 
-    IRenderer* CreateRenderer(RendererBackend backend, VFS::VFS* vfs);
+    IRenderer* CreateRenderer(RendererBackend backend, Common::FS::VFS::VFS* vfs);
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     void DestroyGPUDevice(GPUDeviceHandle device);
 
