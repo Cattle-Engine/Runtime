@@ -7,6 +7,7 @@
 #include <string_view>
 #include <utility>
 #include <vector>
+#include <type_traits>
 
 #include "engine/common/fs/file_provider.hpp"
 
@@ -15,9 +16,9 @@ namespace CE::Common::FS::VFS {
         struct MountID {
             MountID(const uint32_t id) : mount_id(id) {}
 
-            const uint32_t mount_id;
+            uint32_t mount_id;
 
-            bool operator==(const MountID& other) {
+            bool operator==(const MountID& other) const {
                 return mount_id == other.mount_id;
             }
         };
@@ -31,7 +32,7 @@ namespace CE::Common::FS::VFS {
     class VFS {
       public:
         template <typename T, typename... Args>
-        void AddMountPoint(const std::string& v_mount_path, int priority, Args&&... args) {
+        MountPoint::MountID AddMountPoint(const std::string& v_mount_path, int priority, Args&&... args) {
             static_assert(std::is_base_of_v<IFileProvider, T>, "T must inherit from IFileProvider");
 
             MountPoint mount{.mount_point = NormalisePath(v_mount_path),
@@ -40,6 +41,7 @@ namespace CE::Common::FS::VFS {
                              .mount_id = MountPoint::MountID(mNextMountID++)};
 
             mMountPoints.push_back(std::move(mount));
+            return mMountPoints.back().mount_id;
         }
 
         std::string GetProviderNameOfMountPath(std::string v_path);
