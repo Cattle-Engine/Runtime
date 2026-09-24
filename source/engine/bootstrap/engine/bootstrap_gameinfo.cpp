@@ -14,7 +14,24 @@ namespace CE::Bootstrap::Engine {
 
         tmp_vfs.AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, gdata_name);
 
+        const bool exists = tmp_vfs.FileExists("Gameinfo.txt");
+
+        CE_LOG(
+            LogLevel::Info,
+            "[Engine] VFS FileExists(Gameinfo.txt) = {}",
+            exists
+        );
+
+        const auto provider = tmp_vfs.GetProviderNameOfMountPath("Gameinfo.txt");
+
+        CE_LOG(
+            LogLevel::Info,
+            "[Engine] Provider = '{}'",
+            provider
+        );
+
         auto file = tmp_vfs.OpenFile("Gameinfo.txt");
+
         if (!file) {
             CE_LOG(LogLevel::Error, "[Engine] Unable to open Gameinfo.txt :'(");
             return 1;

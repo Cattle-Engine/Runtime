@@ -1,0 +1,11 @@
+Checks: >
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  readability-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -readability-identifier-length,
+  -readability-uppercase-literal-suffix,
+  -performance-enum-size,
+WarningsAsErrors: ''
