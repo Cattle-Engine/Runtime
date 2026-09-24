@@ -17,6 +17,8 @@ namespace CE::Common {
             } else if (key == "output_debug_as_info_path") {
                 // Must be an absloute path to the directory
                 output.OutputDebugASInfoPath = value;
+            } else if (key == "debug_window") {
+                output.DebugVideo = (value == "true");
             }
         }
     }

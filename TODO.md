@@ -98,6 +98,7 @@ List of bindings to do:
     - [X] Keyboard
 - [X] State callbacks and state control
 - [ ] VFS
+- [ ] ImGui bindings
 - [X] Settings
 - [ ] TDF
 - [ ] Hasher (inside engine/common/utils/hasher.hpp)

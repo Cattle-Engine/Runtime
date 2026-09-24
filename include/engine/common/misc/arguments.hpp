@@ -6,7 +6,8 @@
 namespace CE {
     struct EngineArguements {
         bool OutputDebugASInfo = false;
-        std::string OutputDebugASInfoPath = "";
+        std::string OutputDebugASInfoPath;
+        bool DebugVideo = false;
     };
 
     namespace Common {

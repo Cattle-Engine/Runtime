@@ -47,7 +47,7 @@ namespace CE {
             }
         }
         CE_LOG(LogLevel::Info, "[Engine] Creating GPU handle");
-        mGPUHandle = Renderer::CreateGPUDevice(mBackend, true);
+        mGPUHandle = Renderer::CreateGPUDevice(mBackend, mEngineArgs.DebugVideo);
 
         if (mGPUHandle == nullptr || mGPUHandle->device == nullptr) {
             CE_LOG(LogLevel::Warn,
