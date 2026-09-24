@@ -17,7 +17,7 @@ namespace CE::Bootstrap::Engine {
         const bool exists = tmp_vfs.FileExists("Gameinfo.txt");
 
         CE_LOG(
-            LogLevel::Info,
+            LogLevel::Debug,
             "[Engine] VFS FileExists(Gameinfo.txt) = {}",
             exists
         );
@@ -25,7 +25,7 @@ namespace CE::Bootstrap::Engine {
         const auto provider = tmp_vfs.GetProviderNameOfMountPath("Gameinfo.txt");
 
         CE_LOG(
-            LogLevel::Info,
+            LogLevel::Debug,
             "[Engine] Provider = '{}'",
             provider
         );
