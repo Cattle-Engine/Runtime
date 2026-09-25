@@ -1,6 +1,8 @@
 #include <vector>
 #include <utility>
 
+#include <angelscript.h>
+
 #include "engine/common/tracelog.hpp"
 #include "engine/scripting/bindings/input/keyboard_enum_registerer.hpp"
 #include "engine/scripting/bindings/bindings_list.hpp"
@@ -33,6 +35,12 @@ namespace CE::Scripting::Bindings {
         if (!RegisterSubscribeEventFuncDef(script_engine)) {
             return false;
         }
+
+        if (!script_engine.RegisterObjectType("__ce_void_ptr", sizeof(void*), asOBJ_REF | asOBJ_NOHANDLE | asOBJ_NOCOUNT)) {
+            CE_LOG(LogLevel::Error, "[Angelscript] Failed to register __ce_void_ptr");
+            return false;
+        }
+
         script_engine.SetDefaultNamespace("CE");
 
         for (const auto& entry : mImpl->mBindings.bindings) {

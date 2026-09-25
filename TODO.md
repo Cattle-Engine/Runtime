@@ -97,11 +97,11 @@ List of bindings to do:
     - [X] Input binder
     - [X] Keyboard
 - [X] State callbacks and state control
-- [ ] VFS
-- [ ] ImGui bindings
+- [X] VFS
+- [X] ImGui bindings (basic creation of a window and drawing to it)
 - [X] Settings
-- [ ] TDF
-- [ ] Hasher (inside engine/common/utils/hasher.hpp)
+- [X] TDF
+- [X] Hasher (inside engine/common/utils/hasher.hpp)
 
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] Allow you to set the renderer resloution so you can have a resloution different from the window

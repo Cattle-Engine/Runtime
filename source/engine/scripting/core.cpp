@@ -90,6 +90,11 @@ namespace CE::Scripting {
             mUpdateCtx = nullptr;
         }
 
+        if (mImGuiCtx != nullptr) {
+            mImGuiCtx->Release();
+            mImGuiCtx = nullptr;
+        }
+
         if (mContext != nullptr) {
             mContext->Release();
             mContext = nullptr;
@@ -153,12 +158,14 @@ namespace CE::Scripting {
         std::string code;
         std::string main_entrypoint;
         std::string update_entrypoint;
+        std::string imgui_entrypoint;
 
         try {
             Impl::ModuleImporter importer(mVFS);
             code = importer.LoadFile(mGameInfo.startupFileName);
             main_entrypoint = importer.GetGeneratedEntrypoint("main");
             update_entrypoint = importer.GetGeneratedEntrypoint("update");
+            imgui_entrypoint = importer.GetGeneratedEntrypoint("imgui");
         } catch (const Impl::Exceptions::LexerError& error) {
             return Fail(std::format("[Lexer] Failed to prepare script file: {}", error.what()));
         } catch (const Impl::Exceptions::ParserError& error) {
@@ -209,12 +216,19 @@ namespace CE::Scripting {
         mUpdateFunc = update_entrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(update_entrypoint.c_str());
         if (mUpdateFunc == nullptr) {
             CE_LOG(LogLevel::Warn, "[AngelScript] No 'void update()' function found");
-            return true;
+        } else {
+            mUpdateCtx = mScriptEngine->CreateContext();
+            if (mUpdateCtx == nullptr) {
+                return Fail("Failed to create AngelScript update context");
+            }
         }
 
-        mUpdateCtx = mScriptEngine->CreateContext();
-        if (mUpdateCtx == nullptr) {
-            return Fail("Failed to create AngelScript update context");
+        mImGuiFunc = imgui_entrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(imgui_entrypoint.c_str());
+        if (mImGuiFunc != nullptr) {
+            mImGuiCtx = mScriptEngine->CreateContext();
+            if (mImGuiCtx == nullptr) {
+                return Fail("Failed to create AngelScript imgui context");
+            }
         }
 
         CE_LOG(LogLevel::Info, "[AngelScript] Startup completed");
@@ -232,6 +246,23 @@ namespace CE::Scripting {
         r = mUpdateCtx->Execute();
         if (r != asEXECUTION_FINISHED) {
             return Fail(std::format("AngelScript update() execution failed with code {}", r));
+        }
+
+        return true;
+    }
+
+    bool Runtime::RunImGui() {
+        if (!mImGuiFunc || !mImGuiCtx)
+            return true;
+
+        const int prepare_result = mImGuiCtx->Prepare(mImGuiFunc);
+        if (prepare_result < 0) {
+            return Fail(std::format("Failed to prepare AngelScript imgui() with code {}", prepare_result));
+        }
+
+        const int execute_result = mImGuiCtx->Execute();
+        if (execute_result != asEXECUTION_FINISHED) {
+            return Fail(std::format("AngelScript imgui() execution failed with code {}", execute_result));
         }
 
         return true;

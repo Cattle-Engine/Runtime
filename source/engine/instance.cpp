@@ -242,6 +242,12 @@ namespace CE {
             gDebugWindow.Draw(*mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo,
                               *mSettingsManager, mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger,
                               this->GetFPS(), this->GetDeltaTime(), this->GetFrameTime());
+            if (!mScriptingManager->RunImGui()) {
+                ShowError(mScriptingManager->GetLastError());
+                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript ImGui update failed, shutting down instance", gInstanceID);
+                gShouldExit = true;
+                return 1;
+            }
             mRenderer->ImGuiEndFrame(mWindow->GetWindow());
 
             mRenderer->EndFrame(mWindow->GetWindow());

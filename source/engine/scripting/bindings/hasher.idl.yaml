@@ -1,0 +1,67 @@
+RegistrationPriority: 100
+
+ASNamespace: CE::Utils
+
+Documentation: |
+  Fast 64-bit hashing helpers. Use StreamingHasher when a hash is built from multiple
+  strings; Finalize returns the hash accumulated so far.
+
+RequiredCppHeaders:
+  - "engine/common/utils/hasher.hpp"
+
+ASTypes:
+  - Name: StreamingHasher
+    CppType: CE::Utils::StreamingHasher
+    Description: A scoped incremental 64-bit hasher.
+    Flags:
+      - Reference
+      - Scoped
+      - NoCount
+
+    Behaviours:
+      - Type: Factory
+        Description: Creates a new empty streaming hasher.
+        Body: |
+          return new CE::Utils::StreamingHasher();
+        CallingConvention: CDecl
+
+      - Type: Release
+        Description: Releases the scoped hasher.
+        Body: |
+          delete self;
+        CallingConvention: CDeclObjLast
+
+    Methods:
+      - Name: AddString
+        ReturnType: void
+        Signature: const string& in text
+        CppSignature: const std::string&
+        CppFunction: AddString
+        CallingConvention: Generic
+        Description: Adds the bytes of a string to the hash stream.
+
+      - Name: Finalize
+        ReturnType: uint64
+        CppReturnType: uint64_t
+        CppFunction: Finalize
+        CallingConvention: Generic
+        Description: Returns the 64-bit hash of all data added so far.
+
+ASFunctions:
+  - Name: HashString
+    ReturnType: uint64
+    CppReturnType: uint64_t
+    Signature: const string& in text
+    CppSignature: const std::string&
+    CppFunction: CE::Utils::Hash64
+    CallingConvention: Generic
+    Description: Returns the 64-bit hash of a string.
+
+  - Name: HashToString
+    ReturnType: string
+    CppReturnType: std::string
+    Signature: uint64 hash
+    CppSignature: uint64_t
+    CppFunction: CE::Utils::Hash2String
+    CallingConvention: Generic
+    Description: Converts a 64-bit hash to its printable string representation.

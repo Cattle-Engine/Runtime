@@ -1,0 +1,195 @@
+RegistrationPriority: 100
+
+ASNamespace: CE::VFS
+
+Documentation: |
+  Provides access to the instance's virtual file system. All paths are virtual paths
+  and resolve through the mounts configured by the engine. File handles are scoped.
+
+RequiredCppHeaders:
+  - "engine/common/fs/vfs.hpp"
+  - "engine/scripting/bindings/vfs/as_ifile.hpp"
+
+ASEnums:
+  - Name: SeekOrigin
+    CppType: CE::Common::FS::VFS::SeekOrigin
+    Values:
+      - Begin
+      - Current
+      - End
+
+  - Name: OpenFlags
+    CppType: CE::Common::FS::VFS::OpenFlags
+    Values:
+      - None
+      - Read
+      - Write
+      - Create
+      - Append
+
+ASTypes:
+  - Name: File
+    CppType: CE::Scripting::Bindings::ASIFile
+    Description: A scoped handle to an open virtual file.
+    Flags:
+      - Reference
+      - Scoped
+      - NoCount
+
+    Behaviours:
+      - Type: Release
+        Description: Closes the file and releases its scoped handle.
+        Body: |
+          delete self;
+        CallingConvention: CDeclObjLast
+
+    Methods:
+      - Name: IsOpen
+        ReturnType: bool
+        CppFunction: IsOpen
+        IsConst: true
+        CallingConvention: Generic
+        Description: Returns whether the underlying file is still open.
+
+      - Name: Size
+        ReturnType: uint64
+        CppReturnType: uint64_t
+        CppFunction: Size
+        IsConst: true
+        CallingConvention: Generic
+        Description: Gets the file size in bytes.
+
+      - Name: TellRead
+        ReturnType: uint64
+        CppReturnType: uint64_t
+        CppFunction: TellR
+        CallingConvention: Generic
+        Description: Gets the current read cursor position in bytes.
+
+      - Name: TellWrite
+        ReturnType: uint64
+        CppReturnType: uint64_t
+        CppFunction: TellW
+        CallingConvention: Generic
+        Description: Gets the current write cursor position in bytes.
+
+      - Name: DateModified
+        ReturnType: int64
+        CppReturnType: int64_t
+        CppFunction: GetDateModified
+        CallingConvention: Generic
+        Description: Gets the last-modified Unix timestamp in milliseconds, or zero when unavailable.
+
+      - Name: SeekRead
+        ReturnType: bool
+        Signature: int64 offset, SeekOrigin origin
+        CppSignature: int64_t, CE::Common::FS::VFS::SeekOrigin
+        CppFunction: SeekR
+        CallingConvention: Generic
+        Description: Moves the read cursor by an offset relative to an origin.
+
+      - Name: SeekWrite
+        ReturnType: bool
+        Signature: int64 offset, SeekOrigin origin
+        CppSignature: int64_t, CE::Common::FS::VFS::SeekOrigin
+        CppFunction: SeekW
+        CallingConvention: Generic
+        Description: Moves the write cursor by an offset relative to an origin.
+
+      - Name: ReadString
+        ReturnType: string
+        CppReturnType: std::string
+        Signature: uint64 bytes
+        CppSignature: uint64_t
+        CppFunction: ReadString
+        CallingConvention: Generic
+        Description: Reads exactly the requested number of bytes as a string; returns an empty string on failure.
+
+      - Name: WriteString
+        ReturnType: bool
+        Signature: const string& in text
+        CppSignature: const std::string&
+        CppFunction: WriteString
+        CallingConvention: Generic
+        Description: Writes the bytes of a string at the current write cursor.
+
+      - Name: Flush
+        ReturnType: bool
+        CppFunction: Flush
+        CallingConvention: Generic
+        Description: Flushes buffered writes to the backing file provider.
+
+      - Name: Eof
+        ReturnType: bool
+        CppFunction: Eof
+        IsConst: true
+        CallingConvention: Generic
+        Description: Returns whether the read cursor has reached end-of-file.
+
+ASClassFunctions:
+  - Name: FileExists
+    ReturnType: bool
+    Signature: const string& in path
+    CppSignature: const std::string&
+    CallingConvention: Generic
+    Description: Returns whether a virtual path resolves to an existing file.
+    Function: |
+      return mRuntime.mVFS.FileExists(arg0);
+
+  - Name: GetFileSize
+    ReturnType: uint64
+    CppReturnType: uint64_t
+    Signature: const string& in path
+    CppSignature: const std::string&
+    CallingConvention: Generic
+    Description: Gets a file's size in bytes, or zero if the path cannot be resolved.
+    Function: |
+      uint64_t size = 0;
+      return mRuntime.mVFS.GetFileSize(arg0, size) ? size : 0;
+
+  - Name: IsWritable
+    ReturnType: bool
+    Signature: const string& in path
+    CppSignature: const std::string&
+    CallingConvention: Generic
+    Description: Returns whether a writable mount can service a virtual path.
+    Function: |
+      return mRuntime.mVFS.IsWritable(arg0);
+
+  - Name: CreateFile
+    ReturnType: bool
+    Signature: const string& in path
+    CppSignature: const std::string&
+    CallingConvention: Generic
+    Description: Creates an empty file in the selected writable mount.
+    Function: |
+      return mRuntime.mVFS.CreateFile(arg0);
+
+  - Name: DeleteFile
+    ReturnType: bool
+    Signature: const string& in path
+    CppSignature: const std::string&
+    CallingConvention: Generic
+    Description: Deletes a file from the writable provider selected for a virtual path.
+    Function: |
+      return mRuntime.mVFS.DeleteFile(arg0);
+
+  - Name: MoveFile
+    ReturnType: bool
+    Signature: const string& in from, const string& in to
+    CppSignature: const std::string&, const std::string&
+    CallingConvention: Generic
+    Description: Moves a file when both paths resolve to the same writable provider.
+    Function: |
+      return mRuntime.mVFS.MoveFile(arg0, arg1);
+
+  - Name: OpenFile
+    ReturnType: File@
+    CppReturnType: CE::Scripting::Bindings::ASIFile*
+    Signature: const string& in path, OpenFlags flags
+    CppSignature: const std::string&, CE::Common::FS::VFS::OpenFlags
+    CallingConvention: Generic
+    Description: Opens a scoped file handle using the requested access flags; returns null on failure.
+    Function: |
+      auto file = mRuntime.mVFS.OpenFile(arg0, arg1);
+      return file ? new CE::Scripting::Bindings::ASIFile(std::move(file)) : nullptr;

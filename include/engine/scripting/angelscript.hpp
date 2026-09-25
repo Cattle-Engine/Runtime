@@ -111,6 +111,8 @@ namespace CE::Scripting {
         bool RunStartup();
         // runs the function update() during 2D rendering pass
         bool RunUpdate();
+        // Runs the optional void imgui() function while an ImGui frame is active.
+        bool RunImGui();
         bool Init();
 
         const std::string& GetLastError() const;
@@ -168,6 +170,8 @@ namespace CE::Scripting {
         asIScriptModule* mScriptModule = nullptr;
         asIScriptFunction* mUpdateFunc = nullptr;
         asIScriptContext* mUpdateCtx = nullptr;
+        asIScriptFunction* mImGuiFunc = nullptr;
+        asIScriptContext* mImGuiCtx = nullptr;
         std::vector<ScriptCallbackRegistration> mStateCallbacks;
 
         std::unique_ptr<Bindings::ScriptBindings> mScriptBindings;

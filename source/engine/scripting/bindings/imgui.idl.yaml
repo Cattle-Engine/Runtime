@@ -1,0 +1,53 @@
+RegistrationPriority: 100
+
+ASNamespace: CE::ImGui
+
+Documentation: |
+  Minimal immediate-mode UI bindings. Call these only from the optional void imgui()
+  script function, which runs after the engine starts an ImGui frame and before it renders.
+
+RequiredCppHeaders:
+  - "engine/scripting/bindings/imgui_bindings.hpp"
+
+ASFunctions:
+  - Name: Begin
+    ReturnType: bool
+    Signature: const string& in title
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::Begin
+    CallingConvention: Generic
+    Description: Begins a window and returns whether its contents should be drawn; always pair it with End.
+
+  - Name: End
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::End
+    CallingConvention: Generic
+    Description: Ends the current window begun by Begin.
+
+  - Name: Text
+    ReturnType: void
+    Signature: const string& in text
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::Text
+    CallingConvention: Generic
+    Description: Draws unformatted text at the current cursor position.
+
+  - Name: Button
+    ReturnType: bool
+    Signature: const string& in label
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::Button
+    CallingConvention: Generic
+    Description: Draws a button and returns true on the frame it is clicked.
+
+  - Name: Separator
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::Separator
+    CallingConvention: Generic
+    Description: Draws a horizontal separator.
+
+  - Name: SameLine
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::SameLine
+    CallingConvention: Generic
+    Description: Places the next item on the current line.

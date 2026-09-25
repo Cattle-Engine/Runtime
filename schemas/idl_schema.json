@@ -141,6 +141,9 @@
         "ASMember"
       ],
       "properties": {
+        "Description": {
+          "type": "string"
+        },
         "Type": {
           "type": "string",
           "minLength": 1
@@ -180,6 +183,9 @@
         "Type"
       ],
       "properties": {
+        "Description": {
+          "type": "string"
+        },
         "Type": {
           "$ref": "#/$defs/BehaviourType"
         },
@@ -209,6 +215,9 @@
         "ReturnType"
       ],
       "properties": {
+        "Description": {
+          "type": "string"
+        },
         "Name": {
           "type": "string",
           "minLength": 1

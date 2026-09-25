@@ -279,4 +279,20 @@ namespace CE::Common::FS::VFS {
             flags
         );
     }
+
+    bool VFS::DeleteFile(const std::string_view path) {
+        const ResolvedPath resolved = ResolvePathForWrite(path);
+        return resolved.provider && resolved.provider->DeleteFile(resolved.relative_path);
+    }
+
+    bool VFS::MoveFile(const std::string_view old_path, const std::string_view new_path) {
+        const ResolvedPath old_resolved = ResolvePath(old_path);
+        const ResolvedPath new_resolved = ResolvePathForWrite(new_path);
+
+        if (!old_resolved.provider || !new_resolved.provider || old_resolved.provider != new_resolved.provider) {
+            return false;
+        }
+
+        return old_resolved.provider->MoveFile(old_resolved.relative_path, new_resolved.relative_path);
+    }
 } // namespace CE::Common::FS::VFS

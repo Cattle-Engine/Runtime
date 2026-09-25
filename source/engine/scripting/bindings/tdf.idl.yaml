@@ -1,0 +1,228 @@
+RegistrationPriority: 100
+
+ASNamespace: CE::TDF
+
+Documentation: |
+  TDF is CE's typed data-file format. Build values with Make functions, store them in a
+  File, then Save or Load it through the virtual file system. Typed Read functions return
+  a default value when given a value of the wrong type.
+
+RequiredCppHeaders:
+  - "engine/common/fs/tdf.hpp"
+  - "engine/scripting/bindings/tdf_bindings.hpp"
+
+ASEnums:
+  - Name: Type
+    CppType: CE::TDF::Type
+    Values:
+      - "Null"
+      - Bool
+      - Int32
+      - UInt32
+      - Float
+      - String
+      - Object
+      - ArrBool
+      - ArrInt32
+      - ArrUInt32
+      - ArrFloat
+      - ArrString
+      - ArrObject
+
+ASTypes:
+  - Name: Value
+    CppType: CE::TDF::Value
+    Description: A typed TDF value used as the contents of a File entry.
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Description: Constructs a null TDF value.
+        Body: |
+          new(self) CE::TDF::Value();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Description: Destroys the value and its owned data.
+        Body: |
+          self->~Value();
+        CallingConvention: CDeclObjLast
+
+    Properties:
+      - Type: Type
+        CppMember: type
+        ASMember: type
+        Description: The stored TDF value type.
+
+  - Name: File
+    CppType: CE::TDF::File
+    Description: An in-memory collection of named TDF values.
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Construct
+        Description: Constructs an empty TDF file.
+        Body: |
+          new(self) CE::TDF::File();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destruct
+        Description: Destroys the TDF file and all of its values.
+        Body: |
+          self->~File();
+        CallingConvention: CDeclObjLast
+
+    Methods:
+      - Name: Has
+        ReturnType: bool
+        Signature: const string& in key
+        CppSignature: const std::string&
+        CppFunction: has
+        IsConst: true
+        CallingConvention: Generic
+        Description: Returns whether an entry with the key exists.
+
+      - Name: Remove
+        ReturnType: bool
+        Signature: const string& in key
+        CppSignature: const std::string&
+        CppFunction: remove
+        CallingConvention: Generic
+        Description: Removes an entry and returns whether it existed.
+
+      - Name: Set
+        ReturnType: void
+        Signature: const string& in key, const Value& in value
+        CppSignature: const std::string&, const CE::TDF::Value&
+        CppFunction: set
+        CallingConvention: Generic
+        Description: Stores or replaces the value associated with a key.
+
+ASFunctions:
+  - Name: MakeNull
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    CppFunction: CE::Scripting::Bindings::TDF::MakeNull
+    CallingConvention: Generic
+    Description: Creates a null TDF value.
+
+  - Name: MakeBool
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: bool value
+    CppSignature: bool
+    CppFunction: CE::Scripting::Bindings::TDF::MakeBool
+    CallingConvention: Generic
+    Description: Creates a Boolean TDF value.
+
+  - Name: MakeInt
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: int value
+    CppSignature: int
+    CppFunction: CE::Scripting::Bindings::TDF::MakeInt
+    CallingConvention: Generic
+    Description: Creates a signed 32-bit integer TDF value.
+
+  - Name: MakeUInt
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: uint value
+    CppSignature: uint32_t
+    CppFunction: CE::Scripting::Bindings::TDF::MakeUInt
+    CallingConvention: Generic
+    Description: Creates an unsigned 32-bit integer TDF value.
+
+  - Name: MakeFloat
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: float value
+    CppSignature: float
+    CppFunction: CE::Scripting::Bindings::TDF::MakeFloat
+    CallingConvention: Generic
+    Description: Creates a floating-point TDF value.
+
+  - Name: MakeString
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: const string& in value
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::TDF::MakeString
+    CallingConvention: Generic
+    Description: Creates a string TDF value.
+
+  - Name: ReadBool
+    ReturnType: bool
+    Signature: const Value& in value
+    CppSignature: const CE::TDF::Value&
+    CppFunction: CE::Scripting::Bindings::TDF::ReadBool
+    CallingConvention: Generic
+    Description: Reads a Boolean value, or false when the type does not match.
+
+  - Name: ReadInt
+    ReturnType: int
+    Signature: const Value& in value
+    CppSignature: const CE::TDF::Value&
+    CppFunction: CE::Scripting::Bindings::TDF::ReadInt
+    CallingConvention: Generic
+    Description: Reads a signed integer, or zero when the type does not match.
+
+  - Name: ReadUInt
+    ReturnType: uint
+    CppReturnType: uint32_t
+    Signature: const Value& in value
+    CppSignature: const CE::TDF::Value&
+    CppFunction: CE::Scripting::Bindings::TDF::ReadUInt
+    CallingConvention: Generic
+    Description: Reads an unsigned integer, or zero when the type does not match.
+
+  - Name: ReadFloat
+    ReturnType: float
+    Signature: const Value& in value
+    CppSignature: const CE::TDF::Value&
+    CppFunction: CE::Scripting::Bindings::TDF::ReadFloat
+    CallingConvention: Generic
+    Description: Reads a floating-point value, or zero when the type does not match.
+
+  - Name: ReadString
+    ReturnType: string
+    CppReturnType: std::string
+    Signature: const Value& in value
+    CppSignature: const CE::TDF::Value&
+    CppFunction: CE::Scripting::Bindings::TDF::ReadString
+    CallingConvention: Generic
+    Description: Reads a string, or an empty string when the type does not match.
+
+  - Name: Get
+    ReturnType: Value
+    CppReturnType: CE::TDF::Value
+    Signature: const File& in file, const string& in key
+    CppSignature: const CE::TDF::File&, const std::string&
+    CppFunction: CE::Scripting::Bindings::TDF::Get
+    CallingConvention: Generic
+    Description: Gets a copy of a value, or a null value when the key does not exist.
+
+ASClassFunctions:
+  - Name: Save
+    ReturnType: bool
+    Signature: const File& in file, const string& in path, uint version
+    CppSignature: const CE::TDF::File&, const std::string&, uint8_t
+    CallingConvention: Generic
+    Description: Saves a TDF file to a virtual path using the supplied format version.
+    Function: |
+      try { arg0.save(mRuntime.mVFS, arg1, arg2); return true; }
+      catch (...) { return false; }
+
+  - Name: Load
+    ReturnType: bool
+    Signature: File& out file, const string& in path
+    CppSignature: CE::TDF::File&, const std::string&
+    CallingConvention: Generic
+    Description: Loads a TDF file from a virtual path into an existing File value.
+    Function: |
+      try { arg0.load(mRuntime.mVFS, arg1); return true; }
+      catch (...) { return false; }

@@ -40,7 +40,7 @@ namespace CE::Scripting::Impl {
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(Common::GetScriptFromVFS(filepath, mVFS), filepath));
         analyser.CheckModule(root, filepath);
         mEntrypoints.clear();
-        for (const std::string& source_name : {std::string("main"), std::string("update")}) {
+        for (const std::string& source_name : {std::string("main"), std::string("update"), std::string("imgui")}) {
             if (const auto* symbol = analyser.FindSymbol(source_name, filepath)) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Function) {
                     mEntrypoints.emplace(source_name, symbol->InternalName);
