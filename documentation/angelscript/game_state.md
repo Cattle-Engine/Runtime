@@ -48,6 +48,7 @@ const string& in state_name, const string& in event_name, StateEventCallback@ ca
 ```
 
 Subscribes a script callback to an event in the specified game state. Returns an ID that can be used to unsubscribe.
+You can use wildcards in the state/event name
 
 ### Unsubscribe
 Return type: `void`

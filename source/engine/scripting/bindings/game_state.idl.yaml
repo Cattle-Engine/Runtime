@@ -45,7 +45,10 @@ ASClassFunctions:
     ReturnType: int
     Signature: const string& in state_name, const string& in event_name, StateEventCallback@ callback
     CppSignature: const std::string&, const std::string&, asIScriptFunction*
-    Description: Subscribes a script callback to an event in the specified game state. Returns an ID that can be used to unsubscribe.
+    Description: |
+      Subscribes a script callback to an event in the specified game state. Returns an ID that can be used to unsubscribe.
+      You can use wildcards in the state/event name
+
     Class: mRuntime
     CppMethod: SubscribeStateEvent
 
