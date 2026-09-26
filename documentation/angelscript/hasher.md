@@ -7,16 +7,14 @@ strings; Finalize returns the hash accumulated so far.
 ## StreamingHasher
 C++ type: `CE::Utils::StreamingHasher`
 
-Flags: `Reference`, `Scoped`, `NoCount`
+Flags: `Value`
 
 A scoped incremental 64-bit hasher.
 
 ### Behaviours
-#### Factory
-Creates a new empty streaming hasher.
+#### Construct
 
-#### Release
-Releases the scoped hasher.
+#### Destruct
 
 ### Methods
 #### AddString

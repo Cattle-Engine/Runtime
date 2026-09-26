@@ -34,7 +34,6 @@ ASTypes:
     Flags:
       - Reference
       - Scoped
-      - NoCount
 
     Behaviours:
       - Type: Release

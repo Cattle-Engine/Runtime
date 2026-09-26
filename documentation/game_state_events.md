@@ -12,3 +12,4 @@
 | Update                            | This fires before the renderer has begun a frame. Intended for updating logic |
 | Draw3D                            | For drawing 3D stuff. You cannot draw 2D stuff!                   |
 | Draw2D                            | For drawing 3D stuff. You cannot draw 3D stuff!                               |
+| DrawImgui | Use ImGui functions 

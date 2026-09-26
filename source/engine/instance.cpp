@@ -248,6 +248,9 @@ namespace CE {
                 gShouldExit = true;
                 return 1;
             }
+
+            gGameStateManager.Emit("DrawImgui");
+
             mRenderer->ImGuiEndFrame(mWindow->GetWindow());
 
             mRenderer->EndFrame(mWindow->GetWindow());

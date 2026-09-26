@@ -5,6 +5,7 @@ ASNamespace: CE::ImGui
 Documentation: |
   Minimal immediate-mode UI bindings. Call these only from the optional void imgui()
   script function, which runs after the engine starts an ImGui frame and before it renders.
+  You can also use the event that runs every frame "DrawImgui"
 
 RequiredCppHeaders:
   - "engine/scripting/bindings/imgui_bindings.hpp"
@@ -51,3 +52,173 @@ ASFunctions:
     CppFunction: CE::Scripting::Bindings::ImGui::SameLine
     CallingConvention: Generic
     Description: Places the next item on the current line.
+
+  - Name: NewLine
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::NewLine
+    CallingConvention: Generic
+    Description: Advances the cursor to a new line.
+
+  - Name: Spacing
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::Spacing
+    CallingConvention: Generic
+    Description: Adds vertical spacing between UI items.
+
+  - Name: Dummy
+    ReturnType: void
+    Signature: float width, float height
+    CppSignature: float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::Dummy
+    CallingConvention: Generic
+    Description: Adds an invisible item with the specified width and height.
+
+  - Name: Indent
+    ReturnType: void
+    Signature: float width = 0.0f
+    CppSignature: float
+    CppFunction: CE::Scripting::Bindings::ImGui::Indent
+    CallingConvention: Generic
+    Description: Increases the current indentation by the specified width.
+
+  - Name: Unindent
+    ReturnType: void
+    Signature: float width = 0.0f
+    CppSignature: float
+    CppFunction: CE::Scripting::Bindings::ImGui::Unindent
+    CallingConvention: Generic
+    Description: Decreases the current indentation by the specified width.
+
+  - Name: BeginChild
+    ReturnType: bool
+    Signature: const string& in id, float width, float height
+    CppSignature: const std::string&, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::BeginChild
+    CallingConvention: Generic
+    Description: Begins a child region with the specified identifier and size; pair with EndChild.
+
+  - Name: EndChild
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::EndChild
+    CallingConvention: Generic
+    Description: Ends the current child region begun by BeginChild.
+
+  - Name: CollapsingHeader
+    ReturnType: bool
+    Signature: const string& in label
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::CollapsingHeader
+    CallingConvention: Generic
+    Description: Draws a collapsible header and returns whether its contents should be displayed.
+
+  - Name: TreeNode
+    ReturnType: bool
+    Signature: const string& in label
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::TreeNode
+    CallingConvention: Generic
+    Description: Begins a tree node and returns whether it is expanded; expanded nodes should be paired with TreePop.
+
+  - Name: TreePop
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::TreePop
+    CallingConvention: Generic
+    Description: Ends the current tree node begun by TreeNode.
+
+  - Name: Selectable
+    ReturnType: bool
+    Signature: const string& in label, bool selected = false
+    CppSignature: const std::string&, bool
+    CppFunction: CE::Scripting::Bindings::ImGui::Selectable
+    CallingConvention: Generic
+    Description: Draws a selectable item and returns true when it is selected or activated.
+
+  - Name: BeginCombo
+    ReturnType: bool
+    Signature: const string& in label, const string& in preview
+    CppSignature: const std::string&, const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::BeginCombo
+    CallingConvention: Generic
+    Description: Begins a combo box and returns whether its popup contents should be drawn; pair with EndCombo.
+
+  - Name: EndCombo
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::EndCombo
+    CallingConvention: Generic
+    Description: Ends the combo box begun by BeginCombo.
+
+  - Name: TextDisabled
+    ReturnType: void
+    Signature: const string& in text
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::TextDisabled
+    CallingConvention: Generic
+    Description: Draws text using ImGui's disabled text styling.
+
+  - Name: BulletText
+    ReturnType: void
+    Signature: const string& in text
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::BulletText
+    CallingConvention: Generic
+    Description: Draws a bullet followed by the specified text.
+
+  - Name: LabelText
+    ReturnType: void
+    Signature: const string& in label, const string& in text
+    CppSignature: const std::string&, const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::LabelText
+    CallingConvention: Generic
+    Description: Draws a label and associated text on the same line.
+
+  - Name: OpenPopup
+    ReturnType: void
+    Signature: const string& in id
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::OpenPopup
+    CallingConvention: Generic
+    Description: Opens a popup identified by the specified ID.
+
+  - Name: BeginPopup
+    ReturnType: bool
+    Signature: const string& in id
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::BeginPopup
+    CallingConvention: Generic
+    Description: Begins a popup and returns whether its contents should be drawn; pair with EndPopup when true.
+
+  - Name: EndPopup
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::EndPopup
+    CallingConvention: Generic
+    Description: Ends the current popup begun by BeginPopup.
+
+  - Name: BeginPopupModal
+    ReturnType: bool
+    Signature: const string& in title
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::BeginPopupModal
+    CallingConvention: Generic
+    Description: Begins a modal popup and returns whether its contents should be drawn; pair with EndPopup.
+
+  - Name: BeginMenu
+    ReturnType: bool
+    Signature: const string& in label
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::BeginMenu
+    CallingConvention: Generic
+    Description: Begins a submenu and returns whether its contents should be drawn; pair with EndMenu.
+
+  - Name: EndMenu
+    ReturnType: void
+    CppFunction: CE::Scripting::Bindings::ImGui::EndMenu
+    CallingConvention: Generic
+    Description: Ends the current submenu begun by BeginMenu.
+
+  - Name: MenuItem
+    ReturnType: bool
+    Signature: const string& in label
+    CppSignature: const std::string&
+    CppFunction: CE::Scripting::Bindings::ImGui::MenuItem
+    CallingConvention: Generic
+    Description: Draws a menu item and returns true when it is activated.

@@ -7,7 +7,7 @@ and resolve through the mounts configured by the engine. File handles are scoped
 ## File
 C++ type: `CE::Scripting::Bindings::ASIFile`
 
-Flags: `Reference`, `Scoped`, `NoCount`
+Flags: `Reference`, `Scoped`
 
 A scoped handle to an open virtual file.
 

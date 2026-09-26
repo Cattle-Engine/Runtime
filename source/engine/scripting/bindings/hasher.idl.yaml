@@ -14,22 +14,18 @@ ASTypes:
     CppType: CE::Utils::StreamingHasher
     Description: A scoped incremental 64-bit hasher.
     Flags:
-      - Reference
-      - Scoped
-      - NoCount
+      - Value
 
     Behaviours:
-      - Type: Factory
-        Description: Creates a new empty streaming hasher.
+      - Type: Construct
         Body: |
-          return new CE::Utils::StreamingHasher();
-        CallingConvention: CDecl
+          new(self) CE::Utils::StreamingHasher();
+        CallingConvention: CDeclObjFirst
 
-      - Type: Release
-        Description: Releases the scoped hasher.
+      - Type: Destruct
         Body: |
-          delete self;
-        CallingConvention: CDeclObjLast
+          self->~StreamingHasher();
+        CallingConvention: CDeclObjFirst
 
     Methods:
       - Name: AddString

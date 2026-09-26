@@ -36,7 +36,7 @@ namespace CE::Scripting::Bindings {
             return false;
         }
 
-        if (!script_engine.RegisterObjectType("__ce_void_ptr", sizeof(void*), asOBJ_REF | asOBJ_NOHANDLE | asOBJ_NOCOUNT)) {
+        if (!script_engine.RegisterObjectType("__ce_void_ptr", sizeof(void*), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_PRIMITIVE)) {
             CE_LOG(LogLevel::Error, "[Angelscript] Failed to register __ce_void_ptr");
             return false;
         }
