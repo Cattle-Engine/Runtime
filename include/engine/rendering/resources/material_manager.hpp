@@ -5,6 +5,7 @@
 
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 
 namespace CE::Renderer::Resources {
     struct MaterialHandle {
@@ -35,7 +36,7 @@ namespace CE::Renderer::Resources {
 
     class MaterialManager {
       public:
-        MaterialManager(TextureManager& texture_manager, IRenderer& renderer);
+        MaterialManager(TextureManager& texture_manager, IRenderer& renderer, ShaderManager& shader_manager);
 
         MaterialHandle CreateMaterial(TextureHandle tex_handle);
 
@@ -55,9 +56,12 @@ namespace CE::Renderer::Resources {
         void SetNormalTexture(MaterialHandle handle, TextureHandle tex_handle);
         void SetTransparent(MaterialHandle handle, bool transparent);
 
+        // if a shader handle id is zero, this will set the shader to none
+        void SetShader(MaterialHandle handle,ShaderHandle shader);
       private:
         struct MaterialEntry {
             Material Resource;
+            ShaderRef Shader;
             TextureRef AlbedoTex;
             TextureRef MetallicRoughnessTex;
             TextureRef NormalTex;
@@ -67,6 +71,7 @@ namespace CE::Renderer::Resources {
         MaterialEntry* GetMaterialEntry(MaterialHandle handle);
         uint64_t mNextHandleID = 0;
         TextureManager& mTextureManager;
+        ShaderManager& mShaderManager;
         IRenderer& mRenderer;
         std::unordered_map<MaterialHandle, MaterialEntry, MaterialHandleHash> mMaterials;
     };

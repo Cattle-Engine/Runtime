@@ -149,6 +149,7 @@ namespace CE::Renderer {
         Texture* albedo = nullptr;
         Texture* normal = nullptr;
         Texture* metallicRoughnessTex = nullptr;
+        Shader* shader = nullptr;
         Colour tint;
         float roughness = 1.0f;
         float metallic = 0.0f;

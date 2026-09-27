@@ -1,6 +1,6 @@
 # CE::Graphics
 
-## Functions
+## CE::Graphics::Materials
 ### CreateMaterial
 Return type: `void`
 
@@ -71,6 +71,17 @@ const Material& in handle
 
 No description given
 
+### SetMaterialShader
+Return type: `void`
+
+Signature:
+```angelscript
+const Material& in, const Shader& in
+```
+
+No description given
+
+## CE::Graphics::Textures
 ### LoadTexture
 Return type: `CE::Texture`
 
@@ -101,6 +112,7 @@ const Texture& in texture
 
 No description given
 
+## CE::Graphics::Shaders
 ### CreateProgram
 Return type: `void`
 

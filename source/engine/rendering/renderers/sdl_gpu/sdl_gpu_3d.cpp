@@ -798,7 +798,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         command.normaltex = normalData; // Slot 1: Normal
         command.mrtex = mrData;         // Slot 2: Metallic-Roughness
         command.sampler = albedoData ? albedoData->sampler : gWhiteSampler;
-        command.shader = gCurrentShader;
+        SDL_GPU_Renderer_Shader* shader = gCurrentShader;
+
+        if (material.shader && material.shader->handle) {
+            shader = static_cast<SDL_GPU_Renderer_Shader*>(material.shader->handle);
+        }
+
+        command.shader = shader;
         command.model = modelMatrix;
         command.normalMatrix = normalMatrix;
         command.tint = ToColourVec4(material.tint);

@@ -1,10 +1,11 @@
 #include "engine/rendering/resources/material_manager.hpp"
 
 #include "engine/common/tracelog.hpp"
+#include "engine/rendering/resources/shader_manager.hpp"
 
 namespace CE::Renderer::Resources {
-    MaterialManager::MaterialManager(TextureManager& texture_manager, IRenderer& renderer)
-        : mTextureManager(texture_manager), mRenderer(renderer) {}
+    MaterialManager::MaterialManager(TextureManager& texture_manager, IRenderer& renderer, ShaderManager& shader_manager)
+        : mTextureManager(texture_manager), mShaderManager(shader_manager), mRenderer(renderer) {}
 
     MaterialManager::MaterialEntry* MaterialManager::GetMaterialEntry(MaterialHandle handle) {
         auto list = mMaterials.find(handle);
@@ -123,5 +124,18 @@ namespace CE::Renderer::Resources {
 
     size_t MaterialManager::Debug_LoadedMaterialsCount() const {
         return mMaterials.size();
+    }
+
+    void MaterialManager::SetShader(MaterialHandle handle,ShaderHandle shader) {
+        auto* material = GetMaterialEntry(handle);
+
+        if (material) {
+            material->Shader = mShaderManager.AcquireRef(shader);
+            if (!material->Shader.IsValid()) {
+                material->Resource.shader = nullptr;
+            } else {
+                material->Resource.shader = material->Shader.Get();
+            }
+        }
     }
 } // namespace CE::Renderer::Resources

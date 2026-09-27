@@ -8,7 +8,7 @@ namespace CE {
         gFontManager = std::make_unique<CE::Assets::Fonts::FontManager>(*mRenderer, *mVFS, gInstanceID);
 
         mShaderManager = std::make_unique<CE::Renderer::Resources::ShaderManager>(*mVFS, *mRenderer, *mTextureManager);
-        mMaterialManager = std::make_unique<CE::Renderer::Resources::MaterialManager>(*mTextureManager, *mRenderer);
+        mMaterialManager = std::make_unique<CE::Renderer::Resources::MaterialManager>(*mTextureManager, *mRenderer, *mShaderManager);
         mGPUMeshManager = std::make_unique<CE::Renderer::Resources::GPUMeshManager>(*mRenderer, *mMaterialManager);
         gAnimatedTextureManager =
             std::make_unique<CE::Assets::Animations::AnimatedTextureManager>(*mVFS, *mRenderer, gInstanceID);

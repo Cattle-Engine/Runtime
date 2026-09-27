@@ -34,6 +34,7 @@
 - [X] Connect input binder to instance
 - [X] Bindings for the input binder in angelscript
 - [X] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
+- [X] Add support for setting shader/s on a material
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -109,7 +110,6 @@ List of bindings to do:
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
-- [ ] Add support for setting shader/s on a material
 - [ ] Emission textures
 - [ ] HDR rendering
 - [ ] Tone mapping

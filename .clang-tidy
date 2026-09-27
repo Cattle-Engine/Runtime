@@ -26,6 +26,7 @@ Checks: >
   -performance-avoid-endl,
   -performance-inefficient-string-concatenation,
   -performance-unnecessary-value-param,
-  -readability-avoid-const-params-in-decls
+  -readability-avoid-const-params-in-decls,
+  -modernize-use-designated-initializers
   
 WarningsAsErrors: ''

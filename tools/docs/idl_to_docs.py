@@ -321,6 +321,37 @@ def generate_function_docs(
         write_description(generator, function.description)
 
 
+def generate_class_function_docs(
+    generator: markdown_generator.MarkdownWriter,
+    functions: list[DocumentationInfo],
+    header: str,
+    default_namespace: str = "",
+) -> None:
+    if not functions:
+        return
+
+    namespaced_functions: dict[str, list[DocumentationInfo]] = defaultdict(list)
+
+    for function in functions:
+        namespaced_functions[function.namespace].append(function)
+
+    for namespace, namespace_functions in namespaced_functions.items():
+        if namespace and namespace != default_namespace:
+            generator.write_header(namespace, 2)
+        else:
+            generator.write_header(header, 2)
+
+        for function in namespace_functions:
+            generator.write_header(function.name, 3)
+
+            if function.return_type:
+                generator.write_text(f"Return type: `{function.return_type}`")
+                generator.newline()
+
+            write_signature(generator, function.signature)
+            write_description(generator, function.description)
+
+
 def generate_enum_docs(
     generator: markdown_generator.MarkdownWriter,
     enums: list[EnumDocumentation],
@@ -457,10 +488,11 @@ def generate_markdown(binding: BindingDocumentation) -> str:
     generate_alias_docs(generator, binding.aliases)
     generate_declaration_docs(generator, binding.declarations)
 
-    generate_function_docs(
+    generate_class_function_docs(
         generator,
         binding.class_functions,
         "Functions",
+        binding.namespace,
     )
 
     return generator.build()

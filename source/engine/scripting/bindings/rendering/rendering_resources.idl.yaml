@@ -68,6 +68,14 @@ ASClassFunctions:
     Namespace: CE::Graphics::Materials
     Function: |
       return mRuntime.mMaterialManager.GetMaterial(arg0) != nullptr;
+
+  - Name: SetMaterialShader
+    ReturnType: void
+    Signature: const Material& in, const Shader& in
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::ShaderHandle&
+    Namespace: CE::Graphics::Materials
+    Function: |
+      mRuntime.mMaterialManager.SetShader(arg0, arg1);
   
   # === Texture functions ===
   - Name: LoadTexture
