@@ -12,18 +12,45 @@ namespace CE::Renderer::Primitives3D {
         struct MeshBuilder {
             MeshData data;
 
-            uint32_t AddVertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2& uv) {
-                data.vertices.push_back(Vertex3D{position, normal, kWhite, uv});
+            uint32_t AddVertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2& uv, 
+                            const glm::vec3& tangent = {1.0f, 0.0f, 0.0f}, float tangentSign = 1.0f) {
+                Vertex3D vert;
+                vert.position = position;
+                vert.normal = normal;
+                vert.colour = kWhite;
+                vert.uv = uv;
+                vert.tangent = tangent;
+                vert.tangentSign = tangentSign;
+                data.vertices.push_back(vert);
                 return static_cast<uint32_t>(data.vertices.size() - 1);
             }
 
             void AddQuad(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d,
-                         const glm::vec3& normal) {
+                        const glm::vec3& normal) {
                 const uint32_t start = static_cast<uint32_t>(data.vertices.size());
-                AddVertex(a, normal, {0.0f, 0.0f});
-                AddVertex(b, normal, {1.0f, 0.0f});
-                AddVertex(c, normal, {1.0f, 1.0f});
-                AddVertex(d, normal, {0.0f, 1.0f});
+
+                // Calculate face tangent from UV deltas
+                glm::vec3 edge1 = b - a;
+                glm::vec3 edge2 = c - a;
+                glm::vec2 deltaUV1 = glm::vec2(1.0f, 0.0f) - glm::vec2(0.0f, 0.0f); // (1, 0)
+                glm::vec2 deltaUV2 = glm::vec2(1.0f, 1.0f) - glm::vec2(0.0f, 0.0f); // (1, 1)
+
+                float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+                glm::vec3 tangent;
+                tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+                tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+                tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+                if (glm::length(tangent) > 0.0001f) {
+                    tangent = glm::normalize(tangent);
+                } else {
+                    tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+                }
+
+                AddVertex(a, normal, {0.0f, 0.0f}, tangent, 1.0f);
+                AddVertex(b, normal, {1.0f, 0.0f}, tangent, 1.0f);
+                AddVertex(c, normal, {1.0f, 1.0f}, tangent, 1.0f);
+                AddVertex(d, normal, {0.0f, 1.0f}, tangent, 1.0f);
+
                 data.indices.insert(data.indices.end(),
                                     {start + 0, start + 1, start + 2, start + 2, start + 3, start + 0});
             }

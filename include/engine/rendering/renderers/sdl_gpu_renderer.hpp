@@ -90,6 +90,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float tangentSign = 1.0f;
     };
 #pragma pack(pop)
+static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 bytes!");
 
     struct SDLGPUMeshData {
         SDL_GPUBuffer* vertexBuffer = nullptr;

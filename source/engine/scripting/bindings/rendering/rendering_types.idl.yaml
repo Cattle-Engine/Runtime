@@ -358,6 +358,13 @@ ASTypes:
         Body: |
           return self.id == static_cast<uint64>(arg0);
 
+      - Operator: "="
+        ReturnType: Shader
+        Signature: "Shader & in"
+        Body: |
+          auto& mutable_handle = const_cast<CE::Renderer::Resources::ShaderHandle&>(self);
+          return mutable_handle = arg0;
+
   - Name: Texture
     CppType: CE::Renderer::Resources::TextureHandle
 

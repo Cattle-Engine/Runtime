@@ -25,12 +25,15 @@ layout(set = 1, binding = 1) uniform ModelUBO {
 };
 
 void main() {
-    vec4 worldPos = model * vec4(inPos, 1.0);
-    gl_Position = viewProjection * worldPos;
+    // Hardcode worldPos to bypass model matrix
+    vec4 worldPos = vec4(inPos, 1.0);
+    
+    // Pass raw position directly or bypass viewProjection
+    gl_Position = vec4(inPos, 1.0); 
 
     fragWorldPos = worldPos.xyz;
-    fragNormal = normalize((normalMatrix * vec4(inNormal, 0.0)).xyz);
-    fragTangent = normalize((normalMatrix * vec4(inTangent, 0.0)).xyz);
+    fragNormal = inNormal;
+    fragTangent = inTangent;
     fragTangentSign = inTangentSign;
     fragColor = inColor;
     fragUV = inUV;
