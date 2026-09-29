@@ -22,7 +22,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         vb_desc.slot = 0;
         vb_desc.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
         vb_desc.instance_step_rate = 0;
-        vb_desc.pitch = sizeof(Vertex);
+        vb_desc.pitch = sizeof(detail::Vertex);
 
         SDL_GPUVertexAttribute attrs[3]{};
         attrs[0].buffer_slot = 0;
@@ -31,14 +31,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[0].offset = 0;
 
         attrs[1].buffer_slot = 0;
-        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
+        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
         attrs[1].location = 1;
         attrs[1].offset = sizeof(float) * 3;
 
         attrs[2].buffer_slot = 0;
         attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
         attrs[2].location = 2;
-        attrs[2].offset = (sizeof(float) * 3) + (sizeof(uint8_t) * 4);
+        attrs[2].offset = sizeof(float) * 7;
 
         SDL_GPUGraphicsPipelineCreateInfo pipeline_create_info{};
         pipeline_create_info.target_info.num_color_targets = 1;
