@@ -28,5 +28,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             CE_LOG(LogLevel::Fatal, "[SDLGPURenderer] Failed to claime window for GPU device");
             return 3;
         }
+
+        const int pipeline_2d_result = Bootstrap_CreateDefault2DPipeline();
+        if (pipeline_2d_result != 0) {
+            return 4;
+        }
     }
 }
