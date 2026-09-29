@@ -30,6 +30,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     int SDLGPURenderer::Init(SDL_Window* window, [[maybe_unused]] bool debug, GPUDeviceHandle gdevice) {
+        mWindow = window;
         switch (gdevice->backend) {
         case RendererBackend::DX12:
         case RendererBackend::Metal:
