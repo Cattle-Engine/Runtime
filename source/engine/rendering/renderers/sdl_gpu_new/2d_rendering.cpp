@@ -1,6 +1,73 @@
 #include "engine/rendering/renderers/sdl_gpu_renderer_new.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    void SDLGPURenderer::Flush2D() {
+        if (mVertexCount == 0 || mIndexCount == 0) {
+            return;
+        }
+
+        SDL_UnmapGPUTransferBuffer(
+            mGPUDevice,
+            mVertexUploadBuffer.Get()
+        );
+
+        SDL_UnmapGPUTransferBuffer(
+            mGPUDevice,
+            mIndexUploadBuffer.Get()
+        );
+
+        mMappedVertices = nullptr;
+        mMappedIndices = nullptr;
+
+        SDL_GPUCopyPass* copy_pass =
+            SDL_BeginGPUCopyPass(mCommandBuffer);
+
+        SDL_GPUTransferBufferLocation vertex_source {};
+        vertex_source.transfer_buffer = mVertexUploadBuffer.Get();
+        vertex_source.offset = 0;
+
+        SDL_GPUBufferRegion vertex_destination {};
+        vertex_destination.buffer = mVertexBuffer.Get();
+        vertex_destination.offset = 0;
+        vertex_destination.size =
+            static_cast<Uint32>(
+                mVertexCount * sizeof(detail::Vertex)
+            );
+
+        SDL_UploadToGPUBuffer(
+            copy_pass,
+            &vertex_source,
+            &vertex_destination,
+            true
+        );
+
+        SDL_GPUTransferBufferLocation index_source {};
+        index_source.transfer_buffer = mIndexUploadBuffer.Get();
+        index_source.offset = 0;
+
+        SDL_GPUBufferRegion index_destination {};
+        index_destination.buffer = mIndexBuffer.Get();
+        index_destination.offset = 0;
+        index_destination.size =
+            static_cast<Uint32>(
+                mIndexCount * sizeof(uint16_t)
+            );
+
+        SDL_UploadToGPUBuffer(
+            copy_pass,
+            &index_source,
+            &index_destination,
+            true
+        );
+
+        SDL_EndGPUCopyPass(copy_pass);
+
+        // Rendering comes here.
+
+        mVertexCount = 0;
+        mIndexCount = 0;
+    }
+
     void SDLGPURenderer::Draw2DQuad(
         const glm::vec3& position,
         const glm::vec2& size,
@@ -22,13 +89,27 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDLGPURenderer::DrawRect(
-        float x, 
-        float y, 
-        float w, 
-        float h, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        float x,
+        float y,
+        float w,
+        float h,
+        uint8_t r,
+        uint8_t g,
+        uint8_t b,
+        uint8_t a,
         float rotation
     ) {
-
+        Draw2DQuad(
+            glm::vec3(x, y, 0.0f),
+            glm::vec2(w, h),
+            glm::vec4(
+                static_cast<float>(r) / 255.0f,
+                static_cast<float>(g) / 255.0f,
+                static_cast<float>(b) / 255.0f,
+                static_cast<float>(a) / 255.0f
+            ),
+            &mWhiteTexture,
+            rotation
+        );
     }
 }

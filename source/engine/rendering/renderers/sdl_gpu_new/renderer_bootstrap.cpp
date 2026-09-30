@@ -145,7 +145,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         );
         CE_LOG(LogLevel::Info, "[SDLGPURenderer] Created default normal texture");
 
-        int w, h = 0;
+        int w = 0;
+        int h = 0;
         SDL_GetWindowSizeInPixels(mWindow, &w, &h);
 
         pRenderSize.x = static_cast<float>(w);

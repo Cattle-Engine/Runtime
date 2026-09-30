@@ -369,8 +369,14 @@ namespace CE::Renderer {
         virtual void ImGuiEndFrame(SDL_Window* window) = 0;
 
         // If the window is eg 1920x1080 you can make the internal renderer resolution to 640x420
-        void SetRenderSize(glm::vec2 size) {
-
+        virtual void SetRenderSize(glm::vec2 size) {
+            pRenderSize = size;
+            if (pRenderSize.x <= 0.0f) {
+                pRenderSize.x = 1.0f;
+            }
+            if (pRenderSize.y <= 0.0f) {
+                pRenderSize.y = 1.0f;
+            }
         }
 
         virtual ~IRenderer() = default;

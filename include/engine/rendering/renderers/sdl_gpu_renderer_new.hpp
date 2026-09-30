@@ -117,6 +117,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             int BeginFrame(SDL_Window* window) override;
             int EndFrame(SDL_Window* window) override;
 
+            void BeginMode2D() override;
+            void EndMode2D() override;
+            void BeginMode3D() override;
+            void EndMode3D() override;
+            void SetRenderSize(glm::vec2 size) override;
+
             void DrawRect(
                 float x, 
                 float y, 
@@ -152,6 +158,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 Texture* texture,
                 float rotation
             );
+
+            // Called at the end of EndFrame()
+            void Flush2D();
 
             SDL_GPUDevice* mGPUDevice;
             SDL_Window* mWindow;
