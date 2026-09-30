@@ -1,5 +1,6 @@
 #include <cstdint>
-#include <utility>
+#include <variant>
+#include <vector>
 
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_video.h>
@@ -66,17 +67,40 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 T* mHandle = nullptr;
             };
 
+            using Shader = Handle<SDL_GPUShader, SDL_ReleaseGPUShader>;
+            using GraphicsPipeline = Handle<SDL_GPUGraphicsPipeline, SDL_ReleaseGPUGraphicsPipeline>;
+            using GPUBuffer = Handle<SDL_GPUBuffer, SDL_ReleaseGPUBuffer>;
+            using GPUTransferBuffer = Handle<SDL_GPUTransferBuffer, SDL_ReleaseGPUTransferBuffer>;
+            using Texture = Handle<SDL_GPUTexture, SDL_ReleaseGPUTexture>;
+
             struct Vertex {
                 float position[3];
                 float colour[4];
                 float uv[2];
             };
 
-            using Shader = Handle<SDL_GPUShader, SDL_ReleaseGPUShader>;
-            using GraphicsPipeline = Handle<SDL_GPUGraphicsPipeline, SDL_ReleaseGPUGraphicsPipeline>;
-            using GPUBuffer = Handle<SDL_GPUBuffer, SDL_ReleaseGPUBuffer>;
-            using GPUTransferBuffer = Handle<SDL_GPUTransferBuffer, SDL_ReleaseGPUTransferBuffer>;
-            using Texture = Handle<SDL_GPUTexture, SDL_ReleaseGPUTexture>;
+            struct RenderCommand {
+                enum class Type {
+                    Draw2D,
+                    DrawMesh
+                };
+
+                struct MeshDrawCommand {
+                    GPUMesh* mesh;
+                    glm::mat4 transform;
+                };
+
+                struct SpriteDrawCommand {
+                    Texture* texture;
+                    glm::vec3 position;
+                    glm::vec2 size;
+                    glm::vec4 colour;
+                    float rotation;
+                };
+
+                Type type;
+                std::variant<MeshDrawCommand, SpriteDrawCommand> data;
+            };
 
             constexpr size_t kMaxQuads = 2500;
             constexpr size_t kMaxVertices = kMaxQuads * 4;
@@ -92,6 +116,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
             int BeginFrame(SDL_Window* window) override;
             int EndFrame(SDL_Window* window) override;
+
+            void DrawRect(
+                float x, 
+                float y, 
+                float w, 
+                float h, 
+                uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+                float rotation
+            ) override;
 
             // TODO: Impliment this
             Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) override;            
@@ -110,6 +143,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 int width, 
                 int height, 
                 const void* pixels
+            );
+
+            void Draw2DQuad(
+                const glm::vec3& position,
+                const glm::vec2& size,
+                const glm::vec4& colour,
+                Texture* texture,
+                float rotation
             );
 
             SDL_GPUDevice* mGPUDevice;
@@ -137,8 +178,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUCommandBuffer* mCommandBuffer = nullptr;
             SDL_GPUTexture* mSwapchainTexture = nullptr;
             glm::mat4 m2DMVP{};
+            detail::Vertex* mMappedVertices = nullptr;
+            uint16_t* mMappedIndices = nullptr;
             bool mMode3DActive = false;
             bool mMode2DActive = false;
+            size_t mIndexCount;
+            size_t mVertexCount;
+            std::vector<detail::RenderCommand> mRenderCommands;
 
             // 2D rendering 
             Camera2D mCamera2D{};

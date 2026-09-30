@@ -29,5 +29,19 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
             return 3;
         }
+
+        mMappedIndices = nullptr;
+        mMappedVertices = nullptr;
+        mIndexCount = 0;
+        mVertexCount = 0;
+
+        mMappedVertices = static_cast<detail::Vertex*>(SDL_MapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get(), true));
+        mMappedIndices = static_cast<uint16_t*>(SDL_MapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get(), true));
+        return 0;
+    }
+
+    int SDLGPURenderer::EndFrame([[maybe_unused]] SDL_Window* window) {
+        SDL_UnmapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get());
+        SDL_UnmapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get());
     }
 }

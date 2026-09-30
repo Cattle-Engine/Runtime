@@ -104,6 +104,8 @@ List of bindings to do:
 - [X] TDF
 - [X] Hasher (inside engine/common/utils/hasher.hpp)
 
+- [ ] Make it so when drawing 2D primitives an overload so there's an X axis to make layering easier
+
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] Allow you to set the renderer resloution so you can have a resloution different from the window
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
