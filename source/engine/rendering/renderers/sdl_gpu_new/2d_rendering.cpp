@@ -1,26 +1,37 @@
 #include "engine/rendering/renderers/sdl_gpu_renderer_new.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    void SDLGPURenderer::BeginMode2D() {
+        if (mCommandBuffer == nullptr || mSwapchainTexture == nullptr) {
+            return;
+        }
+        if (mMode3DActive) {
+            EndMode3D();
+        }
+
+        Setup2DCamera();
+        mVertexCount = 0;
+        mIndexCount = 0;
+        mMode2DActive = Map2DBatchBuffers();
+    }
+
+    void SDLGPURenderer::EndMode2D() {
+        Flush2D();
+        mMode2DActive = false;
+    }
+
     void SDLGPURenderer::Flush2D() {
-        if (mVertexCount == 0 || mIndexCount == 0) {
+        Unmap2DBatchBuffers();
+
+        if (mVertexCount == 0 || mIndexCount == 0 || mCommandBuffer == nullptr) {
             return;
         }
 
-        SDL_UnmapGPUTransferBuffer(
-            mGPUDevice,
-            mVertexUploadBuffer.Get()
-        );
-
-        SDL_UnmapGPUTransferBuffer(
-            mGPUDevice,
-            mIndexUploadBuffer.Get()
-        );
-
-        mMappedVertices = nullptr;
-        mMappedIndices = nullptr;
-
         SDL_GPUCopyPass* copy_pass =
             SDL_BeginGPUCopyPass(mCommandBuffer);
+        if (copy_pass == nullptr) {
+            return;
+        }
 
         SDL_GPUTransferBufferLocation vertex_source {};
         vertex_source.transfer_buffer = mVertexUploadBuffer.Get();
@@ -62,7 +73,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_EndGPUCopyPass(copy_pass);
 
-        // Rendering comes here.
+        // TODO: Begin a 2D render pass, bind mDefault2DPipeline, upload
+        // m2DCameraUniform, bind textures, and draw the queued sprite commands.
 
         mVertexCount = 0;
         mIndexCount = 0;
@@ -72,7 +84,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         const glm::vec3& position,
         const glm::vec2& size,
         const glm::vec4& colour,
-        Texture* texture,
+        GPUTexture* texture,
         float rotation) {
 
         detail::RenderCommand command;
@@ -99,6 +111,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint8_t a,
         float rotation
     ) {
+        if (!mMode2DActive) {
+            return;
+        }
         Draw2DQuad(
             glm::vec3(x, y, 0.0f),
             glm::vec2(w, h),

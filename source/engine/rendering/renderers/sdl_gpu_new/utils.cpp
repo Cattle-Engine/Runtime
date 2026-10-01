@@ -1,7 +1,7 @@
 #include "engine/rendering/renderers/sdl_gpu_renderer_new.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
-    SDLGPURenderer::Texture SDLGPURenderer::BasicCreateTextureFromData(
+    SDLGPURenderer::GPUTexture SDLGPURenderer::BasicCreateTextureFromData(
         int width,
         int height,
         const void* pixels
@@ -106,6 +106,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_ReleaseGPUTransferBuffer(mGPUDevice, transfer_buffer);
-        return Texture(mGPUDevice, texture);
+        return GPUTexture(mGPUDevice, texture);
     }
 }

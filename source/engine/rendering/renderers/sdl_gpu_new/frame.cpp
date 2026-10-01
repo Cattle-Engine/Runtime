@@ -1,92 +1,150 @@
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_gpu.h>
 
+#include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "engine/common/tracelog.hpp"
 #include "engine/rendering/renderers/sdl_gpu_renderer_new.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
-    int SDLGPURenderer::BeginFrame([[maybe_unused]] SDL_Window* window) {
+    void SDLGPURenderer::Setup2DCamera() {
+        const float width = std::max(pRenderSize.x, 1.0f);
+        const float height = std::max(pRenderSize.y, 1.0f);
+
+        const glm::mat4 projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+        glm::mat4 view{1.0f};
+        view = glm::translate(view, glm::vec3(-mCamera2D.x, -mCamera2D.y, 0.0f));
+        view = glm::scale(view, glm::vec3(mCamera2D.zoom, mCamera2D.zoom, 1.0f));
+
+        m2DMVP = projection * view;
+        m2DCameraUniform.viewProjection = m2DMVP;
+        m2DCameraUniform.position = glm::vec4(mCamera2D.x, mCamera2D.y, 0.0f, 1.0f);
+    }
+
+    void SDLGPURenderer::Setup3DCamera() {
+        const Camera3D& camera = GetCamera3DState();
+        const float windowAspect = std::max(pRenderSize.x, 1.0f) / std::max(pRenderSize.y, 1.0f);
+        const float aspect = camera.aspectOverride > 0.0001f ? camera.aspectOverride : windowAspect;
+
+        glm::mat4 view{1.0f};
+        if (camera.useTarget) {
+            view = glm::lookAt(camera.position, camera.target, camera.up);
+        } else {
+            const glm::mat4 cameraWorld = glm::translate(glm::mat4(1.0f), camera.position)
+                * glm::mat4_cast(glm::quat(camera.rotation));
+            view = glm::inverse(cameraWorld);
+        }
+
+        glm::mat4 projection{1.0f};
+        if (camera.projection == Camera3D::ProjectionMode::Orthographic) {
+            const float halfWidth = camera.orthoSize * aspect;
+            projection = glm::ortho(-halfWidth, halfWidth, -camera.orthoSize, camera.orthoSize,
+                                   camera.nearClip, camera.farClip);
+        } else {
+            projection = glm::perspective(camera.fov, aspect, camera.nearClip, camera.farClip);
+        }
+
+        m3DMVP = projection * view;
+        m3DCameraUniform.viewProjection = m3DMVP;
+        m3DCameraUniform.position = glm::vec4(camera.position, 1.0f);
+    }
+
+    bool SDLGPURenderer::Map2DBatchBuffers() {
+        if (mMappedVertices != nullptr || mMappedIndices != nullptr) {
+            return mMappedVertices != nullptr && mMappedIndices != nullptr;
+        }
+
+        mMappedVertices = static_cast<detail::Vertex*>(
+            SDL_MapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get(), true));
+        mMappedIndices = static_cast<uint16_t*>(
+            SDL_MapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get(), true));
+        if (mMappedVertices != nullptr && mMappedIndices != nullptr) {
+            return true;
+        }
+
+        CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to map 2D batch buffers: {}", SDL_GetError());
+        Unmap2DBatchBuffers();
+        return false;
+    }
+
+    void SDLGPURenderer::Unmap2DBatchBuffers() {
+        if (mMappedVertices != nullptr) {
+            SDL_UnmapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get());
+            mMappedVertices = nullptr;
+        }
+        if (mMappedIndices != nullptr) {
+            SDL_UnmapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get());
+            mMappedIndices = nullptr;
+        }
+    }
+
+    void SDLGPURenderer::ResetFrameState() {
+        Unmap2DBatchBuffers();
+        mVertexCount = 0;
+        mIndexCount = 0;
+        mRenderCommands.clear();
+        mMode2DActive = false;
+        mMode3DActive = false;
+    }
+
+    int SDLGPURenderer::BeginFrame(SDL_Window* window) {
+        if (mCommandBuffer != nullptr) {
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] BeginFrame called while a frame is already active");
+            return 1;
+        }
+
+        mWindow = window != nullptr ? window : mWindow;
         mCommandBuffer = SDL_AcquireGPUCommandBuffer(mGPUDevice);
         if (mCommandBuffer == nullptr) {
             CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to acquire GPU command buffer: {}", SDL_GetError());
             return 1;
         }
 
-        /*
-            TODO:
-            Have a file named something like 2d_rendering.cpp and have a function "Setup2DMVP" that does smth like this 
-            gMVP = Utils::GetCameraMatrix(gCamera, (float)winW, (float)winH);
-            (pulled from the old renderer)
-        */
-
         int win_w = 0;
         int win_h = 0;
         SDL_GetWindowSizeInPixels(mWindow, &win_w, &win_h);
         pRenderSize = glm::vec2(static_cast<float>(win_w), static_cast<float>(win_h));
+        Setup2DCamera();
+        Setup3DCamera();
+        ResetFrameState();
 
         mSwapchainTexture = nullptr;
         if(!SDL_WaitAndAcquireGPUSwapchainTexture(mCommandBuffer, mWindow, &mSwapchainTexture, nullptr, nullptr)) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire swapchain texture: {}", SDL_GetError());
+            SDL_CancelGPUCommandBuffer(mCommandBuffer);
+            mCommandBuffer = nullptr;
             return 2;
         }
 
         if (mSwapchainTexture == nullptr) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Swapchain texture was nullptr!");
+            SDL_CancelGPUCommandBuffer(mCommandBuffer);
+            mCommandBuffer = nullptr;
             return 3;
         }
 
-        mMappedIndices = nullptr;
-        mMappedVertices = nullptr;
-        mIndexCount = 0;
-        mVertexCount = 0;
-
-        mMappedVertices = static_cast<detail::Vertex*>(SDL_MapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get(), true));
-        mMappedIndices = static_cast<uint16_t*>(SDL_MapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get(), true));
         return 0;
     }
 
     int SDLGPURenderer::EndFrame([[maybe_unused]] SDL_Window* window) {
-        if (mMappedVertices != nullptr) {
-            SDL_UnmapGPUTransferBuffer(mGPUDevice, mVertexUploadBuffer.Get());
-            mMappedVertices = nullptr;
+        if (mCommandBuffer == nullptr || mSwapchainTexture == nullptr) {
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] EndFrame called without an active frame");
+            return 1;
         }
 
-        if (mMappedIndices != nullptr) {
-            SDL_UnmapGPUTransferBuffer(mGPUDevice, mIndexUploadBuffer.Get());
-            mMappedIndices = nullptr;
+        // A caller may omit EndMode2D; still finish its upload before presenting.
+        if (mMode2DActive || mMappedVertices != nullptr || mMappedIndices != nullptr) {
+            Flush2D();
         }
-
-        if (mVertexCount > 0 && mIndexCount > 0) {
-            SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(mCommandBuffer);
-            if (copy_pass != nullptr) {
-                SDL_GPUTransferBufferLocation vertex_source{};
-                vertex_source.transfer_buffer = mVertexUploadBuffer.Get();
-                vertex_source.offset = 0;
-
-                SDL_GPUBufferRegion vertex_destination{};
-                vertex_destination.buffer = mVertexBuffer.Get();
-                vertex_destination.offset = 0;
-                vertex_destination.size = static_cast<Uint32>(mVertexCount * sizeof(detail::Vertex));
-
-                SDL_UploadToGPUBuffer(copy_pass, &vertex_source, &vertex_destination, true);
-
-                SDL_GPUTransferBufferLocation index_source{};
-                index_source.transfer_buffer = mIndexUploadBuffer.Get();
-                index_source.offset = 0;
-
-                SDL_GPUBufferRegion index_destination{};
-                index_destination.buffer = mIndexBuffer.Get();
-                index_destination.offset = 0;
-                index_destination.size = static_cast<Uint32>(mIndexCount * sizeof(uint16_t));
-
-                SDL_UploadToGPUBuffer(copy_pass, &index_source, &index_destination, true);
-                SDL_EndGPUCopyPass(copy_pass);
-            }
+        if (mMode3DActive) {
+            EndMode3D();
         }
 
         SDL_GPUColorTargetInfo color_target{};
         color_target.texture = mSwapchainTexture;
-        color_target.clear_color = {0.12f, 0.12f, 0.14f, 1.0f};
+        color_target.clear_color = mClearColour;
         color_target.load_op = SDL_GPU_LOADOP_CLEAR;
         color_target.store_op = SDL_GPU_STOREOP_STORE;
 
@@ -95,12 +153,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_EndGPURenderPass(render_pass);
         }
 
-        SDL_SubmitGPUCommandBuffer(mCommandBuffer);
+        if (!SDL_SubmitGPUCommandBuffer(mCommandBuffer)) {
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to submit GPU command buffer: {}", SDL_GetError());
+        }
 
         mCommandBuffer = nullptr;
         mSwapchainTexture = nullptr;
-        mVertexCount = 0;
-        mIndexCount = 0;
+        ResetFrameState();
         return 0;
     }
 }
