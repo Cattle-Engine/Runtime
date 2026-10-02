@@ -61,6 +61,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 4;
         }
 
+        const int pipeline_3d_results = Bootstrap_CreateDefault3DPipeline();
+        if (pipeline_3d_results != 0) {
+            return 6;
+        }
+
         // create the buffers. Create info is stored in a anonymous namespace above
         CE_LOG(LogLevel::Info, "[SDLGPURenderer] Creating batch buffers");
 

@@ -84,4 +84,30 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         return 0;
     }
+
+    int SDLGPURenderer::Bootstrap_CreateDefault3DPipeline() {
+        CE_LOG(LogLevel::Info, "[SDLGPURenderer] Loading default 3D vertex shader");
+        mDefault3DVertexShader = LoadShader("standard_3d.vert", ShaderStage::Vertex, 0, 1, 0, 0);
+        if (!mDefault3DVertexShader.IsValid()) {
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to load default 3D vertex shader!");
+            return 1;
+        }
+
+        CE_LOG(LogLevel::Info, "[SDLGPURenderer] Load default 3D fragment shader");
+        mDefault3DFragmentShader = LoadShader("standard_3d.frag", ShaderStage::Fragment, 1, 0, 0 ,0);
+        if (!mDefault3DFragmentShader.IsValid()) {
+            mDefault3DVertexShader.Reset();
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to load default 3D fragment shader");
+            return 2;
+        }
+
+        CE_LOG(LogLevel::Info, "[SDLGPURenderer] Creating default 3D pipeline");
+        mDefault3DPipeline = CreateGraphicsPipeline(mDefault3DVertexShader, mDefault3DFragmentShader);
+        if (!mDefault3DPipeline.IsValid()) {
+            CE_LOG(LogLevel::Error, "[SDLGPURenderer] Failed to create default 3D pipeline");
+            return 3;
+        }
+
+        return 0;
+    }
 }

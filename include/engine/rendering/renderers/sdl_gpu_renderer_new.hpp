@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -213,6 +214,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             using GPUTexture = detail::Texture;
 
             int Bootstrap_CreateDefault2DPipeline();
+            int Bootstrap_CreateDefault3DPipeline();
 
             Shader LoadShader(const std::string& shader_name, ShaderStage stage,uint32_t sampler_count, uint32_t uniform_buffer_count, uint32_t storage_buffer_coun, uint32_t storage_texture_count);
             GraphicsPipeline CreateGraphicsPipeline(Shader& vertex, Shader& fragment);
@@ -258,6 +260,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             Shader mDefault2DFragmentShader = Shader();
             GraphicsPipeline mDefault2DPipeline = GraphicsPipeline();
 
+            Shader mDefault3DVertexShader;
+            Shader mDefault3DFragmentShader;
+            GraphicsPipeline mDefault3DPipeline;
+
             // default textures
             GPUTexture mWhiteTexture;
             GPUTexture mErrorTexture;
@@ -278,6 +284,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             size_t mIndexCount = 0;
             size_t mVertexCount = 0;
             std::vector<detail::RenderCommand> mRenderCommands;
+            std::shared_ptr<GraphicsPipeline> mCurrentPipeline;
 
             // 2D rendering 
             Camera2D mCamera2D{};
