@@ -157,9 +157,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (stage == ShaderStage::Vertex) {
             loadedShader = Utils::LoadShader(gDevice, shaderPath, 0, kCustomVertexUniformBufferCount, 0, 0, gVFS);
         } else {
-            const Uint32 count =
-                samplerCount > 0 ? samplerCount
-                                 : std::max(kDefaultCustomFragmentSamplerCount, shaderProgram->FragmentSamplerCount);
+            const Uint32 count = samplerCount >= 0
+                ? static_cast<Uint32>(samplerCount)
+                : shaderProgram->FragmentSamplerCount;
             loadedShader = Utils::LoadShader(gDevice, shaderPath, count, kCustomFragmentUniformBufferCount, 0, 0, gVFS);
         }
 
