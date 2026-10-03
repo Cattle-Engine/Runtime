@@ -53,6 +53,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         PipelineMode Mode = PipelineMode::Mode2D;
     };
 
+    // Fragment push data shared by 2D and 3D shader programs. Keep this field
+    // order in sync with FragmentShaderUserData uniform blocks in GLSL.
+    struct FragmentShaderUserData {
+        glm::vec4 tint{1.0f};
+        glm::vec4 resolution{0.0f};
+        glm::vec4 misc{0.0f};
+        glm::vec4 customVec4[8]{};
+        glm::ivec4 customInt4[4]{};
+
+        glm::vec4 sunDirectionEnabled{0.0f, -1.0f, 0.0f, 1.0f};
+        glm::vec4 sunColourIntensity{1.0f};
+        glm::vec4 ambientColourIntensity{1.0f, 1.0f, 1.0f, 0.2f};
+        glm::vec4 materialTint{1.0f};
+        glm::vec4 materialProps{1.0f, 0.0f, 32.0f, 0.0f};
+        glm::vec4 cameraPositionShininess{0.0f, 0.0f, 0.0f, 32.0f};
+        glm::vec4 normalExists{0.0f};
+    };
+
     struct DeferredDeleteEntry {
         SDLGPUTexData* data;
         int framesUntilDelete;

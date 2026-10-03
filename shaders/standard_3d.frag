@@ -11,7 +11,12 @@ layout(set = 2, binding = 0) uniform sampler2D albedoSampler;
 layout(set = 2, binding = 1) uniform sampler2D normalSampler;
 layout(set = 2, binding = 2) uniform sampler2D metallicRoughnessSampler;
 
-layout(set = 3, binding = 0) uniform LightingUBO {
+layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
+    vec4 tint;
+    vec4 resolution;
+    vec4 misc;
+    vec4 customVec4[8];
+    ivec4 customInt4[4];
     vec4 sunDirectionEnabled;
     vec4 sunColourIntensity;
     vec4 ambientColourIntensity;

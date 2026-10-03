@@ -369,21 +369,61 @@ def locate_glslc() -> Path:
 
 def iter_shader_sources() -> Iterable[Path]:
     return sorted(
-        [*SHADER_SOURCE_DIR.glob("*.vert"), *SHADER_SOURCE_DIR.glob("*.frag")],
-        key=lambda path: path.name,
+        [
+            *SHADER_SOURCE_DIR.rglob("*.vert"),
+            *SHADER_SOURCE_DIR.rglob("*.frag"),
+        ],
+        key=lambda path: path.relative_to(SHADER_SOURCE_DIR).as_posix(),
     )
 
 
 def shader_symbol_name(shader_path: Path) -> str:
-    return f"{shader_path.stem}_{shader_path.suffix.lstrip('.')}_spv"
+    relative = shader_path.relative_to(SHADER_SOURCE_DIR)
+
+    parts = list(relative.with_suffix("").parts)
+
+    return "_".join(
+        [
+            *(
+                part.replace("-", "_").replace(".", "_")
+                for part in parts
+            ),
+            shader_path.suffix.lstrip("."),
+            "spv",
+        ]
+    )
 
 
 def generated_shader_header_path(shader_path: Path) -> Path:
-    return SHADER_HEADER_DIR / f"{shader_symbol_name(shader_path)}.h"
+    relative = shader_path.relative_to(SHADER_SOURCE_DIR)
+    relative_parent = relative.parent
+
+    header_name = f"{shader_symbol_name(shader_path)}.h"
+    return SHADER_HEADER_DIR / relative_parent / header_name
 
 
 def write_shader_header(symbol_name: str, payload: bytes, header_path: Path) -> None:
-    return
+    header_path.parent.mkdir(parents=True, exist_ok=True)
+
+    values = ", ".join(f"0x{byte:02x}" for byte in payload)
+
+    content = f"""#pragma once
+
+#include <cstddef>
+#include <cstdint>
+
+namespace CE::Rendering::Shaders {{
+
+inline constexpr std::uint8_t {symbol_name}[] = {{
+    {values}
+}};
+
+inline constexpr std::size_t {symbol_name}_size = sizeof({symbol_name});
+
+}} // namespace CE::Rendering::Shaders
+"""
+
+    header_path.write_text(content, encoding="utf-8")
 
 
 def build_shaders() -> None:
@@ -391,15 +431,30 @@ def build_shaders() -> None:
     SHADER_ASSET_DIR.mkdir(parents=True, exist_ok=True)
 
     for shader_path in iter_shader_sources():
+        relative_shader = shader_path.relative_to(SHADER_SOURCE_DIR)
+
         symbol_name = shader_symbol_name(shader_path)
-        tmp_spv = BUILD_DIR / "generated" / "shaders" / f"{shader_path.name}.spv"
+
+        tmp_spv = (
+            BUILD_DIR
+            / "generated"
+            / "shaders"
+            / relative_shader.parent
+            / f"{relative_shader.name}.spv"
+        )
         tmp_spv.parent.mkdir(parents=True, exist_ok=True)
 
         run([str(glslc), str(shader_path), "-o", str(tmp_spv)])
 
         spv_bytes = tmp_spv.read_bytes()
         header_path = generated_shader_header_path(shader_path)
-        asset_path = SHADER_ASSET_DIR / f"{shader_path.stem}.{shader_path.suffix.lstrip('.')}.spv"
+
+        asset_path = (
+            SHADER_ASSET_DIR
+            / relative_shader.parent
+            / f"{relative_shader.name}.spv"
+        )
+        asset_path.parent.mkdir(parents=True, exist_ok=True)
 
         write_shader_header(symbol_name, spv_bytes, header_path)
         shutil.copyfile(tmp_spv, asset_path)
@@ -507,6 +562,17 @@ def clean_generated_artifacts(build_dir: Path, *, remove_build_dir: bool) -> Non
         if header_path.exists():
             header_path.unlink()
             log(f"Removed {header_path}")
+
+        parent = header_path.parent
+
+        while parent != SHADER_HEADER_DIR and parent.exists():
+            try:
+                parent.rmdir()
+                log(f"Removed empty directory {parent}")
+            except OSError:
+                break
+
+            parent = parent.parent
 
 def generate_compiler_enum_impl(compiler: str):
     generated_path: Path = BUILD_DIR / "generated" / "enum_to_string_impl.inl"

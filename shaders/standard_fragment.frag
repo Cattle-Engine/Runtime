@@ -5,6 +5,21 @@ layout(location = 1) in vec2 fragUV;
 
 layout(set = 2, binding = 0) uniform sampler2D texSampler;
 
+layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
+    vec4 tint;
+    vec4 resolution;
+    vec4 misc;
+    vec4 customVec4[8];
+    ivec4 customInt4[4];
+    vec4 sunDirectionEnabled;
+    vec4 sunColourIntensity;
+    vec4 ambientColourIntensity;
+    vec4 materialTint;
+    vec4 materialProps;
+    vec4 cameraPositionShininess;
+    vec4 normalExists;
+};
+
 layout(location = 0) out vec4 outColor;
 
 void main() {

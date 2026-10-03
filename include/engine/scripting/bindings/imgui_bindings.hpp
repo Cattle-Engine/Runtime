@@ -102,4 +102,9 @@ namespace CE::Scripting::Bindings::ImGui {
     inline bool MenuItem(const std::string& label) {
         return ::ImGui::MenuItem(label.c_str());
     }
+
+    inline bool Checkbox(const std::string& label, bool checked) {
+        ::ImGui::Checkbox(label.c_str(), &checked);
+        return checked;
+    }
 } // namespace CE::Scripting::Bindings::ImGui

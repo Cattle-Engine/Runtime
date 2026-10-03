@@ -28,7 +28,7 @@ This renderer normalizes uniform names to lowercase before matching (see `Normal
 - **Push / uniform buffers:**: The engine pushes uniforms in a fixed layout:
 	- Vertex uniform buffer slot 0: `mat4 mvp` (the global or overridden MVP).
 	- Vertex uniform buffer slot 1: `VertexShaderUserData` (only pushed if the program doesn't use the default vertex shader).
-	- Fragment uniform buffer slot 0: `FragmentShaderUserData` (only pushed if the program doesn't use the default fragment shader).
+	- Fragment uniform buffer slot 0: `FragmentShaderUserData` (pushed for every draw).
 
 	The C++ structs used (from `sdl_gpu_pipeline.cpp`) are:
 
@@ -45,7 +45,14 @@ This renderer normalizes uniform names to lowercase before matching (see `Normal
 		- `vec4 misc` (used for `time`, `time2`, `time3`, `time4`)
 		- `vec4 customVec4[8]`
 		- `ivec4 customInt4[4]`
-		}
+		- `vec4 sunDirectionEnabled` (xyz = sun direction, w = enabled)
+		- `vec4 sunColourIntensity` (rgb = sun colour, a = intensity)
+		- `vec4 ambientColourIntensity` (rgb = ambient colour, a = intensity)
+		- `vec4 materialTint`
+		- `vec4 materialProps` (x = roughness multiplier, y = metallic multiplier)
+		- `vec4 cameraPositionShininess`
+		- `vec4 normalExists` (x = 1 when a normal map is bound)
+	}
 
 - **Direct uniform setters (host-side helpers):** The renderer exposes functions that map specific uniform names to fields in the program object. These are the canonical names the engine expects:
 	- Floats: `time`, `time2`, `time3`, `time4` → `program->Misc.x/y/z/w` (pushed to fragment `misc`).
@@ -76,12 +83,12 @@ This renderer normalizes uniform names to lowercase before matching (see `Normal
 **Uniform buffer binding slots (summary)**
 - Vertex buffer slot 0: `mvp` (mat4)
 - Vertex buffer slot 1: `VertexShaderUserData` (model, customMat4, customVec4[], customInt4[])
-- Fragment buffer slot 0: `FragmentShaderUserData` (tint, resolution, misc, customVec4[], customInt4[])
+- Fragment buffer slot 0: `FragmentShaderUserData` (2D user fields followed by 3D lighting/material fields)
 
 **Shader authoring notes / best practices**
 - **Names & case:**: All host-side uniform lookups are lowercased; prefer lowercase uniform names in your shaders to avoid surprises.
 - **Reserved semantics:**: Use the engine-provided uniform names to interop with the host setters: `mvp`, `model`, `tint`, `resolution`, `time`, etc.
-- **Custom arrays:**: Allocate at least `vec4 customVec4[8]` and `ivec4 customInt4[4]` in your shader fragment/user uniform blocks to match the host push data if you plan to use indexed custom uniforms.
+- **Fragment user block:**: Declare the complete `FragmentShaderUserData` layout in every fragment shader, including the 3D lighting/material fields, even when a shader does not consume them. This keeps the push-data layout stable across 2D and 3D pipelines.
 - **Sampler indices:**: The host binds samplers starting at slot 0. If your shader expects multiple textures, index them in the shader sampler bindings starting at binding 0 (or the corresponding descriptor set if your shading language requires explicit bindings).
 - **Matching vertex attributes:**: Ensure your vertex shader reads attributes at locations 0..2 with matching types/offsets (pos vec3, color ubyte4_norm, uv vec2) — mismatched layouts will produce incorrect rendering.
 - **Mode switch:**: If your shader does 3D-specific work, include `3d` in the shader filename or call `SetShaderInt("mode3d", 1)` at runtime to force `Mode3D` so the engine will create the 3D pipeline variant.

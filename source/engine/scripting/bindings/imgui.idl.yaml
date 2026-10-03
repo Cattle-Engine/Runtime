@@ -222,3 +222,11 @@ ASFunctions:
     CppFunction: CE::Scripting::Bindings::ImGui::MenuItem
     CallingConvention: Generic
     Description: Draws a menu item and returns true when it is activated.
+
+  - Name: Checkbox
+    ReturnType: bool
+    Signature: const string& in label, bool checked
+    CppSignature: const std::string&, bool
+    CppFunction: CE::Scripting::Bindings::ImGui::Checkbox
+    CallingConvention: Generic
+    Description: Draws a checkbox from the provided value and returns the updated checked state.

@@ -31,20 +31,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             glm::ivec4 customInt4[4]{};
         };
 
-        struct Lighting3DUniformData {
-            glm::vec4 sunDirectionEnabled{0.0f, -1.0f, 0.0f, 1.0f};
-            glm::vec4 sunColourIntensity{1.0f, 1.0f, 1.0f, 1.0f};
-            glm::vec4 ambientColourIntensity{1.0f, 1.0f, 1.0f, 0.2f};
-            glm::vec4 materialTint{1.0f};
-            glm::vec4 materialProps{1.0f, 0.0f, 32.0f, 0.0f};
-            glm::vec4 cameraPositionShininess{0.0f, 0.0f, 0.0f, 32.0f};
-            glm::vec4 normalExists{0.0f}; // .x == 1.0 -> normal map present
-            glm::vec4 resolution{0.0f};
-            glm::vec4 misc{0.0f};
-            glm::vec4 customVec4[8]{};
-            glm::ivec4 customInt4[4]{};
-        };
-
         struct SkyboxFace {
             const Texture* texture = nullptr;
             glm::vec3 offset{0.0f};
@@ -928,7 +914,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             modelUniform.normalMatrix = glm::inverseTranspose(modelUniform.model);
             SDL_PushGPUVertexUniformData(gCommandBuffer, 1, &modelUniform, sizeof(modelUniform));
 
-            Lighting3DUniformData fragmentUniform{};
+            FragmentShaderUserData fragmentUniform{};
             fragmentUniform.sunDirectionEnabled = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
             fragmentUniform.sunColourIntensity = glm::vec4(0.0f);
             fragmentUniform.ambientColourIntensity = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1087,7 +1073,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             SDL_PushGPUVertexUniformData(gCommandBuffer, 1, &modelUniform, sizeof(modelUniform));
 
-            Lighting3DUniformData fragmentUniform{};
+            FragmentShaderUserData fragmentUniform{};
             fragmentUniform.sunDirectionEnabled = glm::vec4(lighting.sun.direction, lighting.sun.enabled ? 1.0f : 0.0f);
             fragmentUniform.sunColourIntensity = glm::vec4(lighting.sun.colour, lighting.sun.intensity);
             fragmentUniform.ambientColourIntensity = glm::vec4(lighting.ambient.colour, lighting.ambient.intensity);

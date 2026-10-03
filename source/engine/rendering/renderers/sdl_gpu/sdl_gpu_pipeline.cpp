@@ -12,13 +12,6 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             glm::ivec4 customInt4[4]{};
         };
 
-        struct FragmentShaderUserData {
-            glm::vec4 tint{1.0f, 1.0f, 1.0f, 1.0f};
-            glm::vec4 resolution{0.0f, 0.0f, 0.0f, 0.0f};
-            glm::vec4 misc{0.0f, 0.0f, 0.0f, 0.0f};
-            glm::vec4 customVec4[8]{};
-            glm::ivec4 customInt4[4]{};
-        };
     } // namespace
 
     SDL_GPUGraphicsPipeline* SDL_GPU_Renderer::CreateGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
@@ -94,7 +87,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default fragment shader");
-        gDefaultFragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 0, 0, 0, gVFS);
+        gDefaultFragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 1, 0, 0, gVFS);
         if (!gDefaultFragmentShader) {
             SDL_ReleaseGPUShader(gDevice, gDefaultVertexShader);
             gDefaultVertexShader = nullptr;
@@ -163,8 +156,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_PushGPUVertexUniformData(gCommandBuffer, 1, &vertexUserData, sizeof(vertexUserData));
         }
 
-        if (program && !program->UsesDefaultFragment) {
-            FragmentShaderUserData fragmentUserData{};
+        FragmentShaderUserData fragmentUserData{};
+        if (program) {
             fragmentUserData.tint = program->Tint;
             fragmentUserData.resolution = program->Resolution;
             fragmentUserData.misc = program->Misc;
@@ -175,8 +168,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 fragmentUserData.customInt4[i] = program->CustomInt4[i];
             }
 
-            SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUserData, sizeof(fragmentUserData));
         }
+        SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUserData, sizeof(fragmentUserData));
     }
 
     void SDL_GPU_Renderer::BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler) {

@@ -8,12 +8,19 @@ layout(set = 2, binding = 1) uniform sampler2D texSampler1;
 layout(set = 2, binding = 2) uniform sampler2D texSampler2;
 layout(set = 2, binding = 3) uniform sampler2D texSampler3;
 
-layout(set = 3, binding = 0) uniform FragmentUserData {
+layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
     vec4 tint;
     vec4 resolution;
     vec4 misc;
     vec4 customVec4[8];
     ivec4 customInt4[4];
+    vec4 sunDirectionEnabled;
+    vec4 sunColourIntensity;
+    vec4 ambientColourIntensity;
+    vec4 materialTint;
+    vec4 materialProps;
+    vec4 cameraPositionShininess;
+    vec4 normalExists;
 } ubo;
 
 layout(location = 0) out vec4 outColor;

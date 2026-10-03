@@ -9,7 +9,7 @@ tools/cache/python/
 tools/cache/vcpkg/vcpkg/
 assets/shaders/Compiled/
 /assets
-include/engine/renderers/shaders/*_spv.h
+include/engine/renderers/shaders/**
 imgui.ini
 .codex
 .cache/
