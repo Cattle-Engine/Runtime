@@ -11,6 +11,7 @@
 - [input_text_input](input_text_input.md)
 - [instance_bindings](instance_bindings.md)
 - [math](math.md)
+- [performance_bindings](performance_bindings.md)
 - [rendering_2d](rendering_2d.md)
 - [rendering_2d_animated_textures](rendering_2d_animated_textures.md)
 - [rendering_2d_fonts](rendering_2d_fonts.md)

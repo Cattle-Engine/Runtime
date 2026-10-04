@@ -113,10 +113,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         if (stage == ShaderStage::Vertex) {
-            return shaderProgram->UsesDefaultVertex ? gDefaultVertexShader : shaderProgram->VertexShader;
+            return shaderProgram->UsesDefaultVertex ? mDefaultVertexShader : shaderProgram->VertexShader;
         }
 
-        return shaderProgram->UsesDefaultFragment ? gDefaultFragmentShader : shaderProgram->FragmentShader;
+        return shaderProgram->UsesDefaultFragment ? mDefaultFragmentShader : shaderProgram->FragmentShader;
     }
 
     void SDL_GPU_Renderer::ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) {
@@ -128,7 +128,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             (stage == ShaderStage::Vertex) ? shaderProgram->VertexShader : shaderProgram->FragmentShader;
 
         if (shaderHandle) {
-            SDL_ReleaseGPUShader(gDevice, shaderHandle);
+            SDL_ReleaseGPUShader(mDevice, shaderHandle);
             shaderHandle = nullptr;
         }
 
@@ -141,7 +141,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     bool SDL_GPU_Renderer::LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path,
                                                       ShaderStage stage, Uint32 samplerCount) {
-        if (!gDevice || !shaderProgram) {
+        if (!mDevice || !shaderProgram) {
             return false;
         }
 
@@ -155,12 +155,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         SDL_GPUShader* loadedShader = nullptr;
         if (stage == ShaderStage::Vertex) {
-            loadedShader = Utils::LoadShader(gDevice, shaderPath, 0, kCustomVertexUniformBufferCount, 0, 0, gVFS);
+            loadedShader = Utils::LoadShader(mDevice, shaderPath, 0, kCustomVertexUniformBufferCount, 0, 0, mVFS);
         } else {
             const Uint32 count = samplerCount >= 0
                 ? static_cast<Uint32>(samplerCount)
                 : shaderProgram->FragmentSamplerCount;
-            loadedShader = Utils::LoadShader(gDevice, shaderPath, count, kCustomFragmentUniformBufferCount, 0, 0, gVFS);
+            loadedShader = Utils::LoadShader(mDevice, shaderPath, count, kCustomFragmentUniformBufferCount, 0, 0, mVFS);
         }
 
         if (!loadedShader) {
@@ -192,7 +192,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         backendShader->BoundTextures.resize(1, nullptr);
         auto* shaderProgram = new Shader();
         shaderProgram->handle = backendShader;
-        shaderProgram->backend = gBackend;
+        shaderProgram->backend = mBackend;
         return shaderProgram;
     }
 
@@ -284,12 +284,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         if (program->Pipeline) {
-            SDL_ReleaseGPUGraphicsPipeline(gDevice, program->Pipeline);
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, program->Pipeline);
         }
         program->Pipeline = newPipeline;
         program->Dirty = false;
 
-        if (gCurrentShader == program) {
+        if (mCurrentShader == program) {
             BindActivePipeline();
             PushActiveShaderUniforms();
         }
@@ -308,8 +308,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        if (gCurrentShader == program) {
-            gCurrentShader = nullptr;
+        if (mCurrentShader == program) {
+            mCurrentShader = nullptr;
             BindActivePipeline();
         }
 
@@ -317,7 +317,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         ReleaseProgramStage(program, ShaderStage::Fragment);
 
         if (program->Pipeline) {
-            SDL_ReleaseGPUGraphicsPipeline(gDevice, program->Pipeline);
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, program->Pipeline);
             program->Pipeline = nullptr;
         }
 
@@ -344,148 +344,148 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
         }
 
-        gCurrentShader = program;
+        mCurrentShader = program;
         BindActivePipeline();
-        if (gCommandBuffer) {
+        if (mCommandBuffer) {
             PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::UnbindShader() {
-        gCurrentShader = nullptr;
+        mCurrentShader = nullptr;
         BindActivePipeline();
-        if (gCommandBuffer) {
+        if (mCommandBuffer) {
             PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderFloat(const char* name, float value) {
-        if (!gCurrentShader || !name) {
+        if (!mCurrentShader || !name) {
             return;
         }
 
         const std::string uniformName = NormalizeUniformName(name);
         if (uniformName == "time") {
-            gCurrentShader->Misc.x = value;
-            if (gCommandBuffer)
+            mCurrentShader->Misc.x = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
         if (uniformName == "time2") {
-            gCurrentShader->Misc.y = value;
-            if (gCommandBuffer)
+            mCurrentShader->Misc.y = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
         if (uniformName == "time3") {
-            gCurrentShader->Misc.z = value;
-            if (gCommandBuffer)
+            mCurrentShader->Misc.z = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
         if (uniformName == "time4") {
-            gCurrentShader->Misc.w = value;
-            if (gCommandBuffer)
+            mCurrentShader->Misc.w = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
 
         size_t index = 0;
-        if (ParseIndexedUniformName(uniformName.c_str(), "customfloat", gCurrentShader->CustomVec4.size() * 4, index)) {
-            gCurrentShader->CustomVec4[index / 4][index % 4] = value;
-            if (gCommandBuffer)
+        if (ParseIndexedUniformName(uniformName.c_str(), "customfloat", mCurrentShader->CustomVec4.size() * 4, index)) {
+            mCurrentShader->CustomVec4[index / 4][index % 4] = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderVec2(const char* name, float x, float y) {
-        if (!gCurrentShader || !name) {
+        if (!mCurrentShader || !name) {
             return;
         }
 
         const std::string uniformName = NormalizeUniformName(name);
         if (uniformName == "resolution" || uniformName == "screensize") {
-            gCurrentShader->Resolution = glm::vec4(x, y, gCurrentShader->Resolution.z, gCurrentShader->Resolution.w);
-            if (gCommandBuffer)
+            mCurrentShader->Resolution = glm::vec4(x, y, mCurrentShader->Resolution.z, mCurrentShader->Resolution.w);
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
 
         size_t index = 0;
-        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", gCurrentShader->CustomVec4.size(), index)) {
-            gCurrentShader->CustomVec4[index].x = x;
-            gCurrentShader->CustomVec4[index].y = y;
-            if (gCommandBuffer)
+        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", mCurrentShader->CustomVec4.size(), index)) {
+            mCurrentShader->CustomVec4[index].x = x;
+            mCurrentShader->CustomVec4[index].y = y;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderVec3(const char* name, float x, float y, float z) {
-        if (!gCurrentShader || !name) {
+        if (!mCurrentShader || !name) {
             return;
         }
 
         const std::string uniformName = NormalizeUniformName(name);
         size_t index = 0;
-        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", gCurrentShader->CustomVec4.size(), index)) {
-            gCurrentShader->CustomVec4[index].x = x;
-            gCurrentShader->CustomVec4[index].y = y;
-            gCurrentShader->CustomVec4[index].z = z;
-            if (gCommandBuffer)
+        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", mCurrentShader->CustomVec4.size(), index)) {
+            mCurrentShader->CustomVec4[index].x = x;
+            mCurrentShader->CustomVec4[index].y = y;
+            mCurrentShader->CustomVec4[index].z = z;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderVec4(const char* name, float x, float y, float z, float w) {
-        if (!gCurrentShader || !name) {
+        if (!mCurrentShader || !name) {
             return;
         }
 
         const std::string uniformName = NormalizeUniformName(name);
         if (uniformName == "tint" || uniformName == "colour" || uniformName == "color") {
-            gCurrentShader->Tint = glm::vec4(x, y, z, w);
-            if (gCommandBuffer)
+            mCurrentShader->Tint = glm::vec4(x, y, z, w);
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
 
         size_t index = 0;
-        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", gCurrentShader->CustomVec4.size(), index)) {
-            gCurrentShader->CustomVec4[index] = glm::vec4(x, y, z, w);
-            if (gCommandBuffer)
+        if (ParseIndexedUniformName(uniformName.c_str(), "customvec4", mCurrentShader->CustomVec4.size(), index)) {
+            mCurrentShader->CustomVec4[index] = glm::vec4(x, y, z, w);
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderMat4(const char* name, const float* mat4) {
-        if (!gCurrentShader || !name || !mat4) {
+        if (!mCurrentShader || !name || !mat4) {
             return;
         }
 
         const std::string uniformName = NormalizeUniformName(name);
         const glm::mat4 matrix = glm::make_mat4(mat4);
         if (uniformName == "mvp") {
-            gCurrentShader->OverrideMVP = matrix;
-            gCurrentShader->HasOverrideMVP = true;
-            if (gCommandBuffer)
+            mCurrentShader->OverrideMVP = matrix;
+            mCurrentShader->HasOverrideMVP = true;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
         if (uniformName == "model") {
-            gCurrentShader->ModelMatrix = matrix;
-            if (gCommandBuffer)
+            mCurrentShader->ModelMatrix = matrix;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
             return;
         }
         if (uniformName == "custommat4") {
-            gCurrentShader->CustomMat4 = matrix;
-            if (gCommandBuffer)
+            mCurrentShader->CustomMat4 = matrix;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderInt(const char* name, int value) {
-        if (!gCurrentShader || !name) {
+        if (!mCurrentShader || !name) {
             return;
         }
 
@@ -493,24 +493,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (uniformName == "render3d" || uniformName == "pipeline3d" || uniformName == "mode3d") {
             const auto requestedMode = value != 0 ? SDL_GPU_Renderer_Shader::PipelineMode::Mode3D
                                                   : SDL_GPU_Renderer_Shader::PipelineMode::Mode2D;
-            if (gCurrentShader->Mode != requestedMode) {
-                gCurrentShader->Mode = requestedMode;
-                gCurrentShader->Dirty = true;
+            if (mCurrentShader->Mode != requestedMode) {
+                mCurrentShader->Mode = requestedMode;
+                mCurrentShader->Dirty = true;
             }
             return;
         }
 
         size_t index = 0;
-        if (ParseIndexedUniformName(uniformName.c_str(), "customint", gCurrentShader->CustomInt4.size() * 4, index)) {
-            gCurrentShader->CustomInt4[index / 4][index % 4] = value;
-            if (gCommandBuffer)
+        if (ParseIndexedUniformName(uniformName.c_str(), "customint", mCurrentShader->CustomInt4.size() * 4, index)) {
+            mCurrentShader->CustomInt4[index / 4][index % 4] = value;
+            if (mCommandBuffer)
                 PushActiveShaderUniforms();
         }
     }
 
     void SDL_GPU_Renderer::SetShaderTexture(const char* name, Texture* texture, int slot) {
         (void)name;
-        if (!gCurrentShader) {
+        if (!mCurrentShader) {
             return;
         }
 
@@ -520,14 +520,14 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         const size_t index = static_cast<size_t>(slot);
-        if (index >= gCurrentShader->BoundTextures.size()) {
-            gCurrentShader->BoundTextures.resize(index + 1, nullptr);
+        if (index >= mCurrentShader->BoundTextures.size()) {
+            mCurrentShader->BoundTextures.resize(index + 1, nullptr);
         }
 
-        if (static_cast<Uint32>(index + 1) > gCurrentShader->FragmentSamplerCount) {
-            gCurrentShader->FragmentSamplerCount = static_cast<Uint32>(index + 1);
+        if (static_cast<Uint32>(index + 1) > mCurrentShader->FragmentSamplerCount) {
+            mCurrentShader->FragmentSamplerCount = static_cast<Uint32>(index + 1);
         }
 
-        gCurrentShader->BoundTextures[index] = texture;
+        mCurrentShader->BoundTextures[index] = texture;
     }
 } // namespace CE::Renderer::SDL_GPU_Renderer

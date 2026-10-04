@@ -230,9 +230,9 @@ namespace CE::Renderer {
                                                int pitch = 0, TextureFilter filter = TextureFilter::Linear,
                                                TextureWrap wrap = TextureWrap::Clamp,
                                                TextureUploadBatch* batch = nullptr) = 0;
-        virtual void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
+        virtual void DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
                              TextureFlip flip = TextureFlip::None) = 0;
-        virtual void DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
+        virtual void DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                                Colour colour, float rotation, TextureFlip flip = TextureFlip::None) = 0;
         virtual void UnloadTex(Texture* texture) = 0;
 
@@ -369,7 +369,8 @@ namespace CE::Renderer {
         virtual void ImGuiEndFrame(SDL_Window* window) = 0;
 
         // If the window is eg 1920x1080 you can make the internal renderer resolution to 640x420
-        virtual void SetRenderSize(glm::vec2 size) {
+        // Use TextureFilter::Nearest for pixel art to look nice
+        virtual void SetRenderSize(glm::vec2 size, TextureFilter filter) {
             pRenderSize = size;
             if (pRenderSize.x <= 0.0f) {
                 pRenderSize.x = 1.0f;
@@ -377,6 +378,7 @@ namespace CE::Renderer {
             if (pRenderSize.y <= 0.0f) {
                 pRenderSize.y = 1.0f;
             }
+            pRenderTextureFilter = filter;
         }
 
         virtual ~IRenderer() = default;
@@ -387,5 +389,6 @@ namespace CE::Renderer {
         CubeMap mSkyBoxState{};
 
         glm::vec2 pRenderSize{};        
+        TextureFilter pRenderTextureFilter = TextureFilter::Linear;
     };
 } // namespace CE::Renderer

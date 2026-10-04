@@ -8,71 +8,71 @@ ASNamespace: CE::Graphics::Render2D
 
 ASClassFunctions:
   # Texture drawing
-  - Name: DrawTexture
+  - Name: DrawSprite
     ReturnType: void
     Signature: const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+      mRuntime.mRenderer.DrawSprite(tex, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 
-  - Name: DrawTexture
+  - Name: DrawSprite
     ReturnType: void
     Signature: const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5);
+      mRuntime.mRenderer.DrawSprite(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5);
 
-  - Name: DrawTexture
+  - Name: DrawSprite
     ReturnType: void
     Signature: const Texture& in, float x, float y, const Colour& in
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, const CE::Renderer::Colour&
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, arg3, 0.0f);
+      mRuntime.mRenderer.DrawSprite(tex, arg1, arg2, tex->width, tex->height, arg3, 0.0f);
 
-  - Name: DrawTexture
+  - Name: DrawSprite
     ReturnType: void
     Signature: const Texture& in, float x, float y
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTex(tex, arg1, arg2, tex->width, tex->height, CE::Renderer::Colour::White, 0.0f);
+      mRuntime.mRenderer.DrawSprite(tex, arg1, arg2, tex->width, tex->height, CE::Renderer::Colour::White, 0.0f);
   
   # Texture drawing with UV coordinates
-  - Name: DrawTextureUV
+  - Name: DrawSpriteUV
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float, CE::Renderer::TextureFlip
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+      mRuntime.mRenderer.DrawSpriteUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
-  - Name: DrawTextureUV
+  - Name: DrawSpriteUV
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&, float
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8);
+      mRuntime.mRenderer.DrawSpriteUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, arg8);
 
-  - Name: DrawTextureUV
+  - Name: DrawSpriteUV
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float, const CE::Renderer::Colour&
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, 0.0f);
+      mRuntime.mRenderer.DrawSpriteUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, arg7, 0.0f);
 
-  - Name: DrawTextureUV
+  - Name: DrawSpriteUV
     ReturnType: void
     Signature: const Texture& in, float x, float y, float u0, float v0, float u1, float v1
     CppSignature: const CE::Renderer::Resources::TextureHandle&, float, float, float, float, float, float
@@ -80,7 +80,7 @@ ASClassFunctions:
     Function: |
       auto tex = arg0.GetTexture();
       if (tex == nullptr) return;
-      mRuntime.mRenderer.DrawTexUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
+      mRuntime.mRenderer.DrawSpriteUV(tex, arg1, arg2, tex->width, tex->height, arg3, arg4, arg5, arg6, CE::Renderer::Colour::White, 0.0f);
 
   # Primitive drawing
   - Name: DrawTriangle

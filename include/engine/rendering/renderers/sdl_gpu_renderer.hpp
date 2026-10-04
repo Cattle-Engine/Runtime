@@ -148,32 +148,81 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
 
         void ChangeCameraPos2D(float X, float Y, float zoom) override;
 
-        void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-                      float rotation) override;
+        void DrawRect(
+            float x, float y, 
+            float w, float h, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+            float rotation
+        ) override;
 
-        void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g, uint8_t b,
-                          uint8_t a, float rotation) override;
+        void DrawTriangle(
+            float x0, float y0, 
+            float x1, float y1, 
+            float x2, float y2, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a, 
+            float rotation
+        ) override;
 
-        void DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                        uint8_t a) override;
-        void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                      uint8_t a) override;
+        void DrawCircle(
+            float cx, float cy, 
+            float radius, int segments, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        ) override;
+
+        void DrawLine(
+            float x1, float y1, 
+            float x2, float y2, 
+            float thickness, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        ) override;
+
         void SetClearColour(float r, float g, float b, float a) override;
 
         Texture* LoadTex(const char* path) override;
-        Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format, int pitch = 0,
-                                       TextureFilter filter = TextureFilter::Linear,
-                                       TextureWrap wrap = TextureWrap::Clamp,
-                                       TextureUploadBatch* batch = nullptr) override;
-        void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
-                     TextureFlip flip = TextureFlip::None) override;
-        void DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
-                       Colour colour, float rotation, TextureFlip flip = TextureFlip::None) override;
+        Texture* CreateTextureFromData(
+            int width, int height, 
+            const void* pixels, 
+            TextureFormat format, 
+            int pitch = 0,
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp,
+            TextureUploadBatch* batch = nullptr
+        ) override;
+
+        void DrawSprite(
+            Texture* texture, 
+            float x, float y, 
+            float w, float h, 
+            Colour colour, 
+            float rotation,
+            TextureFlip flip = TextureFlip::None
+        ) override;
+
+        void DrawSpriteUV(
+            Texture* tex, 
+            float x, float y, 
+            float w, float h, 
+            float u0, float v0, 
+            float u1, float v1,
+            Colour colour, 
+            float rotation, 
+            TextureFlip flip = TextureFlip::None
+        ) override;
+
         void UnloadTex(Texture* texture) override;
-        void DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                           uint8_t a) override;
-        void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r, uint8_t g,
-                             uint8_t b, uint8_t a) override;
+
+        void DrawRectLines(
+            float x, float y, 
+            float w, float h, 
+            float thickness, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+
+        void DrawCircleLines(
+            float cx, float cy, 
+            float radius, int segments, 
+            float thickness, 
+            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        ) override;
 
         int BeginFrame(SDL_Window* window) override;
         int EndFrame(SDL_Window* window) override;
@@ -213,10 +262,20 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
 
         GPUMesh* CreateGPUMesh(MeshData& mesh) override;
         void DestroyGPUMesh(GPUMesh* mesh) override;
-        void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform,
-                      [[maybe_unused]] bool error_tex) override;
-        void DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform,
-                          [[maybe_unused]] bool error_tex) override;
+        void DrawMesh(
+            GPUMesh* mesh,
+            Material& material, 
+            const Transform3D& transform,
+            [[maybe_unused]] bool error_tex
+        ) override;
+
+        void DrawMeshMat4(
+            GPUMesh* mesh, 
+            Material& material, 
+            const glm::mat4& transform,
+            [[maybe_unused]] bool error_tex
+        ) override;
+
         void ChangeCameraPos3D(const Transform3D& transform) override;
         void SetCamera3D(const Camera3D& camera) override;
         void BeginMode3D() override;
@@ -229,6 +288,8 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         TextureUploadBatch* BeginBatchTextureUpload() override;
         void EndBatchTextureUpload(TextureUploadBatch* batch) override;
 
+        static constexpr size_t kMaxVertices = 10000;
+        static constexpr size_t kMaxIndices = 15000;
       private:
         SDL_GPUGraphicsPipeline* CreateGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
                                                         SDL_GPUShader* fragmentShader) const;
@@ -249,8 +310,14 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         void DestroySkyboxMesh();
         static glm::mat4 BuildTransformMatrix(const Transform3D& transform);
         glm::mat4 BuildViewProjectionMatrix(const Camera3D& camera, float aspectRatio) const;
-        void DrawSkybox(SDL_GPURenderPass* renderPass, const Camera3D& camera, float aspectRatio, int width,
-                        int height);
+        void DrawSkybox(
+            SDL_GPURenderPass* renderPass, 
+            const Camera3D& camera, 
+            float aspectRatio, 
+            int width,
+            int height
+        );
+        
         void DrawQueuedMeshes();
         static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
         SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
@@ -266,73 +333,71 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
         void ImGuiShutdown();
 
-        SDL_GPUDevice* gDevice = nullptr;
+        SDL_GPUDevice* mDevice = nullptr;
         SDL_WindowID mWindowID;
-        SDL_GPUCommandBuffer* gCommandBuffer = nullptr;
-        SDL_GPURenderPass* gRenderPass = nullptr;
-        SDL_GPUTexture* gSwapchainTexture = nullptr;
-        SDL_GPUBuffer* gVertexBuffer = nullptr;
-        SDL_GPUGraphicsPipeline* gPipeline = nullptr;
-        SDL_GPUShader* gDefaultVertexShader = nullptr;
-        SDL_GPUShader* gDefaultFragmentShader = nullptr;
-        Camera2D gCamera;
-        static constexpr size_t MAX_VERTS = 10000;
-        static constexpr size_t MAX_INDICES = 15000;
-        SDL_GPUBuffer* gIndexBuffer = nullptr;
-        SDL_GPUTransferBuffer* gTransferVerts = nullptr;
-        SDL_GPUTransferBuffer* gTransferIdx = nullptr;
-        CE::Renderer::Vertex* gMappedVerts = nullptr;
-        uint16_t* gMappedIndices = nullptr;
-        uint32_t gVertCount = 0;
-        uint32_t gIndexCount = 0;
-        SDL_FColor gClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-        SDL_GPUTexture* gWhiteTex = nullptr;
-        SDL_GPUSampler* gWhiteSampler = nullptr;
-        SDL_GPUTexture* gDefaultNormalTex = nullptr;
-        SDL_GPUSampler* gNormalSampler = nullptr;
-        CE::Renderer::Vertex* gMappedTexVerts = nullptr;
-        uint16_t* gMappedTexIndices = nullptr;
-        uint32_t gTexIndexCount = 0;
-        SDL_GPUBuffer* gTexVertexBuffer = nullptr;
-        SDL_GPUBuffer* gTexIndexBuffer = nullptr;
-        SDL_GPUTransferBuffer* gTransferTexVerts = nullptr;
-        SDL_GPUTransferBuffer* gTransferTexIdx = nullptr;
-        std::vector<PrimitiveBatch> gPrimitiveBatches;
-        std::vector<TexVertexBatch> gTexBatches;
-        uint32_t gTexVertCount = 0;
-        SDL_GPU_Renderer_Shader* gCurrentPrimitiveShader = nullptr;
-        SDLGPUTexData* gCurrentTex = nullptr;
-        SDL_GPUSampler* gCurrentTexSampler = nullptr;
-        glm::mat4 gMVP{};
-        SDL_GPUTexture* gErrorTex = nullptr;
-        SDL_GPUSampler* gErrorSampler = nullptr;
-        RendererBackend gBackend;
-        bool gFrameActive = false;
+        SDL_GPUCommandBuffer* mCommandBuffer = nullptr;
+        SDL_GPURenderPass* mRenderPass = nullptr;
+        SDL_GPUTexture* mSwapchainTexture = nullptr;
+        SDL_GPUBuffer* mVertexBuffer = nullptr;
+        SDL_GPUGraphicsPipeline* mPipeline = nullptr;
+        SDL_GPUShader* mDefaultVertexShader = nullptr;
+        SDL_GPUShader* mDefaultFragmentShader = nullptr;
+        Camera2D mCamera2D;
+        SDL_GPUBuffer* mIndexBuffer = nullptr;
+        SDL_GPUTransferBuffer* mTransferVerts = nullptr;
+        SDL_GPUTransferBuffer* mTransferIdx = nullptr;
+        CE::Renderer::Vertex* mMappedVerts = nullptr;
+        uint16_t* mMappedIndices = nullptr;
+        uint32_t mVertCount = 0;
+        uint32_t mIndexCount = 0;
+        SDL_FColor mClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        SDL_GPUTexture* mWhiteTex = nullptr;
+        SDL_GPUSampler* mWhiteSampler = nullptr;
+        SDL_GPUTexture* mDefaultNormalTex = nullptr;
+        SDL_GPUSampler* mNormalSampler = nullptr;
+        CE::Renderer::Vertex* mMappedTexVerts = nullptr;
+        uint16_t* mMappedTexIndices = nullptr;
+        uint32_t mTexIndexCount = 0;
+        SDL_GPUBuffer* mTexVertexBuffer = nullptr;
+        SDL_GPUBuffer* mTexIndexBuffer = nullptr;
+        SDL_GPUTransferBuffer* mTransferTexVerts = nullptr;
+        SDL_GPUTransferBuffer* mTransferTexIdx = nullptr;
+        std::vector<PrimitiveBatch> mPrimitiveBatches;
+        std::vector<TexVertexBatch> mTexBatches;
+        uint32_t mTexVertCount = 0;
+        SDL_GPU_Renderer_Shader* mCurrentPrimitiveShader = nullptr;
+        SDLGPUTexData* mCurrentTex = nullptr;
+        SDL_GPUSampler* mCurrentTexSampler = nullptr;
+        glm::mat4 mMVP{};
+        SDL_GPUTexture* mErrorTex = nullptr;
+        SDL_GPUSampler* mErrorSampler = nullptr;
+        RendererBackend mBackend;
+        bool mFrameActive = false;
         bool mWarnedOutsideFrame = false;
         bool m3DModeActive = false;
         bool m2DModeActive = false;
-        CE::Common::FS::VFS::VFS* gVFS;
+        CE::Common::FS::VFS::VFS* mVFS;
 
-        std::vector<DeferredDeleteEntry> gDeferredDeletes;
-        std::vector<MeshDrawCommand> gMeshCommands;
+        std::vector<DeferredDeleteEntry> mDeferredDeletes;
+        std::vector<MeshDrawCommand> mMeshCommands;
 
-        SDL_GPU_Renderer_Shader* gCurrentShader = nullptr;
-        SDL_GPUGraphicsPipeline* g3DPipeline = nullptr;
-        SDL_GPUGraphicsPipeline* gTransparent3DPipeline = nullptr;
-        SDL_GPUGraphicsPipeline* gSkyboxPipeline = nullptr;
-        SDL_GPUShader* gDefault3DVertexShader = nullptr;
-        SDL_GPUShader* gDefault3DFragmentShader = nullptr;
-        SDL_GPUShader* gSkyboxFragmentShader = nullptr;
-        SDLGPUMeshData* gSkyboxMesh = nullptr;
-        SDL_GPUTexture* gSkyboxCubeTexture = nullptr;
-        SDL_GPUSampler* gSkyboxCubeSampler = nullptr;
-        std::array<SDL_GPUTexture*, 6> gSkyboxFaceHandles{};
-        int gSkyboxCubeSize = 0;
-        SDL_GPUTexture* gDepthTexture = nullptr;
-        SDL_GPUTextureFormat gDepthFormat = SDL_GPU_TEXTUREFORMAT_INVALID;
-        int gDepthTextureWidth = 0;
-        int gDepthTextureHeight = 0;
-        Transform3D gCamera3DTransform{glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f)};
+        SDL_GPU_Renderer_Shader* mCurrentShader = nullptr;
+        SDL_GPUGraphicsPipeline* m3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mTransparent3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mSkyboxPipeline = nullptr;
+        SDL_GPUShader* mDefault3DVertexShader = nullptr;
+        SDL_GPUShader* mDefault3DFragmentShader = nullptr;
+        SDL_GPUShader* mSkyboxFragmentShader = nullptr;
+        SDLGPUMeshData* mSkyboxMesh = nullptr;
+        SDL_GPUTexture* mSkyboxCubeTexture = nullptr;
+        SDL_GPUSampler* mSkyboxCubeSampler = nullptr;
+        std::array<SDL_GPUTexture*, 6> mSkyboxFaceHandles{};
+        int mSkyboxCubeSize = 0;
+        SDL_GPUTexture* mDepthTexture = nullptr;
+        SDL_GPUTextureFormat mDepthFormat = SDL_GPU_TEXTUREFORMAT_INVALID;
+        int mDepthTextureWidth = 0;
+        int mDepthTextureHeight = 0;
+        Transform3D mCamera3DTransform{glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f)};
     };
 } // namespace CE::Renderer::SDL_GPU_Renderer
 

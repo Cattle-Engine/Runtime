@@ -280,7 +280,7 @@ namespace CE::Assets::Fonts {
 
             float drawX = std::round(cx + g.bearingX * scale);
 
-            mRenderer.DrawTexUV(atlas.texture, drawX, (float)y, g.w * scale, g.h * scale, g.u0, g.v0, g.u1, g.v1, col,
+            mRenderer.DrawSpriteUV(atlas.texture, drawX, (float)y, g.w * scale, g.h * scale, g.u0, g.v0, g.u1, g.v1, col,
                                 0.0f);
 
             cx += g.advance * scale;

@@ -279,7 +279,7 @@ namespace CE::Assets::Animations {
             float u1 = (frame.X + frame.Width) / texWidth;
             float v1 = (frame.Y + frame.Height) / texHeight;
 
-            mRenderer.DrawTexUV(tex, static_cast<float>(anim.X), static_cast<float>(anim.Y),
+            mRenderer.DrawSpriteUV(tex, static_cast<float>(anim.X), static_cast<float>(anim.Y),
                                 static_cast<float>(frame.Width), static_cast<float>(frame.Height), u0, v0, u1, v1,
                                 anim.Tint, anim.Rotation);
         }
@@ -346,7 +346,7 @@ namespace CE::Assets::Animations {
         float u1 = (frame.X + frame.Width) / texWidth;
         float v1 = (frame.Y + frame.Height) / texHeight;
 
-        mRenderer.DrawTexUV(tex, static_cast<float>(it->second.X), static_cast<float>(it->second.Y),
+        mRenderer.DrawSpriteUV(tex, static_cast<float>(it->second.X), static_cast<float>(it->second.Y),
                             static_cast<float>(frame.Width), static_cast<float>(frame.Height), u0, v0, u1, v1,
                             it->second.Tint, it->second.Rotation);
     }

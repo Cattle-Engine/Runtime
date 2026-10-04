@@ -40,9 +40,9 @@ namespace CE::Renderer::Software {
                                        TextureFilter filter = TextureFilter::Linear,
                                        TextureWrap wrap = TextureWrap::Clamp,
                                        TextureUploadBatch* batch = nullptr) override;
-        void DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
+        void DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
                      TextureFlip flip = TextureFlip::None) override;
-        void DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
+        void DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                        Colour colour, float rotation, TextureFlip flip = TextureFlip::None) override;
         void UnloadTex(Texture* texture) override;
         void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g, uint8_t b,

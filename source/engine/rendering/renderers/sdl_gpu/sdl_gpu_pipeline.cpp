@@ -16,13 +16,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     SDL_GPUGraphicsPipeline* SDL_GPU_Renderer::CreateGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
                                                                       SDL_GPUShader* fragmentShader) const {
-        if (!gDevice || !window || !vertexShader || !fragmentShader) {
+        if (!mDevice || !window || !vertexShader || !fragmentShader) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] CreateGraphicsPipeline received invalid input");
             return nullptr;
         }
 
         SDL_GPUColorTargetDescription colorDesc{};
-        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(gDevice, window);
+        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(mDevice, window);
 
         SDL_GPUColorTargetBlendState blend{};
         blend.enable_blend = true;
@@ -70,7 +70,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         pipelineCreateInfo.vertex_shader = vertexShader;
         pipelineCreateInfo.fragment_shader = fragmentShader;
 
-        SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(gDevice, &pipelineCreateInfo);
+        SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(mDevice, &pipelineCreateInfo);
         if (!pipeline) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create graphics pipeline: {}", SDL_GetError());
         }
@@ -80,25 +80,25 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     int SDL_GPU_Renderer::CreateDefaultPipeline(SDL_Window* window) {
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default vertex shader");
-        gDefaultVertexShader = Utils::LoadShader(gDevice, "standard_vertex.vert", 0, 1, 0, 0, gVFS);
-        if (!gDefaultVertexShader) {
+        mDefaultVertexShader = Utils::LoadShader(mDevice, "standard_vertex.vert", 0, 1, 0, 0, mVFS);
+        if (!mDefaultVertexShader) {
             CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default vertex shader");
             return 4;
         }
 
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Loading default fragment shader");
-        gDefaultFragmentShader = Utils::LoadShader(gDevice, "standard_fragment.frag", 1, 1, 0, 0, gVFS);
-        if (!gDefaultFragmentShader) {
-            SDL_ReleaseGPUShader(gDevice, gDefaultVertexShader);
-            gDefaultVertexShader = nullptr;
+        mDefaultFragmentShader = Utils::LoadShader(mDevice, "standard_fragment.frag", 1, 1, 0, 0, mVFS);
+        if (!mDefaultFragmentShader) {
+            SDL_ReleaseGPUShader(mDevice, mDefaultVertexShader);
+            mDefaultVertexShader = nullptr;
             CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default fragment shader");
             return 5;
         }
 
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Creating default graphics pipeline");
-        gPipeline = CreateGraphicsPipeline(window, gDefaultVertexShader, gDefaultFragmentShader);
+        mPipeline = CreateGraphicsPipeline(window, mDefaultVertexShader, mDefaultFragmentShader);
 
-        if (!gPipeline) {
+        if (!mPipeline) {
             CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Failed to create default pipeline");
             return 6;
         }
@@ -107,40 +107,40 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::DestroyDefaultPipeline() {
-        if (gPipeline) {
-            SDL_ReleaseGPUGraphicsPipeline(gDevice, gPipeline);
-            gPipeline = nullptr;
+        if (mPipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, mPipeline);
+            mPipeline = nullptr;
         }
-        if (gDefaultVertexShader) {
-            SDL_ReleaseGPUShader(gDevice, gDefaultVertexShader);
-            gDefaultVertexShader = nullptr;
+        if (mDefaultVertexShader) {
+            SDL_ReleaseGPUShader(mDevice, mDefaultVertexShader);
+            mDefaultVertexShader = nullptr;
         }
-        if (gDefaultFragmentShader) {
-            SDL_ReleaseGPUShader(gDevice, gDefaultFragmentShader);
-            gDefaultFragmentShader = nullptr;
+        if (mDefaultFragmentShader) {
+            SDL_ReleaseGPUShader(mDevice, mDefaultFragmentShader);
+            mDefaultFragmentShader = nullptr;
         }
     }
 
     void SDL_GPU_Renderer::BindActivePipeline() {
-        if (!gRenderPass) {
+        if (!mRenderPass) {
             return;
         }
 
-        SDL_GPUGraphicsPipeline* pipeline = gPipeline;
-        if (gCurrentShader && gCurrentShader->Pipeline) {
-            pipeline = gCurrentShader->Pipeline;
+        SDL_GPUGraphicsPipeline* pipeline = mPipeline;
+        if (mCurrentShader && mCurrentShader->Pipeline) {
+            pipeline = mCurrentShader->Pipeline;
         }
 
         if (pipeline) {
-            SDL_BindGPUGraphicsPipeline(gRenderPass, pipeline);
+            SDL_BindGPUGraphicsPipeline(mRenderPass, pipeline);
         }
     }
 
     void SDL_GPU_Renderer::PushActiveShaderUniforms() {
-        const SDL_GPU_Renderer_Shader* program = gCurrentShader;
-        const glm::mat4& mvp = (program && program->HasOverrideMVP) ? program->OverrideMVP : gMVP;
+        const SDL_GPU_Renderer_Shader* program = mCurrentShader;
+        const glm::mat4& mvp = (program && program->HasOverrideMVP) ? program->OverrideMVP : mMVP;
 
-        SDL_PushGPUVertexUniformData(gCommandBuffer, 0, &mvp, sizeof(mvp));
+        SDL_PushGPUVertexUniformData(mCommandBuffer, 0, &mvp, sizeof(mvp));
 
         if (program && !program->UsesDefaultVertex) {
             VertexShaderUserData vertexUserData{};
@@ -153,7 +153,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 vertexUserData.customInt4[i] = program->CustomInt4[i];
             }
 
-            SDL_PushGPUVertexUniformData(gCommandBuffer, 1, &vertexUserData, sizeof(vertexUserData));
+            SDL_PushGPUVertexUniformData(mCommandBuffer, 1, &vertexUserData, sizeof(vertexUserData));
         }
 
         FragmentShaderUserData fragmentUserData{};
@@ -169,36 +169,36 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
 
         }
-        SDL_PushGPUFragmentUniformData(gCommandBuffer, 0, &fragmentUserData, sizeof(fragmentUserData));
+        SDL_PushGPUFragmentUniformData(mCommandBuffer, 0, &fragmentUserData, sizeof(fragmentUserData));
     }
 
     void SDL_GPU_Renderer::BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler) {
-        const size_t samplerCount = gCurrentShader ? std::max<size_t>(1, gCurrentShader->FragmentSamplerCount) : 1;
+        const size_t samplerCount = mCurrentShader ? std::max<size_t>(1, mCurrentShader->FragmentSamplerCount) : 1;
         std::vector<SDL_GPUTextureSamplerBinding> bindings(samplerCount);
 
         for (size_t slot = 0; slot < samplerCount; ++slot) {
-            bindings[slot].texture = gWhiteTex;
-            bindings[slot].sampler = gWhiteSampler;
+            bindings[slot].texture = mWhiteTex;
+            bindings[slot].sampler = mWhiteSampler;
         }
 
-        bindings[0].texture = drawTexture ? drawTexture : gWhiteTex;
-        bindings[0].sampler = drawSampler ? drawSampler : gWhiteSampler;
+        bindings[0].texture = drawTexture ? drawTexture : mWhiteTex;
+        bindings[0].sampler = drawSampler ? drawSampler : mWhiteSampler;
 
-        if (gCurrentShader) {
+        if (mCurrentShader) {
             for (size_t slot = 0; slot < samplerCount; ++slot) {
-                if (slot < gCurrentShader->BoundTextures.size()) {
-                    Texture* texture = gCurrentShader->BoundTextures[slot];
+                if (slot < mCurrentShader->BoundTextures.size()) {
+                    Texture* texture = mCurrentShader->BoundTextures[slot];
                     if (texture && texture->handle) {
                         auto* texData = static_cast<SDLGPUTexData*>(texture->handle);
                         if (texData && texData->gpuTex) {
                             bindings[slot].texture = texData->gpuTex;
-                            bindings[slot].sampler = texData->sampler ? texData->sampler : gWhiteSampler;
+                            bindings[slot].sampler = texData->sampler ? texData->sampler : mWhiteSampler;
                         }
                     }
                 }
             }
         }
 
-        SDL_BindGPUFragmentSamplers(gRenderPass, 0, bindings.data(), static_cast<Uint32>(samplerCount));
+        SDL_BindGPUFragmentSamplers(mRenderPass, 0, bindings.data(), static_cast<Uint32>(samplerCount));
     }
 } // namespace CE::Renderer::SDL_GPU_Renderer

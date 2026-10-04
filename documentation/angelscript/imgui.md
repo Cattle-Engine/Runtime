@@ -245,3 +245,13 @@ const string& in label
 ```
 
 Draws a menu item and returns true when it is activated.
+
+### Checkbox
+Return type: `bool`
+
+Signature:
+```angelscript
+const string& in label, bool checked
+```
+
+Draws a checkbox from the provided value and returns the updated checked state.

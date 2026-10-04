@@ -1,7 +1,7 @@
 # CE::Graphics::Render2D
 
 ## Functions
-### DrawTexture
+### DrawSprite
 Return type: `void`
 
 Signature:
@@ -11,7 +11,7 @@ const Texture& in, float x, float y, float w, float h, const Colour& in tint, fl
 
 No description given
 
-### DrawTexture
+### DrawSprite
 Return type: `void`
 
 Signature:
@@ -21,7 +21,7 @@ const Texture& in, float x, float y, const Colour& in, float rotation, TextureFl
 
 No description given
 
-### DrawTexture
+### DrawSprite
 Return type: `void`
 
 Signature:
@@ -31,7 +31,7 @@ const Texture& in, float x, float y, const Colour& in
 
 No description given
 
-### DrawTexture
+### DrawSprite
 Return type: `void`
 
 Signature:
@@ -41,7 +41,7 @@ const Texture& in, float x, float y
 
 No description given
 
-### DrawTextureUV
+### DrawSpriteUV
 Return type: `void`
 
 Signature:
@@ -51,7 +51,7 @@ const Texture& in, float x, float y, float u0, float v0, float u1, float v1, con
 
 No description given
 
-### DrawTextureUV
+### DrawSpriteUV
 Return type: `void`
 
 Signature:
@@ -61,7 +61,7 @@ const Texture& in, float x, float y, float u0, float v0, float u1, float v1, con
 
 No description given
 
-### DrawTextureUV
+### DrawSpriteUV
 Return type: `void`
 
 Signature:
@@ -71,7 +71,7 @@ const Texture& in, float x, float y, float u0, float v0, float u1, float v1, con
 
 No description given
 
-### DrawTextureUV
+### DrawSpriteUV
 Return type: `void`
 
 Signature:

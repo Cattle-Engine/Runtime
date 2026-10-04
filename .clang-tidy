@@ -27,6 +27,8 @@ Checks: >
   -performance-inefficient-string-concatenation,
   -performance-unnecessary-value-param,
   -readability-avoid-const-params-in-decls,
-  -modernize-use-designated-initializers
+  -modernize-use-designated-initializers,
+  -bugprone-easily-swappable-parameters,
+  -readability-braces-around-statements
   
 WarningsAsErrors: ''

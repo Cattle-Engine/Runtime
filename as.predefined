@@ -337,21 +337,21 @@ void SetMaterialShader(const Material& in, const Shader& in);
 }
 
 namespace CE::Graphics::Render2D {
-void DrawTexture(const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSprite(const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
 
-void DrawTexture(const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSprite(const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None);
 
-void DrawTexture(const Texture& in, float x, float y, const Colour& in);
+void DrawSprite(const Texture& in, float x, float y, const Colour& in);
 
-void DrawTexture(const Texture& in, float x, float y);
+void DrawSprite(const Texture& in, float x, float y);
 
-void DrawTextureUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
 
-void DrawTextureUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation);
+void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint, float rotation);
 
-void DrawTextureUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint);
+void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint);
 
-void DrawTextureUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1);
+void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1);
 
 void DrawCircle(float x, float y, float radius, int segments, const Colour& in);
 
@@ -643,7 +643,7 @@ void EndMenu();
 
 bool MenuItem(const string& in label);
 
-void Checkbox(const string& in label, bool& out checked);
+bool Checkbox(const string& in label, bool checked);
 }
 
 namespace CE::Input::Bindings {

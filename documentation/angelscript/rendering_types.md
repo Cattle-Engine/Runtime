@@ -333,6 +333,15 @@ int64
 ```
 
 
+#### =
+Return type: `Shader`
+
+Signature:
+```angelscript
+Shader & in
+```
+
+
 
 ## Texture
 C++ type: `CE::Renderer::Resources::TextureHandle`

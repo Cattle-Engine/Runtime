@@ -35,6 +35,31 @@
 - [X] Bindings for the input binder in angelscript
 - [X] Finish binding stuff to AS and hook up all bindings to Scripting::Runtime
 - [X] Add support for setting shader/s on a material
+- [X] In debug window have git commit info and in logs
+List of bindings to do:
+- [X] Instance stuff:
+    - [X] delta time
+    - [X] frame time
+    - [X] quitting
+- [X] 2D stuff
+    - [X] font manager
+    - [X] animated texture (I think that needs a refactor tho)
+- [X] 3D stuff
+    - [X] model's
+    - [X] mesh primitive bindings
+    - [X] Mesh drawing
+- [X] Window control
+- [X] Input
+    - [X] Text
+    - [X] Mouse
+    - [X] Input binder
+    - [X] Keyboard
+- [X] State callbacks and state control
+- [X] VFS
+- [X] ImGui bindings (basic creation of a window and drawing to it)
+- [X] Settings
+- [X] TDF
+- [X] Hasher (inside engine/common/utils/hasher.hpp)
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -79,33 +104,6 @@ export int foo_func() {
 }
 ```
 
-List of bindings to do:
-- [X] Instance stuff:
-    - [X] delta time
-    - [X] frame time
-    - [X] quitting
-- [X] 2D stuff
-    - [X] font manager
-    - [X] animated texture (I think that needs a refactor tho)
-- [X] 3D stuff
-    - [X] model's
-    - [X] mesh primitive bindings
-    - [X] Mesh drawing
-- [X] Window control
-- [X] Input
-    - [X] Text
-    - [X] Mouse
-    - [X] Input binder
-    - [X] Keyboard
-- [X] State callbacks and state control
-- [X] VFS
-- [X] ImGui bindings (basic creation of a window and drawing to it)
-- [X] Settings
-- [X] TDF
-- [X] Hasher (inside engine/common/utils/hasher.hpp)
-
-- [ ] Make it so when drawing 2D primitives an overload so there's an X axis to make layering easier
-
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] Allow you to set the renderer resloution so you can have a resloution different from the window
 - [ ] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
@@ -121,8 +119,6 @@ List of bindings to do:
 - [ ] Basic 3D model bone support
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
-- [ ] In debug window have git commit info and in logs
-- [ ] Update docs to show new AngelScript bindings
 - [ ] Add an arguemnt "--mess-with-ce" to unlock the ability to eg, change pi at runtime, or modify the contents of memory 
 
 - [ ] AngelScript attributes:

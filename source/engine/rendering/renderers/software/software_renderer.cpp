@@ -155,7 +155,7 @@ namespace CE::Renderer::Software {
 
     void Software_Renderer::DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
                                      float rotation) {
-        DrawTex(mWhiteTexture, x, y, w, h, Colour{r, g, b, a}, rotation);
+        DrawSprite(mWhiteTexture, x, y, w, h, Colour{r, g, b, a}, rotation);
     }
 
     void Software_Renderer::DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
@@ -397,7 +397,7 @@ namespace CE::Renderer::Software {
         return SDL_RenderTextureRotated(mRenderer, data->texture, srcRect, &dstRect, rotation, &centre, flipMode);
     }
 
-    void Software_Renderer::DrawTex(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
+    void Software_Renderer::DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
                                     TextureFlip flip) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
@@ -415,7 +415,7 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DrawTexUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1,
+    void Software_Renderer::DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1,
                                       float v1, Colour colour, float rotation, TextureFlip flip) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
