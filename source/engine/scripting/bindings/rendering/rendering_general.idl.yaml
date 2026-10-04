@@ -1,3 +1,4 @@
+RegistrationPriority: 99
 ASNamespace: CE::Graphics
 
 RequiredCppHeaders:
@@ -11,3 +12,11 @@ ASClassFunctions:
     Description: Sets the background colour for 2D rendering, and when a skybox face is missing
     Function: |
       mRuntime.mRenderer.SetClearColour(arg0.r, arg0.g, arg0.b, arg0.a);
+
+  - Name: SetRenderResolution
+    ReturnType: void
+    Signature: CE::Window::WindowSize& in size, CE::TextureFilter filter
+    CppSignature: CE::Common::Window::WindowSize, CE::Renderer::TextureFilter
+    Description: Sets the renderer resolution, so you can have a 1920x1080 window with a small pixel art render size
+    Function: |
+      mRuntime.mRenderer.SetRenderSize({arg0.w, arg0.h}, arg1);

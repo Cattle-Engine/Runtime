@@ -1139,6 +1139,12 @@ ASEnums:
       - Horizontal
       - Vertical
 
+  - Name: TextureFilter
+    CppType: CE::Renderer::TextureFilter
+    Values:
+      - Nearest
+      - Linear
+      
 ASConstants:
   - Name: NoTexture
     Type: "Texture"

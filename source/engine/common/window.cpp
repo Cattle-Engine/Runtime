@@ -7,7 +7,7 @@
 #include "engine/common/tracelog.hpp"
 
 namespace CE::Common {
-    Window::Window(Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags) : mVFS(vfs) {
+    Window::Window(Core::GameState::GameStateManager& game_state, Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags): mVFS(vfs), mGameState(game_state) {
         mWindow = SDL_CreateWindow(window_title.c_str(), size.w, size.h, flags);
         if (!mWindow) {
             CE_LOG(LogLevel::Error, "[Window] Failed to create window: {}", SDL_GetError());
@@ -80,10 +80,11 @@ namespace CE::Common {
 
         if (mode == WindowMode::Fullscreen) {
             mFullscreenSize = window_size;
-        } else {
+            mGameState.Emit("CE_WINDOW_SIZE_CHANGE_FULLSCREEN");
+        } else if (mode == WindowMode::Windowed){
             mWindowedSize = window_size;
+            mGameState.Emit("CE_WINDOW_SIZE_CHANGE_WINDOWED");
         }
-
 
         return true;
     }
@@ -226,6 +227,7 @@ namespace CE::Common {
                     fullscreen_mode.refresh_rate);
 
                 mWindowMode = WindowMode::Fullscreen;
+                mGameState.Emit("CE_WINDOW_MODE_CHANGED_FULLSCREEN");
                 break;
             }
 
@@ -249,6 +251,7 @@ namespace CE::Common {
                     "[Window] Borderless fullscreen mode enabled");
 
                 mWindowMode = WindowMode::Borderless;
+                mGameState.Emit("CE_WINDOW_MODE_CHANGED_BORDERLESS");
                 break;
             }
 
@@ -266,6 +269,7 @@ namespace CE::Common {
                     "[Window] Windowed mode enabled");
 
                 mWindowMode = WindowMode::Windowed;
+                mGameState.Emit("CE_WINDOW_MODE_CHANGED_WINDOWED");
                 break;
             }
         }

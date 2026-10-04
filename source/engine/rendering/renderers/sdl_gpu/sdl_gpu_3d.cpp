@@ -108,7 +108,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_GPUColorTargetDescription colorDesc{};
-        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(mDevice, window);
+        // 3D is composited into the same offscreen target as 2D before the
+        // final upscale pass.
+        colorDesc.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 
         SDL_GPUColorTargetBlendState blend{};
         blend.enable_blend = true;
@@ -558,12 +560,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return false;
         }
 
-        int width = 0;
-        int height = 0;
-        SDL_GetWindowSize(window, &width, &height);
-
-        width = std::max(width, 1);
-        height = std::max(height, 1);
+        const int width = std::max(static_cast<int>(pRenderSize.x), 1);
+        const int height = std::max(static_cast<int>(pRenderSize.y), 1);
 
         if (mDepthTexture && mDepthTextureWidth == width && mDepthTextureHeight == height) {
             return true;
@@ -967,7 +965,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     }
 
     void SDL_GPU_Renderer::DrawQueuedMeshes() {
-        if (!mCommandBuffer || !mSwapchainTexture) {
+        if (!mCommandBuffer || !mRenderTexture.IsValid()) {
             return;
         }
 
@@ -976,17 +974,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return;
         }
 
-        int width = 1;
-        int height = 1;
-        SDL_GetWindowSize(window, &width, &height);
-        const float aspectRatio = static_cast<float>(std::max(width, 1)) / static_cast<float>(std::max(height, 1));
+        const int width = std::max(static_cast<int>(pRenderSize.x), 1);
+        const int height = std::max(static_cast<int>(pRenderSize.y), 1);
+        const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
         Camera3DUniformData cameraUniform{};
         cameraUniform.viewProjection = BuildViewProjectionMatrix(mCamera3DState, aspectRatio);
         cameraUniform.cameraPosition = glm::vec4(mCamera3DState.position, 1.0f);
 
         SDL_GPUColorTargetInfo colorTargetInfo{};
-        colorTargetInfo.texture = mSwapchainTexture;
+        colorTargetInfo.texture = mRenderTexture.Get();
         colorTargetInfo.clear_color = mClearColor;
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;

@@ -22,7 +22,11 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         SDL_GPUColorTargetDescription colorDesc{};
-        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(mDevice, window);
+        // 2D draw calls target mRenderTexture, not the swapchain. Pipelines must
+        // declare the format of their actual render-pass target; using the
+        // swapchain format here makes the draws invalid whenever it differs from
+        // the fixed offscreen R8G8B8A8 texture (and leaves it black).
+        colorDesc.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 
         SDL_GPUColorTargetBlendState blend{};
         blend.enable_blend = true;
@@ -57,7 +61,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[2].buffer_slot = 0;
         attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
         attrs[2].location = 2;
-        attrs[2].offset = sizeof(float) * 3 + sizeof(uint8_t) * 4;
+        attrs[2].offset = (sizeof(float) * 3) + (sizeof(uint8_t) * 4);
 
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.target_info.num_color_targets = 1;
@@ -118,6 +122,51 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (mDefaultFragmentShader) {
             SDL_ReleaseGPUShader(mDevice, mDefaultFragmentShader);
             mDefaultFragmentShader = nullptr;
+        }
+    }
+
+    int SDL_GPU_Renderer::CreateUpscalePipeline(SDL_Window* window) {
+        mUpscaleVertexShader = Utils::LoadShader(mDevice, "upscale_vertex.vert", 0, 0, 0, 0, mVFS);
+        mUpscaleFragmentShader = Utils::LoadShader(mDevice, "upscale_fragment.frag", 1, 0, 0, 0, mVFS);
+        if (!mUpscaleVertexShader || !mUpscaleFragmentShader) {
+            DestroyUpscalePipeline();
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to load upscale shaders");
+            return 1;
+        }
+
+        SDL_GPUColorTargetDescription colorDesc{};
+        colorDesc.format = SDL_GetGPUSwapchainTextureFormat(mDevice, window);
+        colorDesc.blend_state.color_write_mask =
+            SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G |
+            SDL_GPU_COLORCOMPONENT_B | SDL_GPU_COLORCOMPONENT_A;
+
+        SDL_GPUGraphicsPipelineCreateInfo pipelineInfo{};
+        pipelineInfo.target_info.num_color_targets = 1;
+        pipelineInfo.target_info.color_target_descriptions = &colorDesc;
+        pipelineInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+        pipelineInfo.vertex_shader = mUpscaleVertexShader;
+        pipelineInfo.fragment_shader = mUpscaleFragmentShader;
+        mUpscalePipeline = SDL_CreateGPUGraphicsPipeline(mDevice, &pipelineInfo);
+        if (!mUpscalePipeline) {
+            DestroyUpscalePipeline();
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create upscale pipeline: {}", SDL_GetError());
+            return 1;
+        }
+        return 0;
+    }
+
+    void SDL_GPU_Renderer::DestroyUpscalePipeline() {
+        if (mUpscalePipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, mUpscalePipeline);
+            mUpscalePipeline = nullptr;
+        }
+        if (mUpscaleVertexShader) {
+            SDL_ReleaseGPUShader(mDevice, mUpscaleVertexShader);
+            mUpscaleVertexShader = nullptr;
+        }
+        if (mUpscaleFragmentShader) {
+            SDL_ReleaseGPUShader(mDevice, mUpscaleFragmentShader);
+            mUpscaleFragmentShader = nullptr;
         }
     }
 

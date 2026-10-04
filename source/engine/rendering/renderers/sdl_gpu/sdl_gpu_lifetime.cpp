@@ -72,9 +72,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         mWindowID = SDL_GetWindowID(window);
 
+        // SetRenderSize() is optional.  The offscreen render target still needs
+        // valid dimensions when no internal resolution was requested.
+        if (pRenderSize.x <= 0.0f || pRenderSize.y <= 0.0f) {
+            int windowWidth = 1;
+            int windowHeight = 1;
+            SDL_GetWindowSizeInPixels(window, &windowWidth, &windowHeight);
+            pRenderSize = glm::vec2(static_cast<float>(std::max(windowWidth, 1)),
+                                    static_cast<float>(std::max(windowHeight, 1)));
+        }
+
         const int pipelineResult = CreateDefaultPipeline(window);
         if (pipelineResult != 0) {
             return pipelineResult;
+        }
+
+        if (CreateUpscalePipeline(window) != 0) {
+            DestroyDefaultPipeline();
+            return 1;
         }
 
         const int pipeline3DResult = CreateDefault3DPipeline(window);
@@ -271,6 +286,26 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Default normal map texture created");
 
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Creating render texture");
+        SDL_GPUTextureCreateInfo render_texture_info{};
+        render_texture_info.type = SDL_GPU_TEXTURETYPE_2D;
+        render_texture_info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        render_texture_info.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET |
+                            SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        render_texture_info.width = static_cast<Uint32>(pRenderSize.x);
+        render_texture_info.height = static_cast<Uint32>(pRenderSize.y);
+        render_texture_info.layer_count_or_depth = 1;
+        render_texture_info.num_levels = 1;
+        render_texture_info.sample_count = SDL_GPU_SAMPLECOUNT_1;
+        SDL_GPUTexture* render_texture = SDL_CreateGPUTexture(mDevice, &render_texture_info);
+
+        if (render_texture == nullptr) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create render texture");
+            return 1;
+        }
+        CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Created render texture");
+        mRenderTexture = detail::RTexture(mDevice, render_texture);
+
         ImGuiInit(window, mDevice);
         return 0;
     }
@@ -307,6 +342,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_ReleaseGPUTransferBuffer(mDevice, mTransferTexIdx);
 
         DestroyDefaultPipeline();
+        DestroyUpscalePipeline();
         DestroyDefault3DPipeline();
 
         if (mWhiteSampler) {

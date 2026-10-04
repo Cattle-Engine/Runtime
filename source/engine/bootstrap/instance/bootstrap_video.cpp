@@ -37,7 +37,7 @@ namespace CE {
             windowFlags |= SDL_WINDOW_RESIZABLE;
 
         try {
-            mWindow = std::make_unique<Common::Window>(*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
+            mWindow = std::make_unique<Common::Window>(gGameStateManager,*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
         } catch (const std::runtime_error& e) {
             ShowError("Failed to create game window :{");
             return 3;

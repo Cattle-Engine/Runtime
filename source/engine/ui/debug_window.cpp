@@ -89,7 +89,7 @@ namespace CE::UI {
         cam->useTarget = false;
 
         cam->rotation.y -= mouse.GetDeltaX() * gFreeCam.sensitivity;
-        cam->rotation.x -= mouse.GetDeltaY() * gFreeCam.sensitivity;
+        cam->rotation.x += mouse.GetDeltaY() * gFreeCam.sensitivity;
 
         constexpr float kPitchLimit = glm::radians(89.0f);
         cam->rotation.x = glm::clamp(cam->rotation.x, -kPitchLimit, kPitchLimit);
@@ -114,10 +114,10 @@ namespace CE::UI {
             cam->position -= right * speed;
 
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_SPACE))
-            cam->position += worldUp * speed;
+            cam->position -= worldUp * speed;
 
         if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT))
-            cam->position -= worldUp * speed;
+            cam->position += worldUp * speed;
     }
 
     void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {

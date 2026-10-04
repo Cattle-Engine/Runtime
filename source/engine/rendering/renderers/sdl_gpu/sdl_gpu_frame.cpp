@@ -13,10 +13,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 1;
         }
 
-        int winW;
-        int winH;
-        SDL_GetWindowSize(window, &winW, &winH);
-        mMVP = Utils::GetCameraMatrix(mCamera2D, (float)winW, (float)winH);
+        mMVP = Utils::GetCameraMatrix(mCamera2D, pRenderSize.x, pRenderSize.y);
 
         mSwapchainTexture = nullptr;
         if (!SDL_WaitAndAcquireGPUSwapchainTexture(mCommandBuffer, window, &mSwapchainTexture, NULL, NULL)) {
@@ -52,9 +49,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return 0;
     }
 
-    int SDL_GPU_Renderer::EndFrame(SDL_Window* window) {
-        (void)window;
-
+    int SDL_GPU_Renderer::EndFrame([[maybe_unused]] SDL_Window* window) {
         SDL_UnmapGPUTransferBuffer(mDevice, mTransferVerts);
         SDL_UnmapGPUTransferBuffer(mDevice, mTransferIdx);
         SDL_UnmapGPUTransferBuffer(mDevice, mTransferTexVerts);
@@ -91,24 +86,31 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_EndGPUCopyPass(copy);
 
         SDL_GPUColorTargetInfo colorTargetInfo{};
-        colorTargetInfo.texture = mSwapchainTexture;
+        colorTargetInfo.texture = mRenderTexture.Get();
         colorTargetInfo.clear_color = mClearColor;
-        colorTargetInfo.load_op = SDL_GPU_LOADOP_LOAD;
+        colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
-        colorTargetInfo.load_op = mMeshCommands.empty() ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_LOAD;
 
         const CubeMap& skyboxState = GetSkyBoxState();
-        const bool hasSkybox = skyboxState.front || skyboxState.back || skyboxState.left || skyboxState.right ||
-                               skyboxState.top || skyboxState.bottom;
+        const bool hasSkybox =
+            skyboxState.front ||
+            skyboxState.back ||
+            skyboxState.left ||
+            skyboxState.right ||
+            skyboxState.top ||
+            skyboxState.bottom;
 
         if (!mMeshCommands.empty() || hasSkybox) {
             DrawQueuedMeshes();
             colorTargetInfo.load_op = SDL_GPU_LOADOP_LOAD;
-        } else {
-            colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         }
 
-        mRenderPass = SDL_BeginGPURenderPass(mCommandBuffer, &colorTargetInfo, 1, NULL);
+        mRenderPass = SDL_BeginGPURenderPass(
+            mCommandBuffer,
+            &colorTargetInfo,
+            1,
+            nullptr
+        );
 
         BindActivePipeline();
         PushActiveShaderUniforms();
@@ -118,8 +120,18 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_GPUBufferBinding vBind{mVertexBuffer, 0};
             SDL_GPUBufferBinding iBind{mIndexBuffer, 0};
 
-            SDL_BindGPUVertexBuffers(mRenderPass, 0, &vBind, 1);
-            SDL_BindGPUIndexBuffer(mRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+            SDL_BindGPUVertexBuffers(
+                mRenderPass,
+                0,
+                &vBind,
+                1
+            );
+
+            SDL_BindGPUIndexBuffer(
+                mRenderPass,
+                &iBind,
+                SDL_GPU_INDEXELEMENTSIZE_16BIT
+            );
 
             for (const auto& batch : mPrimitiveBatches) {
                 if (batch.idxCount == 0) {
@@ -127,32 +139,64 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 }
 
                 mCurrentShader = batch.shader;
+
                 BindActivePipeline();
                 PushActiveShaderUniforms();
                 BindShaderSamplers(mWhiteTex, mWhiteSampler);
 
-                SDL_DrawGPUIndexedPrimitives(mRenderPass, batch.idxCount, 1, batch.idxOffset, 0, 0);
+                SDL_DrawGPUIndexedPrimitives(
+                    mRenderPass,
+                    batch.idxCount,
+                    1,
+                    batch.idxOffset,
+                    0,
+                    0
+                );
             }
         }
 
         for (const auto& batch : mTexBatches) {
-            if (batch.idxCount == 0)
+            if (batch.idxCount == 0) {
                 continue;
-            if (!batch.texture || !batch.texture->gpuTex)
+            }
+
+            if (!batch.texture || !batch.texture->gpuTex) {
                 continue;
+            }
 
             mCurrentShader = batch.shader;
+
             BindActivePipeline();
             PushActiveShaderUniforms();
-            BindShaderSamplers(batch.texture->gpuTex, batch.sampler);
+            BindShaderSamplers(
+                batch.texture->gpuTex,
+                batch.sampler
+            );
 
             SDL_GPUBufferBinding vBind{mTexVertexBuffer, 0};
             SDL_GPUBufferBinding iBind{mTexIndexBuffer, 0};
 
-            SDL_BindGPUVertexBuffers(mRenderPass, 0, &vBind, 1);
-            SDL_BindGPUIndexBuffer(mRenderPass, &iBind, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+            SDL_BindGPUVertexBuffers(
+                mRenderPass,
+                0,
+                &vBind,
+                1
+            );
 
-            SDL_DrawGPUIndexedPrimitives(mRenderPass, batch.idxCount, 1, batch.idxOffset, 0, 0);
+            SDL_BindGPUIndexBuffer(
+                mRenderPass,
+                &iBind,
+                SDL_GPU_INDEXELEMENTSIZE_16BIT
+            );
+
+            SDL_DrawGPUIndexedPrimitives(
+                mRenderPass,
+                batch.idxCount,
+                1,
+                batch.idxOffset,
+                0,
+                0
+            );
         }
 
         mCurrentShader = nullptr;
@@ -160,30 +204,73 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_EndGPURenderPass(mRenderPass);
         mRenderPass = nullptr;
 
+        SDL_GPUColorTargetInfo upscaleTarget{};
+        upscaleTarget.texture = mSwapchainTexture;
+        upscaleTarget.clear_color = mClearColor;
+        upscaleTarget.load_op = SDL_GPU_LOADOP_CLEAR;
+        upscaleTarget.store_op = SDL_GPU_STOREOP_STORE;
+
+        SDL_GPURenderPass* upscalePass = SDL_BeginGPURenderPass(
+            mCommandBuffer,
+            &upscaleTarget,
+            1,
+            nullptr
+        );
+
+        SDL_BindGPUGraphicsPipeline(upscalePass, mUpscalePipeline);
+        const SDL_GPUTextureSamplerBinding renderTextureBinding{
+            .texture = mRenderTexture.Get(),
+            .sampler = mWhiteSampler,
+        };
+        SDL_BindGPUFragmentSamplers(upscalePass, 0, &renderTextureBinding, 1);
+        SDL_DrawGPUPrimitives(upscalePass, 3, 1, 0, 0);
+
+        SDL_EndGPURenderPass(upscalePass);
+
         if (mPendingImGuiDrawData && mSwapchainTexture) {
             ImGui::SetCurrentContext(mImguicontext);
-            ImGui_ImplSDLGPU3_PrepareDrawData(mPendingImGuiDrawData, mCommandBuffer);
+
+            ImGui_ImplSDLGPU3_PrepareDrawData(
+                mPendingImGuiDrawData,
+                mCommandBuffer
+            );
 
             SDL_GPUColorTargetInfo uiTarget{};
             uiTarget.texture = mSwapchainTexture;
             uiTarget.load_op = SDL_GPU_LOADOP_LOAD;
             uiTarget.store_op = SDL_GPU_STOREOP_STORE;
 
-            SDL_GPURenderPass* uiPass = SDL_BeginGPURenderPass(mCommandBuffer, &uiTarget, 1, nullptr);
-            ImGui_ImplSDLGPU3_RenderDrawData(mPendingImGuiDrawData, mCommandBuffer, uiPass);
+            SDL_GPURenderPass* uiPass = SDL_BeginGPURenderPass(
+                mCommandBuffer,
+                &uiTarget,
+                1,
+                nullptr
+            );
+
+            ImGui_ImplSDLGPU3_RenderDrawData(
+                mPendingImGuiDrawData,
+                mCommandBuffer,
+                uiPass
+            );
+
             SDL_EndGPURenderPass(uiPass);
         }
 
         SDL_SubmitGPUCommandBuffer(mCommandBuffer);
+
         mCommandBuffer = nullptr;
         mPendingImGuiDrawData = nullptr;
         mSwapchainTexture = nullptr;
+
         mMappedVerts = nullptr;
         mMappedIndices = nullptr;
         mMappedTexVerts = nullptr;
         mMappedTexIndices = nullptr;
+
         mFrameActive = false;
+
         ProcessDeferredDeletions();
+
         return 0;
     }
 }

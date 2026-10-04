@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_gpu.h>
 
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderer.hpp"
@@ -19,6 +20,67 @@ struct ImGuiContext;
 struct ImDrawData;
 
 namespace CE::Renderer::SDL_GPU_Renderer {
+    namespace detail {
+        template<typename T, void (*Release)(SDL_GPUDevice*, T*)>
+        class Handle {
+        public:
+            Handle() = default;
+
+            explicit Handle(SDL_GPUDevice* device, T* handle)
+                : mDevice(device), mHandle(handle) {}
+
+            ~Handle() {
+                Reset();
+            }
+
+            Handle(const Handle&) = delete;
+            Handle& operator=(const Handle&) = delete;
+
+            Handle(Handle&& other) noexcept
+                : mDevice(other.mDevice), mHandle(other.mHandle) {
+                other.mDevice = nullptr;
+                other.mHandle = nullptr;
+            }
+
+            Handle& operator=(Handle&& other) noexcept {
+                if (this != &other) {
+                    Reset();
+
+                    mDevice = other.mDevice;
+                    mHandle = other.mHandle;
+
+                    other.mDevice = nullptr;
+                    other.mHandle = nullptr;
+                }
+
+                return *this;
+            }
+
+            T* Get() const {
+                return mHandle;
+            }
+
+            bool IsValid() const {
+                return mHandle != nullptr;
+            }
+
+            void Reset() {
+                if (mDevice && mHandle) {
+                    Release(mDevice, mHandle);
+                }
+
+                mDevice = nullptr;
+                mHandle = nullptr;
+            }
+
+        private:
+            SDL_GPUDevice* mDevice = nullptr;
+            T* mHandle = nullptr;
+        };
+
+        using RTexture = Handle<SDL_GPUTexture, SDL_ReleaseGPUTexture>;
+    }
+
     GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
     void DestroyGPUDevice(GPUDeviceHandle device);
 
@@ -295,6 +357,8 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
                                                         SDL_GPUShader* fragmentShader) const;
         int CreateDefaultPipeline(SDL_Window* window);
         void DestroyDefaultPipeline();
+        int CreateUpscalePipeline(SDL_Window* window);
+        void DestroyUpscalePipeline();
         void BindActivePipeline();
         void PushActiveShaderUniforms();
         void BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler);
@@ -342,6 +406,9 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         SDL_GPUGraphicsPipeline* mPipeline = nullptr;
         SDL_GPUShader* mDefaultVertexShader = nullptr;
         SDL_GPUShader* mDefaultFragmentShader = nullptr;
+        SDL_GPUGraphicsPipeline* mUpscalePipeline = nullptr;
+        SDL_GPUShader* mUpscaleVertexShader = nullptr;
+        SDL_GPUShader* mUpscaleFragmentShader = nullptr;
         Camera2D mCamera2D;
         SDL_GPUBuffer* mIndexBuffer = nullptr;
         SDL_GPUTransferBuffer* mTransferVerts = nullptr;
@@ -398,6 +465,8 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         int mDepthTextureWidth = 0;
         int mDepthTextureHeight = 0;
         Transform3D mCamera3DTransform{glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f)};
+
+        detail::RTexture mRenderTexture;
     };
 } // namespace CE::Renderer::SDL_GPU_Renderer
 

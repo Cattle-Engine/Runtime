@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "engine/common/core/game_state.hpp"
 #include "engine/common/fs/vfs.hpp"
 
 namespace CE::Common {
@@ -22,7 +23,7 @@ namespace CE::Common {
             };
 
             // Can throw std::runtime error if failed
-            Window(Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags);
+            Window(Core::GameState::GameStateManager& game_state, Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags);
             ~Window();
 
             SDL_Window* GetWindow();
@@ -57,6 +58,7 @@ namespace CE::Common {
         private:
             SDL_Window* mWindow;
             Common::FS::VFS::VFS& mVFS; 
+            Core::GameState::GameStateManager& mGameState;
             WindowMode mWindowMode = WindowMode::Borderless;
             WindowSize mWindowedSize;
             WindowSize mFullscreenSize;
