@@ -63,6 +63,7 @@ namespace CE::Core::Audio {
     struct AudioDeviceInfo {
         uint32_t Id;
         std::string Name;
+        bool stereo = false;
     };
 
     class AudioSystem {
@@ -70,7 +71,12 @@ namespace CE::Core::Audio {
         AudioSystem(Common::FS::VFS::VFS& vfs, int instanceid, uint32_t device_id, bool stero);
         ~AudioSystem();
 
-        std::vector<AudioDeviceInfo> ListAudioDevices();
+        static std::vector<AudioDeviceInfo> ListAudioDevices();
+        // If the name cannot be found, this returns the default device
+        // This will also return the default device if the name is 'DefaultAudioDevice'
+        static SDL_AudioDeviceID GetAudioDeviceID(const std::string& name);
+        static bool IsAudioDeviceStereo(SDL_AudioDeviceID id);
+
         void SetAudioDevice(uint32_t device_id, bool stero);
 
         AudioClip* LoadSound(const std::string& path, const AudioType type);

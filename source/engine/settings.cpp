@@ -44,6 +44,7 @@ namespace CE::Settings {
             Settings.masterVolume = 1.0f;
             Settings.musicVolume = 1.0f;
             Settings.sfxVolume = 1.0f;
+            Settings.audioDeviceName = "DefaultAudioDevice";
             return false;
         }
         int window_mode;
@@ -61,6 +62,7 @@ namespace CE::Settings {
         Settings.masterVolume = mIniFile.get_float("audio", "master_volume", 1.0f);
         Settings.musicVolume = mIniFile.get_float("audio", "music_volume", 1.0f);
         Settings.sfxVolume = mIniFile.get_float("audio", "sfx_volume", 1.0f);
+        Settings.audioDeviceName = mIniFile.get_string("audio", "audio_device", "DefaultAudioDevice");
         
         if (window_mode >= 0 && window_mode <= 2) {
             Settings.windowMode = static_cast<Common::Window::WindowMode>(window_mode);
@@ -83,6 +85,7 @@ namespace CE::Settings {
         mIniFile.set_float("audio", "master_volume", Settings.masterVolume);
         mIniFile.set_float("audio", "music_volume", Settings.musicVolume);
         mIniFile.set_float("audio", "sfx_volume", Settings.sfxVolume);
+        mIniFile.set_string("audio", "audio_device", Settings.audioDeviceName);
 
         std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
 

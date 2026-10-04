@@ -22,6 +22,7 @@ namespace CE::Settings {
         float masterVolume = 1.0f;
         float musicVolume = 1.0f;
         float sfxVolume = 1.0f;
+        std::string audioDeviceName;
     };
 
     class SettingsManager {

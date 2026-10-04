@@ -1,5 +1,6 @@
 #include <atomic>
 #include <stdexcept>
+#include <SDL3/SDL_audio.h>
 
 #include "engine/audio/audio.hpp"
 #include "engine/common/tracelog.hpp"
@@ -89,9 +90,43 @@ namespace CE::Core::Audio {
             AudioDeviceInfo info;
             info.Id = static_cast<uint32_t>(ids[i]);
             info.Name = SDL_GetAudioDeviceName(ids[i]);
+            SDL_AudioSpec spec;
+            int sample_frames = 0;
+            SDL_GetAudioDeviceFormat(ids[i], &spec, &sample_frames);
+            info.stereo = spec.channels >= 2;
+
             devices.push_back(info);
         }
         SDL_free(ids);
         return devices;
+    }
+
+    SDL_AudioDeviceID AudioSystem::GetAudioDeviceID(const std::string& name) {
+        if (name == "DefaultAudioDevice") {
+            return SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
+        }    
+    
+        int count = 0;
+        SDL_AudioDeviceID* devices = SDL_GetAudioPlaybackDevices(&count);
+
+        for (int i = 0; i < count; ++i) {
+            if (name == SDL_GetAudioDeviceName(devices[i])) {
+                SDL_AudioDeviceID id = devices[i];
+                SDL_free(devices);
+                return id;
+            }
+        }
+
+        CE_LOG(LogLevel::Error, "[GetAudioDeviceID] Failed to find audio device: '{}'", name);
+
+        SDL_free(devices);
+        return SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
+    }
+
+    bool AudioSystem::IsAudioDeviceStereo(SDL_AudioDeviceID id) {
+        SDL_AudioSpec spec;
+        int sample_frames = 0;
+        SDL_GetAudioDeviceFormat(id, &spec, &sample_frames);
+        return spec.channels >= 2;
     }
 } // namespace CE::Core::Audio

@@ -87,8 +87,14 @@ namespace CE {
 
         try {
             CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
+            
+            SDL_AudioDeviceID audio_device_id = Core::Audio::AudioSystem::GetAudioDeviceID(mSettingsManager->Settings.audioDeviceName);
             mAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
-                *mVFS, gInstanceID, static_cast<uint32_t>(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK), true);
+                *mVFS, 
+                gInstanceID, 
+                static_cast<uint32_t>(audio_device_id), 
+                Core::Audio::AudioSystem::IsAudioDeviceStereo(audio_device_id)
+            );
 
             mAudioManager = std::make_unique<CE::Audio::Resources::AudioManager>(*mAudioSystem, *mVFS, gInstanceID);
             mAudioManager->SetMasterVolume(mSettingsManager->Settings.masterVolume);

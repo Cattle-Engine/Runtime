@@ -2,6 +2,7 @@ RegistrationPriority: 100
 
 RequiredCppHeaders: 
   - "engine/audio/audio.hpp"
+  - "engine/scripting/bindings/stl_vector_binder.hpp"
   - "engine/audio/audio_resource_manager.hpp"
 
 ASNamespace: CE::Audio
@@ -152,4 +153,58 @@ ASTypes:
         Body: |
           auto& mutable_handle = const_cast<CE::Audio::Resources::PlayingAudioHandle&>(self);
           return mutable_handle = arg0;
+        CallingConvention: Generic
+  
+  - Name: AudioDeviceInfo
+    CppType: CE::Core::Audio::AudioDeviceInfo
+
+    AfterRegister: |
+      mScriptEngine.SetDefaultNamespace("CE::Containers");
+      CE::Scripting::Bindings::RegisterVector<CE::Audio::Core::AudioDeviceInfo>(&mScriptEngine, "AudioDeviceInfoVector", "AudioDeviceInfo");
+      mScriptEngine.SetDefaultNamespace("CE::Audio");
+
+    Flags:
+      - Value
+      - AutoGetFlags
+
+    Properties:
+      - Type: uint32
+        CppMember: Id
+        ASMember: id
+
+      - Type: bool
+        CppMember: stereo
+        ASMember: stereo
+
+      - Type: string
+        CppMember: Name
+        ASMember: name
+
+    Behaviours:
+      - Type: Construct
+        Body: |
+          new(self) CE::Core::Audio::AudioDeviceInfo;
+        CallingConvention: CDeclObjFirst
+
+      - Type: Destruct
+        Body: |
+          self->~AudioDeviceInfo();
+        CallingConvention: CDeclObjFirst
+
+    Operators:
+      - Operator: "="
+        ReturnType: AudioDeviceInfo
+        Signature: "const AudioDeviceInfo & in"
+        Body: |
+          auto& mutable_info = const_cast<CE::Core::Audio::AudioDeviceInfo&>(self);
+          return mutable_info = arg0;
+        CallingConvention: Generic
+
+      - Operator: "=="
+        ReturnType: bool
+        Signature: "const AudioDeviceInfo & in"
+        Body: |
+          return self.Id == arg0.Id &&
+                 self.Name == arg0.Name &&
+                 self.stereo == arg0.stereo;
         CallingConvention: Generic

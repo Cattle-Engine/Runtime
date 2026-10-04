@@ -59,6 +59,10 @@ ASTypes:
         CppMember: sfxVolume
         ASMember: sfx_volume
 
+      - Type: string
+        CppMember: audioDeviceName
+        ASMember: audio_device_name
+
 ASClassFunctions:
   - Name: GetSettingsInfo
     ReturnType: SettingsInfo
