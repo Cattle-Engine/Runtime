@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 #include "engine/assets/fonts.hpp"
 #include "engine/audio/audio.hpp"
@@ -15,32 +16,37 @@
 namespace CE::UI {
     class DebugWindow {
       public:
-        void Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                  CE::Renderer::Resources::ShaderManager& shaderman,
-                  CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
-                  CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman,
-                  Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime,
-                  float frameTime);
+        DebugWindow(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
+                    CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Fonts::FontManager& fontman,
+                    CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
+                    CE::Audio::Resources::AudioManager* audioman, CE::Input::Keyboard& keyboard,
+                    CE::Instance& instance, CE::Input::Mouse& mouse);
+
+        void Draw();
 
         void SetOpen(bool open);
         bool IsOpen() const;
 
       private:
-        void DrawInstanceTab(CE::GameInfo& gameinfo, CE::Instance& instance);
-        void DrawInputTab(CE::Input::Keyboard& kbmanger, CE::Input::Mouse& msmanager);
-        void DrawSettingsTab(CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman);
-        void DrawPerformanceTab(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                                CE::Renderer::Resources::ShaderManager& shaderman,
-                                const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
-                                float frameTime);
-        void DrawRendererTab(CE::Renderer::IRenderer& renderer, const CE::Settings::SettingsManager& settings,
-                             CE::Renderer::Resources::TextureManager& texman,
-                             CE::Renderer::Resources::ShaderManager& shaderman,
-                             CE::Assets::Fonts::FontManager& fontman);
-        void DrawAudioTab(CE::Audio::Resources::AudioManager* audioman, CE::Settings::SettingsManager& settings);
+        void DrawInstanceTab();
+        void DrawInputTab();
+        void DrawSettingsTab();
+        void DrawPerformanceTab();
+        void DrawRendererTab();
+        void DrawAudioTab();
 
-        void UpdateFreeCam(CE::Renderer::IRenderer& renderer, Input::Keyboard& keyboard, Input::Mouse& mouse,
-                           float deltaTime);
+        void UpdateFreeCam(float deltaTime);
+
+        CE::Renderer::IRenderer& mRenderer;
+        CE::Renderer::Resources::TextureManager& mTextureManager;
+        CE::Renderer::Resources::ShaderManager& mShaderManager;
+        CE::Assets::Fonts::FontManager& mFontManager;
+        CE::GameInfo& mGameInfo;
+        CE::Settings::SettingsManager& mSettings;
+        CE::Audio::Resources::AudioManager* mAudioManager;
+        CE::Input::Keyboard& mKeyboard;
+        CE::Instance& mInstance;
+        CE::Input::Mouse& mMouse;
 
         struct SettingsTabState {
             std::array<char, 501> rendererBuffer{};
@@ -48,6 +54,8 @@ namespace CE::UI {
         };
 
         SettingsTabState gSettingsState{};
+        std::string mGameState;
+        bool mMemoryTrackingEnabled = false;
         std::array<float, 100> gFpsHistory{};
         int gFpsHistoryOffset = 0;
         std::array<char, 64> gAtlasFamilyBuf{};

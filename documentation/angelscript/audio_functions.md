@@ -265,3 +265,40 @@ const PlayingAudio& in
 ```
 
 Get a sound label
+
+### ListAudioDevices
+Return type: `CE::Containers::AudioDeviceInfoVector`
+
+Lists all audio devices
+
+### IsAudioDeviceStereo
+Return type: `bool`
+
+Signature:
+```angelscript
+uint32 id
+```
+
+Returns true if an audio device supports stereo playback
+
+### GetAudioDeviceID
+Return type: `uint32`
+
+Signature:
+```angelscript
+const string& in audio_device_name
+```
+
+Gets an audio device ID by name. 
+If it cannot find the device or the device name is 'DefaultAudioDevice' this will return the systems default audio device ID
+
+### SetAudioDevice
+Return type: `bool`
+
+Signature:
+```angelscript
+uint32 id, bool stereo
+```
+
+Sets the current audio playback device.
+NOTE: This will stop ALL playing audio!

@@ -58,6 +58,15 @@ std::string FormatBytes(std::size_t bytes) {
 }
 
 namespace CE::UI {
+    DebugWindow::DebugWindow(Renderer::IRenderer& renderer, Renderer::Resources::TextureManager& texman,
+                             Renderer::Resources::ShaderManager& shaderman, Assets::Fonts::FontManager& fontman,
+                             GameInfo& gameinfo, Settings::SettingsManager& settings,
+                             Audio::Resources::AudioManager* audioman, Input::Keyboard& keyboard,
+                             Instance& instance, Input::Mouse& mouse)
+        : mRenderer(renderer), mTextureManager(texman), mShaderManager(shaderman), mFontManager(fontman),
+          mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mKeyboard(keyboard),
+          mInstance(instance), mMouse(mouse), mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {}
+
     void DebugWindow::SetOpen(bool open) {
         gOpen = open;
     }
@@ -66,30 +75,29 @@ namespace CE::UI {
         return gOpen;
     }
 
-    void DebugWindow::UpdateFreeCam(Renderer::IRenderer& renderer, Input::Keyboard& keyboard, Input::Mouse& mouse,
-                                    float deltaTime) {
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_CONTROL) &&
-            keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT)) {
+    void DebugWindow::UpdateFreeCam(float deltaTime) {
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_CONTROL) &&
+            mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT)) {
             gFreeCam.enabled = false;
-            mouse.LockCursor(false);
-            mouse.SetCursorVisibility(Input::MouseVisibility::Shown);
+            mMouse.LockCursor(false);
+            mMouse.SetCursorVisibility(Input::MouseVisibility::Shown);
             return;
         }
 
         if (!gFreeCam.enabled)
             return;
 
-        auto* cam = renderer.GetCamera3D();
+        auto* cam = mRenderer.GetCamera3D();
         if (!cam)
             return;
 
-        mouse.LockCursor(true);
-        mouse.SetCursorVisibility(Input::MouseVisibility::Hidden);
+        mMouse.LockCursor(true);
+        mMouse.SetCursorVisibility(Input::MouseVisibility::Hidden);
 
         cam->useTarget = false;
 
-        cam->rotation.y -= mouse.GetDeltaX() * gFreeCam.sensitivity;
-        cam->rotation.x += mouse.GetDeltaY() * gFreeCam.sensitivity;
+        cam->rotation.y -= mMouse.GetDeltaX() * gFreeCam.sensitivity;
+        cam->rotation.x += mMouse.GetDeltaY() * gFreeCam.sensitivity;
 
         constexpr float kPitchLimit = glm::radians(89.0f);
         cam->rotation.x = glm::clamp(cam->rotation.x, -kPitchLimit, kPitchLimit);
@@ -101,56 +109,55 @@ namespace CE::UI {
 
         float speed = gFreeCam.speed * deltaTime;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_W))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_W))
             cam->position += forward * speed;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_S))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_S))
             cam->position -= forward * speed;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_A))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_A))
             cam->position += right * speed;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_D))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_D))
             cam->position -= right * speed;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_SPACE))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_SPACE))
             cam->position -= worldUp * speed;
 
-        if (keyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT))
+        if (mKeyboard.IsKeyDown(Input::KeyboardKeys::KEY_LEFT_SHIFT))
             cam->position += worldUp * speed;
     }
 
-    void DebugWindow::DrawInstanceTab(GameInfo& gameinfo, Instance& instance) {
-        static std::string game_state = "";
-        ImGui::Text("InstanceID: %i", instance.GetInstanceID());
+    void DebugWindow::DrawInstanceTab() {
+        ImGui::Text("InstanceID: %i", mInstance.GetInstanceID());
 
         if (ImGui::Button("Quit instance")) {
-            instance.Exit();
+            mInstance.Exit();
         }
 
         Utils::SpaceSep();
 
         ImGui::Text("State");
 
-        if (ImGui::InputText("Change the state", &game_state, ImGuiInputTextFlags_EnterReturnsTrue)) {
-            instance.SetGameState(game_state);
+        if (ImGui::InputText("Change the state", &mGameState, ImGuiInputTextFlags_EnterReturnsTrue)) {
+            mInstance.SetGameState(mGameState);
         }
         ImGui::Text("Press enter to apply");
-        ImGui::Text("Current state: %s", instance.GetGameState().c_str());
+        ImGui::Text("Current state: %s", mInstance.GetGameState().c_str());
 
         Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Gameinfo")) {
-            ImGui::Text("Game name: %s", gameinfo.gameNameString.c_str());
-            ImGui::Text("Game version: %s", gameinfo.gameVersionString.c_str());
-            ImGui::Text("Window title: %s", gameinfo.windowTitle.c_str());
-            ImGui::Text("Window size: %i x %i", gameinfo.windowWidth, gameinfo.windowHeight);
-            ImGui::Text("VSync: %s", gameinfo.enableVSync ? "Enabled" : "Disabled");
+            ImGui::Text("Game name: %s", mGameInfo.gameNameString.c_str());
+            ImGui::Text("Game version: %s", mGameInfo.gameVersionString.c_str());
+            ImGui::Text("Window title: %s", mGameInfo.windowTitle.c_str());
+            ImGui::Text("Window size: %i x %i", mGameInfo.windowWidth, mGameInfo.windowHeight);
+            ImGui::Text("VSync: %s", mGameInfo.enableVSync ? "Enabled" : "Disabled");
             ImGui::Text(
                 "Window Mode: %s",
-                WindowModeNames[static_cast<size_t>(gameinfo.windowMode)]
+                WindowModeNames[static_cast<size_t>(mGameInfo.windowMode)]
             );
-            ImGui::Text("Resizable Window: %s", gameinfo.resizableWindow ? "Yes" : "No");
+            ImGui::Text("Resizable Window: %s", mGameInfo.resizableWindow ? "Yes" : "No");
         }
 
         Utils::SpaceSep();
@@ -180,42 +187,34 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawInputTab(Input::Keyboard& kbmanger, Input::Mouse& msmanager) {
+    void DebugWindow::DrawInputTab() {
         ImGui::Text("Keyboard");
         ImGui::Spacing();
-        ImGui::Text("Currently held keys: %s", kbmanger.GetPressedKeysString().c_str());
+        ImGui::Text("Currently held keys: %s", mKeyboard.GetPressedKeysString().c_str());
 
         Utils::SpaceSep();
 
         ImGui::Text("Mouse");
         ImGui::Spacing();
-        ImGui::Text("Mouse posX: %i", msmanager.GetX());
-        ImGui::Text("Mouse posY: %i", msmanager.GetY());
-        ImGui::Text("Mouse delta posX: %i", msmanager.GetDeltaX());
-        ImGui::Text("Mouse delta posY: %i", msmanager.GetDeltaY());
+        ImGui::Text("Mouse posX: %i", mMouse.GetX());
+        ImGui::Text("Mouse posY: %i", mMouse.GetY());
+        ImGui::Text("Mouse delta posX: %i", mMouse.GetDeltaX());
+        ImGui::Text("Mouse delta posY: %i", mMouse.GetDeltaY());
         ImGui::Spacing();
-        ImGui::Text("Mouse wheelX: %i", msmanager.GetWheelX());
-        ImGui::Text("Mouse wheelY: %i", msmanager.GetWheelY());
+        ImGui::Text("Mouse wheelX: %i", mMouse.GetWheelX());
+        ImGui::Text("Mouse wheelY: %i", mMouse.GetWheelY());
     }
 
-    void DebugWindow::DrawPerformanceTab(CE::Renderer::IRenderer& renderer,
-                                         CE::Renderer::Resources::TextureManager& texman,
-                                         CE::Renderer::Resources::ShaderManager& shaderman,
-                                         const CE::Settings::SettingsManager& settings, int fps, float deltaTime,
-                                         float frameTime) {
-        (void)renderer;
-        (void)texman;
-        (void)shaderman;
-        (void)settings;
+    void DebugWindow::DrawPerformanceTab() {
 
         ImGui::Text("Performance");
         ImGui::Spacing();
 
-        ImGui::Text("FPS: %d", fps);
-        ImGui::Text("Frame Time (ms): %.3f", frameTime);
-        ImGui::Text("Delta Time (s): %.6f", deltaTime);
+        ImGui::Text("FPS: %d", mInstance.GetFPS());
+        ImGui::Text("Frame Time (ms): %.3f", mInstance.GetFrameTime());
+        ImGui::Text("Delta Time (s): %.6f", mInstance.GetDeltaTime());
 
-        gFpsHistory[static_cast<size_t>(gFpsHistoryOffset)] = static_cast<float>(fps);
+        gFpsHistory[static_cast<size_t>(gFpsHistoryOffset)] = static_cast<float>(mInstance.GetFPS());
         gFpsHistoryOffset = (gFpsHistoryOffset + 1) % static_cast<int>(gFpsHistory.size());
 
         ImGui::PlotLines("FPS History", gFpsHistory.data(), static_cast<int>(gFpsHistory.size()), 0, nullptr, 0.0f,
@@ -226,7 +225,6 @@ namespace CE::UI {
         ImGui::Text("Memory");
 
         auto& memory = Memory::GetStats();
-        static bool enable = Memory::IsTrackingEnabled();
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
         ImGui::TextWrapped("Note: Total allocations/deallocations include every C++ new/delete.");
@@ -294,13 +292,12 @@ namespace CE::UI {
         ImGui::Separator();
         ImGui::Spacing();
 
-        ImGui::Checkbox("Enable Memory Tracking", &enable);
-        CE::Memory::EnableTracking(enable);
+        ImGui::Checkbox("Enable Memory Tracking", &mMemoryTrackingEnabled);
+        CE::Memory::EnableTracking(mMemoryTrackingEnabled);
     }
 
-    void DebugWindow::DrawSettingsTab(CE::Settings::SettingsManager& settings,
-                                      CE::Audio::Resources::AudioManager* audioman) {
-        auto& s = settings.Settings;
+    void DebugWindow::DrawSettingsTab() {
+        auto& s = mSettings.Settings;
         auto& state = gSettingsState;
 
         ImGui::Text("Window");
@@ -340,7 +337,7 @@ namespace CE::UI {
             state.synced = true;
         }
 
-        ImGui::PushID(&settings);
+        ImGui::PushID(&mSettings);
         ImGui::InputText("Renderer", state.rendererBuffer.data(), state.rendererBuffer.size());
         ImGui::PopID();
 
@@ -360,33 +357,33 @@ namespace CE::UI {
         audio_dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
         audio_dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
         audio_dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
-        if (audio_dirty && audioman) {
-            audioman->SetMasterVolume(s.masterVolume);
-            audioman->SetMusicVolume(s.musicVolume);
-            audioman->SetSFXVolume(s.sfxVolume);
+        if (audio_dirty && mAudioManager) {
+            mAudioManager->SetMasterVolume(s.masterVolume);
+            mAudioManager->SetMusicVolume(s.musicVolume);
+            mAudioManager->SetSFXVolume(s.sfxVolume);
         }
 
         Utils::SpaceSep();
 
-        ImGui::Text("Settings path: %s", settings.GetSettingPath().c_str());
+        ImGui::Text("Settings path: %s", mSettings.GetSettingPath().c_str());
 
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Click to copy to clipboard");
 
             if (ImGui::IsMouseClicked(0)) {
-                SDL_SetClipboardText(settings.GetSettingPath().c_str());
+                SDL_SetClipboardText(mSettings.GetSettingPath().c_str());
             }
         }
 
         if (ImGui::Button("Save & apply")) {
-            settings.FlushSettings();
-            settings.ReloadSettings();
+            mSettings.FlushSettings();
+            mSettings.ReloadSettings();
         }
 
         ImGui::SameLine();
 
         if (ImGui::Button("Reload from disk")) {
-            settings.ReloadSettings();
+            mSettings.ReloadSettings();
 
             std::strncpy(state.rendererBuffer.data(), s.rendererName.c_str(), state.rendererBuffer.size() - 1);
             state.rendererBuffer[state.rendererBuffer.size() - 1] = '\0';
@@ -394,13 +391,8 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawRendererTab(
-        CE::Renderer::IRenderer& renderer, const Settings::SettingsManager& settings,
-        Renderer::Resources::TextureManager& texman,
-        CE::Renderer::Resources::ShaderManager& shaderman,
-        Assets::Fonts::FontManager& fontman
-    ) {
-        ImGui::Text("Current renderer: %s", settings.Settings.rendererName.c_str());
+    void DebugWindow::DrawRendererTab() {
+        ImGui::Text("Current renderer: %s", mSettings.Settings.rendererName.c_str());
 
         Utils::SpaceSep();
 
@@ -416,7 +408,7 @@ namespace CE::UI {
 
         Utils::SpaceSep();
 
-        Renderer::Camera2D* camera = renderer.GetCamera();
+        Renderer::Camera2D* camera = mRenderer.GetCamera();
 
         ImGui::Text("Camera2D");
         ImGui::Text("Position: %f X, %f Y", camera->x, camera->y);
@@ -439,7 +431,7 @@ namespace CE::UI {
         Utils::SpaceSep();
 
         ImGui::Text("Camera3D");
-        auto camera3 = renderer.GetCamera3D();
+        auto camera3 = mRenderer.GetCamera3D();
 
         ImGui::InputFloat3("Position", &camera3->position.x);
         ImGui::InputFloat3("Rotation", &camera3->rotation.x);
@@ -470,31 +462,31 @@ namespace CE::UI {
         Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Geometry")) {
-            ImGui::Text("Vertex Count: %d", renderer.Debug_GetVertCount());
-            ImGui::Text("Texture Vertex Count: %d", renderer.Debug_GetTexVertCount());
-            ImGui::Text("Index Count: %d", renderer.Debug_GetIndexCount());
-            ImGui::Text("Texture Index Count: %d", renderer.Debug_GetTexIndexCount());
+            ImGui::Text("Vertex Count: %d", mRenderer.Debug_GetVertCount());
+            ImGui::Text("Texture Vertex Count: %d", mRenderer.Debug_GetTexVertCount());
+            ImGui::Text("Index Count: %d", mRenderer.Debug_GetIndexCount());
+            ImGui::Text("Texture Index Count: %d", mRenderer.Debug_GetTexIndexCount());
             ImGui::Text("Note: When using the software renderer,\nthese are meant to be empty.");
         }
 
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Textures")) {
-            ImGui::Text("Total loaded: %zu", texman.GetLoadedTextureCount());
-            ImGui::Text("No error: %zu", texman.GetValidTextureCount());
-            ImGui::Text("Errors: %zu", texman.GetErrorTextureCount());
-            ImGui::Text("Pending Unload: %zu", texman.GetPendingUnloadCount());
+            ImGui::Text("Total loaded: %zu", mTextureManager.GetLoadedTextureCount());
+            ImGui::Text("No error: %zu", mTextureManager.GetValidTextureCount());
+            ImGui::Text("Errors: %zu", mTextureManager.GetErrorTextureCount());
+            ImGui::Text("Pending Unload: %zu", mTextureManager.GetPendingUnloadCount());
         }
 
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Shaders")) {
-            ImGui::Text("Total loaded: %zu", shaderman.Debug_LoadedShadersCount());
-            ImGui::Text("No error: %d", shaderman.Debug_LoadedShadersNoError());
-            ImGui::Text("Errors: %d", shaderman.Debug_LoadedShadersError());
-            ImGui::Text("Bound shader: %" PRIu64, shaderman.Debug_GetBoundShaderID().id);
+            ImGui::Text("Total loaded: %zu", mShaderManager.Debug_LoadedShadersCount());
+            ImGui::Text("No error: %d", mShaderManager.Debug_LoadedShadersNoError());
+            ImGui::Text("Errors: %d", mShaderManager.Debug_LoadedShadersError());
+            ImGui::Text("Bound shader: %" PRIu64, mShaderManager.Debug_GetBoundShaderID().id);
 
-            auto shaders = shaderman.Debug_GetShaders();
+            auto shaders = mShaderManager.Debug_GetShaders();
             if (ImGui::TreeNode("Shader List")) {
                 for (const auto& shader : shaders) {
                     ImGui::PushID(shader.id);
@@ -520,10 +512,10 @@ namespace CE::UI {
 
         if (ImGui::CollapsingHeader("Fonts")) {
 
-            auto defaultFont = fontman.Debug_GetDefaultFontName();
+            auto defaultFont = mFontManager.Debug_GetDefaultFontName();
             ImGui::Text("Default Font: %s", defaultFont.c_str());
 
-            auto atlases = fontman.Debug_GetAtlases();
+            auto atlases = mFontManager.Debug_GetAtlases();
             ImGui::Text("Atlases: %zu", atlases.size());
 
             CE::UI::Utils::SpaceSep();
@@ -536,11 +528,11 @@ namespace CE::UI {
             if (gAtlasSizeBuf < 1)
                 gAtlasSizeBuf = 1;
 
-            auto* tex = fontman.Debug_GetAtlasTex(gAtlasFamilyBuf.data(), gAtlasSizeBuf);
+            auto* tex = mFontManager.Debug_GetAtlasTex(gAtlasFamilyBuf.data(), gAtlasSizeBuf);
 
             if (tex) {
                 ImGui::Text("Atlas Preview:");
-                void* nativeTexture = renderer.GetNativeTextureHandle(tex);
+                void* nativeTexture = mRenderer.GetNativeTextureHandle(tex);
                 if (nativeTexture) {
                     ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(256, 256));
                 } else {
@@ -584,34 +576,33 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::DrawAudioTab(CE::Audio::Resources::AudioManager* audioman,
-                                   CE::Settings::SettingsManager& settings) {
+    void DebugWindow::DrawAudioTab() {
         ImGui::Text("Audio");
         ImGui::Spacing();
 
-        auto& s = settings.Settings;
+        auto& s = mSettings.Settings;
 
         bool dirty = false;
         dirty |= ImGui::SliderFloat("Master Volume", &s.masterVolume, 0.0f, 1.0f, "%.2f");
         dirty |= ImGui::SliderFloat("Music Volume", &s.musicVolume, 0.0f, 1.0f, "%.2f");
         dirty |= ImGui::SliderFloat("SFX Volume", &s.sfxVolume, 0.0f, 1.0f, "%.2f");
 
-        if (dirty && audioman) {
-            audioman->SetMasterVolume(s.masterVolume);
-            audioman->SetMusicVolume(s.musicVolume);
-            audioman->SetSFXVolume(s.sfxVolume);
+        if (dirty && mAudioManager) {
+            mAudioManager->SetMasterVolume(s.masterVolume);
+            mAudioManager->SetMusicVolume(s.musicVolume);
+            mAudioManager->SetSFXVolume(s.sfxVolume);
         }
 
         CE::UI::Utils::SpaceSep();
 
-        if (!audioman) {
+        if (!mAudioManager) {
             ImGui::TextDisabled("Audio system not available");
             return;
         }
 
-        ImGui::Text("Cached Clips: %zu", audioman->Debug_CachedClipsCount());
+        ImGui::Text("Cached Clips: %zu", mAudioManager->Debug_CachedClipsCount());
 
-        const auto snapshot = audioman->Debug_PlayingSoundsSnapshot();
+        const auto snapshot = mAudioManager->Debug_PlayingSoundsSnapshot();
         ImGui::Text("Playing Handles: %zu", snapshot.size());
 
         if (ImGui::BeginTable("AudioPlayingTable", 7,
@@ -644,19 +635,19 @@ namespace CE::UI {
 
                 ImGui::TableSetColumnIndex(6);
                 if (ImGui::SmallButton("Play")) {
-                    audioman->PlaySound(row.Handle);
+                    mAudioManager->PlaySound(row.Handle);
                 }
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Pause")) {
-                    audioman->PauseSound(row.Handle);
+                    mAudioManager->PauseSound(row.Handle);
                 }
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Resume")) {
-                    audioman->ResumeSound(row.Handle);
+                    mAudioManager->ResumeSound(row.Handle);
                 }
                 ImGui::SameLine();
                 if (ImGui::SmallButton("Stop")) {
-                    audioman->StopSound(row.Handle);
+                    mAudioManager->StopSound(row.Handle);
                 }
 
                 ImGui::PopID();
@@ -666,12 +657,7 @@ namespace CE::UI {
         }
     }
 
-    void DebugWindow::Draw(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                           CE::Renderer::Resources::ShaderManager& shaderman,
-                           CE::Assets::Fonts::FontManager& fontman,
-                           CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                           CE::Audio::Resources::AudioManager* audioman, Input::Keyboard& kbmanger,
-                           CE::Instance& instance, Input::Mouse& msmanager, int fps, float deltaTime, float frameTime) {
+    void DebugWindow::Draw() {
         if (!gOpen) {
             return;
         }
@@ -681,49 +667,38 @@ namespace CE::UI {
 
         if (ImGui::BeginTabBar("DebugTabs")) {
             if (ImGui::BeginTabItem("Instance")) {
-                DrawInstanceTab(gameinfo, instance);
+                DrawInstanceTab();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Input")) {
-                DrawInputTab(kbmanger, msmanager);
+                DrawInputTab();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Settings")) {
-                DrawSettingsTab(settings, audioman);
+                DrawSettingsTab();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Performance")) {
-                DrawPerformanceTab(renderer, texman, shaderman, settings, fps, deltaTime, frameTime);
+                DrawPerformanceTab();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Audio")) {
-                DrawAudioTab(audioman, settings);
+                DrawAudioTab();
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Renderer")) {
-                DrawRendererTab(renderer, settings, texman, shaderman, fontman);
+                DrawRendererTab();
                 ImGui::EndTabItem();
             }
 
             ImGui::EndTabBar();
         }
-        this->UpdateFreeCam(renderer, kbmanger, msmanager, instance.GetDeltaTime());
+        UpdateFreeCam(mInstance.GetDeltaTime());
         ImGui::End();
-    }
-
-    void DrawDebugUI(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                     CE::Renderer::Resources::ShaderManager& shaderman,
-                     CE::Assets::Fonts::FontManager& fontman, CE::GameInfo& gameinfo,
-                     CE::Settings::SettingsManager& settings, CE::Audio::Resources::AudioManager* audioman,
-                     Input::Keyboard& kbmanger, CE::Instance& instance, Input::Mouse& msmanager, int fps,
-                     float deltaTime, float frameTime) {
-        static DebugWindow window;
-        window.Draw(renderer, texman, shaderman, fontman, gameinfo, settings, audioman, kbmanger, instance,
-                    msmanager, fps, deltaTime, frameTime);
     }
 } // namespace CE::UI

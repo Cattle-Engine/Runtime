@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 
+#include "engine/audio/audio.hpp"
 #include "engine/common/core/game_state.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
@@ -55,7 +56,8 @@ namespace CE::Scripting {
         std::string output_debug_as_info_path, 
         Common::Window& window,
         Core::GameState::GameStateManager& game_state_manager,
-        Audio::Resources::AudioManager* audio_manager
+        Audio::Resources::AudioManager* audio_manager,
+        Core::Audio::AudioSystem* audio_system
     )
         : mRendererResourcesNameRegistry(renderer_resources_name_registry),
           mVFS(vfs),
@@ -77,7 +79,8 @@ namespace CE::Scripting {
           mInputBindingManager(binding_manager),
           mTextInput(text_input),
           mWindow(window),
-          mAudioManager(audio_manager) {
+          mAudioManager(audio_manager),
+          mAudioSystem(audio_system) {
         mOutputDebugASInfo = output_debug_info;
         OutputDebugASInfoPath = output_debug_as_info_path;
         mScriptBindings = std::make_unique<CE::Scripting::Bindings::ScriptBindings>();

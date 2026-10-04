@@ -106,6 +106,10 @@ namespace CE {
             mAudioSystem.reset();
         }
 
+        gDebugWindow = std::make_unique<UI::DebugWindow>(
+            *mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo, *mSettingsManager,
+            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger);
+
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *mVFS, 
             *mGameInfo, 
@@ -129,7 +133,8 @@ namespace CE {
             gProgramArguments.OutputDebugASInfoPath, 
             *mWindow,
             gGameStateManager,
-            mAudioManager.get()
+            mAudioManager.get(),
+            mAudioSystem.get()
         );
 
         if (!mScriptingManager->Init()) {
@@ -245,9 +250,7 @@ namespace CE {
             mRenderer->EndMode2D();
 
             mRenderer->ImGuiStartFrame();
-            gDebugWindow.Draw(*mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo,
-                              *mSettingsManager, mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger,
-                              this->GetFPS(), this->GetDeltaTime(), this->GetFrameTime());
+            gDebugWindow->Draw();
             if (!mScriptingManager->RunImGui()) {
                 ShowError(mScriptingManager->GetLastError());
                 CE_LOG(LogLevel::Error, "[Instance {}] AngelScript ImGui update failed, shutting down instance", gInstanceID);

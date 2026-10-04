@@ -160,7 +160,7 @@ ASTypes:
 
     AfterRegister: |
       mScriptEngine.SetDefaultNamespace("CE::Containers");
-      CE::Scripting::Bindings::RegisterVector<CE::Audio::Core::AudioDeviceInfo>(&mScriptEngine, "AudioDeviceInfoVector", "AudioDeviceInfo");
+      CE::Scripting::Bindings::RegisterVector<CE::Core::Audio::AudioDeviceInfo>(&mScriptEngine, "AudioDeviceInfoVector", "CE::Audio::AudioDeviceInfo");
       mScriptEngine.SetDefaultNamespace("CE::Audio");
 
     Flags:

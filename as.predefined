@@ -14,6 +14,11 @@ enum TextureFlip {
     Vertical
 }
 
+enum TextureFilter {
+    Nearest,
+    Linear
+}
+
 class Vec4 {
     void f();
     void f(float, float, float, float);
@@ -256,6 +261,14 @@ void SetSoundLabel(const PlayingAudio& in, const string& in label);
 
 string GetSoundLabel(const PlayingAudio& in);
 
+CE::Containers::AudioDeviceInfoVector ListAudioDevices();
+
+bool IsAudioDeviceStereo(uint32 id);
+
+uint32 GetAudioDeviceID(const string& in audio_device_name);
+
+bool SetAudioDevice(uint32 id, bool stereo);
+
 enum AudioType {
     SFX,
     Music,
@@ -298,6 +311,16 @@ class PlayingAudio {
     PlayingAudio opAssign(const PlayingAudio & in) const;
     uint32 handle;
 }
+
+class AudioDeviceInfo {
+    void f();
+    void f();
+    AudioDeviceInfo opAssign(const AudioDeviceInfo & in) const;
+    bool opEquals(const AudioDeviceInfo & in) const;
+    uint32 id;
+    bool stereo;
+    string name;
+}
 }
 
 namespace CE::GameState {
@@ -316,6 +339,8 @@ void Unsubscribe(int subscription_id);
 
 namespace CE::Graphics {
 void SetClearColour(const Colour& in colour);
+
+void SetRenderResolution(CE::Window::WindowSize& in size, CE::TextureFilter filter);
 }
 
 namespace CE::Graphics::Materials {
@@ -752,6 +777,7 @@ class SettingsInfo {
     float master_volume;
     float music_volume;
     float sfx_volume;
+    string audio_device_name;
 }
 
 SettingsInfo GetSettingsInfo();

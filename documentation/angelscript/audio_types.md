@@ -124,6 +124,48 @@ const PlayingAudio & in
 
 
 
+## AudioDeviceInfo
+C++ type: `CE::Core::Audio::AudioDeviceInfo`
+
+Flags: `Value`, `AutoGetFlags`
+
+No description given
+
+### Properties
+#### id
+Type: `uint32`
+
+#### stereo
+Type: `bool`
+
+#### name
+Type: `string`
+
+### Behaviours
+#### Construct
+
+#### Destruct
+
+### Operators
+#### =
+Return type: `AudioDeviceInfo`
+
+Signature:
+```angelscript
+const AudioDeviceInfo & in
+```
+
+
+#### ==
+Return type: `bool`
+
+Signature:
+```angelscript
+const AudioDeviceInfo & in
+```
+
+
+
 ## Enums
 ### AudioType
 C++ type: `CE::Core::Audio::AudioType`

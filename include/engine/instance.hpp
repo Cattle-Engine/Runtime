@@ -111,7 +111,7 @@ namespace CE {
 
         Core::EventBus gEventBus;
         Core::GameState::GameStateManager gGameStateManager;
-        UI::DebugWindow gDebugWindow;
+        std::unique_ptr<UI::DebugWindow> gDebugWindow;
         EngineArguements gProgramArguments;
     };
 

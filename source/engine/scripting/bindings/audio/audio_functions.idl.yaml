@@ -272,5 +272,38 @@ ASClassFunctions:
     CppReturnType: std::vector<CE::Core::Audio::AudioDeviceInfo>
     Description: Lists all audio devices
     Function: |
-      if (!mRuntime.mAudioManager) return {};
-      return mRuntime.mAudioManager->ListAudioDevices();
+      if (!mRuntime.mAudioSystem) return {};
+      return mRuntime.mAudioSystem->ListAudioDevices();
+    CallingConvention: Generic
+
+  - Name: IsAudioDeviceStereo
+    ReturnType: bool
+    Signature: uint32 id
+    CppSignature: uint32_t
+    Description: Returns true if an audio device supports stereo playback
+    Function: |
+      if (!mRuntime.mAudioSystem) return false;
+      return mRuntime.mAudioSystem->IsAudioDeviceStereo(arg0);
+
+  - Name: GetAudioDeviceID
+    ReturnType: uint32
+    CppReturnType: uint32_t
+    Signature: const string& in audio_device_name
+    CppSignature: const std::string&
+    Description: |
+      Gets an audio device ID by name. 
+      If it cannot find the device or the device name is 'DefaultAudioDevice' this will return the systems default audio device ID
+    Function: |
+      if (!mRuntime.mAudioSystem) return 0xFFFFFFFFu;
+      return mRuntime.mAudioSystem->GetAudioDeviceID(arg0);
+
+  - Name: SetAudioDevice
+    ReturnType: bool
+    CppSignature: uint32_t, bool
+    Signature: uint32 id, bool stereo
+    Description: |
+      Sets the current audio playback device.
+      NOTE: This will stop ALL playing audio!
+    Function: |
+      if(!mRuntime.mAudioSystem) return false;
+      return mRuntime.mAudioSystem->SetAudioDevice(arg0, arg1);

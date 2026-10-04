@@ -35,6 +35,9 @@ Type: `float`
 #### sfx_volume
 Type: `float`
 
+#### audio_device_name
+Type: `string`
+
 ### Behaviours
 #### Construct
 

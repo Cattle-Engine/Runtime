@@ -77,7 +77,7 @@ namespace CE::Core::Audio {
         static SDL_AudioDeviceID GetAudioDeviceID(const std::string& name);
         static bool IsAudioDeviceStereo(SDL_AudioDeviceID id);
 
-        void SetAudioDevice(uint32_t device_id, bool stero);
+        bool SetAudioDevice(uint32_t device_id, bool stero);
 
         AudioClip* LoadSound(const std::string& path, const AudioType type);
         void DestroySound(AudioClip* clip);

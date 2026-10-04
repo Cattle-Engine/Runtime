@@ -1087,6 +1087,14 @@ Values:
 - `Horizontal`
 - `Vertical`
 
+### TextureFilter
+C++ type: `CE::Renderer::TextureFilter`
+
+Values:
+
+- `Nearest`
+- `Linear`
+
 ## Constants
 ### NoTexture
 Type: `Texture`

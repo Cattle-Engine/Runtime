@@ -83,7 +83,9 @@ Signature:
 WindowSize, WindowMode
 ```
 
-Sets the window size for a specified window mode
+Sets the window size for a specified window mode.
+NOTE: This does NOT, change the render resolution (eg the window is 1280x720 and is resized to 1920x1080 the renderer will render at 1280x720)
+To set the render resolution do CE::Graphics::SetRenderResolution
 
 ### GetWindowSize
 Return type: `WindowSize`

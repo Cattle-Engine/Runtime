@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "engine/audio/audio.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/input/text.hpp"
 #include "engine/rendering/resources/model_renderer.hpp"
@@ -64,6 +65,10 @@ namespace CE {
         class AudioManager;
     }
 
+    namespace Core::Audio {
+        class AudioSystem;
+    }
+
     namespace Common {
         class Window;
     }
@@ -103,7 +108,8 @@ namespace CE::Scripting {
             std::string output_debug_as_info_path, 
             Common::Window& window,
             Core::GameState::GameStateManager& game_state_manager,
-            Audio::Resources::AudioManager* audio_manager = nullptr
+            Audio::Resources::AudioManager* audio_manager = nullptr,
+            Core::Audio::AudioSystem* audio_system = nullptr
         );
 
         ~Runtime();
@@ -151,6 +157,7 @@ namespace CE::Scripting {
         Input::TextInput& mTextInput;
         Common::Window& mWindow;
         Audio::Resources::AudioManager* mAudioManager = nullptr;
+        CE::Core::Audio::AudioSystem* mAudioSystem = nullptr;
 
       private:
         struct ScriptCallbackRegistration {

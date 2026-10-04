@@ -45,7 +45,7 @@ namespace CE::Core::Audio {
         }
     }
 
-    void AudioSystem::SetAudioDevice(uint32_t device_id, bool stero) {
+    bool AudioSystem::SetAudioDevice(uint32_t device_id, bool stero) {
         StopAll();
 
         for (MIX_Track* track : mTracks) {
@@ -73,13 +73,15 @@ namespace CE::Core::Audio {
         mMixer = MIX_CreateMixerDevice(static_cast<SDL_AudioDeviceID>(device_id), &spec);
         if (!mMixer) {
             CE_LOG(LogLevel::Error, "[Audio {}] Failed to create mixer device: {}", mInstanceID, SDL_GetError());
-            return;
+            return false;
         }
 
         if (!MIX_GetMixerFormat(mMixer, &mMixerSpec)) {
             CE_LOG(LogLevel::Warn, "[Audio {}] Failed to query mixer format: {}", mInstanceID, SDL_GetError());
             mMixerSpec = spec;
         }
+
+        return true;
     }
 
     std::vector<AudioDeviceInfo> AudioSystem::ListAudioDevices() {
