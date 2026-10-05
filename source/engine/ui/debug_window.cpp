@@ -8,6 +8,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/assets/fonts.hpp"
+#include "engine/audio/audio.hpp"
 #include "engine/audio/audio_resource_manager.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
@@ -62,10 +63,12 @@ namespace CE::UI {
                              Renderer::Resources::ShaderManager& shaderman, Assets::Fonts::FontManager& fontman,
                              GameInfo& gameinfo, Settings::SettingsManager& settings,
                              Audio::Resources::AudioManager* audioman, Input::Keyboard& keyboard,
-                             Instance& instance, Input::Mouse& mouse)
+                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system)
         : mRenderer(renderer), mTextureManager(texman), mShaderManager(shaderman), mFontManager(fontman),
-          mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mKeyboard(keyboard),
-          mInstance(instance), mMouse(mouse), mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {}
+          mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mAudioSystem(audio_system),
+          mKeyboard(keyboard), mInstance(instance), mMouse(mouse),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {
+                mAudioDevices = Core::Audio::AudioSystem::ListAudioDevices();
+          }
 
     void DebugWindow::SetOpen(bool open) {
         gOpen = open;
@@ -362,6 +365,60 @@ namespace CE::UI {
             mAudioManager->SetMusicVolume(s.musicVolume);
             mAudioManager->SetSFXVolume(s.sfxVolume);
         }
+
+        if (mAudioSystem) {
+            static int selected_device = 0;
+            if (!mAudioDevices.empty()) {
+
+                // Protect against the device list being refreshed.
+                if (selected_device >= static_cast<int>(mAudioDevices.size())) {
+                    selected_device = 0;
+                }
+
+                if (ImGui::BeginCombo(
+                    "Audio Device",
+                    mAudioDevices[selected_device].Name.c_str())) {
+
+                    for (int i = 0; i < static_cast<int>(mAudioDevices.size()); ++i) {
+                        bool isSelected = (selected_device == i);
+
+                        if (ImGui::Selectable(
+                            mAudioDevices[i].Name.c_str(),
+                            isSelected)) {
+
+                            selected_device = i;
+
+                            mAudioSystem->SetAudioDevice(
+                                mAudioDevices[i].Id,
+                                mAudioDevices[i].stereo
+                            );
+                        }
+
+                        if (isSelected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+
+                    ImGui::EndCombo();
+                }
+            } else {
+                ImGui::Text("No audio devices found");
+            }
+
+            if (ImGui::Button("Reload audio device list")) {
+                mAudioDevices = Core::Audio::AudioSystem::ListAudioDevices();
+
+                // Make sure the index is still valid.
+                if (mAudioDevices.empty()) {
+                    // Nothing selected.
+                } else if (selected_device >= static_cast<int>(mAudioDevices.size())) {
+                    selected_device = 0;
+                }
+            }
+        } else {
+            ImGui::Text("Audio System is not initialized");
+        }
+
 
         Utils::SpaceSep();
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <string>
 
 #include "engine/assets/fonts.hpp"
@@ -16,11 +17,19 @@
 namespace CE::UI {
     class DebugWindow {
       public:
-        DebugWindow(CE::Renderer::IRenderer& renderer, CE::Renderer::Resources::TextureManager& texman,
-                    CE::Renderer::Resources::ShaderManager& shaderman, CE::Assets::Fonts::FontManager& fontman,
-                    CE::GameInfo& gameinfo, CE::Settings::SettingsManager& settings,
-                    CE::Audio::Resources::AudioManager* audioman, CE::Input::Keyboard& keyboard,
-                    CE::Instance& instance, CE::Input::Mouse& mouse);
+        DebugWindow(
+            CE::Renderer::IRenderer& renderer, 
+            CE::Renderer::Resources::TextureManager& texman,
+            CE::Renderer::Resources::ShaderManager& shaderman, 
+            CE::Assets::Fonts::FontManager& fontman,
+            CE::GameInfo& gameinfo, 
+            CE::Settings::SettingsManager& settings,
+            CE::Audio::Resources::AudioManager* audioman, 
+            CE::Input::Keyboard& keyboard,
+            CE::Instance& instance, 
+            CE::Input::Mouse& mouse,
+            CE::Core::Audio::AudioSystem* audio_system
+        );
 
         void Draw();
 
@@ -44,6 +53,7 @@ namespace CE::UI {
         CE::GameInfo& mGameInfo;
         CE::Settings::SettingsManager& mSettings;
         CE::Audio::Resources::AudioManager* mAudioManager;
+        CE::Core::Audio::AudioSystem* mAudioSystem = nullptr;
         CE::Input::Keyboard& mKeyboard;
         CE::Instance& mInstance;
         CE::Input::Mouse& mMouse;
@@ -52,6 +62,7 @@ namespace CE::UI {
             std::array<char, 501> rendererBuffer{};
             bool synced = false;
         };
+        std::vector<Core::Audio::AudioDeviceInfo> mAudioDevices; 
 
         SettingsTabState gSettingsState{};
         std::string mGameState;

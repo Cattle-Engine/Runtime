@@ -108,7 +108,7 @@ namespace CE {
 
         gDebugWindow = std::make_unique<UI::DebugWindow>(
             *mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo, *mSettingsManager,
-            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger);
+            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get());
 
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *mVFS, 
