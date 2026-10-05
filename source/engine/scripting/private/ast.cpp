@@ -10,9 +10,15 @@ namespace CE::Scripting::Impl::AST {
     uint64_t HashModule(const ASTModule& module) {
         Utils::StreamingHasher hasher;
 
-        // hash imports
+        // hash imports while preserving CE extension semantics
         for (const auto& imp : module.Imports) {
             hasher.AddString(imp.Module);
+            hasher.AddValue(imp.Exported);
+            hasher.AddValue(imp.IsUsing);
+            hasher.AddValue(imp.IsFileImport);
+            for (const auto& part : imp.Path) {
+                hasher.AddString(part);
+            }
             if (imp.Symbol)
                 hasher.AddString(*imp.Symbol);
         }
@@ -89,6 +95,9 @@ namespace CE::Scripting::Impl::AST {
                     HashGlobal(hasher, data);
                 } else if constexpr (std::is_same_v<T, ASTType>) {
                     HashType(hasher, data);
+                } else if constexpr (std::is_same_v<T, ASTRawDeclaration>) {
+                    hasher.AddString(data.Kind);
+                    HashTokens(hasher, data.Tokens);
                 } else if constexpr (std::is_same_v<T, std::shared_ptr<ASTNamespace>>) {
                     if (data) {
                         HashNamespace(hasher, *data);

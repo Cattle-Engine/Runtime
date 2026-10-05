@@ -159,6 +159,9 @@ namespace CE::Scripting::Impl::Semantics {
             // namespaces don't generate symbools directly
             return decl.Name;
 
+        case AST::ASTDeclaration::Kind::Raw:
+            return decl.Name;
+
         default:
             return decl.Name;
         }
@@ -175,6 +178,10 @@ namespace CE::Scripting::Impl::Semantics {
             for (auto& child : ns->Declarations) {
                 VisitDeclaration(child, nested_ns, module_hash, module_path);
             }
+            return;
+        }
+
+        if (decl.Type == AST::ASTDeclaration::Kind::Raw) {
             return;
         }
 
@@ -749,6 +756,10 @@ namespace CE::Scripting::Impl::Semantics {
             return nullptr;
 
         auto overloads = module->second.FindOverloads(qualified_name);
+
+        if (decl.Type == AST::ASTDeclaration::Kind::Raw) {
+            return nullptr;
+        }
 
         if (decl.Type != AST::ASTDeclaration::Kind::Function) {
             for (const auto* symbol : overloads) {

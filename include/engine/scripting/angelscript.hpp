@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "engine/audio/audio.hpp"
@@ -184,6 +185,7 @@ namespace CE::Scripting {
         std::unique_ptr<Bindings::ScriptBindings> mScriptBindings;
 
         std::string mLastError = "";
+        std::unordered_map<std::string, std::string> mCompilerSymbolNames;
         std::string OutputDebugASInfoPath = "";
         bool mOutputDebugASInfo = false;
     };

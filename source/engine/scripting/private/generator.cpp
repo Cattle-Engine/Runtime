@@ -1,5 +1,6 @@
 #include "engine/scripting/private/generator.hpp"
 
+#include <algorithm>
 #include <unordered_set>
 
 namespace CE::Scripting::Impl::Codegen {
@@ -438,6 +439,10 @@ namespace CE::Scripting::Impl::Codegen {
                 result += EmitDeclaration(child, module_path, nested);
             return result;
         }
+        if (declaration.Type == AST::ASTDeclaration::Kind::Raw) {
+            const auto& raw = std::get<AST::ASTRawDeclaration>(declaration.Data);
+            return JoinTokens(raw.Tokens) + "\n";
+        }
         const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
         const auto* symbol = mAnalyser.FindDeclarationSymbol(qualified, module_path, declaration);
         if (!symbol)
@@ -468,18 +473,31 @@ namespace CE::Scripting::Impl::Codegen {
                JoinTokens(RewriteBody(type.Body, nullptr, module_path, name_space)) + "};\n";
     }
 
-    std::string
-    Generator::GenerateMonoScript(const std::vector<std::string>& emission_order,
-                                  const std::unordered_map<std::string, AST::ASTModule>& parsed_modules) const {
-        std::string result;
+    std::vector<::CE::Scripting::Impl::GeneratedScriptSection>
+    Generator::GenerateScriptSections(const std::vector<std::string>& emission_order,
+                                      const std::unordered_map<std::string, AST::ASTModule>& parsed_modules) const {
+        std::vector<::CE::Scripting::Impl::GeneratedScriptSection> sections;
         for (const auto& module_path : emission_order) {
             auto module = parsed_modules.find(module_path);
             if (module == parsed_modules.end())
                 continue;
+
+            ::CE::Scripting::Impl::GeneratedScriptSection section{module_path, {}};
+            uint32_t generated_line = 1;
             for (const auto& declaration : module->second.Declarations) {
-                result += EmitDeclaration(declaration, module_path, "");
+                // Preserve source rows so AngelScript diagnostics identify the user's
+                // file and line instead of the flattened generated program.
+                while (generated_line < declaration.Location.Line) {
+                    section.Code += '\n';
+                    ++generated_line;
+                }
+
+                const std::string emitted = EmitDeclaration(declaration, module_path, "");
+                section.Code += emitted;
+                generated_line += static_cast<uint32_t>(std::count(emitted.begin(), emitted.end(), '\n'));
             }
+            sections.push_back(std::move(section));
         }
-        return result;
+        return sections;
     }
 } // namespace CE::Scripting::Impl::Codegen

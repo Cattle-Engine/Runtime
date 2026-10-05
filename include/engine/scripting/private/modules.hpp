@@ -8,6 +8,11 @@
 #include "engine/common/fs/vfs.hpp"
 
 namespace CE::Scripting::Impl {
+    struct GeneratedScriptSection {
+        std::string Name;
+        std::string Code;
+    };
+
     struct SourceLocation {
         std::string File = "";
         uint32_t Line = 0;
@@ -59,9 +64,12 @@ namespace CE::Scripting::Impl {
          * @brief Used to load 1 script file and resolve it's imports
          * @return Returns a std::string with everything resolved to be built to bytecode, throws if an error happened
          */
-        std::string LoadFile(const std::string& filepath);
+        std::vector<GeneratedScriptSection> LoadFile(const std::string& filepath);
         ModuleInfo LoadModule(const std::string& name);
         std::string GetGeneratedEntrypoint(const std::string& source_name) const;
+        const std::unordered_map<std::string, std::string>& GetDiagnosticSymbolNames() const {
+            return mDiagnosticSymbolNames;
+        }
 
       private:
         std::string GenerateCombinedScripts();
@@ -69,5 +77,6 @@ namespace CE::Scripting::Impl {
         Common::FS::VFS::VFS& mVFS;
         std::vector<std::string> mLoadModules;
         std::unordered_map<std::string, std::string> mEntrypoints;
+        std::unordered_map<std::string, std::string> mDiagnosticSymbolNames;
     };
 } // namespace CE::Scripting::Impl

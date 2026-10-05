@@ -62,6 +62,8 @@ List of bindings to do:
 - [X] Hasher (inside engine/common/utils/hasher.hpp)
 - [X] Allow you to set the renderer resloution so you can have a resloution different from the window
 - [X] Add the ability to select a different audio device in the settings and not just hardcoding to use system default
+- [X] List audio devices in the settings tab in the debug menu and allow setting one
+- [X] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -106,10 +108,8 @@ export int foo_func() {
 }
 ```
 
-- [ ] List audio devices in the settings tab in the debug menu and allow setting one
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
-- [ ] Improve errors from the angelscript stuff to not leak the internal names such as the __ce_f_ stuff
 - [ ] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [ ] Emission textures
 - [ ] HDR rendering

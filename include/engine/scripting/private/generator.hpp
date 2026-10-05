@@ -12,8 +12,9 @@ namespace CE::Scripting::Impl::Codegen {
       public:
         explicit Generator(const Semantics::SymanticAnalyser& analyser) : mAnalyser(analyser) {}
 
-        std::string GenerateMonoScript(const std::vector<std::string>& emission_order,
-                                       const std::unordered_map<std::string, AST::ASTModule>& parsed_modules) const;
+        std::vector<::CE::Scripting::Impl::GeneratedScriptSection>
+        GenerateScriptSections(const std::vector<std::string>& emission_order,
+                               const std::unordered_map<std::string, AST::ASTModule>& parsed_modules) const;
 
       private:
         const Semantics::SymanticAnalyser& mAnalyser;

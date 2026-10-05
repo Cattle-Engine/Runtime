@@ -153,46 +153,53 @@ namespace CE::Scripting {
     }
 
     bool Runtime::RunStartup() {
+        mLastError.clear();
+        mCompilerSymbolNames.clear();
         mScriptModule = mScriptEngine->GetModule("main", asGM_ALWAYS_CREATE);
         if (mScriptModule == nullptr) {
             return Fail("Failed to create AngelScript script module");
         }
 
-        std::string code;
+        std::vector<Impl::GeneratedScriptSection> sections;
         std::string main_entrypoint;
         std::string update_entrypoint;
         std::string imgui_entrypoint;
 
         try {
             Impl::ModuleImporter importer(mVFS);
-            code = importer.LoadFile(mGameInfo.startupFileName);
+            sections = importer.LoadFile(mGameInfo.startupFileName);
+            mCompilerSymbolNames = importer.GetDiagnosticSymbolNames();
             main_entrypoint = importer.GetGeneratedEntrypoint("main");
             update_entrypoint = importer.GetGeneratedEntrypoint("update");
             imgui_entrypoint = importer.GetGeneratedEntrypoint("imgui");
         } catch (const Impl::Exceptions::LexerError& error) {
-            return Fail(std::format("[Lexer] Failed to prepare script file: {}", error.what()));
+            return Fail(error.what());
         } catch (const Impl::Exceptions::ParserError& error) {
-            return Fail(std::format("[Parser] Failed to prepare script file: {}", error.what()));
+            return Fail(error.what());
         } catch (const Impl::Exceptions::SemanticError& error) {
-            return Fail(std::format("[Semantic Analyser] Failed to prepare script file: {}", error.what()));
+            return Fail(error.what());
         }
 
-        if (code.empty()) {
+        if (sections.empty()) {
             return Fail(std::format("Failed to load AngelScript startup file '{}'", mGameInfo.startupFileName));
         }
 
         CE_LOG(LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
-        CE_LOG(LogLevel::Debug, "[AngelScript] generated monoscript: \n\n{}", code);
-
-        int r = mScriptModule->AddScriptSection("startup", code.c_str());
-
-        if (r < 0) {
-            return Fail("Failed to add AngelScript startup script section");
+        for (const auto& section : sections) {
+            CE_LOG(LogLevel::Debug, "[AngelScript] generated script section '{}':\n\n{}", section.Name,
+                   section.Code);
+            const int add_result = mScriptModule->AddScriptSection(section.Name.c_str(), section.Code.c_str());
+            if (add_result < 0) {
+                return Fail(std::format("Failed to add AngelScript script section '{}'", section.Name));
+            }
         }
 
-        r = mScriptModule->Build();
+        int r = mScriptModule->Build();
         if (r < 0) {
-            return Fail("Failed to build AngelScript module");
+            // The message callback has already recorded the actionable compiler
+            // error. Keep it available to callers instead of replacing it with a
+            // generic build failure.
+            return mLastError.empty() ? Fail("Failed to build AngelScript module") : false;
         }
 
         asIScriptFunction* func =
@@ -281,9 +288,18 @@ namespace CE::Scripting {
             return;
         }
 
+        std::string diagnostic = msg->message ? msg->message : "";
+        for (const auto& [internal_name, source_name] : runtime->mCompilerSymbolNames) {
+            size_t position = 0;
+            while ((position = diagnostic.find(internal_name, position)) != std::string::npos) {
+                diagnostic.replace(position, internal_name.size(), source_name);
+                position += source_name.size();
+            }
+        }
+
         const std::string message =
             std::format("[AngelScript] {}:{}:{} {}: {}", msg->section ? msg->section : "<unknown>", msg->row, msg->col,
-                        ToString(msg->type), msg->message ? msg->message : "");
+                        ToString(msg->type), diagnostic);
 
         switch (msg->type) {
         case asMSGTYPE_ERROR:

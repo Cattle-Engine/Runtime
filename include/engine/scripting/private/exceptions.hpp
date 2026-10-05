@@ -13,14 +13,19 @@ namespace CE::Scripting::Impl::Exceptions {
         LexerError(std::string message, SourceLocation location)
             : mMessage(std::move(message)),
               mLocation(std::move(location)),
-              mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
-                                mLocation.Column)) {}
+              mWhat(std::format("{}:{}:{}: error: {}", DisplayFile(mLocation), mLocation.Line, mLocation.Column,
+                                mMessage)) {}
 
         const char* what() const noexcept override {
             return mWhat.c_str();
         }
 
       private:
+        static const std::string& DisplayFile(const SourceLocation& location) {
+            static const std::string unknown_file = "<script>";
+            return location.File.empty() ? unknown_file : location.File;
+        }
+
         std::string mMessage;
         SourceLocation mLocation;
         std::string mWhat;
@@ -31,14 +36,19 @@ namespace CE::Scripting::Impl::Exceptions {
         ParserError(std::string message, SourceLocation location)
             : mMessage(std::move(message)),
               mLocation(std::move(location)),
-              mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
-                                mLocation.Column)) {}
+              mWhat(std::format("{}:{}:{}: error: {}", DisplayFile(mLocation), mLocation.Line, mLocation.Column,
+                                mMessage)) {}
 
         const char* what() const noexcept override {
             return mWhat.c_str();
         }
 
       private:
+        static const std::string& DisplayFile(const SourceLocation& location) {
+            static const std::string unknown_file = "<script>";
+            return location.File.empty() ? unknown_file : location.File;
+        }
+
         std::string mMessage;
         SourceLocation mLocation;
         std::string mWhat;
@@ -49,14 +59,19 @@ namespace CE::Scripting::Impl::Exceptions {
         SemanticError(std::string message, SourceLocation location)
             : mMessage(std::move(message)),
               mLocation(std::move(location)),
-              mWhat(std::format("{}, at file: {}, line: {}, column: {}", mMessage, mLocation.File, mLocation.Line,
-                                mLocation.Column)) {}
+              mWhat(std::format("{}:{}:{}: error: {}", DisplayFile(mLocation), mLocation.Line, mLocation.Column,
+                                mMessage)) {}
 
         const char* what() const noexcept override {
             return mWhat.c_str();
         }
 
       private:
+        static const std::string& DisplayFile(const SourceLocation& location) {
+            static const std::string unknown_file = "<script>";
+            return location.File.empty() ? unknown_file : location.File;
+        }
+
         std::string mMessage;
         SourceLocation mLocation;
         std::string mWhat;

@@ -67,8 +67,13 @@ namespace CE::Scripting::Impl::AST {
 
     struct ASTNamespace;
 
+    struct ASTRawDeclaration {
+        std::string Kind;
+        std::vector<Lexer::Token> Tokens;
+    };
+
     struct ASTDeclaration {
-        enum class Kind { Function, Global, Type, Namespace };
+        enum class Kind { Function, Global, Type, Namespace, Raw };
 
         Kind Type;
         bool Exported = false;
@@ -77,7 +82,7 @@ namespace CE::Scripting::Impl::AST {
         SourceLocation Location;
         std::string NameSpace;
 
-        std::variant<ASTFunction, ASTGlobal, ASTType, std::shared_ptr<ASTNamespace>> Data;
+        std::variant<ASTFunction, ASTGlobal, ASTType, std::shared_ptr<ASTNamespace>, ASTRawDeclaration> Data;
     };
 
     struct ASTNamespace {

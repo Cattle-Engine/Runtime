@@ -8,6 +8,31 @@
 #include "engine/scripting/private/semantics.hpp"
 
 namespace CE::Scripting::Impl {
+    namespace {
+        void CollectDiagnosticSymbolNames(const AST::ASTDeclaration& declaration, const std::string& module_path,
+                                          const std::string& name_space, const Semantics::SymanticAnalyser& analyser,
+                                          std::unordered_map<std::string, std::string>& names) {
+            if (declaration.Type == AST::ASTDeclaration::Kind::Namespace) {
+                const auto& name_space_declaration = *std::get<std::shared_ptr<AST::ASTNamespace>>(declaration.Data);
+                const std::string nested = name_space.empty() ? name_space_declaration.Name
+                                                               : name_space + "::" + name_space_declaration.Name;
+                for (const auto& child : name_space_declaration.Declarations) {
+                    CollectDiagnosticSymbolNames(child, module_path, nested, analyser, names);
+                }
+                return;
+            }
+
+            if (declaration.Type == AST::ASTDeclaration::Kind::Raw) {
+                return;
+            }
+
+            const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
+            if (const auto* symbol = analyser.FindDeclarationSymbol(qualified, module_path, declaration)) {
+                names.emplace(symbol->InternalName, qualified);
+            }
+        }
+    } // namespace
+
     std::string MangledSymbolInfo::GenerateMangledName() const {
         switch (Type) {
         case SymbolType::Function:
@@ -31,14 +56,20 @@ namespace CE::Scripting::Impl {
 
     ModuleImporter::ModuleImporter(::CE::Common::FS::VFS::VFS& vfs) : mVFS(vfs) {}
 
-    std::string ModuleImporter::LoadFile(const std::string& filepath) {
+    std::vector<GeneratedScriptSection> ModuleImporter::LoadFile(const std::string& filepath) {
         if (!mVFS.FileExists(filepath.c_str())) {
             throw std::runtime_error("File not found: " + filepath);
         }
         mLoadModules.clear();
+        mDiagnosticSymbolNames.clear();
         Semantics::SymanticAnalyser analyser(mVFS);
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(Common::GetScriptFromVFS(filepath, mVFS), filepath));
         analyser.CheckModule(root, filepath);
+        for (const auto& [module_path, module] : analyser.GetParsedModules()) {
+            for (const auto& declaration : module.Declarations) {
+                CollectDiagnosticSymbolNames(declaration, module_path, "", analyser, mDiagnosticSymbolNames);
+            }
+        }
         mEntrypoints.clear();
         for (const std::string& source_name : {std::string("main"), std::string("update"), std::string("imgui")}) {
             if (const auto* symbol = analyser.FindSymbol(source_name, filepath)) {
@@ -48,7 +79,7 @@ namespace CE::Scripting::Impl {
             }
         }
         Codegen::Generator generator(analyser);
-        return generator.GenerateMonoScript(analyser.GetEmissionOrder(), analyser.GetParsedModules());
+        return generator.GenerateScriptSections(analyser.GetEmissionOrder(), analyser.GetParsedModules());
     }
 
     ModuleInfo ModuleImporter::LoadModule(const std::string& name) {
