@@ -1,10 +1,12 @@
 #include "engine/instance.hpp"
 
+#include <exception>
 #include <format>
 #include <memory>
 #include <stdexcept>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_init.h>
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/error_box.hpp"
@@ -86,6 +88,11 @@ namespace CE {
         }
 
         try {
+            if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+                CE_LOG(LogLevel::Error, "[Instance {}] Failed to init SDL audio: {}", gInstanceID, SDL_GetError());
+                throw std::runtime_error("Failed to init SDL audio");
+            }
+
             CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
             
             SDL_AudioDeviceID audio_device_id = Core::Audio::AudioSystem::GetAudioDeviceID(mSettingsManager->Settings.audioDeviceName);
@@ -347,6 +354,8 @@ namespace CE {
             mAudioManager->SetMusicVolume(mSettingsManager->Settings.musicVolume);
             mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
         }
+
+        gGameStateManager.Emit("CE_SETTINGS_RELOAD");
     }
 
     void Instance::Exit() {
@@ -367,5 +376,6 @@ namespace CE {
         mMaterialManager.reset();
         mTextureManager.reset();
         mRenderer->Shutdown(mWindow->GetWindow());
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
     }
 } // namespace CE

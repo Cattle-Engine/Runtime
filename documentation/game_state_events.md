@@ -18,3 +18,4 @@
 | CE_WINDOW_MODE_CHANGED_FULLSCREEN | Fires when the window mode is set to fullscreen                               |
 | CE_WINDOW_MODE_CHANGED_BORDERLESS | Fires when the window mode is set to borderless                               |
 | CE_WINDOW_MODE_CHANGED_WINDOWED   | Fires when the window mode is set to windowed                                 |
+| CE_SETTINGS_RELOAD                | Fires before the Update event if a settings reload was asked                  |

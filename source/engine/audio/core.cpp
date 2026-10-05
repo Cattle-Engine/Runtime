@@ -88,6 +88,11 @@ namespace CE::Core::Audio {
         std::vector<AudioDeviceInfo> devices;
         int count = 0;
         SDL_AudioDeviceID* ids = SDL_GetAudioPlaybackDevices(&count);
+        if (!ids) {
+            CE_LOG(LogLevel::Error, "[ListAudioDevices] Failed to get audio playback devices: {}", SDL_GetError());
+            return devices;
+        }
+
         for (int i = 0; i < count; i++) {
             AudioDeviceInfo info;
             info.Id = static_cast<uint32_t>(ids[i]);
@@ -100,6 +105,7 @@ namespace CE::Core::Audio {
             devices.push_back(info);
         }
         SDL_free(ids);
+        devices.push_back({.Id=SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, .Name="DefaultAudioDevice", .stereo=true});
         return devices;
     }
 

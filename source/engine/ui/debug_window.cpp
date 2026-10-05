@@ -303,6 +303,24 @@ namespace CE::UI {
         auto& s = mSettings.Settings;
         auto& state = gSettingsState;
 
+        static int selected_audio_device = 0;
+        static bool audio_device_selection_initialized = false;
+
+        auto syncAudioDeviceSelection = [&]() {
+            if (mAudioDevices.empty()) {
+                return;
+            }
+
+            for (int i = 0; i < static_cast<int>(mAudioDevices.size()); ++i) {
+                if (mAudioDevices[i].Name == s.audioDeviceName) {
+                    selected_audio_device = i;
+                    return;
+                }
+            }
+
+            selected_audio_device = 0;
+        };
+
         ImGui::Text("Window");
         ImGui::Spacing();
 
@@ -367,31 +385,36 @@ namespace CE::UI {
         }
 
         if (mAudioSystem) {
-            static int selected_device = 0;
             if (!mAudioDevices.empty()) {
+                if (!audio_device_selection_initialized) {
+                    syncAudioDeviceSelection();
+                    audio_device_selection_initialized = true;
+                }
 
-                // Protect against the device list being refreshed.
-                if (selected_device >= static_cast<int>(mAudioDevices.size())) {
-                    selected_device = 0;
+                if (selected_audio_device >= static_cast<int>(mAudioDevices.size())) {
+                    selected_audio_device = 0;
                 }
 
                 if (ImGui::BeginCombo(
                     "Audio Device",
-                    mAudioDevices[selected_device].Name.c_str())) {
+                    mAudioDevices[selected_audio_device].Name.c_str())) {
 
                     for (int i = 0; i < static_cast<int>(mAudioDevices.size()); ++i) {
-                        bool isSelected = (selected_device == i);
+                        bool isSelected = (selected_audio_device == i);
 
                         if (ImGui::Selectable(
                             mAudioDevices[i].Name.c_str(),
                             isSelected)) {
 
-                            selected_device = i;
+                            selected_audio_device = i;
 
                             mAudioSystem->SetAudioDevice(
                                 mAudioDevices[i].Id,
                                 mAudioDevices[i].stereo
                             );
+
+                            mSettings.Settings.audioDeviceName =
+                                mAudioDevices[i].Name;
                         }
 
                         if (isSelected) {
@@ -401,18 +424,19 @@ namespace CE::UI {
 
                     ImGui::EndCombo();
                 }
+                ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Note: Selecting an audio device immediately changes to it");
             } else {
                 ImGui::Text("No audio devices found");
             }
 
             if (ImGui::Button("Reload audio device list")) {
-                mAudioDevices = Core::Audio::AudioSystem::ListAudioDevices();
+                mAudioDevices =
+                    Core::Audio::AudioSystem::ListAudioDevices();
 
-                // Make sure the index is still valid.
                 if (mAudioDevices.empty()) {
-                    // Nothing selected.
-                } else if (selected_device >= static_cast<int>(mAudioDevices.size())) {
-                    selected_device = 0;
+                    selected_audio_device = 0;
+                } else if (selected_audio_device >= static_cast<int>(mAudioDevices.size())) {
+                    selected_audio_device = 0;
                 }
             }
         } else {
@@ -435,6 +459,7 @@ namespace CE::UI {
         if (ImGui::Button("Save & apply")) {
             mSettings.FlushSettings();
             mSettings.ReloadSettings();
+            syncAudioDeviceSelection();
         }
 
         ImGui::SameLine();
@@ -445,6 +470,7 @@ namespace CE::UI {
             std::strncpy(state.rendererBuffer.data(), s.rendererName.c_str(), state.rendererBuffer.size() - 1);
             state.rendererBuffer[state.rendererBuffer.size() - 1] = '\0';
             state.synced = true;
+            syncAudioDeviceSelection();
         }
     }
 
