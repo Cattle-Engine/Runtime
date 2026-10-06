@@ -131,7 +131,6 @@ namespace CE::Scripting {
         RegisterScriptArray(mScriptEngine, true /* enable gc support */);
         RegisterStdStringUtils(mScriptEngine);
 
-        // TODO: add the binding registrations here
         if (!mScriptBindings->RegisterAllBindings(*mScriptEngine, *this)) {
             return false;
         }

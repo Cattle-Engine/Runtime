@@ -12,30 +12,73 @@ namespace CE::Scripting::Impl::Codegen {
         bool NeedsSpace(const Lexer::Token& previous, const Lexer::Token& current) {
             const std::string& a = previous.Value;
             const std::string& b = current.Value;
-            if (b == ";" || b == "," || b == ")" || b == "]" || b == "." || b == "::" || a == "(" || a == "[" ||
-                a == "." || a == "::" || a == "@")
+
+            if (b == ";" || b == "," || b == ")" || b == "]" ||
+                b == "." || b == "::" || a == "(" || a == "[" ||
+                a == "." || a == "::" || a == "@") {
                 return false;
-            if (b == "(" || b == "[" || a == "{")
+            }
+
+            if (b == "(" || b == "[") {
                 return false;
-            if (a == "}" || b == "{")
+            }
+
+            if (a == "}" || b == "{") {
                 return true;
-            const bool a_word = IsIdentifier(previous) || previous.Type == Lexer::Token::TokenType::Number ||
-                                previous.Type == Lexer::Token::TokenType::String;
-            const bool b_word = IsIdentifier(current) || current.Type == Lexer::Token::TokenType::Number ||
-                                current.Type == Lexer::Token::TokenType::String;
+            }
+
+            const bool a_word =
+                IsIdentifier(previous) ||
+                previous.Type == Lexer::Token::TokenType::Number ||
+                previous.Type == Lexer::Token::TokenType::String;
+
+            const bool b_word =
+                IsIdentifier(current) ||
+                current.Type == Lexer::Token::TokenType::Number ||
+                current.Type == Lexer::Token::TokenType::String;
+
             return a_word && b_word;
         }
     } // namespace
 
     std::string Generator::JoinTokens(const std::vector<Lexer::Token>& tokens) {
         std::string result;
+        const Lexer::Token* previous = nullptr;
+
+        uint32_t previous_line = 0;
+        uint32_t indent = 0;
+        bool at_line_start = true;
+
         for (const auto& token : tokens) {
             if (token.Type == Lexer::Token::TokenType::EndOfFile)
                 continue;
-            if (!result.empty() && NeedsSpace(tokens[&token - tokens.data() - 1], token))
+
+            const bool new_line = previous && token.Location.Line > previous_line;
+
+            if (new_line) {
+                result.append(token.Location.Line - previous_line, '\n');
+                at_line_start = true;
+            }
+
+            if (token.Value == "}" && indent > 0)
+                --indent;
+
+            if (at_line_start) {
+                result.append(indent * 4, ' ');
+                at_line_start = false;
+            } else if (previous && !new_line && NeedsSpace(*previous, token)) {
                 result += ' ';
+            }
+
             result += token.Value;
+
+            if (token.Value == "{")
+                ++indent;
+
+            previous = &token;
+            previous_line = token.Location.Line;
         }
+
         return result;
     }
 
