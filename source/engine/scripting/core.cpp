@@ -9,6 +9,7 @@
 #include "engine/input/input_binder.hpp"
 #include "engine/input/text.hpp"
 #include "engine/scripting/angelscript.hpp"
+#include "engine/scripting/debugger.hpp"
 #include "engine/scripting/private/exceptions.hpp"
 #include "engine/scripting/private/modules.hpp"
 #include "engine/scripting/bindings/bindings_list.hpp"
@@ -171,6 +172,9 @@ namespace CE::Scripting {
             main_entrypoint = importer.GetGeneratedEntrypoint("main");
             update_entrypoint = importer.GetGeneratedEntrypoint("update");
             imgui_entrypoint = importer.GetGeneratedEntrypoint("imgui");
+            #ifdef CE_DEBUG
+                mScriptDebugger = std::make_shared<ScriptDebugger>(importer.GetGeneratedSymbols());
+            #endif
         } catch (const Impl::Exceptions::LexerError& error) {
             return Fail(error.what());
         } catch (const Impl::Exceptions::ParserError& error) {
@@ -208,7 +212,7 @@ namespace CE::Scripting {
             return Fail("AngelScript entrypoint 'void main()' was not found");
         }
 
-        asIScriptContext* ctx = mScriptEngine->CreateContext();
+        asIScriptContext* ctx = CreateContext();
         if (ctx == nullptr) {
             return Fail("Failed to create AngelScript startup context");
         }
@@ -226,7 +230,7 @@ namespace CE::Scripting {
         if (mUpdateFunc == nullptr) {
             CE_LOG(LogLevel::Warn, "[AngelScript] No 'void update()' function found");
         } else {
-            mUpdateCtx = mScriptEngine->CreateContext();
+            mUpdateCtx = CreateContext();
             if (mUpdateCtx == nullptr) {
                 return Fail("Failed to create AngelScript update context");
             }
@@ -234,7 +238,7 @@ namespace CE::Scripting {
 
         mImGuiFunc = imgui_entrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(imgui_entrypoint.c_str());
         if (mImGuiFunc != nullptr) {
-            mImGuiCtx = mScriptEngine->CreateContext();
+            mImGuiCtx = CreateContext();
             if (mImGuiCtx == nullptr) {
                 return Fail("Failed to create AngelScript imgui context");
             }

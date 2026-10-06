@@ -44,6 +44,13 @@ namespace CE::Scripting::Impl {
         std::string GenerateMangledName() const;
     };
 
+    struct GeneratedSymbolInfo {
+        std::string InternalName;
+        std::string QualifiedName;
+        std::string DisplayName;
+        std::string Kind;
+    };
+
     struct ModuleInfo {
         enum class ModuleState { NotLoaded, Loaded };
 
@@ -70,6 +77,9 @@ namespace CE::Scripting::Impl {
         const std::unordered_map<std::string, std::string>& GetDiagnosticSymbolNames() const {
             return mDiagnosticSymbolNames;
         }
+        const std::vector<GeneratedSymbolInfo>& GetGeneratedSymbols() const {
+            return mGeneratedSymbols;
+        }
 
       private:
         std::string GenerateCombinedScripts();
@@ -78,5 +88,6 @@ namespace CE::Scripting::Impl {
         std::vector<std::string> mLoadModules;
         std::unordered_map<std::string, std::string> mEntrypoints;
         std::unordered_map<std::string, std::string> mDiagnosticSymbolNames;
+        std::vector<GeneratedSymbolInfo> mGeneratedSymbols;
     };
 } // namespace CE::Scripting::Impl

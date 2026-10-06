@@ -11,13 +11,14 @@ namespace CE::Scripting::Impl {
     namespace {
         void CollectDiagnosticSymbolNames(const AST::ASTDeclaration& declaration, const std::string& module_path,
                                           const std::string& name_space, const Semantics::SymanticAnalyser& analyser,
-                                          std::unordered_map<std::string, std::string>& names) {
+                                          std::unordered_map<std::string, std::string>& names,
+                                          std::vector<GeneratedSymbolInfo>& generated_symbols) {
             if (declaration.Type == AST::ASTDeclaration::Kind::Namespace) {
                 const auto& name_space_declaration = *std::get<std::shared_ptr<AST::ASTNamespace>>(declaration.Data);
                 const std::string nested = name_space.empty() ? name_space_declaration.Name
                                                                : name_space + "::" + name_space_declaration.Name;
                 for (const auto& child : name_space_declaration.Declarations) {
-                    CollectDiagnosticSymbolNames(child, module_path, nested, analyser, names);
+                    CollectDiagnosticSymbolNames(child, module_path, nested, analyser, names, generated_symbols);
                 }
                 return;
             }
@@ -29,6 +30,11 @@ namespace CE::Scripting::Impl {
             const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
             if (const auto* symbol = analyser.FindDeclarationSymbol(qualified, module_path, declaration)) {
                 names.emplace(symbol->InternalName, qualified);
+                generated_symbols.push_back({symbol->InternalName, qualified, qualified,
+                                             symbol->Kind == AST::ASTDeclaration::Kind::Function ? "function"
+                                             : symbol->Kind == AST::ASTDeclaration::Kind::Global ? "global"
+                                             : symbol->Kind == AST::ASTDeclaration::Kind::Type ? "type"
+                                                                                               : "symbol"});
             }
         }
     } // namespace
@@ -62,12 +68,14 @@ namespace CE::Scripting::Impl {
         }
         mLoadModules.clear();
         mDiagnosticSymbolNames.clear();
+        mGeneratedSymbols.clear();
         Semantics::SymanticAnalyser analyser(mVFS);
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(Common::GetScriptFromVFS(filepath, mVFS), filepath));
         analyser.CheckModule(root, filepath);
         for (const auto& [module_path, module] : analyser.GetParsedModules()) {
             for (const auto& declaration : module.Declarations) {
-                CollectDiagnosticSymbolNames(declaration, module_path, "", analyser, mDiagnosticSymbolNames);
+                CollectDiagnosticSymbolNames(declaration, module_path, "", analyser, mDiagnosticSymbolNames,
+                                             mGeneratedSymbols);
             }
         }
         mEntrypoints.clear();

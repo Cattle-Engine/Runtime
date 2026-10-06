@@ -10,6 +10,10 @@
 #include "engine/input/text.hpp"
 #include "engine/rendering/resources/model_renderer.hpp"
 
+#ifdef CE_DEBUG
+    #include "engine/scripting/debugger.hpp"
+#endif
+
 #include <angelscript.h>
 
 // Forward declare a hella lot of stuff to help compile times
@@ -132,6 +136,11 @@ namespace CE::Scripting {
 
         void UnsubscribeStateEvent(int id);
 
+        // may not be valid so check!
+        std::shared_ptr<ScriptDebugger> GetScriptDebugger() {
+            return mScriptDebugger;
+        }
+
         /**
          * Exposed publicly because all the IScriptBinding impls require access to at-least one of these.
          * Keeping them as public means we don't need to write a ton of trival getter functions
@@ -173,6 +182,17 @@ namespace CE::Scripting {
         static void MessageCallback(const asSMessageInfo* msg, void* param);
         bool Fail(const std::string& message);
 
+        asIScriptContext* CreateContext() {
+            asIScriptContext* context = mScriptEngine->CreateContext();
+
+        #ifdef CE_DEBUG
+            if (context != nullptr && mScriptDebugger)
+                mScriptDebugger->Attach(context);
+        #endif
+
+            return context;
+        }
+
         asIScriptEngine* mScriptEngine = nullptr;
         asIScriptContext* mContext = nullptr;
         asIScriptModule* mScriptModule = nullptr;
@@ -188,6 +208,8 @@ namespace CE::Scripting {
         std::unordered_map<std::string, std::string> mCompilerSymbolNames;
         std::string OutputDebugASInfoPath = "";
         bool mOutputDebugASInfo = false;
+
+        std::shared_ptr<ScriptDebugger> mScriptDebugger;
     };
 } // namespace CE::Scripting
 

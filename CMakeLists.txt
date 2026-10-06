@@ -253,6 +253,7 @@ set(ANGELSCRIPT_ADDON_SOURCES
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptdictionary/scriptdictionary.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptany/scriptany.cpp
     ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/scriptgrid/scriptgrid.cpp
+    ${ANGELSCRIPT_ADDON_INCLUDE_DIR}/debugger/debugger.cpp
 )
 foreach(ANGELSCRIPT_ADDON_SOURCE ${ANGELSCRIPT_ADDON_SOURCES})
     if(NOT EXISTS "${ANGELSCRIPT_ADDON_SOURCE}")
