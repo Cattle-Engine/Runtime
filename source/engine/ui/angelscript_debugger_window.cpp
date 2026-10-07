@@ -47,12 +47,9 @@ namespace CE::UI {
 
         Utils::SpaceSep();
 
-        bool create_function_popup_open = ImGui::IsPopupOpen("Create Function Breakpoint");
-        ImGui::BeginDisabled(create_function_popup_open);
         if (ImGui::Button("Create function breakpoint")) {
             ImGui::OpenPopup("Create Function Breakpoint");
         }
-        ImGui::EndDisabled();
 
         if (ImGui::BeginPopupModal("Create Function Breakpoint", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             static std::string function_name;
@@ -72,9 +69,46 @@ namespace CE::UI {
             ImGui::EndPopup();
         }
 
-        bool create_file_breakpoint_popup_open = ImGui::IsPopupOpen("Create File Breakpoint");
+        ImGui::SameLine();
 
-        ImGui::BeginDisabled(create_file_breakpoint_popup_open);
+        if (ImGui::Button("Create file breakpoint")) {
+            ImGui::OpenPopup("Create File Breakpoint");
+        }
+
+        if (ImGui::BeginPopupModal("Create File Breakpoint", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            static std::string file_path;
+            static int line;
+            static bool show_error_text;
+
+            ImGui::InputText("File name", &file_path);
+            ImGui::InputInt("Line", &line);
+
+            if (show_error_text) {
+                ImGui::Text("Could not find file in loaded scripts");
+            }
+
+            if (ImGui::Button("Create")) {
+                for (const auto& file : mRuntime.GetScriptSectionNames()) {
+                    if (file == file_path) {
+                        show_error_text = false;
+                        break;
+                    }
+
+                    show_error_text = true;
+                }
+
+                if (!show_error_text) mDebugger->AddFileBreakPoint(file_path, line);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) {
+                file_path = "";
+                line = 0;
+                show_error_text = false;
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
 
         ImGui::SameLine();
 
@@ -85,6 +119,25 @@ namespace CE::UI {
                 mDebugger->RemoveFileBreakPoint(mSelectedBreakpoint->name, mSelectedBreakpoint->line);
             }
         }
+    }
+
+    void AngelscriptDebuggerWindow::DrawDebuggerOutputTab() {
+        ImGui::BeginChild(
+            "ConsoleOutput",
+            ImVec2(0, 0),
+            ImGuiChildFlags_Borders
+        );
+
+        std::string output = mDebugger->GetOutputLog();
+
+        ImGui::InputTextMultiline(
+            "##Console",
+            &output,
+            ImVec2(-1, -1),
+            ImGuiInputTextFlags_ReadOnly
+        );
+
+        ImGui::EndChild();
     }
 
     void AngelscriptDebuggerWindow::DrawLoadedScriptsTab() {
@@ -139,6 +192,47 @@ namespace CE::UI {
         ImGui::EndChild();
     }
 
+    void AngelscriptDebuggerWindow::DrawCallStackTab() {
+        const auto callstack = mDebugger->GetCallStack();
+
+        if (ImGui::BeginTable(
+            "Callstack",
+            3,
+            ImGuiTableFlags_Borders |
+            ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_ScrollY |
+            ImGuiTableFlags_Resizable
+        )) {
+            ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+            ImGui::TableSetupColumn("Location");
+            ImGui::TableSetupColumn("Function");
+            ImGui::TableHeadersRow();
+
+            for (size_t i = 0; i < callstack.size(); i++) {
+                const auto& frame = callstack[i];
+
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%zu", i);
+
+                ImGui::TableNextColumn();
+                ImGui::Text(
+                    "%s:%d",
+                    frame.file.c_str(),
+                    frame.line
+                );
+
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(frame.function.c_str());
+            }
+
+            ImGui::EndTable();
+        }
+    }
+
+    
+
     void AngelscriptDebuggerWindow::DrawWindow() {
         if (mWindowOpen) {
             if(ImGui::Begin("Angelscript Debugger", &mWindowOpen)) {
@@ -150,6 +244,11 @@ namespace CE::UI {
                 }
 
                 if (ImGui::BeginTabBar("angelscript_debugger_tab_bar_main")) {
+                    if (ImGui::BeginTabItem("Debugger output")) {
+                        DrawDebuggerOutputTab();
+                        ImGui::EndTabItem();
+                    }
+
                     if (ImGui::BeginTabItem("Breakpoints")) {
                         DrawBreakPointsTab(); 
                         ImGui::EndTabItem();
@@ -157,6 +256,11 @@ namespace CE::UI {
                  
                     if (ImGui::BeginTabItem("Loaded scripts")) {
                         DrawLoadedScriptsTab();
+                        ImGui::EndTabItem();
+                    }
+
+                    if (ImGui::BeginTabItem("Callstack")) {
+                        DrawCallStackTab();
                         ImGui::EndTabItem();
                     }
                 }

@@ -174,6 +174,7 @@ namespace CE::Scripting {
             imgui_entrypoint = importer.GetGeneratedEntrypoint("imgui");
             #ifdef CE_DEBUG
                 mScriptDebugger = std::make_shared<ScriptDebugger>(importer.GetGeneratedSymbols());
+                mScriptDebugger->SetEngine(mScriptEngine);
             #endif
         } catch (const Impl::Exceptions::LexerError& error) {
             return Fail(error.what());

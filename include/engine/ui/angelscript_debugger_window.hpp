@@ -43,7 +43,9 @@ namespace CE::UI {
             // the window has a close button, this will reshow the window if the user has clicked close
             void OpenWindow();
         private:
+            void DrawCallStackTab();
             void DrawBreakPointsTab();
+            void DrawDebuggerOutputTab();
             void DrawLoadedScriptsTab();
 
             std::optional<Scripting::ScriptDebugger::BreakPointInfo> mSelectedBreakpoint;

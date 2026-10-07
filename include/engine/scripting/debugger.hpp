@@ -13,6 +13,7 @@ namespace CE::Scripting {
     class ScriptDebugger : public CDebugger {
     public:
         explicit ScriptDebugger(std::vector<Impl::GeneratedSymbolInfo> symbol_map = {}) {
+            Output("Starting debugger");
             SetGeneratedSymbols(std::move(symbol_map));
         }
 
@@ -43,6 +44,22 @@ namespace CE::Scripting {
             bool function;
         };
 
+        struct CallstackEntry {
+            std::string file;
+            int line;
+            std::string function;
+        };
+
+        struct GCStatistics {
+            asUINT CurrentSize;
+            asUINT TotalDestructions;
+            asUINT TotalDetected;
+            asUINT NewObjects;
+            asUINT TotalNewDestructions;
+        };
+
+        std::vector<CallstackEntry> GetCallStack();
+        GCStatistics GetGCStats();
         void TakeCommands(asIScriptContext* ctx) override;
         void Output(const std::string& string) override;
         // based off of the CDebugger base just modified to fit CE better
@@ -50,6 +67,10 @@ namespace CE::Scripting {
 
         bool IsPaused() const {
             return mPaused;
+        }
+
+        const std::string& GetOutputLog() {
+            return mConsoleText;
         }
 
         asIScriptContext* GetContext() const {

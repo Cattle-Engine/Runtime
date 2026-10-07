@@ -2,6 +2,7 @@
 
 #include "engine/common/sdl_events.hpp"
 #include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "engine/assets/default_font.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
@@ -10,7 +11,9 @@
 namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::ImGuiInit(SDL_Window* window, SDL_GPUDevice* device) {
         float scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+
         IMGUI_CHECKVERSION();
+
         ImGuiContext* prev_context = ImGui::GetCurrentContext();
         mImguicontext = ImGui::CreateContext();
         ImGui::SetCurrentContext(mImguicontext);
@@ -25,12 +28,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         style.ScaleAllSizes(scale);
         style.FontScaleDpi = scale;
 
-        // Ensure the font atlas is rasterized at DPI-appropriate resolution.
-        // (Relying on scaling a small baked font looks pixelated on high-DPI displays.)
         io.Fonts->Clear();
+
         ImFontConfig font_cfg{};
-        font_cfg.SizePixels = 16.0f * scale;
-        io.FontDefault = io.Fonts->AddFontDefaultVector(&font_cfg);
+        font_cfg.FontDataOwnedByAtlas = false;
+
+        io.FontDefault = io.Fonts->AddFontFromMemoryTTF(
+            const_cast<unsigned char*>(Assets::Default::default_ce_font),
+            static_cast<int>(Assets::Default::default_ce_font_len),
+            20.5f * scale,
+            &font_cfg
+        );
 
         ImGui_ImplSDL3_InitForSDLGPU(window);
 

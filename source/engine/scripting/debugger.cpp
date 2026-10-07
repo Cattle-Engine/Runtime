@@ -14,7 +14,7 @@ namespace CE::Scripting {
     }
 
     void ScriptDebugger::Output(const std::string& string) {
-        mConsoleText += string;
+        mConsoleText += string + '\n';
     }
 
     void ScriptDebugger::LineCallback(asIScriptContext* ctx) {
@@ -251,5 +251,42 @@ namespace CE::Scripting {
             this,
             asCALL_CDECL
         );
+
+        Output(std::format("Attached to script context {:p}", static_cast<void*>(ctx)));
+    }
+
+    std::vector<ScriptDebugger::CallstackEntry> ScriptDebugger::GetCallStack() {
+        std::vector<CallstackEntry> result;
+
+        if (!mContext) {
+            return result;
+        }
+
+        for (asUINT n = 0; n < mContext->GetCallstackSize(); n++) {
+            const char* file = nullptr;
+            int line = mContext->GetLineNumber(n, 0, &file);
+
+            CallstackEntry entry;
+            entry.file = file ? file : "{unnamed}";
+            entry.line = line;
+            entry.function = GetDisplayFunctionName(mContext->GetFunction(n));
+
+            result.push_back(std::move(entry));
+        }
+
+        return result;
+    }
+
+    ScriptDebugger::GCStatistics ScriptDebugger::GetGCStats() {
+        GCStatistics s;
+        if (mContext == nullptr) {
+            Output("No script running");
+            return {};
+        }
+
+        asIScriptEngine* engine = mContext->GetEngine();
+
+        engine->GetGCStatistics(&s.CurrentSize, &s.TotalDestructions, &s.TotalDetected, &s.NewObjects, &s.TotalNewDestructions);
+        return s;
     }
 } // namespace CE::Scripting
