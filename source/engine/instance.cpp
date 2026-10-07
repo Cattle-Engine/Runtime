@@ -113,10 +113,6 @@ namespace CE {
             mAudioSystem.reset();
         }
 
-        gDebugWindow = std::make_unique<UI::DebugWindow>(
-            *mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo, *mSettingsManager,
-            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get());
-
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *mVFS, 
             *mGameInfo, 
@@ -155,6 +151,16 @@ namespace CE {
             throw std::runtime_error(std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID,
                                                  mScriptingManager->GetLastError()));
         }
+
+        #ifdef CE_DEBUG
+            mASDebuggerWindow = std::make_unique<UI::AngelscriptDebuggerWindow>(mScriptingManager->GetScriptDebugger(), *mScriptingManager, *mVFS);
+        #endif
+
+
+        gDebugWindow = std::make_unique<UI::DebugWindow>(
+            *mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo, *mSettingsManager,
+            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get(), mASDebuggerWindow.get());
+
         gWindowFocus = true;
     }
 
@@ -258,6 +264,10 @@ namespace CE {
 
             mRenderer->ImGuiStartFrame();
             gDebugWindow->Draw();
+            if (mASDebuggerWindow) {
+                mASDebuggerWindow->DrawWindow();
+            }
+
             if (!mScriptingManager->RunImGui()) {
                 ShowError(mScriptingManager->GetLastError());
                 CE_LOG(LogLevel::Error, "[Instance {}] AngelScript ImGui update failed, shutting down instance", gInstanceID);

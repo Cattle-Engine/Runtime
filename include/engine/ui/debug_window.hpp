@@ -13,6 +13,7 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/settings.hpp"
+#include "engine/ui/angelscript_debugger_window.hpp"
 
 namespace CE::UI {
     class DebugWindow {
@@ -28,7 +29,8 @@ namespace CE::UI {
             CE::Input::Keyboard& keyboard,
             CE::Instance& instance, 
             CE::Input::Mouse& mouse,
-            CE::Core::Audio::AudioSystem* audio_system
+            CE::Core::Audio::AudioSystem* audio_system,
+            AngelscriptDebuggerWindow* scripting_debugger
         );
 
         void Draw();
@@ -57,6 +59,7 @@ namespace CE::UI {
         CE::Input::Keyboard& mKeyboard;
         CE::Instance& mInstance;
         CE::Input::Mouse& mMouse;
+        AngelscriptDebuggerWindow* mAngelscriptDebuggerWindow;
 
         struct SettingsTabState {
             std::array<char, 501> rendererBuffer{};

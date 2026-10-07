@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -88,5 +89,21 @@ namespace CE::Common::FS::VFS {
         virtual uint64_t TellW() = 0;
         virtual bool Flush() = 0;
         virtual bool Eof() const = 0;
+
+        std::optional<std::string> ReadToString() {
+            if (!IsOpen()) {
+                return std::nullopt;
+            }
+
+            const uint64_t size = Size();
+
+            std::string contents(size, '\0');
+
+            if (!Read(contents.data(), contents.size())) {
+                return std::nullopt;
+            }
+
+            return contents;
+        }
     };
 } // namespace CE::Common::FS::VFS

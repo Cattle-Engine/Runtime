@@ -19,6 +19,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/settings.hpp"
+#include "engine/ui/angelscript_debugger_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/version.hpp"
 #include "engine/common/window.hpp"
@@ -63,10 +64,10 @@ namespace CE::UI {
                              Renderer::Resources::ShaderManager& shaderman, Assets::Fonts::FontManager& fontman,
                              GameInfo& gameinfo, Settings::SettingsManager& settings,
                              Audio::Resources::AudioManager* audioman, Input::Keyboard& keyboard,
-                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system)
+                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system, AngelscriptDebuggerWindow* as_debugger_win)
         : mRenderer(renderer), mTextureManager(texman), mShaderManager(shaderman), mFontManager(fontman),
-          mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mAudioSystem(audio_system),
-          mKeyboard(keyboard), mInstance(instance), mMouse(mouse),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {
+          mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mAudioSystem(audio_system), mKeyboard(keyboard),
+          mInstance(instance), mMouse(mouse), mAngelscriptDebuggerWindow(as_debugger_win),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {
                 mAudioDevices = Core::Audio::AudioSystem::ListAudioDevices();
           }
 
@@ -147,6 +148,21 @@ namespace CE::UI {
         }
         ImGui::Text("Press enter to apply");
         ImGui::Text("Current state: %s", mInstance.GetGameState().c_str());
+
+        Utils::SpaceSep();
+
+        bool debugger_button_disabled = mAngelscriptDebuggerWindow == nullptr;
+        ImGui::BeginDisabled(debugger_button_disabled);
+
+        if (ImGui::Button("Open AS Debugger")) {
+            mAngelscriptDebuggerWindow->OpenWindow();
+        }
+
+        if (debugger_button_disabled) {
+            ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Debugger is not available");
+        }
+
+        ImGui::EndDisabled();
 
         Utils::SpaceSep();
 

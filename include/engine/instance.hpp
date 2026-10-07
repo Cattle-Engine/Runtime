@@ -29,6 +29,7 @@
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/window.hpp"
 #include "engine/ui/debug_window.hpp"
+#include "engine/ui/angelscript_debugger_window.hpp"
 
 // A global to get all instances
 inline uint64_t GLOBALINSTANCESCOUNTER;
@@ -112,6 +113,7 @@ namespace CE {
         Core::EventBus gEventBus;
         Core::GameState::GameStateManager gGameStateManager;
         std::unique_ptr<UI::DebugWindow> gDebugWindow;
+        std::unique_ptr<UI::AngelscriptDebuggerWindow> mASDebuggerWindow;
         EngineArguements gProgramArguments;
     };
 

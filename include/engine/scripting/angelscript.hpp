@@ -141,6 +141,11 @@ namespace CE::Scripting {
             return mScriptDebugger;
         }
 
+        // this vector is empty on release builds
+        const std::vector<std::string>& GetScriptSectionNames() {
+            return mSectionNames;
+        }
+
         /**
          * Exposed publicly because all the IScriptBinding impls require access to at-least one of these.
          * Keeping them as public means we don't need to write a ton of trival getter functions
@@ -209,6 +214,7 @@ namespace CE::Scripting {
         std::string OutputDebugASInfoPath = "";
         bool mOutputDebugASInfo = false;
 
+        std::vector<std::string> mSectionNames;
         std::shared_ptr<ScriptDebugger> mScriptDebugger;
     };
 } // namespace CE::Scripting

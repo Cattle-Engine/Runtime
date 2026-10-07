@@ -187,6 +187,10 @@ namespace CE::Scripting {
             return Fail(std::format("Failed to load AngelScript startup file '{}'", mGameInfo.startupFileName));
         }
 
+        #ifdef CE_DEBUG
+            mSectionNames.reserve(sections.size());
+        #endif
+
         CE_LOG(LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
         for (const auto& section : sections) {
             CE_LOG(LogLevel::Debug, "[AngelScript] generated script section '{}':\n\n{}", section.Name,
@@ -195,6 +199,9 @@ namespace CE::Scripting {
             if (add_result < 0) {
                 return Fail(std::format("Failed to add AngelScript script section '{}'", section.Name));
             }
+            #ifdef CE_DEBUG
+                mSectionNames.push_back(section.Name);
+            #endif
         }
 
         int r = mScriptModule->Build();
