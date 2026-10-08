@@ -220,7 +220,7 @@ namespace CE::Scripting {
             return Fail("AngelScript entrypoint 'void main()' was not found");
         }
 
-        asIScriptContext* ctx = CreateContext();
+        asIScriptContext* ctx = CreateContext("Startup");
         if (ctx == nullptr) {
             return Fail("Failed to create AngelScript startup context");
         }
@@ -229,6 +229,9 @@ namespace CE::Scripting {
 
         r = ctx->Execute();
         if (r != asEXECUTION_FINISHED) {
+        #ifdef CE_DEBUG
+            mScriptDebugger->Detach(ctx);
+        #endif
             ctx->Release();
             return Fail(std::format("AngelScript main() execution failed with code {}", r));
         }
@@ -238,7 +241,7 @@ namespace CE::Scripting {
         if (mUpdateFunc == nullptr) {
             CE_LOG(LogLevel::Warn, "[AngelScript] No 'void update()' function found");
         } else {
-            mUpdateCtx = CreateContext();
+            mUpdateCtx = CreateContext("Update");
             if (mUpdateCtx == nullptr) {
                 return Fail("Failed to create AngelScript update context");
             }
@@ -246,7 +249,7 @@ namespace CE::Scripting {
 
         mImGuiFunc = imgui_entrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(imgui_entrypoint.c_str());
         if (mImGuiFunc != nullptr) {
-            mImGuiCtx = CreateContext();
+            mImGuiCtx = CreateContext("ImGui");
             if (mImGuiCtx == nullptr) {
                 return Fail("Failed to create AngelScript imgui context");
             }
@@ -259,12 +262,26 @@ namespace CE::Scripting {
     bool Runtime::RunUpdate() {
         if (!mUpdateFunc || !mUpdateCtx)
             return true;
-        int r = mUpdateCtx->Prepare(mUpdateFunc);
-        if (r < 0) {
-            return Fail(std::format("Failed to prepare AngelScript update() with code {}", r));
+        int r = 0;
+        if (mUpdateCtx->GetState() == asEXECUTION_SUSPENDED) {
+        #ifdef CE_DEBUG
+            if (mScriptDebugger && mScriptDebugger->IsContextPaused(mUpdateCtx))
+                return true;
+        #endif
+        } else {
+            r = mUpdateCtx->Prepare(mUpdateFunc);
+            if (r < 0) {
+                return Fail(std::format("Failed to prepare AngelScript update() with code {}", r));
+            }
         }
 
         r = mUpdateCtx->Execute();
+        if (r == asEXECUTION_SUSPENDED)
+            return true;
+        #ifdef CE_DEBUG
+            if (mScriptDebugger)
+                mScriptDebugger->Detach(mUpdateCtx);
+        #endif
         if (r != asEXECUTION_FINISHED) {
             return Fail(std::format("AngelScript update() execution failed with code {}", r));
         }
@@ -276,12 +293,26 @@ namespace CE::Scripting {
         if (!mImGuiFunc || !mImGuiCtx)
             return true;
 
-        const int prepare_result = mImGuiCtx->Prepare(mImGuiFunc);
-        if (prepare_result < 0) {
-            return Fail(std::format("Failed to prepare AngelScript imgui() with code {}", prepare_result));
+        int execute_result = 0;
+        if (mImGuiCtx->GetState() == asEXECUTION_SUSPENDED) {
+        #ifdef CE_DEBUG
+            if (mScriptDebugger && mScriptDebugger->IsContextPaused(mImGuiCtx))
+                return true;
+        #endif
+        } else {
+            const int prepare_result = mImGuiCtx->Prepare(mImGuiFunc);
+            if (prepare_result < 0) {
+                return Fail(std::format("Failed to prepare AngelScript imgui() with code {}", prepare_result));
+            }
         }
 
-        const int execute_result = mImGuiCtx->Execute();
+        execute_result = mImGuiCtx->Execute();
+        if (execute_result == asEXECUTION_SUSPENDED)
+            return true;
+        #ifdef CE_DEBUG
+            if (mScriptDebugger)
+                mScriptDebugger->Detach(mImGuiCtx);
+        #endif
         if (execute_result != asEXECUTION_FINISHED) {
             return Fail(std::format("AngelScript imgui() execution failed with code {}", execute_result));
         }

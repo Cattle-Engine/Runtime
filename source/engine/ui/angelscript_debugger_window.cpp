@@ -1,6 +1,9 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+#include <algorithm>
+#include <sstream>
+
 #include "engine/ui/utils.hpp"
 #include "engine/ui/angelscript_debugger_window.hpp"
 
@@ -16,6 +19,25 @@ namespace CE::UI {
             ImGui::Text("%u", value);
 
             ImGui::EndChild();
+        }
+
+        void DrawDebugValue(const Scripting::ScriptDebugger::DebugValue& value, const std::string& varName = "") {
+            const std::string displayName = varName.empty() ? value.name : varName;
+            if (value.members.empty()) {
+                ImGui::TextUnformatted(displayName.c_str());
+                ImGui::SameLine();
+                ImGui::TextDisabled("=");
+                ImGui::SameLine();
+                ImGui::Text("%s", value.value.c_str());
+            } else {
+                if (ImGui::TreeNode(displayName.c_str())) {
+                    ImGui::TextDisabled("%s", value.value.c_str());
+                    for (const auto& member : value.members) {
+                        DrawDebugValue(member);
+                    }
+                    ImGui::TreePop();
+                }
+            }
         }
     }
 
@@ -70,9 +92,10 @@ namespace CE::UI {
 
             ImGui::InputText("Function Name", &function_name);
 
-            if (ImGui::Button("Create")) {
+            if (ImGui::Button("Create") && !function_name.empty()) {
                 mDebugger->AddFuncBreakPoint(function_name);
                 function_name.clear();
+                ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
@@ -92,26 +115,25 @@ namespace CE::UI {
         if (ImGui::BeginPopupModal("Create File Breakpoint", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             static std::string file_path;
             static int line;
-            static bool show_error_text;
+            static bool show_error_text = false;
 
             ImGui::InputText("File name", &file_path);
             ImGui::InputInt("Line", &line);
 
             if (show_error_text) {
-                ImGui::Text("Could not find file in loaded scripts");
+                ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Choose a loaded script and a line greater than zero");
             }
 
             if (ImGui::Button("Create")) {
-                for (const auto& file : mRuntime.GetScriptSectionNames()) {
-                    if (file == file_path) {
-                        show_error_text = false;
-                        break;
-                    }
-
-                    show_error_text = true;
+                const auto& files = mRuntime.GetScriptSectionNames();
+                const bool knownFile = std::find(files.begin(), files.end(), file_path) != files.end();
+                show_error_text = !knownFile || line <= 0;
+                if (!show_error_text) {
+                    mDebugger->AddFileBreakPoint(file_path, line);
+                    file_path.clear();
+                    line = 0;
+                    ImGui::CloseCurrentPopup();
                 }
-
-                if (!show_error_text) mDebugger->AddFileBreakPoint(file_path, line);
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
@@ -132,6 +154,7 @@ namespace CE::UI {
             } else {
                 mDebugger->RemoveFileBreakPoint(mSelectedBreakpoint->name, mSelectedBreakpoint->line);
             }
+            mSelectedBreakpoint.reset();
         }
     }
 
@@ -158,6 +181,12 @@ namespace CE::UI {
         const auto& files = mRuntime.GetScriptSectionNames();
 
         static int selected_file = -1;
+
+        if (const auto location = mDebugger->GetCurrentLocation()) {
+            const auto it = std::find(files.begin(), files.end(), location->file);
+            if (it != files.end())
+                selected_file = static_cast<int>(std::distance(files.begin(), it));
+        }
 
         ImGui::BeginChild(
             "script_files",
@@ -194,9 +223,38 @@ namespace CE::UI {
                 ImGuiWindowFlags_HorizontalScrollbar
             );
 
-            ImGui::TextUnformatted(
-                mCachedScriptCodeSource[selected_file].c_str()
-            );
+            const auto breakpoints = mDebugger->GetBreakPoints();
+            const auto current = mDebugger->GetCurrentLocation();
+            const std::string& selectedFile = files[selected_file];
+            std::istringstream source(mCachedScriptCodeSource[selected_file]);
+            std::string lineText;
+            int lineNumber = 1;
+
+            while (std::getline(source, lineText)) {
+                const bool isCurrent = current && current->file == selectedFile && current->line == lineNumber;
+                const bool hasBreakpoint = std::any_of(breakpoints.begin(), breakpoints.end(),
+                    [&selectedFile, lineNumber](const auto& breakpoint) {
+                        return !breakpoint.function && breakpoint.name == selectedFile && breakpoint.line == lineNumber;
+                    });
+
+                ImGui::PushID(lineNumber);
+                if (ImGui::SmallButton(hasBreakpoint ? "-" : "+")) {
+                    if (hasBreakpoint)
+                        mDebugger->RemoveFileBreakPoint(files[selected_file], lineNumber);
+                    else
+                        mDebugger->AddFileBreakPoint(files[selected_file], lineNumber);
+                }
+                ImGui::SameLine();
+                ImGui::TextDisabled("%4d", lineNumber);
+                ImGui::SameLine();
+                if (isCurrent)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.2f, 1.0f));
+                ImGui::TextUnformatted(lineText.c_str());
+                if (isCurrent)
+                    ImGui::PopStyleColor();
+                ImGui::PopID();
+                ++lineNumber;
+            }
 
             ImGui::EndChild();
         } else {
@@ -265,7 +323,124 @@ namespace CE::UI {
         DrawStatCard("New Destructions", statistics.TotalNewDestructions);
     }
 
+    void AngelscriptDebuggerWindow::DrawLocalVariablesTab() {
+        auto locals = mDebugger->GetLocalVariables();
+
+        if (locals.empty()) {
+            ImGui::TextDisabled("No local variables in scope");
+            return;
+        }
+
+        ImGui::BeginChild("LocalVariables", ImVec2(0, 0), ImGuiChildFlags_Borders);
+
+        for (const auto& var : locals) {
+            DrawDebugValue(var);
+        }
+
+        ImGui::EndChild();
+    }
+
+    void AngelscriptDebuggerWindow::DrawGlobalVariablesTab() {
+        auto globals = mDebugger->GetGlobalVariables();
+
+        if (globals.empty()) {
+            ImGui::TextDisabled("No global variables");
+            return;
+        }
+
+        ImGui::BeginChild("GlobalVariables", ImVec2(0, 0), ImGuiChildFlags_Borders);
+
+        for (const auto& var : globals) {
+            DrawDebugValue(var);
+        }
+
+        ImGui::EndChild();
+    }
+
+    void AngelscriptDebuggerWindow::DrawMemberPropertiesTab() {
+        auto members = mDebugger->GetMemberProperties();
+
+        if (members.name.empty() && members.value.empty() && members.members.empty()) {
+            ImGui::TextDisabled("No object context (not in a member function)");
+            return;
+        }
+
+        ImGui::BeginChild("MemberProperties", ImVec2(0, 0), ImGuiChildFlags_Borders);
+
+        if (!members.members.empty()) {
+            ImGui::TextDisabled("this");
+            for (const auto& member : members.members) {
+                DrawDebugValue(member);
+            }
+        } else {
+            ImGui::TextDisabled("No members to display");
+        }
+
+        ImGui::EndChild();
+    }
+
+    void AngelscriptDebuggerWindow::DrawContexts() {
+        const auto contexts = mDebugger->GetContexts();
+        if (contexts.empty()) {
+            ImGui::TextDisabled("No script contexts are attached");
+            return;
+        }
+
+        ImGui::TextUnformatted("Script contexts");
+        ImGui::SameLine();
+        ImGui::TextDisabled("Select one to inspect it; uncheck Pause to let it run through breakpoints.");
+
+        if (ImGui::BeginChild("ScriptContextsScroll", ImVec2(0.0f, 100.0f), ImGuiChildFlags_Borders)) {
+            if (ImGui::BeginTable("ScriptContexts", 3,
+                ImGuiTableFlags_Borders |
+                ImGuiTableFlags_RowBg |
+                ImGuiTableFlags_SizingStretchProp)) {
+
+                ImGui::TableSetupColumn("Context");
+                ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed, 85.0f);
+                ImGui::TableSetupColumn("Pause", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                ImGui::TableHeadersRow();
+
+                for (const auto& context : contexts) {
+                    ImGui::PushID(static_cast<int>(context.id));
+
+                    ImGui::TableNextRow();
+
+                    ImGui::TableNextColumn();
+                    if (ImGui::Selectable(
+                        context.name.c_str(),
+                        context.selected))
+                        mDebugger->SelectContext(context.id);
+
+                    ImGui::TableNextColumn();
+                    if (context.paused)
+                        ImGui::TextColored(
+                            ImVec4(1.0f, 0.85f, 0.2f, 1.0f),
+                            "Paused");
+                    else
+                        ImGui::TextDisabled("Idle");
+
+                    ImGui::TableNextColumn();
+                    bool pauseAtBreakpoints = context.pauseAtBreakpoints;
+                    if (ImGui::Checkbox("##pause", &pauseAtBreakpoints))
+                        mDebugger->SetContextPauseEnabled(
+                            context.id,
+                            pauseAtBreakpoints);
+
+                    ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+            }
+        }
+
+        ImGui::EndChild();
+    }
+
     void AngelscriptDebuggerWindow::DrawWindow() {
+        if (mDebugger && mDebugger->IsPaused())
+            mWindowOpen = true;
+
         if (mWindowOpen) {
             if(ImGui::Begin("Angelscript Debugger", &mWindowOpen)) {
                 if (!mDebugger) {
@@ -275,7 +450,16 @@ namespace CE::UI {
                     }
                 }
                 if (mDebugger) {
-                    ImGui::BeginDisabled(!mDebugger->IsPaused());
+                    DrawContexts();
+                    ImGui::Separator();
+                    if (const auto location = mDebugger->GetCurrentLocation()) {
+                        ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.2f, 1.0f), "Paused at %s:%d", location->file.c_str(), location->line);
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(%s)", location->function.c_str());
+                    } else {
+                        ImGui::TextDisabled("Running - execution stops at breakpoints.");
+                    }
+                    ImGui::BeginDisabled(!mDebugger->IsSelectedContextPaused());
 
                     if (ImGui::Button("Continue")) {
                         mDebugger->Continue();
@@ -319,6 +503,21 @@ namespace CE::UI {
 
                         if (ImGui::BeginTabItem("Callstack")) {
                             DrawCallStackTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Local Variables")) {
+                            DrawLocalVariablesTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Global Variables")) {
+                            DrawGlobalVariablesTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Members")) {
+                            DrawMemberPropertiesTab();
                             ImGui::EndTabItem();
                         }
 

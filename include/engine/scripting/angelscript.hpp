@@ -187,12 +187,12 @@ namespace CE::Scripting {
         static void MessageCallback(const asSMessageInfo* msg, void* param);
         bool Fail(const std::string& message);
 
-        asIScriptContext* CreateContext() {
+        asIScriptContext* CreateContext(std::string debugName = "Script") {
             asIScriptContext* context = mScriptEngine->CreateContext();
 
         #ifdef CE_DEBUG
             if (context != nullptr && mScriptDebugger)
-                mScriptDebugger->Attach(context);
+                mScriptDebugger->Attach(context, std::move(debugName));
         #endif
 
             return context;

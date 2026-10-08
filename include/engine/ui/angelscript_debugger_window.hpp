@@ -48,6 +48,10 @@ namespace CE::UI {
             void DrawBreakPointsTab();
             void DrawDebuggerOutputTab();
             void DrawLoadedScriptsTab();
+            void DrawLocalVariablesTab();
+            void DrawGlobalVariablesTab();
+            void DrawMemberPropertiesTab();
+            void DrawContexts();
 
             std::optional<Scripting::ScriptDebugger::BreakPointInfo> mSelectedBreakpoint;
             bool mWindowOpen = false;
