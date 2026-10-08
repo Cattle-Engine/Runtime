@@ -208,27 +208,17 @@ namespace CE::Assets::Fonts {
         if (!glyph)
             return false;
 
-        int w = std::max(1, glyph->w);
-        int h = std::max(1, glyph->h);
+        int w = glyph->w;
+        int h = glyph->h;
 
-        int minx, maxx, miny, maxy, adv;
+        int minx;
+        int maxx;
+        int miny;
+        int maxy;
+        int adv;
         TTF_GetGlyphMetrics(atlas.font, cp, &minx, &maxx, &miny, &maxy, &adv);
 
-        if (atlas.penX + w >= ATLAS_W) {
-            atlas.penX = 0;
-            atlas.penY += atlas.rowH;
-            atlas.rowH = 0;
-        }
-
-        SDL_Rect dst{atlas.penX, atlas.penY, w, h};
-        SDL_BlitSurface(glyph, nullptr, atlas.atlasSurface, &dst);
-
         Glyph g{};
-        g.u0 = atlas.penX / (float)ATLAS_W;
-        g.v0 = atlas.penY / (float)ATLAS_H;
-        g.u1 = (atlas.penX + w) / (float)ATLAS_W;
-        g.v1 = (atlas.penY + h) / (float)ATLAS_H;
-
         g.w = w;
         g.h = h;
         g.advance = adv;
@@ -236,19 +226,38 @@ namespace CE::Assets::Fonts {
         g.bearingY = maxy;
         g.font = atlas.font;
 
+        // Only reserve atlas space and blit if the glyph has pixel data (e.g., non-space characters)
+        if (w > 0 && h > 0) {
+            if (atlas.penX + w >= ATLAS_W) {
+                atlas.penX = 0;
+                atlas.penY += atlas.rowH;
+                atlas.rowH = 0;
+            }
+
+            SDL_Rect dst{atlas.penX, atlas.penY, w, h};
+            SDL_BlitSurface(glyph, nullptr, atlas.atlasSurface, &dst);
+
+            g.u0 = atlas.penX / (float)ATLAS_W;
+            g.v0 = atlas.penY / (float)ATLAS_H;
+            g.u1 = (atlas.penX + w) / (float)ATLAS_W;
+            g.v1 = (atlas.penY + h) / (float)ATLAS_H;
+
+            atlas.penX += w;
+            atlas.rowH = std::max(atlas.rowH, h);
+            atlas.dirty = true;
+        } else {
+            // Empty glyphs (spaces, non-printable controls) don't need atlas space
+            g.u0 = g.v0 = g.u1 = g.v1 = 0.0f;
+        }
+
         atlas.glyphs[cp] = g;
 
-        atlas.penX += w;
-        atlas.rowH = std::max(atlas.rowH, h);
-
         SDL_DestroySurface(glyph);
-        atlas.dirty = true;
-
         return true;
     }
 
     void FontManager::DrawEx(const std::string& text, const std::string& name, int x, int y, float size,
-                             Renderer::Colour col) {
+                            Renderer::Colour col) {
         const int desiredSize = std::max(1, (int)std::lround(size));
         FontAtlas* atlasPtr = GetOrCreateAtlas(name, desiredSize);
         if (!atlasPtr) {
@@ -262,7 +271,8 @@ namespace CE::Assets::Fonts {
         float scale = size / atlas.fontSize;
         float cx = (float)x;
 
-        uint32_t prev = 0, cp = 0;
+        uint32_t prev = 0;
+        uint32_t cp = 0;
         size_t i = 0;
 
         while (i < text.size()) {
@@ -278,10 +288,13 @@ namespace CE::Assets::Fonts {
                     cx += kern * scale;
             }
 
-            float drawX = std::round(cx + g.bearingX * scale);
+            float drawX = std::round(cx + (g.bearingX * scale));
 
-            mRenderer.DrawSpriteUV(atlas.texture, drawX, (float)y, g.w * scale, g.h * scale, g.u0, g.v0, g.u1, g.v1, col,
-                                0.0f);
+            // Only emit quad draw commands for characters with printable dimensions
+            if (g.w > 0 && g.h > 0) {
+                mRenderer.DrawSpriteUV(atlas.texture, drawX, (float)y, g.w * scale, g.h * scale, 
+                                    g.u0, g.v0, g.u1, g.v1, col, 0.0f);
+            }
 
             cx += g.advance * scale;
             prev = cp;

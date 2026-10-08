@@ -52,7 +52,8 @@ namespace CE::UI {
             void DrawGlobalVariablesTab();
             void DrawMemberPropertiesTab();
             void DrawContexts();
-
+            std::string mLastDebuggerFile;
+            bool mWasPaused = false;
             std::optional<Scripting::ScriptDebugger::BreakPointInfo> mSelectedBreakpoint;
             bool mWindowOpen = false;
             Scripting::SharedScriptDebuger mDebugger;

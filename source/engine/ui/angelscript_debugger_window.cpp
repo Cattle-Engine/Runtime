@@ -183,11 +183,19 @@ namespace CE::UI {
         static int selected_file = -1;
 
         if (const auto location = mDebugger->GetCurrentLocation()) {
-            const auto it = std::find(files.begin(), files.end(), location->file);
-            if (it != files.end())
-                selected_file = static_cast<int>(std::distance(files.begin(), it));
-        }
+            if (mLastDebuggerFile != location->file) {
+                const auto it = std::find(files.begin(), files.end(), location->file);
+                if (it != files.end()) {
+                    selected_file = static_cast<int>(
+                        std::distance(files.begin(), it)
+                    );
+                }
 
+                mLastDebuggerFile = location->file;
+            }
+        } else {
+            mLastDebuggerFile.clear();
+        }
         ImGui::BeginChild(
             "script_files",
             ImVec2(250.0f, 0.0f),
@@ -438,8 +446,14 @@ namespace CE::UI {
     }
 
     void AngelscriptDebuggerWindow::DrawWindow() {
-        if (mDebugger && mDebugger->IsPaused())
+        const bool is_paused = mDebugger && mDebugger->IsPaused();
+
+        if (is_paused && !mWasPaused)
             mWindowOpen = true;
+
+        mWasPaused = is_paused;
+
+        if (!mWindowOpen) return;
 
         if (mWindowOpen) {
             if(ImGui::Begin("Angelscript Debugger", &mWindowOpen)) {

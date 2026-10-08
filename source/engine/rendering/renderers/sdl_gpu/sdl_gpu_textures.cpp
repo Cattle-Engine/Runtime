@@ -1,3 +1,4 @@
+#include <SDL3/SDL_gpu.h>
 #include <SDL3_image/SDL_image.h>
 
 #include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
@@ -300,7 +301,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (batchData) {
             batchData->pendingTBs.push_back(tb);
         } else {
-            SDL_SubmitGPUCommandBuffer(cmd);
+            SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
+
+            if (!fence) {
+                CE_LOG(LogLevel::Error,
+                    "[SDL_GPU Renderer] Failed to acquire GPU fence: {}",
+                    SDL_GetError());
+
+                SDL_ReleaseGPUTransferBuffer(mDevice, tb);
+                return nullptr;
+            }
+
+            if (!SDL_WaitForGPUFences(mDevice, true, &fence, 1)) {
+                CE_LOG(LogLevel::Error,
+                    "[SDL_GPU Renderer] Failed waiting for GPU fence: {}",
+                    SDL_GetError());
+            }
+
+            SDL_ReleaseGPUFence(mDevice, fence);
             SDL_ReleaseGPUTransferBuffer(mDevice, tb);
         }
 

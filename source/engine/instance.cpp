@@ -14,6 +14,7 @@
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/scripting/bindings/as_cubemap.hpp"
 #include "engine/platforms.hpp"
 #include "engine/scripting/angelscript.hpp"
@@ -259,6 +260,9 @@ namespace CE {
                 gShouldExit = true;
                 return 1;
             }
+
+            gFontManager->Draw("text", 0, 0 , 24.0f, Renderer::Colour::Black);
+
             gAnimatedTextureManager->Render();
             mRenderer->EndMode2D();
 
