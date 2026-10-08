@@ -42,7 +42,8 @@ namespace CE::UI {
 
             // the window has a close button, this will reshow the window if the user has clicked close
             void OpenWindow();
-        private:
+        private: 
+            void DrawStatisticsTab();
             void DrawCallStackTab();
             void DrawBreakPointsTab();
             void DrawDebuggerOutputTab();

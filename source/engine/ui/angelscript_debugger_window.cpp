@@ -5,6 +5,20 @@
 #include "engine/ui/angelscript_debugger_window.hpp"
 
 namespace CE::UI {
+    namespace {
+        void DrawStatCard(const char *label, asUINT value, float width = 150.0f) {
+            ImGui::BeginChild(label, ImVec2(width, 75.0f), true);
+
+            ImGui::TextDisabled("%s", label);
+
+            ImGui::Spacing();
+
+            ImGui::Text("%u", value);
+
+            ImGui::EndChild();
+        }
+    }
+
     void AngelscriptDebuggerWindow::OpenWindow() {
         mWindowOpen = true;
     }
@@ -231,7 +245,25 @@ namespace CE::UI {
         }
     }
 
-    
+    void AngelscriptDebuggerWindow::DrawStatisticsTab() {
+        auto statistics = mDebugger->GetGCStats();
+        ImGui::Text("Garbage Collector");
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        DrawStatCard("Current Size", statistics.CurrentSize);
+        ImGui::SameLine();
+
+        DrawStatCard("New Objects", statistics.NewObjects);
+        ImGui::SameLine();
+
+        DrawStatCard("Total Detected", statistics.TotalDetected);
+
+        DrawStatCard("Destructions", statistics.TotalDestructions);
+        ImGui::SameLine();
+
+        DrawStatCard("New Destructions", statistics.TotalNewDestructions);
+    }
 
     void AngelscriptDebuggerWindow::DrawWindow() {
         if (mWindowOpen) {
@@ -242,30 +274,62 @@ namespace CE::UI {
                         mWindowOpen = false;
                     }
                 }
+                if (mDebugger) {
+                    ImGui::BeginDisabled(!mDebugger->IsPaused());
 
-                if (ImGui::BeginTabBar("angelscript_debugger_tab_bar_main")) {
-                    if (ImGui::BeginTabItem("Debugger output")) {
-                        DrawDebuggerOutputTab();
-                        ImGui::EndTabItem();
-                    }
-
-                    if (ImGui::BeginTabItem("Breakpoints")) {
-                        DrawBreakPointsTab(); 
-                        ImGui::EndTabItem();
-                    }
-                 
-                    if (ImGui::BeginTabItem("Loaded scripts")) {
-                        DrawLoadedScriptsTab();
-                        ImGui::EndTabItem();
+                    if (ImGui::Button("Continue")) {
+                        mDebugger->Continue();
                     }
 
-                    if (ImGui::BeginTabItem("Callstack")) {
-                        DrawCallStackTab();
-                        ImGui::EndTabItem();
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Step Into")) {
+                        mDebugger->StepInto();
                     }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Step Over")) {
+                        mDebugger->StepOver();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("Step Out")) {
+                        mDebugger->StepOut();
+                    }
+                    ImGui::EndDisabled();
+                    ImGui::Separator();
+
+                    if (ImGui::BeginTabBar("angelscript_debugger_tab_bar_main")) {
+                        if (ImGui::BeginTabItem("Debugger output")) {
+                            DrawDebuggerOutputTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Breakpoints")) {
+                            DrawBreakPointsTab(); 
+                            ImGui::EndTabItem();
+                        }
+                    
+                        if (ImGui::BeginTabItem("Loaded scripts")) {
+                            DrawLoadedScriptsTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Callstack")) {
+                            DrawCallStackTab();
+                            ImGui::EndTabItem();
+                        }
+
+                        if (ImGui::BeginTabItem("Statistics")) {
+                            DrawStatisticsTab();
+                            ImGui::EndTabItem();
+                        }
+                    }
+
+                    ImGui::EndTabBar();
                 }
-
-                ImGui::EndTabBar();
             }
             ImGui::End();
         }
