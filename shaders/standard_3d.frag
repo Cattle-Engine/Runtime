@@ -90,7 +90,7 @@ void main() {
     vec3 lighting = ambient;
     
     if (sunDirectionEnabled.w > 0.5) {
-        vec3 lightDir = normalize(-sunDirectionEnabled.xyz);
+        vec3 lightDir = normalize(sunDirectionEnabled.xyz);
         vec3 halfwayDir = normalize(lightDir + viewDir);
         
         vec3 radiance = sunColourIntensity.rgb * sunColourIntensity.a;
