@@ -16,6 +16,10 @@
 
 #include <angelscript.h>
 
+namespace CE::Scripting {
+    class ScriptDebugger;
+}
+
 // Forward declare a hella lot of stuff to help compile times
 namespace CE {
     class Instance;

@@ -1,0 +1,16 @@
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(WIN32)
+    set(CE_HOST_OS "Windows")
+    set(CE_PLATFORM_DEFINE PLATFORM_WINDOWS)
+elseif(APPLE)
+    set(CE_HOST_OS "macOS")
+    set(CE_PLATFORM_DEFINE PLATFORM_MACOS)
+elseif(UNIX)
+    set(CE_HOST_OS "Linux")
+    set(CE_PLATFORM_DEFINE PLATFORM_LINUX)
+else()
+    message(FATAL_ERROR "Unsupported host platform")
+endif()
