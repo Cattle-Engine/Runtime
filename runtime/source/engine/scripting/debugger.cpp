@@ -635,7 +635,7 @@ namespace CE::Scripting {
                 int typeId = 0;
                 mContext->GetVar(n, 0, &name, &typeId);
                 DebugValue var = CEToString(mContext->GetAddressOfVar(n), typeId, 3, mContext->GetEngine());
-                var.name = name;
+                var.name = GetFriendlySymbolName(name);
                 result.push_back(std::move(var));
             }
         }
@@ -666,10 +666,21 @@ namespace CE::Scripting {
             mod->GetGlobalVar(n, &varName, nullptr, &typeId);
 
             DebugValue var = CEToString(mod->GetAddressOfGlobalVar(n), typeId, 3, mContext->GetEngine());
-            var.name = varName ? varName : "";
+            const std::string internalName = varName ? varName : "";
+            var.name = GetFriendlySymbolName(internalName);
             result.push_back(std::move(var));
         }
 
         return result;
+    }
+
+    std::string ScriptDebugger::GetFriendlySymbolName(const std::string& internalName) const {
+        for (const auto& symbol : mSymbolmap) {
+            if (symbol.InternalName == internalName) {
+                return symbol.DisplayName.empty() ? internalName : symbol.DisplayName;
+            }
+        }
+
+        return internalName;
     }
 } // namespace CE::Scripting

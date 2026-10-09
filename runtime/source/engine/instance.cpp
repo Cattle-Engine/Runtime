@@ -260,9 +260,6 @@ namespace CE {
                 gShouldExit = true;
                 return 1;
             }
-
-            gFontManager->Draw("text", 0, 0 , 24.0f, Renderer::Colour::Black);
-
             gAnimatedTextureManager->Render();
             mRenderer->EndMode2D();
 

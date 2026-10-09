@@ -144,7 +144,7 @@ namespace CE::Scripting {
         DebugValue CEToString(void *value, asUINT typeId, int expandMembers, asIScriptEngine *engine);
         ContextState* FindContext(asIScriptContext* ctx);
         const ContextState* FindContext(asIScriptContext* ctx) const;
-
+        std::string GetFriendlySymbolName(const std::string& internalName) const;
         std::unordered_map<std::string, std::string> mGeneratedSymbolLookup;
         std::unordered_map<std::string, std::string> mGeneratedSymbolQualifiedLookup;
 

@@ -108,7 +108,10 @@ export int foo_func() {
 }
 ```
 
-- [ ] 
+- [ ] Move all the runtime code and shaders into a runtime/ folder
+- [ ] Make a common/ folder in the root that has shared code between the runtime and other stuff
+- [ ] Refactor the build system to have a lot more in cmake
+- [ ] Make like a ce-scriptc to make a cebyc
 
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
