@@ -76,18 +76,12 @@ add_custom_command(
 add_custom_target(ce_generated_compiler_enum ALL DEPENDS "${CE_GENERATED_DIR}/enum_to_string_impl.inl")
 
 add_custom_target(ce_clean_generated
-    COMMAND ${CMAKE_COMMAND} -E rm -f "${CE_GENERATED_DIR}/git_version.hpp" "${CE_GENERATED_DIR}/enum_to_string_impl.inl"
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+        "${CE_GENERATED_DIR}/git_version.hpp"
+        "${CE_GENERATED_DIR}/enum_to_string_impl.inl"
+        "${CE_GENERATED_BINDINGS_DIR}/binding_registry.hpp"
+        ${CE_GENERATED_BINDING_OUTPUTS}
     COMMENT "Cleaning generated runtime files"
-)
-
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
-file(GLOB_RECURSE CE_GENERATED_BINDING_SOURCES CONFIGURE_DEPENDS
-    "${CE_GENERATED_BINDINGS_DIR}/*.generated.cpp"
-)
-
-file(GLOB CE_GENERATED_BINDING_METADATA CONFIGURE_DEPENDS
-    "${CE_GENERATED_BINDINGS_DIR}/*.generated.json"
 )
 
 set(CE_BINDING_REGISTRY_HEADER "${CE_GENERATED_BINDINGS_DIR}/binding_registry.hpp")
@@ -103,3 +97,4 @@ add_custom_command(
 )
 
 add_custom_target(ce_generated_binding_registry ALL DEPENDS "${CE_BINDING_REGISTRY_HEADER}")
+add_dependencies(ce_generated_binding_registry ce_generated_idl)

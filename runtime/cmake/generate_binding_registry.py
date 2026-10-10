@@ -36,7 +36,7 @@ def render_registry(bindings_dir: Path) -> str:
     if not bindings:
         bindings_array = "std::array<Entry, 0> bindings = {};"
     else:
-        lines = ["std::array<Entry, %d> bindings =" % len(bindings), "{" ]
+        lines = ["std::array<Entry, %d> bindings = {{" % len(bindings)]
         for index, (_, class_name) in enumerate(bindings):
             suffix = "," if index + 1 < len(bindings) else ""
             lines.append("    {")
@@ -46,7 +46,7 @@ def render_registry(bindings_dir: Path) -> str:
             lines.append(f"            return std::make_unique<{class_name}>(runtime, engine);")
             lines.append("        }")
             lines.append(f"    }}{suffix}")
-        lines.append("};")
+        lines.append("}};")
         bindings_array = "\n".join(lines)
 
     return f'''#pragma once

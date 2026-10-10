@@ -10,18 +10,59 @@ if(NOT DEFINED ANGELSCRIPT_ADDON_INCLUDE_DIR)
     )
 endif()
 
+if(NOT DEFINED ANGELSCRIPT_ADDON_SOURCE_DIR)
+    set(ANGELSCRIPT_ADDON_SOURCE_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/angelscript"
+    )
+endif()
+
+set(ANGELSCRIPT_ADDON_SOURCES
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/datetime/datetime.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptmath/scriptmath.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scripthandle/scripthandle.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptstdstring/scriptstdstring.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptstdstring/scriptstdstring_utils.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptbuilder/scriptbuilder.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptarray/scriptarray.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptdictionary/scriptdictionary.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptany/scriptany.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptgrid/scriptgrid.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/debugger/debugger.cpp"
+)
+
+# Fail early if the expected add-on sources aren't present.
+foreach(source IN LISTS ANGELSCRIPT_ADDON_SOURCES)
+    if(NOT EXISTS "${source}")
+        message(FATAL_ERROR
+            "AngelScript add-on source not found: ${source}\n"
+            "Set ANGELSCRIPT_ADDON_SOURCE_DIR to the directory "
+            "containing the AngelScript add-on .cpp files."
+        )
+    endif()
+endforeach()
+
+# Collect runtime sources
 file(GLOB_RECURSE CE_RUNTIME_SOURCES CONFIGURE_DEPENDS
     "${CE_RUNTIME_ROOT}/source/*.cpp"
     "${CE_RUNTIME_ROOT}/source/*.c"
 )
 
+# Exclude platform-specific sources
 if(WIN32)
-    list(FILTER CE_RUNTIME_SOURCES EXCLUDE REGEX "/platforms/linux/")
+    list(FILTER CE_RUNTIME_SOURCES
+        EXCLUDE REGEX "/platforms/linux/"
+    )
 elseif(APPLE)
-    list(FILTER CE_RUNTIME_SOURCES EXCLUDE REGEX "/platforms/linux/")
-    list(FILTER CE_RUNTIME_SOURCES EXCLUDE REGEX "/platforms/windows/")
+    list(FILTER CE_RUNTIME_SOURCES
+        EXCLUDE REGEX "/platforms/linux/"
+    )
+    list(FILTER CE_RUNTIME_SOURCES
+        EXCLUDE REGEX "/platforms/windows/"
+    )
 elseif(UNIX)
-    list(FILTER CE_RUNTIME_SOURCES EXCLUDE REGEX "/platforms/windows/")
+    list(FILTER CE_RUNTIME_SOURCES
+        EXCLUDE REGEX "/platforms/windows/"
+    )
 endif()
 
 function(configure_ce_runtime target)
@@ -33,18 +74,23 @@ function(configure_ce_runtime target)
     target_sources(${target} PRIVATE
         ${CE_RUNTIME_SOURCES}
         ${CE_GENERATED_BINDING_SOURCES}
+        ${ANGELSCRIPT_ADDON_SOURCES}
     )
 
-    target_include_directories(${target} PRIVATE
-        "${CE_RUNTIME_ROOT}/include"
-        "${CE_GENERATED_BINDINGS_DIR}"
-        "${CE_RUNTIME_ROOT}/include/third_party"
-        "${CE_RUNTIME_ROOT}/include/third_party/imgui"
-        "${ANGELSCRIPT_ADDON_INCLUDE_DIR}"
-        "${CE_GENERATED_DIR}"
+    target_include_directories(${target}
+        PUBLIC
+            "${CE_RUNTIME_ROOT}/include/public"
+        PRIVATE
+            "${CE_GENERATED_BINDINGS_DIR}"
+            "${CE_RUNTIME_ROOT}/include"
+            "${CE_RUNTIME_ROOT}/include/third_party"
+            "${CE_RUNTIME_ROOT}/include/third_party/imgui"
+            "${ANGELSCRIPT_ADDON_INCLUDE_DIR}"
+            "${CE_GENERATED_DIR}"
     )
 
     target_compile_definitions(${target} PRIVATE
+        CE_BUILDING_LIBRARY
         ENGINE_BUILT_ON_OS="${CE_HOST_OS}"
         CE_DATA_FILE_NAME="${CE_DATA_FILE_NAME}"
         ${CE_PLATFORM_DEFINE}
