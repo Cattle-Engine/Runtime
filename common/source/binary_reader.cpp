@@ -1,6 +1,6 @@
-#include "engine/common/fs/binary_reader.hpp"
+#include "ce_common/binary_reader.hpp"
 
-namespace CE::Common::FS {
+namespace CECommon::FS {
     bool BinaryReader::Read(void* destination, size_t size) {
         mStream.read(static_cast<char*>(destination), static_cast<std::streamsize>(size));
 

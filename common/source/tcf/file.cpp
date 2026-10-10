@@ -5,13 +5,13 @@
 #include <limits>
 #include <stdexcept>
 
-#include "engine/common/fs/tcf/tcf.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_common/tcf.hpp"
+#include "ce_common/detail/tracelog.hpp"
 
 #include <lz4.h>
 #include <zstd.h>
 
-namespace CE::Common::FS::TCF {
+namespace CECommon::TCF {
     uint32_t Crc32(const uint8_t* data, size_t size) {
         static const std::array<uint32_t, 256> table = [] {
             std::array<uint32_t, 256> result{};

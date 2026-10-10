@@ -30,5 +30,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CE_BIN_DIR}/$<CONFIG>")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(common)
+add_subdirectory(tools/tcf)
 add_subdirectory(runtime)
 add_subdirectory(loader)

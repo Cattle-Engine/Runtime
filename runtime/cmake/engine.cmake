@@ -66,6 +66,10 @@ elseif(UNIX)
 endif()
 
 function(configure_ce_runtime target)
+    set_target_properties(${target} PROPERTIES
+        PREFIX ""
+    )
+
     add_dependencies(${target}
         ce_generated_compiler_enum
         ce_generated_binding_registry
@@ -99,6 +103,7 @@ function(configure_ce_runtime target)
     )
 
     target_link_libraries(${target} PRIVATE
+        ce_common
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_ttf::SDL3_ttf

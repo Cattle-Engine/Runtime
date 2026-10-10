@@ -7,8 +7,10 @@
 #include <string_view>
 #include <vector>
 #include <array>
+#include <unordered_map>
 
-#include "engine/common/fs/binary_reader.hpp"
+
+#include "ce_common/binary_reader.hpp"
 
 namespace fs = std::filesystem;
 
@@ -16,7 +18,7 @@ using FileId = uint64_t;
 using DirectoryId = uint64_t;
 using ChunkId = uint64_t;
 
-namespace CE::Common::FS::TCF {
+namespace CECommon::TCF {
     struct TCFDirectoryContents {
         struct File {
             std::string name;
@@ -33,9 +35,15 @@ namespace CE::Common::FS::TCF {
     };
 
     class TCFFile;
+    class TCFWriter;
 
     class TCFArchive {
       public:
+        enum class CompressionType : uint8_t {
+            Zstd = 0,
+            LZ4 = 1,
+            None = 2
+        };
         // May throw std::runtime if:
         // 1. the file does not exist
         // 2. it fails to parse the tcf archive
@@ -51,14 +59,9 @@ namespace CE::Common::FS::TCF {
         // returns false if the dir was not found
         bool GetDirLastModified(const std::string& path, int64_t& timestamp_ms);
       private:
+        using BinaryReader = FS::BinaryReader;
         friend class TCFFile;
-
-        enum class CompressionType : uint8_t {
-            Zstd = 0,
-            LZ4 = 1,
-            None = 2
-        };
-
+        friend class TCFWriter;
         enum class Endianness : uint8_t {
             Little = 0,
             Big = 1
@@ -247,5 +250,77 @@ namespace CE::Common::FS::TCF {
         const uint64_t mEndOffset;
         FileId FileID = 0;
         bool mValid = false;
+    };
+
+    class TCFWriter {
+        public:
+            explicit TCFWriter(const std::string& path);
+            ~TCFWriter();
+
+            TCFWriter(const TCFWriter&) = delete;
+            TCFWriter& operator=(const TCFWriter&) = delete;
+
+            // Applies to every file added after this call.
+            // level 0 = codec default (zstd: 3, lz4: fast). For lz4, level > 0 uses LZ4HC.
+            void SetCompression(TCFArchive::CompressionType compression, int level = 0);
+
+            // Must be in the range [1, TCFArchive::kFileChunkSize]
+            void SetChunkSize(size_t chunk_size);
+
+            bool AddDirectory(const std::string& archive_path, int64_t date_modified = 0);
+            bool AddFile(const std::string& archive_path, const void* data, size_t size, int64_t date_modified = 0);
+            bool AddFileFromDisk(const std::string& archive_path, const std::filesystem::path& disk_path);
+
+            // Recursively packs a directory. archive_path is the destination directory inside the archive ("" = root).
+            bool AddDirectoryFromDisk(const std::string& archive_path, const std::filesystem::path& disk_path);
+
+            // Writes the file table, directory table and header. No entries can be added afterwards.
+            bool Finish();
+
+            bool IsFinished() const;
+
+        private:
+            struct ChildRef {
+                TCFArchive::DirectoryContentType type = TCFArchive::DirectoryContentType::File;
+                uint64_t id = 0;
+            };
+
+            struct FileEntry {
+                std::string name;
+                int64_t date_modified = 0;
+                uint64_t parent = 0;
+                uint64_t chunk_count = 0;
+                uint64_t chunk_block_offset = 0;
+            };
+
+            struct DirectoryEntry {
+                std::string name;
+                int64_t date_modified = 0;
+                uint64_t parent = 0;
+                std::vector<ChildRef> contents;
+                std::unordered_map<std::string, ChildRef> children;
+            };
+
+            bool PrepareFile(const std::string& archive_path, std::vector<std::string>& components) const;
+            bool EnsureDirectory(const std::vector<std::string>& components, size_t count, uint64_t& directory_id);
+            bool CommitFile(const std::vector<std::string>& components, FileEntry&& entry);
+            void Touch(uint64_t directory_id, int64_t date_modified);
+
+            bool WriteChunk(const uint8_t* data, size_t size, FileEntry& entry);
+            bool Compress(const uint8_t* data, size_t size, std::vector<uint8_t>& output) const;
+
+            bool WriteFileInfo();
+            bool WriteDirectoryTable(uint64_t directory_table_offset);
+            bool WriteHeader(uint64_t file_info_offset, uint64_t directory_table_offset);
+
+            std::ofstream mFile;
+            std::vector<FileEntry> mFiles;
+            std::vector<DirectoryEntry> mDirectories;
+            std::vector<uint8_t> mScratch;
+
+            TCFArchive::CompressionType mCompression = TCFArchive::CompressionType::Zstd;
+            int mCompressionLevel = 0;
+            size_t mChunkSize = TCFArchive::kFileChunkSize;
+            bool mFinished = false;
     };
 } // namespace CE::Common::FS::TCF

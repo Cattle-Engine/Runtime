@@ -5,7 +5,7 @@
 #include <istream>
 #include <string>
 
-namespace CE::Common::FS {
+namespace CECommon::FS {
     class BinaryReader {
     public:
         explicit BinaryReader(std::istream& stream)

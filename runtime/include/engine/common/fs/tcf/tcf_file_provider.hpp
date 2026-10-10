@@ -4,12 +4,12 @@
 #include <string_view>
 
 #include "engine/common/fs/file_provider.hpp"
-#include "engine/common/fs/tcf/tcf.hpp"
+#include "ce_common/tcf.hpp"
 
 namespace CE::Common::FS::TCF {
     class VfsTcfFile final : public VFS::IFile {
       public:
-        VfsTcfFile(TCFArchive& archive, const std::string& path);
+        VfsTcfFile(CECommon::TCF::TCFArchive& archive, const std::string& path);
 
         bool IsOpen() const override;
         uint64_t Size() const override;
@@ -26,7 +26,7 @@ namespace CE::Common::FS::TCF {
         bool Eof() const override;
 
       private:
-        TCFFile mFile;
+        CECommon::TCF::TCFFile mFile;
     };
 
     class TCFFileProvider final : public VFS::IFileProvider {
@@ -52,6 +52,6 @@ namespace CE::Common::FS::TCF {
         bool GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) override;
         std::vector<VFS::DirectoryContent> ListDirectory(std::string_view relative_path) const override;
       private:
-        TCFArchive mArchive;
+        CECommon::TCF::TCFArchive mArchive;
     };
 } // namespace CE::Common::FS::TCF

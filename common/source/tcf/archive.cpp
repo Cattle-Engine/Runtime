@@ -8,9 +8,9 @@
 #include <utility>
 #include <vector>
 
-#include "engine/common/fs/binary_reader.hpp"
-#include "engine/common/fs/tcf/tcf.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_common/binary_reader.hpp"
+#include "ce_common/tcf.hpp"
+#include "ce_common/detail/tracelog.hpp"
 
 #include <lz4.h>
 #include <zstd.h>
@@ -21,7 +21,7 @@
         return false;                                                                                                  \
     }
 
-namespace CE::Common::FS::TCF {
+namespace CECommon::TCF {
     namespace {
         constexpr uint64_t kChunkHeaderSize = sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint8_t) + sizeof(uint64_t) +
                                               sizeof(uint64_t) + sizeof(uint64_t);
@@ -841,8 +841,6 @@ namespace CE::Common::FS::TCF {
                 At this point reader is positioned at the beginning of
                 this directory's content block.
             */
-            const uint64_t content_start =
-                mHeaderInfo.directory_table_offset + 0; // overwritten below by seeking-relative position
 
             /*
                 BinaryReader does not need to expose its current position
@@ -949,10 +947,10 @@ namespace CE::Common::FS::TCF {
                         return false;
                     }
                 }
-
-                last_content_end = content_end;
                 info.contents.push_back(content);
             }
+
+            last_content_end = content_end;
 
             /*
                 content_end must be exactly where the next directory

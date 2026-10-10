@@ -33,7 +33,7 @@ namespace CE::Common::FS::TCF {
         return std::make_unique<VfsTcfFile>(mArchive, std::string(relative_path));
     }
 
-    VfsTcfFile::VfsTcfFile(TCFArchive& archive, const std::string& path) : mFile(archive.OpenFile(path)) {}
+    VfsTcfFile::VfsTcfFile(CECommon::TCF::TCFArchive& archive, const std::string& path) : mFile(archive.OpenFile(path)) {}
 
     bool VfsTcfFile::Flush() {
         return false;
@@ -50,13 +50,13 @@ namespace CE::Common::FS::TCF {
     bool VfsTcfFile::SeekR(int64_t offset, VFS::SeekOrigin origin) {
         switch (origin) {
         case VFS::SeekOrigin::Begin:
-            return mFile.Seek(offset, SeekMode::Start);
+            return mFile.Seek(offset, CECommon::TCF::SeekMode::Start);
             break;
         case VFS::SeekOrigin::End:
-            return mFile.Seek(offset, SeekMode::End);
+            return mFile.Seek(offset, CECommon::TCF::SeekMode::End);
             break;
         case VFS::SeekOrigin::Current:
-            return mFile.Seek(offset, SeekMode::Current);
+            return mFile.Seek(offset, CECommon::TCF::SeekMode::Current);
             break;
         }
 
