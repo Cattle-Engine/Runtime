@@ -243,7 +243,7 @@ namespace CE::Scripting::Impl::Lexer {
                                                          tokenLocation);
                         }
 
-                        // Handle escape sequences (e.g., \", \', \\)
+                        // Handle escape sequences (e.g., \", \\, \\)
                         if (data[position] == '\\') {
                             if (position + 1 >= data.size()) {
                                 throw Exceptions::LexerError("Trailing escape sequence at end of file", tokenLocation);

@@ -12,8 +12,6 @@
 
 #include "ce_common/binary_reader.hpp"
 
-namespace fs = std::filesystem;
-
 using FileId = uint64_t;
 using DirectoryId = uint64_t;
 using ChunkId = uint64_t;
@@ -47,7 +45,7 @@ namespace CECommon::TCF {
         // May throw std::runtime if:
         // 1. the file does not exist
         // 2. it fails to parse the tcf archive
-        TCFArchive(const fs::path& path);
+        TCFArchive(const std::filesystem::path& path);
 
         TCFFile OpenFile(const std::string& path);
         void CloseFile(TCFFile& file);
@@ -59,7 +57,7 @@ namespace CECommon::TCF {
         // returns false if the dir was not found
         bool GetDirLastModified(const std::string& path, int64_t& timestamp_ms);
       private:
-        using BinaryReader = FS::BinaryReader;
+        using BinaryReader = CECommon::FS::BinaryReader;
         friend class TCFFile;
         friend class TCFWriter;
         enum class Endianness : uint8_t {

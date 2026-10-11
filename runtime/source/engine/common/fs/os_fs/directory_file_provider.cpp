@@ -34,13 +34,13 @@ namespace CE::Common::FS::OSFS {
         return mode;
     }
 
-    DirectoryFileProvider::DirectoryFileProvider(const fs::path& path) : mBasePath(path) {}
+    DirectoryFileProvider::DirectoryFileProvider(const std::filesystem::path& path) : mBasePath(path) {}
 
     bool DirectoryFileProvider::GetFileSize(std::string_view relative_path, uint64_t& size) const {
-        const fs::path file = mBasePath / relative_path;
+        const std::filesystem::path file = mBasePath / relative_path;
 
         std::error_code ec;
-        const auto file_size = fs::file_size(file, ec);
+        const auto file_size = std::filesystem::file_size(file, ec);
 
         if (ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to get file size: {}", ec.message());
@@ -52,8 +52,8 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::FileExists(std::string_view relative_path) const {
-        fs::path file = mBasePath / relative_path;
-        return fs::is_regular_file(file);
+        std::filesystem::path file = mBasePath / relative_path;
+        return std::filesystem::is_regular_file(file);
     }
 
     bool DirectoryFileProvider::CreateFile(std::string_view relative_path) {
@@ -69,7 +69,7 @@ namespace CE::Common::FS::OSFS {
         return "DirectoryFileProvider";
     }
 
-    DirectoryFile::DirectoryFile(const fs::path& path, VFS::OpenFlags flags) {
+    DirectoryFile::DirectoryFile(const std::filesystem::path& path, VFS::OpenFlags flags) {
         mPath = path;
         mFile.open(path, ToOpenMode(flags));
     }
@@ -83,7 +83,7 @@ namespace CE::Common::FS::OSFS {
     }
 
     uint64_t DirectoryFile::Size() const {
-        return fs::file_size(mPath);
+        return std::filesystem::file_size(mPath);
     }
 
     uint64_t DirectoryFile::TellR() {
@@ -153,15 +153,15 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::DeleteFile(std::string_view relative_path) {
-        fs::path path = mBasePath / relative_path;
+        std::filesystem::path path = mBasePath / relative_path;
         
-        if (!fs::is_regular_file(path)) {
+        if (!std::filesystem::is_regular_file(path)) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", path.string());
             return true;
         }
 
         std::error_code ec;
-        fs::remove(path, ec);
+        std::filesystem::remove(path, ec);
 
         if (ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to delete file: {}", ec.message());
@@ -171,13 +171,13 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::DirExists(std::string_view relative_path) const {
-        fs::path path = mBasePath / relative_path;
-        return fs::is_directory(path);
+        std::filesystem::path path = mBasePath / relative_path;
+        return std::filesystem::is_directory(path);
     }
 
     bool DirectoryFileProvider::CreateDir(std::string_view relative_path) {
         std::error_code ec;
-        fs::create_directory(mBasePath / relative_path, ec);
+        std::filesystem::create_directory(mBasePath / relative_path, ec);
 
         if (ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to create directory: {}", ec.message());
@@ -188,15 +188,15 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::DeleteDir(std::string_view relative_path) {
-        fs::path path = mBasePath / relative_path;
+        std::filesystem::path path = mBasePath / relative_path;
         
-        if (!fs::is_directory(path)) {
+        if (!std::filesystem::is_directory(path)) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", path.string());
             return true;
         }
 
         std::error_code ec;
-        fs::remove(path, ec);
+        std::filesystem::remove(path, ec);
 
         if (ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to delete file: {}", ec.message());
@@ -206,17 +206,17 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::MoveFile(std::string_view old_path, std::string_view new_path) {
-        fs::path oldn = mBasePath / old_path;
+        std::filesystem::path oldn = mBasePath / old_path;
 
-        if (!fs::is_regular_file(oldn)) {
+        if (!std::filesystem::is_regular_file(oldn)) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a file", oldn.string());
             return false;
         }
 
         std::error_code ec;
-        fs::path newn = mBasePath / new_path;
+        std::filesystem::path newn = mBasePath / new_path;
 
-        fs::rename(oldn, newn, ec);
+        std::filesystem::rename(oldn, newn, ec);
 
         if (!ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to move {} to {}, {}", oldn.string(), newn.string(), ec.message());
@@ -226,17 +226,17 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::MoveDir(std::string_view old_path, std::string_view new_path) {
-        fs::path oldn = mBasePath / old_path;
+        std::filesystem::path oldn = mBasePath / old_path;
 
-        if (!fs::is_directory(oldn)) {
+        if (!std::filesystem::is_directory(oldn)) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a file", oldn.string());
             return false;
         }
 
         std::error_code ec;
-        fs::path newn = mBasePath / new_path;
+        std::filesystem::path newn = mBasePath / new_path;
 
-        fs::rename(oldn, newn, ec);
+        std::filesystem::rename(oldn, newn, ec);
 
         if (!ec) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] Failed to move {} to {}, {}", oldn.string(), newn.string(), ec.message());
@@ -246,9 +246,9 @@ namespace CE::Common::FS::OSFS {
     }
 
     bool DirectoryFileProvider::GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) {
-        fs::path full_path = mBasePath / path;
+        std::filesystem::path full_path = mBasePath / path;
         
-        if (!fs::is_directory(full_path)) {
+        if (!std::filesystem::is_directory(full_path)) {
             CE_LOG(LogLevel::Error, "[DirectoryFileProvider] {} is not a directory", full_path.string());
             return false;
         }
@@ -264,7 +264,7 @@ namespace CE::Common::FS::OSFS {
 
     std::vector<VFS::DirectoryContent> DirectoryFileProvider::ListDirectory(std::string_view relative_path) const {
         std::vector<VFS::DirectoryContent> contents;
-        for (const auto& content : fs::directory_iterator(mBasePath / relative_path)) {
+        for (const auto& content : std::filesystem::directory_iterator(mBasePath / relative_path)) {
             if (content.is_regular_file()) {
                 contents.push_back({content.path().filename().string(), VFS::DirectoryContent::Type::File});
             } else if (content.is_directory()) {

@@ -6,13 +6,15 @@
 
 #include "engine/common/fs/file_provider.hpp"
 
-namespace fs = std::filesystem;
+namespace CE::Common::FS {
+    namespace fs = std::filesystem;
+}
 
 namespace CE::Common::FS::OSFS {
     class DirectoryFile final : public VFS::IFile {
       public:
         int64_t GetDateModified() override;
-        DirectoryFile(const fs::path& path, VFS::OpenFlags flags);
+        DirectoryFile(const std::filesystem::path& path, VFS::OpenFlags flags);
 
         bool IsOpen() const override;
         uint64_t Size() const override;
@@ -27,7 +29,7 @@ namespace CE::Common::FS::OSFS {
 
       private:
         std::fstream mFile;
-        fs::path mPath;
+        std::filesystem::path mPath;
     };
 
     class DirectoryFileProvider final : public VFS::IFileProvider {
@@ -46,7 +48,7 @@ namespace CE::Common::FS::OSFS {
         bool MoveDir(std::string_view old_path, std::string_view new_path) override;
         bool GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp) override;
         // Base path must be an absloute path (eg: /home/arthur_dent/.config)
-        DirectoryFileProvider(const fs::path& base_path);
+        DirectoryFileProvider(const std::filesystem::path& base_path);
 
         std::unique_ptr<VFS::IFile> OpenFile(std::string_view relative_path, VFS::OpenFlags flags) override;
         bool GetFileSize(std::string_view relative_path, uint64_t& size) const override;
@@ -56,6 +58,6 @@ namespace CE::Common::FS::OSFS {
         std::string GetProviderName() const override;
 
       private:
-        fs::path mBasePath;
+        std::filesystem::path mBasePath;
     };
 } // namespace CE::Common::FS::OSFS

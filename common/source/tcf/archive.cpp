@@ -154,8 +154,8 @@ namespace CECommon::TCF {
         }
     } // namespace
 
-    TCFArchive::TCFArchive(const fs::path& path) {
-        if (!fs::exists(path)) {
+    TCFArchive::TCFArchive(const std::filesystem::path& path) {
+        if (!std::filesystem::exists(path)) {
             throw std::runtime_error("Archive path does not exist!");
         }
 
@@ -165,7 +165,7 @@ namespace CECommon::TCF {
             throw std::runtime_error("Failed to open tcf archive");
         }
 
-        mArchiveSize = fs::file_size(path);
+        mArchiveSize = std::filesystem::file_size(path);
 
         BinaryReader reader(mFile);
 

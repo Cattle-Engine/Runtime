@@ -13,7 +13,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/settings.hpp"
 #include "engine/version.hpp"
-namespace fs = std::filesystem;
+namespace FS = std::filesystem;
 
 namespace CE {
     Engine::Engine(std::string datafilename, bool debug, const EngineArguements& args) {
@@ -25,7 +25,7 @@ namespace CE {
         mDataFileName = datafilename;
         CE_LOG(CE::LogLevel::Info, "[Engine] Game-data filepath: {}", mDataFileName);
 
-        if (!fs::exists(mDataFileName)) {
+        if (!FS::exists(mDataFileName)) {
             throw std::runtime_error("[Engine] Base game data file does not exist!");
         }
 

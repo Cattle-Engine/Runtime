@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace fs = std::filesystem;
+namespace FS = std::filesystem;
 namespace TCF = CECommon::TCF;
 
 namespace {
@@ -47,7 +47,7 @@ namespace {
     }
 
     // Reject paths that could escape the output directory during unpacking.
-    bool IsSafeRelativePath(const fs::path& path) {
+    bool IsSafeRelativePath(const FS::path& path) {
         if (path.is_absolute() || path.has_root_name() || path.has_root_directory()) {
             return false;
         }
@@ -64,7 +64,7 @@ namespace {
     bool ExtractFile(
         TCF::TCFArchive& archive,
         const std::string& archivePath,
-        const fs::path& outputPath
+        const FS::path& outputPath
     ) {
         if (!archive.FileExists(archivePath)) {
             std::cerr << "File not found in archive: " << archivePath << '\n';
@@ -81,7 +81,7 @@ namespace {
 
         std::error_code ec;
         if (!outputPath.parent_path().empty()) {
-            fs::create_directories(outputPath.parent_path(), ec);
+            FS::create_directories(outputPath.parent_path(), ec);
             if (ec) {
                 std::cerr << "Failed to create output directory: "
                           << ec.message() << '\n';
@@ -125,10 +125,10 @@ namespace {
     bool UnpackDirectory(
         TCF::TCFArchive& archive,
         const std::string& archiveDirectory,
-        const fs::path& outputDirectory
+        const FS::path& outputDirectory
     ) {
         std::error_code ec;
-        fs::create_directories(outputDirectory, ec);
+        FS::create_directories(outputDirectory, ec);
 
         if (ec) {
             std::cerr << "Failed to create directory: "
@@ -144,7 +144,7 @@ namespace {
             const std::string childArchivePath =
                 JoinArchivePath(archiveDirectory, directory.name);
 
-            const fs::path relativePath(directory.name);
+            const FS::path relativePath(directory.name);
             if (!IsSafeRelativePath(relativePath)) {
                 std::cerr << "Unsafe directory name in archive: "
                           << directory.name << '\n';
@@ -164,7 +164,7 @@ namespace {
             const std::string childArchivePath =
                 JoinArchivePath(archiveDirectory, file.name);
 
-            const fs::path relativePath(file.name);
+            const FS::path relativePath(file.name);
             if (!IsSafeRelativePath(relativePath)) {
                 std::cerr << "Unsafe file name in archive: "
                           << file.name << '\n';
@@ -231,12 +231,12 @@ namespace {
     }
 
     bool PackDirectory(
-        const fs::path& inputDirectory,
-        const fs::path& archivePath,
+        const FS::path& inputDirectory,
+        const FS::path& archivePath,
         const std::string& compression
     ) {
-        if (!fs::exists(inputDirectory) ||
-            !fs::is_directory(inputDirectory)) {
+        if (!FS::exists(inputDirectory) ||
+            !FS::is_directory(inputDirectory)) {
             std::cerr << "Input is not a directory: "
                       << inputDirectory.string() << '\n';
             return false;
@@ -306,7 +306,7 @@ int main(int argc, char* argv[]) {
 
             TCF::TCFArchive archive(argv[2]);
 
-            if (!UnpackDirectory(archive, "", fs::path(argv[3]))) {
+            if (!UnpackDirectory(archive, "", FS::path(argv[3]))) {
                 return 1;
             }
 
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 
             TCF::TCFArchive archive(argv[2]);
 
-            return ExtractFile(archive, argv[3], fs::path(argv[4])) ? 0 : 1;
+            return ExtractFile(archive, argv[3], FS::path(argv[4])) ? 0 : 1;
         }
 
         if (command == "tree") {

@@ -28,4 +28,5 @@ target_compile_definitions(ce_common PRIVATE
 
 target_include_directories(ce_common PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../runtime/include"
 )

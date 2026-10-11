@@ -1,4 +1,7 @@
-#include "engine/scripting/private/modules.hpp"
+#include "ce_common/as_compiler.hpp"
+
+#include <filesystem>
+#include <utility>
 
 #include "engine/common/utils/hasher.hpp"
 #include "engine/scripting/private/common.hpp"
@@ -60,18 +63,23 @@ namespace CE::Scripting::Impl {
         return {};
     }
 
-    ModuleImporter::ModuleImporter(::CE::Common::FS::VFS::VFS& vfs) : mVFS(vfs) {}
+    ModuleImporter::ModuleImporter(FS::path import_path) : mImportBasePath(std::move(import_path)) {}
 
     std::vector<GeneratedScriptSection> ModuleImporter::LoadFile(const std::string& filepath) {
-        if (!mVFS.FileExists(filepath.c_str())) {
+        const std::filesystem::path resolved = std::filesystem::path(filepath);
+        const std::filesystem::path absolute = resolved.is_absolute() ? resolved : mImportBasePath / resolved;
+        if (!std::filesystem::exists(absolute)) {
             throw std::runtime_error("File not found: " + filepath);
         }
+
         mLoadModules.clear();
         mDiagnosticSymbolNames.clear();
         mGeneratedSymbols.clear();
-        Semantics::SymanticAnalyser analyser(mVFS);
-        AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(Common::GetScriptFromVFS(filepath, mVFS), filepath));
-        analyser.CheckModule(root, filepath);
+
+        const std::string source = Common::GetScriptFromFS(absolute.string());
+        AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(source, filepath));
+        Semantics::SymanticAnalyser analyser;
+        analyser.CheckModule(root, absolute.string());
         for (const auto& [module_path, module] : analyser.GetParsedModules()) {
             for (const auto& declaration : module.Declarations) {
                 CollectDiagnosticSymbolNames(declaration, module_path, "", analyser, mDiagnosticSymbolNames,
@@ -80,7 +88,7 @@ namespace CE::Scripting::Impl {
         }
         mEntrypoints.clear();
         for (const std::string& source_name : {std::string("main"), std::string("update"), std::string("imgui")}) {
-            if (const auto* symbol = analyser.FindSymbol(source_name, filepath)) {
+            if (const auto* symbol = analyser.FindSymbol(source_name, absolute.string())) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Function) {
                     mEntrypoints.emplace(source_name, symbol->InternalName);
                 }
@@ -93,8 +101,11 @@ namespace CE::Scripting::Impl {
     ModuleInfo ModuleImporter::LoadModule(const std::string& name) {
         ModuleInfo info;
         info.Name = name;
-        const std::string source = Common::GetScriptFromVFS(name, mVFS);
-        if (source.empty() && !mVFS.FileExists(name.c_str())) {
+
+        const std::filesystem::path resolved = std::filesystem::path(name);
+        const std::filesystem::path absolute = resolved.is_absolute() ? resolved : mImportBasePath / resolved;
+        const std::string source = Common::GetScriptFromFS(absolute.string());
+        if (source.empty() && !std::filesystem::exists(absolute)) {
             throw std::runtime_error("File not found: " + name);
         }
         info.Hash = Utils::Hash64(source);
