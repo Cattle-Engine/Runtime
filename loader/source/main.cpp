@@ -8,6 +8,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 std::string LoadPath(const std::filesystem::path& base_path) {
     std::ifstream file(base_path / "path.cfg");
@@ -22,7 +23,6 @@ std::string LoadPath(const std::filesystem::path& base_path) {
         throw std::runtime_error("path.cfg is empty or has no first line");
     }
 
-    // Handle Windows CRLF line endings.
     if (!path.empty() && path.back() == '\r') {
         path.pop_back();
     }
@@ -31,7 +31,19 @@ std::string LoadPath(const std::filesystem::path& base_path) {
         throw std::runtime_error("The first line of path.cfg is empty");
     }
 
-    return path;
+    std::filesystem::path data_path(path);
+
+    if (data_path.is_relative()) {
+        data_path = base_path / data_path;
+    }
+
+    data_path = std::filesystem::absolute(data_path).lexically_normal();
+
+    if (!std::filesystem::exists(data_path)) {
+        throw std::runtime_error("Game-data file does not exist: " + data_path.string());
+    }
+
+    return data_path.string();
 }
 
 int main(int argc, char** argv) {
@@ -53,9 +65,8 @@ int main(int argc, char** argv) {
     ce_engine_t* engine = nullptr;
 
     try {
-        const std::string data_file_path =
-            LoadPath(std::filesystem::u8path(base_path));
-
+        const std::string data_file_path = LoadPath(std::filesystem::path(base_path));
+        std::cout << "[CELoader] " << data_file_path << std::endl;
         engine = CE_CreateEngine(data_file_path.c_str(), engine_args, true);
 
         if (engine == nullptr) {

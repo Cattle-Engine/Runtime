@@ -42,7 +42,7 @@ namespace CECommon::TCF {
         enum class CompressionType : uint8_t {
             Zstd = 0,
             LZ4 = 1,
-            None = 2
+            None = 2,
         };
         // May throw std::runtime if:
         // 1. the file does not exist

@@ -1,7 +1,9 @@
 #include "engine/engine.hpp"
 #include "engine/common/misc/arguments.hpp"
 #include "public/ce_runtime_api.h"
+#include "engine/common/tracelog.hpp"
 
+#include <exception>
 #include <memory>
 #include <new>
 #include <optional>
@@ -71,7 +73,8 @@ CE_EXPORT ce_engine_t* CE_CreateEngine(const char* data_file, ce_engine_argument
         );
 
         return engine.release();
-    } catch (...) {
+    } catch (const std::exception& e) {
+        CE_LOG(CE::LogLevel::Error, "[CE_CreateEngine] {}", e.what());
         return nullptr;
     }
 }
