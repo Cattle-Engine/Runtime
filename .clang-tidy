@@ -37,10 +37,6 @@ CheckOptions:
     value: lower_case
 
   # Constants
-  - key: readability-identifier-naming.ConstantCase
-    value: CamelCase
-  - key: readability-identifier-naming.ConstantPrefix
-    value: k
   - key: readability-identifier-naming.ConstexprVariableCase
     value: CamelCase
   - key: readability-identifier-naming.ConstexprVariablePrefix
@@ -67,8 +63,6 @@ CheckOptions:
   # Public members
   - key: readability-identifier-naming.PublicMemberCase
     value: lower_case
-  - key: readability-identifier-naming.PublicMemberPrefix
-    value: struct_
 
   # Types
   - key: readability-identifier-naming.ClassCase

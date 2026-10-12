@@ -1,6 +1,6 @@
-#include "engine/scripting/private/ast.hpp"
+#include "ce_common/as_compiler/ast.hpp"
 
-#include "engine/common/utils/hasher.hpp"
+#include "ce_common/detail/hasher.hpp"
 
 namespace CE::Scripting::Impl::AST {
     // forward declared to stop a circular dep

@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/scripting/private/ast.hpp"
-#include "engine/scripting/private/semantics.hpp"
+#include "ce_common/as_compiler/ast.hpp"
+#include "ce_common/as_compiler/semantics.hpp"
 
 namespace CE::Scripting::Impl::Codegen {
     class Generator {

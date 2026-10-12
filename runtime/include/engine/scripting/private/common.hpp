@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "engine/scripting/private/ast.hpp"
+#include "ce_common/as_compiler/ast.hpp"
 
 #include <engine/common/fs/vfs.hpp>
 

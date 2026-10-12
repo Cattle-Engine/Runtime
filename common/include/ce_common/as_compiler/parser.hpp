@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "engine/scripting/private/ast.hpp"
-#include "engine/scripting/private/lexer.hpp"
+#include "ce_common/as_compiler/ast.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
 
 namespace CE::Scripting::Impl::Parser {
     /**

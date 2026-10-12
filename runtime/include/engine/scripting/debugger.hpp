@@ -8,7 +8,7 @@
 #include <memory>
 #include <optional>
 
-#include "engine/scripting/private/modules.hpp"
+#include "ce_common/as_compiler/modules.hpp"
 
 namespace CE::Scripting {
     class ScriptDebugger : public CDebugger {

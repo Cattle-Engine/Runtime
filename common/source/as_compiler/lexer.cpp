@@ -1,6 +1,6 @@
-#include "engine/scripting/private/lexer.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
 
-#include "engine/scripting/private/exceptions.hpp"
+#include "ce_common/as_compiler/exceptions.hpp"
 
 namespace CE::Scripting::Impl::Lexer {
     std::vector<Token> Lex(const std::string& data, const std::string& filename) {

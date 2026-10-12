@@ -1,16 +1,16 @@
-#include "engine/scripting/private/semantics.hpp"
+#include "ce_common/as_compiler/semantics.hpp"
 
 #include <algorithm>
 #include <unordered_set>
 #include <filesystem>
 
-#include "engine/common/tracelog.hpp"
-#include "engine/common/utils/hasher.hpp"
-#include "engine/scripting/private/parser.hpp"
-#include "engine/scripting/private/ast.hpp"
-#include "engine/scripting/private/common.hpp"
-#include "engine/scripting/private/exceptions.hpp"
-#include "engine/scripting/private/lexer.hpp"
+#include "ce_common/detail/tracelog.hpp"
+#include "ce_common/detail/hasher.hpp"
+#include "ce_common/as_compiler/parser.hpp"
+#include "ce_common/as_compiler/ast.hpp"
+#include "ce_common/as_compiler/common.hpp"
+#include "ce_common/as_compiler/exceptions.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
     namespace {
@@ -466,17 +466,17 @@ namespace CE::Scripting::Impl::Semantics {
         for (const auto& import : parsed->second.Imports) {
             const std::string imported_path = Common::Import2Path(import);
 
-            CE_LOG(LogLevel::Debug, "Import {} -> {}", import.Path.empty() ? "empty" : import.Path[0], imported_path);
+            CE_LOG(CECommon::LogLevel::Debug, "Import {} -> {}", import.Path.empty() ? "empty" : import.Path[0], imported_path);
 
             auto exports = mModuleExports.find(imported_path);
 
             if (exports == mModuleExports.end()) {
-                CE_LOG(LogLevel::Debug, "No exports found");
+                CE_LOG(CECommon::LogLevel::Debug, "No exports found");
                 continue;
             }
 
             for (const auto& e : exports->second) {
-                CE_LOG(LogLevel::Debug, "Export: {}::{}", e.Namespace, e.OriginalName);
+                CE_LOG(CECommon::LogLevel::Debug, "Export: {}::{}", e.Namespace, e.OriginalName);
             }
         }
 
@@ -520,12 +520,12 @@ namespace CE::Scripting::Impl::Semantics {
                 if (qualified_name == export_info.OriginalName || qualified_name == exported_name ||
                     qualified_name == module_qualified_name) {
 
-                    CE_LOG(LogLevel::Debug, "Found matching export, calling add({}, {})", exported_name,
+                    CE_LOG(CECommon::LogLevel::Debug, "Found matching export, calling add({}, {})", exported_name,
                            export_info.Modulepath);
 
                     add(exported_name, export_info.Modulepath);
 
-                    CE_LOG(LogLevel::Debug, "After add, result size: {}", result.size());
+                    CE_LOG(CECommon::LogLevel::Debug, "After add, result size: {}", result.size());
                 }
             }
         }
@@ -537,11 +537,11 @@ namespace CE::Scripting::Impl::Semantics {
                                                     const std::vector<AST::ASTTypeRef>& arguments) const {
         auto overloads = ResolveOverloads(module_path, name);
 
-        CE_LOG(LogLevel::Debug, "[Semantic Parser] Resolving: {}", name);
+        CE_LOG(CECommon::LogLevel::Debug, "[Semantic Parser] Resolving: {}", name);
 
-        CE_LOG(LogLevel::Debug, "Overloads found: {}", overloads.size());
+        CE_LOG(CECommon::LogLevel::Debug, "Overloads found: {}", overloads.size());
         for (auto* x : overloads) {
-            CE_LOG(LogLevel::Debug, "candidate: {}", x->QualifiedName);
+            CE_LOG(CECommon::LogLevel::Debug, "candidate: {}", x->QualifiedName);
         }
 
         const Symbol* match = nullptr;

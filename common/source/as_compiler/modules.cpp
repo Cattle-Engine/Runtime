@@ -3,12 +3,12 @@
 #include <filesystem>
 #include <utility>
 
-#include "engine/common/utils/hasher.hpp"
-#include "engine/scripting/private/common.hpp"
-#include "engine/scripting/private/generator.hpp"
-#include "engine/scripting/private/lexer.hpp"
-#include "engine/scripting/private/parser.hpp"
-#include "engine/scripting/private/semantics.hpp"
+#include "ce_common/detail/hasher.hpp"
+#include "ce_common/as_compiler/common.hpp"
+#include "ce_common/as_compiler/generator.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
+#include "ce_common/as_compiler/parser.hpp"
+#include "ce_common/as_compiler/semantics.hpp"
 
 namespace CE::Scripting::Impl {
     namespace {

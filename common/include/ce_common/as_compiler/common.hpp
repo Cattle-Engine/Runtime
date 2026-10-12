@@ -3,7 +3,7 @@
 #include <string>
 #include <filesystem>
 
-#include "engine/scripting/private/ast.hpp"
+#include "ce_common/as_compiler/ast.hpp"
 
 // This header contains shared code used by other internal systems
 namespace CE::Scripting::Impl::Common {

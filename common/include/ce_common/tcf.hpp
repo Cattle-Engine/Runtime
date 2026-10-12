@@ -62,13 +62,13 @@ namespace CECommon::TCF {
         friend class TCFWriter;
         enum class Endianness : uint8_t {
             Little = 0,
-            Big = 1
+            Big = 1,
         };
 
         static constexpr std::string_view kTCFMagic = "TCF";
         static constexpr uint8_t kVersion = 3;
         static constexpr Endianness kEndianness = Endianness::Little;
-        static constexpr size_t kBufferSize = 64 * 1024;
+        static constexpr size_t kBufferSize = 64 * 1024; // NOLINT
         static constexpr uint64_t kHeaderSize = 128;
         static constexpr uint64_t kHeaderCrcLen = 0x20;
         static constexpr uint32_t kFileChunkSize = 256 * 1024;
@@ -202,7 +202,7 @@ namespace CECommon::TCF {
     enum class SeekMode {
         Start,
         Current,
-        End
+        End,
     };
 
     class TCFFile {
@@ -246,7 +246,7 @@ namespace CECommon::TCF {
         TCFArchive& mTCFArchive;
         uint64_t mCurrentOffset = 0;
         const uint64_t mEndOffset;
-        FileId FileID = 0;
+        FileId mFileID = 0;
         bool mValid = false;
     };
 

@@ -6,8 +6,8 @@
 #include <variant>
 #include <vector>
 
-#include "engine/scripting/private/lexer.hpp"
-#include "engine/scripting/private/modules.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
+#include "ce_common/as_compiler/modules.hpp"
 
 namespace CE::Scripting::Impl::AST {
     struct ASTImport {

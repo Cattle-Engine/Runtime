@@ -10,9 +10,10 @@
 #include "engine/input/text.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/scripting/debugger.hpp"
-#include "engine/scripting/private/exceptions.hpp"
-#include "engine/scripting/private/modules.hpp"
+#include "ce_common/as_compiler/modules.hpp"
+#include "ce_common/as_compiler/bytecode.hpp"
 #include "engine/scripting/bindings/bindings_list.hpp"
+#include "engine/common/fs/ifile_stream.hpp"
 
 #include <angelscript.h>
 #include <scriptarray/scriptarray.h>
@@ -165,53 +166,32 @@ namespace CE::Scripting {
         std::string update_entrypoint;
         std::string imgui_entrypoint;
 
-        try {
-            Impl::ModuleImporter importer(mVFS);
-            sections = importer.LoadFile(mGameInfo.startupFileName);
-            mCompilerSymbolNames = importer.GetDiagnosticSymbolNames();
-            main_entrypoint = importer.GetGeneratedEntrypoint("main");
-            update_entrypoint = importer.GetGeneratedEntrypoint("update");
-            imgui_entrypoint = importer.GetGeneratedEntrypoint("imgui");
+        auto startup_file = mVFS.OpenFile(mGameInfo.startupFileName);
+        if (startup_file->IsOpen()) {
+            auto stream = Common::FS::VFS::IStream(std::move(startup_file));
+            Impl::ByteCodeReader bytecode(stream);
+
+            int status = bytecode.Load();
+            if (status != 0) {
+                return Fail(std::format("Failed to load bytecode, return code {}", status));
+            }
+            
+            const int r = mScriptModule->LoadByteCode(bytecode.GetByteCode());
+            if (r < 0) {
+                return Fail(std::format("Failed to load AngelScript bytecode, code {}", r));
+            }
+
+            main_entrypoint = bytecode.GetEntryPoint("main");
+            update_entrypoint = bytecode.GetEntryPoint("update");
+            imgui_entrypoint = bytecode.GetEntryPoint("imgui");
+
             #ifdef CE_DEBUG
-                mScriptDebugger = std::make_shared<ScriptDebugger>(importer.GetGeneratedSymbols());
+                mScriptDebugger = std::make_shared<ScriptDebugger>(bytecode.GetDebugSymbols());
                 mScriptDebugger->SetEngine(mScriptEngine);
             #endif
-        } catch (const Impl::Exceptions::LexerError& error) {
-            return Fail(error.what());
-        } catch (const Impl::Exceptions::ParserError& error) {
-            return Fail(error.what());
-        } catch (const Impl::Exceptions::SemanticError& error) {
-            return Fail(error.what());
         }
 
-        if (sections.empty()) {
-            return Fail(std::format("Failed to load AngelScript startup file '{}'", mGameInfo.startupFileName));
-        }
-
-        #ifdef CE_DEBUG
-            mSectionNames.reserve(sections.size());
-        #endif
-
-        CE_LOG(LogLevel::Info, "[AngelScript] Loaded startup script '{}'", mGameInfo.startupFileName);
-        for (const auto& section : sections) {
-            CE_LOG(LogLevel::Debug, "[AngelScript] generated script section '{}':\n\n{}", section.Name,
-                   section.Code);
-            const int add_result = mScriptModule->AddScriptSection(section.Name.c_str(), section.Code.c_str());
-            if (add_result < 0) {
-                return Fail(std::format("Failed to add AngelScript script section '{}'", section.Name));
-            }
-            #ifdef CE_DEBUG
-                mSectionNames.push_back(section.Name);
-            #endif
-        }
-
-        int r = mScriptModule->Build();
-        if (r < 0) {
-            // The message callback has already recorded the actionable compiler
-            // error. Keep it available to callers instead of replacing it with a
-            // generic build failure.
-            return mLastError.empty() ? Fail("Failed to build AngelScript module") : false;
-        }
+        int r = 0;
 
         asIScriptFunction* func =
             main_entrypoint.empty() ? nullptr : mScriptModule->GetFunctionByName(main_entrypoint.c_str());

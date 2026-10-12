@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-#include "engine/scripting/private/modules.hpp"
+#include "ce_common/as_compiler/modules.hpp"
 
 namespace CE::Scripting::Impl::Exceptions {
     class LexerError : public std::exception {

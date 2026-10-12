@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "engine/common/fs/vfs.hpp"
-#include "engine/scripting/private/ast.hpp"
+#include "ce_common/as_compiler/ast.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
     struct FunctionSignature {

@@ -123,7 +123,7 @@ namespace CECommon::TCF {
         }
 
         TCFFile file(*this, file_size);
-        file.FileID = file_id;
+        file.mFileID = file_id;
         file.mCurrentOffset = 0;
         file.mValid = true;
 
@@ -256,7 +256,7 @@ namespace CECommon::TCF {
             return false;
         }
 
-        const auto& chunks = mTCFArchive.mFiles[FileID].chunks;
+        const auto& chunks = mTCFArchive.mFiles[mFileID].chunks;
 
         auto* destination_bytes = static_cast<uint8_t*>(destination);
 
@@ -350,6 +350,6 @@ namespace CECommon::TCF {
     }
 
     int64_t TCFFile::GetLastModifiedTimestamp() const {
-        return mTCFArchive.mFiles[FileID].date_modified;
+        return mTCFArchive.mFiles[mFileID].date_modified;
     }
 } // namespace CE::Common::FS::TCF

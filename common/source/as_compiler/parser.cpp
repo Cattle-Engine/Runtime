@@ -1,10 +1,10 @@
-#include "engine/scripting/private/parser.hpp"
+#include "ce_common/as_compiler/parser.hpp"
 
 #include <memory>
 #include <unordered_set>
 
-#include "engine/scripting/private/exceptions.hpp"
-#include "engine/scripting/private/lexer.hpp"
+#include "ce_common/as_compiler/exceptions.hpp"
+#include "ce_common/as_compiler/lexer.hpp"
 
 namespace CE::Scripting::Impl::Parser {
     class Parser {

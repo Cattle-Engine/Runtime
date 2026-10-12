@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(zstd CONFIG REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
+find_package(xxHash CONFIG REQUIRED)
 
 file(GLOB_RECURSE CE_COMMON_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp"
@@ -16,7 +17,7 @@ file(GLOB_RECURSE CE_COMMON_SOURCES CONFIGURE_DEPENDS
 
 add_library(ce_common SHARED ${CE_COMMON_SOURCES})
 
-target_link_libraries(ce_common PRIVATE zstd::libzstd lz4::lz4)
+target_link_libraries(ce_common PRIVATE zstd::libzstd lz4::lz4 xxHash::xxhash)
 
 set_target_properties(ce_common PROPERTIES
     PREFIX ""

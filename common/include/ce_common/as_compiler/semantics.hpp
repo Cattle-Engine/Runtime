@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "engine/scripting/private/ast.hpp"
+#include "ce_common/as_compiler/ast.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
     struct FunctionSignature {

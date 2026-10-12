@@ -1,4 +1,4 @@
-#include "engine/scripting/private/common.hpp"
+#include "ce_common/as_compiler/common.hpp"
 
 #include <fstream>
 #include <sstream>

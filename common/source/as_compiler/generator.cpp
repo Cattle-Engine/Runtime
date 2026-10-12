@@ -1,4 +1,4 @@
-#include "engine/scripting/private/generator.hpp"
+#include "ce_common/as_compiler/generator.hpp"
 
 #include <algorithm>
 #include <unordered_set>
