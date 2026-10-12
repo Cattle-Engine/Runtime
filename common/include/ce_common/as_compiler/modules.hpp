@@ -67,7 +67,7 @@ namespace CE::Scripting::Impl {
 
     class ModuleImporter {
       public:
-        ModuleImporter(FS::path import_path);
+        explicit ModuleImporter(std::vector<FS::path> import_paths);
 
         /**
          * @brief Used to load 1 script file and resolve it's imports
@@ -84,9 +84,10 @@ namespace CE::Scripting::Impl {
         }
 
       private:
+        FS::path ResolvePath(const FS::path& path) const;
         std::string GenerateCombinedScripts();
 
-        FS::path mImportBasePath;
+        std::vector<FS::path> mImportPaths;
         std::vector<std::string> mLoadModules;
         std::unordered_map<std::string, std::string> mEntrypoints;
         std::unordered_map<std::string, std::string> mDiagnosticSymbolNames;

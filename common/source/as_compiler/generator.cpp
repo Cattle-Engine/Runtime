@@ -502,7 +502,10 @@ namespace CE::Scripting::Impl::Codegen {
                     result += function.Parameters[i].Direction;
                 result += " " + function.Parameters[i].Name;
             }
-            return result + ")" + JoinTokens(RewriteBody(function.Body, &function, module_path, name_space)) + "\n";
+            result += ")";
+            if (function.Body.empty())
+                return result + ";\n";
+            return result + JoinTokens(RewriteBody(function.Body, &function, module_path, name_space)) + "\n";
         }
         if (declaration.Type == AST::ASTDeclaration::Kind::Global) {
             const auto& global = std::get<AST::ASTGlobal>(declaration.Data);

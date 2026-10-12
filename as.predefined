@@ -6,18 +6,18 @@ void Quit();
 enum ShaderStage {
     Fragment,
     Vertex
-}
+};
 
 enum TextureFlip {
     None,
     Horizontal,
     Vertical
-}
+};
 
 enum TextureFilter {
     Nearest,
     Linear
-}
+};
 
 class Vec4 {
     void f();
@@ -47,7 +47,7 @@ class Vec4 {
     float y;
     float z;
     float w;
-}
+};
 
 class Colour {
     void f();
@@ -56,19 +56,19 @@ class Colour {
     uint8 g;
     uint8 b;
     uint8 a;
-}
+};
 
 class Material {
     bool opEquals(const Material & in) const;
     bool opEquals(int64) const;
     uint64 handle;
-}
+};
 
 class Mesh {
     bool opEquals(const Mesh & in) const;
     bool opEquals(int64) const;
     uint64 handle;
-}
+};
 
 class Shader {
     void f();
@@ -78,7 +78,7 @@ class Shader {
     bool opEquals(int64) const;
     Shader opAssign(Shader & in) const;
     uint64 handle;
-}
+};
 
 class Texture {
     void f();
@@ -88,7 +88,7 @@ class Texture {
     bool opEquals(int64) const;
     Texture opAssign(Texture & in) const;
     uint64 handle;
-}
+};
 
 class Vec2 {
     void f();
@@ -118,7 +118,7 @@ class Vec2 {
     bool opEquals(const Vec2 & in) const;
     float x;
     float y;
-}
+};
 
 class Vec3 {
     void f();
@@ -150,7 +150,7 @@ class Vec3 {
     float x;
     float y;
     float z;
-}
+};
 
 class Vertex3D {
     void f();
@@ -161,7 +161,7 @@ class Vertex3D {
     Vec2 uv;
     Vec3 tangent;
     float tangent_sign;
-}
+};
 
 class MeshData {
     void f();
@@ -169,7 +169,7 @@ class MeshData {
     MeshData& opAssign(MeshData& in other);
     CE::Containers::Vertex3DVector vertices;
     CE::Containers::Uint32Vector indices;
-}
+};
 
 class Transform3D {
     void f();
@@ -178,7 +178,7 @@ class Transform3D {
     Vec3 position;
     Vec3 rotation;
     Vec3 scale;
-}
+};
 
 class Mat4 {
     void f();
@@ -199,7 +199,7 @@ class Mat4 {
     Mat4 opMul(const Mat4& in) const;
     Vec4 opMul(const Vec4& in) const;
     bool opEquals(const Mat4& in) const;
-}
+};
 
 const Texture NoTexture;
 }
@@ -273,7 +273,7 @@ enum AudioType {
     SFX,
     Music,
     Error
-}
+};
 
 enum AudioEffectType {
     LowPass,
@@ -281,7 +281,7 @@ enum AudioEffectType {
     Reverb,
     Delay,
     Chorus
-}
+};
 
 class AudioEffect {
     void f();
@@ -296,21 +296,21 @@ class AudioEffect {
     float RateHz;
     float RoomSize;
     float Damping;
-}
+};
 
 class AudioAsset {
     bool opEquals(const AudioAsset& in) const;
     bool opEquals(uint) const;
     AudioAsset opAssign(AudioAsset & in) const;
     uint32 handle;
-}
+};
 
 class PlayingAudio {
     bool opEquals(const PlayingAudio& in) const;
     bool opEquals(uint) const;
     PlayingAudio opAssign(const PlayingAudio & in) const;
     uint32 handle;
-}
+};
 
 class AudioDeviceInfo {
     void f();
@@ -320,7 +320,7 @@ class AudioDeviceInfo {
     uint32 id;
     bool stereo;
     string name;
-}
+};
 }
 
 namespace CE::GameState {
@@ -390,13 +390,13 @@ class Camera2D {
     float x;
     float y;
     float zoom;
-}
+};
 }
 
 namespace CE::Graphics::Render2D::AnimatedTextures {
 class AnimationInstance {
     uint id;
-}
+};
 
 bool Load(const string& in name, const string& in path);
 
@@ -477,14 +477,14 @@ void DestroyMesh(const Mesh& in mesh);
 enum Camera3DProjectionMode {
     Perspective,
     Orthographic
-}
+};
 
 class CubemapFace {
     Texture GetTexture();
     CubemapFace& opAssign(const Texture& in);
     CubemapFace& opAssign(const CubemapFace& in);
     bool opEquals(const CubemapFace& in) const;
-}
+};
 
 class ModelNode {
     void f();
@@ -492,7 +492,7 @@ class ModelNode {
     Mat4 Transform;
     CE::Containers::Uint32Vector mesh_indices;
     CE::Containers::Uint32Vector children;
-}
+};
 
 class Model {
     void f();
@@ -502,7 +502,7 @@ class Model {
     CE::Containers::Uint32Vector mesh_material_indices;
     CE::Containers::ModelNodeVector nodes;
     uint root_node;
-}
+};
 
 class Cubemap {
     void f();
@@ -514,7 +514,7 @@ class Cubemap {
     CubemapFace bottom;
     CubemapFace front;
     CubemapFace back;
-}
+};
 
 class Camera3D {
     void f();
@@ -530,7 +530,7 @@ class Camera3D {
     float aspect_override;
     bool use_target;
     Camera3DProjectionMode projection_mode;
-}
+};
 }
 
 namespace CE::Graphics::Render3D::Primitives {
@@ -710,12 +710,12 @@ enum MouseButtons {
     Right,
     X1,
     X2
-}
+};
 
 enum MouseVisiblity {
     Hidden,
     Shown
-}
+};
 
 int GetX();
 
@@ -778,7 +778,7 @@ class SettingsInfo {
     float music_volume;
     float sfx_volume;
     string audio_device_name;
-}
+};
 
 SettingsInfo GetSettingsInfo();
 
@@ -820,13 +820,13 @@ enum Type {
     ArrFloat,
     ArrString,
     ArrObject
-}
+};
 
 class Value {
     void f();
     void f();
     Type type;
-}
+};
 
 class File {
     void f();
@@ -834,7 +834,7 @@ class File {
     bool Has(const string& in key) const;
     bool Remove(const string& in key);
     void Set(const string& in key, const Value& in value);
-}
+};
 
 Value MakeNull();
 
@@ -871,7 +871,7 @@ class StreamingHasher {
     void f();
     void AddString(const string& in text);
     uint64 Finalize();
-}
+};
 
 uint64 HashString(const string& in text);
 
@@ -883,7 +883,7 @@ enum SeekOrigin {
     Begin,
     Current,
     End
-}
+};
 
 enum OpenFlags {
     None,
@@ -891,7 +891,7 @@ enum OpenFlags {
     Write,
     Create,
     Append
-}
+};
 
 class File {
     void f();
@@ -906,7 +906,7 @@ class File {
     bool WriteString(const string& in text);
     bool Flush();
     bool Eof() const;
-}
+};
 
 bool FileExists(const string& in path);
 
@@ -928,12 +928,12 @@ enum WindowMode {
     Fullscreen,
     Borderless,
     Windowed
-}
+};
 
 class WindowSize {
     int w;
     int h;
-}
+};
 
 void HideWindow(bool hidden);
 

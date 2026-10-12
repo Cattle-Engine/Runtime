@@ -19,6 +19,8 @@ namespace CE::Common {
                 output.OutputDebugASInfoPath = value;
             } else if (key == "debug_window") {
                 output.DebugVideo = (value == "true");
+            } else if (key == "headless") {
+                output.headless = (value == "true");
             }
         }
     }

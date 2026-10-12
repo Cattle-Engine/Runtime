@@ -111,13 +111,13 @@ def collect_declarations(idl_files: Iterable[Path]) -> dict[str, list[str]]:
             values = [str(value) for value in enum.get("Values", [])]
             lines = [f"enum {enum['Name']} {{"]
             lines.extend(f"    {value}{',' if index + 1 < len(values) else ''}" for index, value in enumerate(values))
-            lines.append("}")
+            lines.append("};")
             by_namespace[namespace_for(enum, default_namespace)].append("\n".join(lines))
 
         for as_type in data.get("ASTypes", []):
             lines = [f"class {as_type['Name']} {{"]
             lines.extend(f"    {member}" for member in type_members(as_type))
-            lines.append("}")
+            lines.append("};")
             by_namespace[namespace_for(as_type, default_namespace)].append("\n".join(lines))
 
         for group_name in ("ASFunctions", "ASClassFunctions"):

@@ -221,7 +221,8 @@ namespace CE::Scripting::Impl::Semantics {
         }
     }
 
-    void SymanticAnalyser::CheckModule(AST::ASTModule& module, const std::string module_path) {
+    void SymanticAnalyser::CheckModule(AST::ASTModule& module, const std::string module_path,
+                                      bool include_in_emission) {
         auto state = mAnalyzedModules.find(module_path);
         if (state != mAnalyzedModules.end()) {
             if (!state->second) {
@@ -311,7 +312,9 @@ namespace CE::Scripting::Impl::Semantics {
             VisitDeclaration(decl, "", module_hash, module_path);
         }
 
-        mEmissionOrder.push_back(module_path);
+        if (include_in_emission) {
+            mEmissionOrder.push_back(module_path);
+        }
         mAnalyzedModules[module_path] = true;
     }
 

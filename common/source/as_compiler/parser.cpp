@@ -371,11 +371,42 @@ namespace CE::Scripting::Impl::Parser {
                     Advance();
                 }
 
-                param.Name = Expect(
-                    Lexer::Token::TokenType::Identifier,
-                    "as the name of a parameter in function '" + name + "'"
-                ).Value;
+                if (Current().Type == Lexer::Token::TokenType::Identifier) {
+                    param.Name = Current().Value;
+                    Advance();
+                }
                 func.Parameters.push_back(param);
+
+                if (Current().Type == Lexer::Token::TokenType::Assignment) {
+                    Advance();
+                    int paren_depth = 0;
+                    int bracket_depth = 0;
+                    int brace_depth = 0;
+                    while (Current().Type != Lexer::Token::TokenType::EndOfFile) {
+                        if (Current().Type == Lexer::Token::TokenType::OpenParen) ++paren_depth;
+                        else if (Current().Type == Lexer::Token::TokenType::CloseParen) {
+                            if (paren_depth == 0) break;
+                            --paren_depth;
+                        } else if (Current().Type == Lexer::Token::TokenType::OpenBracket) ++bracket_depth;
+                        else if (Current().Type == Lexer::Token::TokenType::CloseBracket) {
+                            if (bracket_depth == 0) break;
+                            --bracket_depth;
+                        } else if (Current().Type == Lexer::Token::TokenType::OpenBrace) ++brace_depth;
+                        else if (Current().Type == Lexer::Token::TokenType::CloseBrace) {
+                            if (brace_depth == 0) break;
+                            --brace_depth;
+                        }
+                        if (Current().Type == Lexer::Token::TokenType::Comma && paren_depth == 0 && bracket_depth == 0 &&
+                            brace_depth == 0) {
+                            break;
+                        }
+                        Advance();
+                    }
+                    if (Current().Type == Lexer::Token::TokenType::Comma) {
+                        Advance();
+                        continue;
+                    }
+                }
 
                 if (Current().Type !=
                     Lexer::Token::TokenType::CloseParen) {
@@ -390,6 +421,11 @@ namespace CE::Scripting::Impl::Parser {
                 Lexer::Token::TokenType::CloseParen,
                 "to close parameter list of function '" + name + "'"
             );
+
+            if (Current().Type == Lexer::Token::TokenType::Semicolon) {
+                Advance();
+                return func;
+            }
 
             size_t body_start_idx = mPosition;
             Expect(
@@ -633,6 +669,13 @@ namespace CE::Scripting::Impl::Parser {
                 Lexer::Token::TokenType::Identifier,
                 "as the namespace name"
             ).Value;
+            while (Current().Type == Lexer::Token::TokenType::ScopeResolution) {
+                Advance();
+                ns.Name += "::" + Expect(
+                    Lexer::Token::TokenType::Identifier,
+                    "as a namespace segment after '::'"
+                ).Value;
+            }
 
             Expect(
                 Lexer::Token::TokenType::OpenBrace,

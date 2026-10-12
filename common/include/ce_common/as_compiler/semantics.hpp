@@ -49,7 +49,7 @@ namespace CE::Scripting::Impl::Semantics {
          * @return Does not return anything but throws CE::Scripting::Impl::Exceptions::SemanticError if an error
          * happened
          */
-        void CheckModule(AST::ASTModule& module, const std::string module_path);
+        void CheckModule(AST::ASTModule& module, const std::string module_path, bool include_in_emission = true);
 
         const Symbol* FindSymbol(const std::string& qualified_name, const std::string& module_path = "") const;
         const Symbol* ResolveSymbol(const std::string& module_path, const std::string& qualified_name) const;

@@ -8,6 +8,7 @@ namespace CE {
         bool OutputDebugASInfo = false;
         std::string OutputDebugASInfoPath;
         bool DebugVideo = false;
+        bool headless = false; // forces no renderer
     };
 
     namespace Common {

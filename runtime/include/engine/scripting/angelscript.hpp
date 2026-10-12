@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 
 #include "engine/audio/audio.hpp"
 #include "engine/common/fs/vfs.hpp"
@@ -15,6 +16,7 @@
 #endif
 
 #include <angelscript.h>
+#include <scripthelper/scripthelper.h>
 
 namespace CE::Scripting {
     class ScriptDebugger;
@@ -148,6 +150,14 @@ namespace CE::Scripting {
         // this vector is empty on release builds
         const std::vector<std::string>& GetScriptSectionNames() {
             return mSectionNames;
+        }
+
+        int ExportAngelscriptConfig(const std::filesystem::path& path) {
+            if (!mScriptEngine) {
+                return 1;
+            }
+            int r = WriteConfigToFile(mScriptEngine, path.c_str());
+            return r;
         }
 
         /**

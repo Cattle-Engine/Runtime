@@ -1,6 +1,8 @@
 #include "ce_common/as_compiler.hpp"
 
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <utility>
 
 #include "ce_common/detail/hasher.hpp"
@@ -12,6 +14,29 @@
 
 namespace CE::Scripting::Impl {
     namespace {
+        std::string FindGeneratedPrelude(const std::vector<FS::path>& import_paths) {
+            const FS::path candidate_name = "as.predefined";
+
+            for (const auto& root : import_paths) {
+                const auto root_candidate = root / candidate_name;
+                if (std::filesystem::exists(root_candidate))
+                    return root_candidate.string();
+            }
+
+            for (FS::path current = std::filesystem::current_path(); ; ) {
+                const auto search = current / candidate_name;
+                if (std::filesystem::exists(search))
+                    return search.string();
+
+                const auto parent = current.parent_path();
+                if (parent == current)
+                    break;
+                current = parent;
+            }
+
+            return {};
+        }
+
         void CollectDiagnosticSymbolNames(const AST::ASTDeclaration& declaration, const std::string& module_path,
                                           const std::string& name_space, const Semantics::SymanticAnalyser& analyser,
                                           std::unordered_map<std::string, std::string>& names,
@@ -33,11 +58,16 @@ namespace CE::Scripting::Impl {
             const std::string qualified = name_space.empty() ? declaration.Name : name_space + "::" + declaration.Name;
             if (const auto* symbol = analyser.FindDeclarationSymbol(qualified, module_path, declaration)) {
                 names.emplace(symbol->InternalName, qualified);
-                generated_symbols.push_back({symbol->InternalName, qualified, qualified,
-                                             symbol->Kind == AST::ASTDeclaration::Kind::Function ? "function"
-                                             : symbol->Kind == AST::ASTDeclaration::Kind::Global ? "global"
-                                             : symbol->Kind == AST::ASTDeclaration::Kind::Type ? "type"
-                                                                                               : "symbol"});
+                std::string kind = "symbol";
+                if (symbol->Kind == AST::ASTDeclaration::Kind::Function) {
+                    kind = "function";
+                } else if (symbol->Kind == AST::ASTDeclaration::Kind::Global) {
+                    kind = "global";
+                } else if (symbol->Kind == AST::ASTDeclaration::Kind::Type) {
+                    kind = "type";
+                }
+
+                generated_symbols.push_back({symbol->InternalName, qualified, qualified, kind});
             }
         }
     } // namespace
@@ -63,11 +93,27 @@ namespace CE::Scripting::Impl {
         return {};
     }
 
-    ModuleImporter::ModuleImporter(FS::path import_path) : mImportBasePath(std::move(import_path)) {}
+    ModuleImporter::ModuleImporter(std::vector<FS::path> import_paths) : mImportPaths(std::move(import_paths)) {}
+
+    FS::path ModuleImporter::ResolvePath(const FS::path& path) const {
+        if (path.is_absolute())
+            return path;
+
+        for (const auto& root : mImportPaths) {
+            const auto candidate = root / path;
+            if (std::filesystem::exists(candidate))
+                return candidate;
+        }
+
+        if (std::filesystem::exists(path))
+            return path;
+
+        return path;
+    }
 
     std::vector<GeneratedScriptSection> ModuleImporter::LoadFile(const std::string& filepath) {
         const std::filesystem::path resolved = std::filesystem::path(filepath);
-        const std::filesystem::path absolute = resolved.is_absolute() ? resolved : mImportBasePath / resolved;
+        const std::filesystem::path absolute = ResolvePath(resolved);
         if (!std::filesystem::exists(absolute)) {
             throw std::runtime_error("File not found: " + filepath);
         }
@@ -79,6 +125,16 @@ namespace CE::Scripting::Impl {
         const std::string source = Common::GetScriptFromFS(absolute.string());
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(source, filepath));
         Semantics::SymanticAnalyser analyser;
+        if (!mImportPaths.empty()) {
+            const std::string prelude_path = FindGeneratedPrelude(mImportPaths);
+            if (!prelude_path.empty()) {
+                const std::string prelude_source = Common::GetScriptFromFS(prelude_path);
+                if (!prelude_source.empty()) {
+                    AST::ASTModule prelude = Parser::ParseLexerOutput(Lexer::Lex(prelude_source, prelude_path));
+                    analyser.CheckModule(prelude, prelude_path, false);
+                }
+            }
+        }
         analyser.CheckModule(root, absolute.string());
         for (const auto& [module_path, module] : analyser.GetParsedModules()) {
             for (const auto& declaration : module.Declarations) {
@@ -103,7 +159,7 @@ namespace CE::Scripting::Impl {
         info.Name = name;
 
         const std::filesystem::path resolved = std::filesystem::path(name);
-        const std::filesystem::path absolute = resolved.is_absolute() ? resolved : mImportBasePath / resolved;
+        const std::filesystem::path absolute = ResolvePath(resolved);
         const std::string source = Common::GetScriptFromFS(absolute.string());
         if (source.empty() && !std::filesystem::exists(absolute)) {
             throw std::runtime_error("File not found: " + name);

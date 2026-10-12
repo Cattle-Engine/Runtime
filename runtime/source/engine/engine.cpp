@@ -47,9 +47,13 @@ namespace CE {
             }
         }
         CE_LOG(LogLevel::Info, "[Engine] Creating GPU handle");
-        mGPUHandle = Renderer::CreateGPUDevice(mBackend, mEngineArgs.DebugVideo);
 
-        if (mGPUHandle == nullptr || mGPUHandle->device == nullptr) {
+        mGPUHandle = Renderer::CreateGPUDevice(
+            args.headless ? RendererBackend::None : mBackend,
+            mEngineArgs.DebugVideo
+        );
+
+        if (mGPUHandle == nullptr) {
             CE_LOG(LogLevel::Warn,
                    "[Engine] Failed to create requested GPU device (backend {}). Falling back to Software renderer.",
                    static_cast<int>(mBackend));

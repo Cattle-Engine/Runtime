@@ -3,6 +3,7 @@
 #include "engine/common/fs/vfs.hpp"
 #include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
 #include "engine/rendering/renderers/software_renderer.hpp"
+#include "engine/rendering/renderers/null_renderer.hpp"
 
 #include "memory"
 
@@ -19,6 +20,9 @@ namespace CE::Renderer {
             break;
         case RendererBackend::Metal:
             return new CE::Renderer::SDL_GPU_Renderer::SDL_GPU_Renderer(RendererBackend::Metal, vfs);
+            break;
+        case CE::RendererBackend::None:
+            return new CE::Renderer::NullRenderer();
             break;
         default:
             return nullptr;
@@ -37,6 +41,9 @@ namespace CE::Renderer {
             break;
         case RendererBackend::Metal:
             return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
+        case CE::RendererBackend::None:
+            return {nullptr, backend};
+            
         default:
             return nullptr;
         }
