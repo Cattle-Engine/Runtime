@@ -25,6 +25,7 @@ typedef struct ce_engine_arguments_t {
     bool output_debug_as_info;
     const char* output_debug_as_info_path;
     bool debug_video;
+    bool headless;
 } ce_engine_arguments_t;
 
 CE_EXPORT void CE_ParseProgramArguments(

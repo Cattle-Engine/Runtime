@@ -1,24 +1,30 @@
-
 #include "ce_common/as_compiler.hpp"
+#include "ce_runtime_api.h"
 
 #include <angelscript.h>
+#include <scripthelper/scripthelper.h>
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
-#include <fstream>
 
 namespace {
     namespace FS = std::filesystem;
 
     constexpr std::string_view kVersion = "0.1.0";
+    constexpr const char* kConfigFileName = "ce_as_engine_config.dat";
+    constexpr const char* kInstanceName = "ce_scriptc";
 
     struct Options {
         FS::path Input;
         FS::path Output;
+        FS::path ConfigFile; // Optional pre-generated engine config (skips launching the runtime).
         std::vector<FS::path> ImportPaths;
         bool Debug = false;
         bool Verbose = false;
@@ -42,6 +48,8 @@ namespace {
                << "  -o FILE             Set output file\n"
                << "  -g, --debug         Include debug information\n"
                << "  -I DIR              Add an import search directory\n"
+               << "  --config FILE       Use a pre-generated engine config (" << kConfigFileName << ")\n"
+               << "                      instead of launching the runtime to generate one\n"
                << "  -v, --verbose       Enable verbose output\n"
                << "  -O0                 Disable bytecode optimization\n"
                << "  -O1                 Enable bytecode optimization\n"
@@ -117,6 +125,28 @@ namespace {
                 continue;
             }
 
+            if (parse_options && arg == "--config") {
+                if (++i >= argc) {
+                    std::cerr << "ce_scriptc: option '--config' requires an argument\n";
+                    return false;
+                }
+
+                options.ConfigFile = argv[i];
+                continue;
+            }
+
+            if (parse_options && arg.starts_with("--config=")) {
+                const std::string_view value = arg.substr(sizeof("--config=") - 1);
+
+                if (value.empty()) {
+                    std::cerr << "ce_scriptc: option '--config' requires an argument\n";
+                    return false;
+                }
+
+                options.ConfigFile = FS::path(std::string(value));
+                continue;
+            }
+
             if (parse_options && arg == "-I") {
                 if (++i >= argc) {
                     std::cerr << "ce_scriptc: option '-I' requires an argument\n";
@@ -128,7 +158,7 @@ namespace {
             }
 
             if (parse_options && arg.starts_with("-I") && arg.size() > 2) {
-                options.ImportPaths.emplace_back(arg.substr(2));
+                options.ImportPaths.emplace_back(std::string(arg.substr(2)));
                 continue;
             }
 
@@ -173,6 +203,108 @@ namespace {
                   << ": " << type << ": " << message->message << '\n';
     }
 
+    // Removes the temp directory when it goes out of scope.
+    struct ScopedTempDir {
+        FS::path Path;
+
+        ScopedTempDir() {
+            std::random_device rd;
+            Path = FS::temp_directory_path() / ("ce_scriptc_" + std::to_string(rd()));
+
+            std::error_code ec;
+            FS::create_directories(Path, ec);
+
+            if (ec)
+                Path.clear();
+        }
+
+        ~ScopedTempDir() {
+            if (!Path.empty()) {
+                std::error_code ec;
+                FS::remove_all(Path, ec);
+            }
+        }
+
+        ScopedTempDir(const ScopedTempDir&) = delete;
+        ScopedTempDir& operator=(const ScopedTempDir&) = delete;
+    };
+
+    // Spins up the runtime headless, creates an instance (which dumps the
+    // AngelScript engine config into `directory`), then tears everything down.
+    bool GenerateEngineConfig(const FS::path& directory, bool verbose) {
+        const std::string directory_string = directory.string();
+
+        ce_engine_arguments_t args{};
+        args.output_debug_as_info = true;
+        args.output_debug_as_info_path = directory_string.c_str();
+        args.debug_video = false;
+        args.headless = true;
+
+        ce_engine_t* engine = CE_CreateEngine(nullptr, args, false);
+
+        if (engine == nullptr) {
+            std::cerr << "ce_scriptc: failed to create runtime engine\n";
+            return false;
+        }
+
+        if (verbose) {
+            std::cout << "Generating engine config in: " << directory_string << '\n';
+        }
+
+        const bool created = CE_EngineCreateInstance(engine, kInstanceName, false, nullptr);
+
+        if (!created) {
+            std::cerr << "ce_scriptc: failed to create runtime instance\n";
+            CE_DestroyEngine(engine);
+            return false;
+        }
+
+        CE_EngineDestroyInstance(engine, kInstanceName);
+        CE_DestroyEngine(engine);
+
+        return true;
+    }
+
+    // Resolves the engine config path: either the user supplied one (--config),
+    // or one freshly generated by the runtime into `temp_dir`.
+    // Returns an empty path on failure.
+    FS::path ResolveEngineConfig(const Options& options, std::unique_ptr<ScopedTempDir>& temp_dir) {
+        if (!options.ConfigFile.empty()) {
+            if (!FS::exists(options.ConfigFile) || !FS::is_regular_file(options.ConfigFile)) {
+                std::cerr << "ce_scriptc: config file does not exist or is not a regular file: "
+                          << options.ConfigFile.string() << '\n';
+                return {};
+            }
+
+            if (options.Verbose) {
+                std::cout << "Using engine config: " << options.ConfigFile.string() << '\n';
+            }
+
+            return options.ConfigFile;
+        }
+
+        temp_dir = std::make_unique<ScopedTempDir>();
+
+        if (temp_dir->Path.empty()) {
+            std::cerr << "ce_scriptc: failed to create temporary directory\n";
+            return {};
+        }
+
+        if (!GenerateEngineConfig(temp_dir->Path, options.Verbose)) {
+            return {};
+        }
+
+        const FS::path config_path = temp_dir->Path / kConfigFileName;
+
+        if (!FS::exists(config_path)) {
+            std::cerr << "ce_scriptc: runtime did not produce engine config: "
+                      << config_path.string() << '\n';
+            return {};
+        }
+
+        return config_path;
+    }
+
     int Compile(const Options& options) {
         if (!FS::exists(options.Input) || !FS::is_regular_file(options.Input)) {
             std::cerr << "ce_scriptc: input file does not exist or is not a regular file: "
@@ -215,6 +347,23 @@ namespace {
             std::cout << "Generated " << sections.size() << " script section(s)\n";
         }
 
+        // Obtain the engine config (user supplied, or generated by the runtime).
+        // The temp dir (if any) must outlive the config stream, so it lives here.
+        std::unique_ptr<ScopedTempDir> temp_dir;
+        const FS::path config_path = ResolveEngineConfig(options, temp_dir);
+
+        if (config_path.empty()) {
+            return 1;
+        }
+
+        std::ifstream config_stream(config_path, std::ios::binary);
+
+        if (!config_stream) {
+            std::cerr << "ce_scriptc: cannot open engine config: "
+                      << config_path.string() << '\n';
+            return 1;
+        }
+
         // Create the AngelScript engine.
         asIScriptEngine* engine = asCreateScriptEngine();
 
@@ -224,8 +373,21 @@ namespace {
         }
 
         engine->SetMessageCallback(asFUNCTION(MessageCallback), nullptr, asCALL_CDECL);
+
+        // Register the full runtime API from the config.
+        if (ConfigEngineFromStream(engine, config_stream, kConfigFileName) < 0) {
+            std::cerr << "ce_scriptc: failed to apply engine config\n";
+            engine->ShutDownAndRelease();
+            return 1;
+        }
+
+        // Apply compiler options after the config so the config can't override them.
         engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, options.Optimize ? 1 : 0);
         engine->SetEngineProperty(asEP_INIT_GLOBAL_VARS_AFTER_BUILD, false);
+
+        if (options.Verbose) {
+            std::cout << "Applied engine config\n";
+        }
 
         asIScriptModule* module = engine->GetModule("ce_scriptc", asGM_ALWAYS_CREATE);
 
@@ -275,7 +437,7 @@ namespace {
             }
         }
 
-        // debug-symbol table.
+        // Serialize bytecode, entry point and (optionally) the debug-symbol table.
         {
             std::ofstream output(options.Output, std::ios::binary);
 

@@ -64,6 +64,7 @@ CE_EXPORT ce_engine_t* CE_CreateEngine(const char* data_file, ce_engine_argument
         engine_args.OutputDebugASInfoPath = args.output_debug_as_info_path
             ? args.output_debug_as_info_path
             : "";
+        engine_args.headless = args.headless;
 
         auto engine = std::make_unique<ce_engine_t>();
         engine->impl = std::make_unique<CE::Engine>(

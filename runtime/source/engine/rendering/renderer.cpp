@@ -42,7 +42,7 @@ namespace CE::Renderer {
         case RendererBackend::Metal:
             return CE::Renderer::SDL_GPU_Renderer::CreateGPUDevice(backend, debugvideo);
         case CE::RendererBackend::None:
-            return {nullptr, backend};
+            return std::make_shared<GPUDevice>(nullptr, backend);
             
         default:
             return nullptr;

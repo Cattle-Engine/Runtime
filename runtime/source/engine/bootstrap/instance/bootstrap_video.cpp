@@ -51,6 +51,10 @@ namespace CE {
             }
         }
 
+        if (gpu_device->backend == RendererBackend::None) {
+            mWindow->HideWindow(true);
+        }
+
         int rei = mRenderer->Init(mWindow->GetWindow(), gDebug, gpu_device);
         if (rei != 0) {
             return 4 + rei;

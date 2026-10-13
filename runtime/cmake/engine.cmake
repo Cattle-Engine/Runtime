@@ -28,6 +28,7 @@ set(ANGELSCRIPT_ADDON_SOURCES
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptany/scriptany.cpp"
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptgrid/scriptgrid.cpp"
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/debugger/debugger.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scripthelper/scripthelper.cpp"
 )
 
 # Fail early if the expected add-on sources aren't present.

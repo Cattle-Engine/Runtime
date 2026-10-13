@@ -38,6 +38,7 @@ set(ANGELSCRIPT_ADDON_SOURCES
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptany/scriptany.cpp"
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scriptgrid/scriptgrid.cpp"
     "${ANGELSCRIPT_ADDON_SOURCE_DIR}/debugger/debugger.cpp"
+    "${ANGELSCRIPT_ADDON_SOURCE_DIR}/scripthelper/scripthelper.cpp"
 )
 
 foreach(source IN LISTS ANGELSCRIPT_ADDON_SOURCES)
@@ -65,6 +66,7 @@ target_include_directories(ce_scriptc PRIVATE
 
 target_link_libraries(ce_scriptc PRIVATE
     ce_common
+    ce_runtime_shared
     ${ANGELSCRIPT_LINK_TARGET}
 )
 

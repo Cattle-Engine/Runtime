@@ -150,6 +150,11 @@ namespace CE::Scripting {
         mScriptEngine->SetEngineProperty(asEP_REQUIRE_ENUM_SCOPE, true);
 
         CE_LOG(LogLevel::Info, "[AngelScript] Runtime initialised");
+        
+        if (mOutputDebugASInfo) {
+            ExportAngelscriptConfig(OutputDebugASInfoPath);
+        }    
+    
         return true;
     }
 

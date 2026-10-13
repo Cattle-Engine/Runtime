@@ -156,7 +156,10 @@ namespace CE::Scripting {
             if (!mScriptEngine) {
                 return 1;
             }
-            int r = WriteConfigToFile(mScriptEngine, path.c_str());
+
+            auto full_path = path / "ce_as_engine_config.dat";
+
+            int r = WriteConfigToFile(mScriptEngine, full_path.c_str());
             return r;
         }
 
