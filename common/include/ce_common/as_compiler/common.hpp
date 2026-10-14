@@ -19,7 +19,7 @@ namespace CE::Scripting::Impl::Common {
      *
      * @return Returns the path as a std::string, if failed it shall return an empty std::string
      */
-    std::string Import2Path(const AST::ASTImport& import);
+    std::string Import2Path(const AST::ASTImport& import, const std::vector<std::filesystem::path>& import_paths);
 
     /**
      * @brief Loads a script file from disk (using std::filesystem) and returns it as a string

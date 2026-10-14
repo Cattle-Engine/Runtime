@@ -12,6 +12,8 @@ namespace CECommon {
         Fatal,
     };
 
+    void SetDebugLogging(bool enable);
+
     void LogImpl(LogLevel level, const std::string& message, std::source_location loc);
 
     inline void Log(LogLevel level, const std::string& message,

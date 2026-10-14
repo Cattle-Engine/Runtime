@@ -108,7 +108,7 @@ namespace CE::Scripting::Impl::Semantics {
     }
 
     // Symantic parser functions
-    SymanticAnalyser::SymanticAnalyser() {}
+    SymanticAnalyser::SymanticAnalyser(std::vector<std::filesystem::path> import_paths) : mImportPaths(import_paths) {}
 
     std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) const {
         std::string signature;
@@ -235,7 +235,7 @@ namespace CE::Scripting::Impl::Semantics {
         std::string module_hash = Utils::Hash2String(AST::HashModule(module));
 
         for (auto& import : module.Imports) {
-            std::string imported_path = Common::Import2Path(import);
+            std::string imported_path = Common::Import2Path(import, mImportPaths);
 
             // check if this is a file import (symbol present and path exists)
             if (import.Symbol.has_value() && !imported_path.empty() && std::filesystem::exists(imported_path)) {
@@ -377,7 +377,7 @@ namespace CE::Scripting::Impl::Semantics {
             if (import.IsUsing)
                 continue; // already handled
 
-            const std::string imported_path = Common::Import2Path(import);
+            const std::string imported_path = Common::Import2Path(import, mImportPaths);
             auto exports = mModuleExports.find(imported_path);
             if (exports == mModuleExports.end()) {
                 continue;
@@ -467,7 +467,7 @@ namespace CE::Scripting::Impl::Semantics {
 
         // debug loop show imports and exports
         for (const auto& import : parsed->second.Imports) {
-            const std::string imported_path = Common::Import2Path(import);
+            const std::string imported_path = Common::Import2Path(import, mImportPaths);
 
             CE_LOG(CECommon::LogLevel::Debug, "Import {} -> {}", import.Path.empty() ? "empty" : import.Path[0], imported_path);
 
@@ -487,7 +487,7 @@ namespace CE::Scripting::Impl::Semantics {
             if (import.IsUsing)
                 continue;
 
-            const std::string imported_path = Common::Import2Path(import);
+            const std::string imported_path = Common::Import2Path(import, mImportPaths);
 
             auto exports = mModuleExports.find(imported_path);
 

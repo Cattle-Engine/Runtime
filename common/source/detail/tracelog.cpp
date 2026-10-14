@@ -9,12 +9,7 @@
 #include <string>
 
 namespace {
-    bool kIsDebug =
-#if defined(CE_DEBUG)
-        true;
-#else
-        false;
-#endif
+    bool gIsDebug = false;
     using Manip = std::ostream& (*)(std::ostream&);
 } // namespace
 
@@ -53,15 +48,18 @@ namespace CECommon {
         if (pos != std::string_view::npos)
             file.remove_prefix(pos);
 
-        if (kIsDebug)
+        if (gIsDebug)
             return std::format("[{}:{}] ", file, loc.line());
 
         return {};
     }
 
+    void SetDebugLogging(bool enable) {
+        gIsDebug = enable;
+    }
+
     void LogImpl(LogLevel level, const std::string& message, std::source_location loc) {
-        if (level == LogLevel::Debug && !kIsDebug)
-            return;
+        if (level == LogLevel::Debug && !gIsDebug) return;
 
         std::ostream& os = std::cout;
         std::string tag;

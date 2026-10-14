@@ -124,7 +124,7 @@ namespace CE::Scripting::Impl {
 
         const std::string source = Common::GetScriptFromFS(absolute.string());
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(source, filepath));
-        Semantics::SymanticAnalyser analyser;
+        Semantics::SymanticAnalyser analyser(mImportPaths);
         if (!mImportPaths.empty()) {
             const std::string prelude_path = FindGeneratedPrelude(mImportPaths);
             if (!prelude_path.empty()) {

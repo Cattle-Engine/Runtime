@@ -39,7 +39,7 @@ namespace CE::Scripting::Impl::Semantics {
         /**
          * @brief Creates a semantic analyser.
          */
-        SymanticAnalyser();
+        explicit SymanticAnalyser(std::vector<std::filesystem::path> import_paths = {});
 
         /**
          * @brief Analyses a module for semantic errors and adds to the mono script if no errors
@@ -86,6 +86,7 @@ namespace CE::Scripting::Impl::Semantics {
 
         // Each module owns its private declarations. Cross-module visibility is
         // controlled exclusively by mModuleExports.
+        std::vector<std::filesystem::path> mImportPaths;
         std::unordered_map<std::string, SymbolTable> mModuleSymbols;
         std::unordered_map<std::string, std::vector<ExportInfo>> mModuleExports;
         std::unordered_map<std::string, bool> mAnalyzedModules; // false = in-progres, true = done

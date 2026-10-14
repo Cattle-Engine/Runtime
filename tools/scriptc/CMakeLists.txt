@@ -92,7 +92,8 @@ add_dependencies(ce_scriptc ce_scriptc_dummy_bindings)
 
 target_include_directories(ce_scriptc PRIVATE
     "${ANGELSCRIPT_ADDON_INCLUDE_DIR}"
-    "${CE_DUMMY_GEN_DIR}"         
+    "${CE_DUMMY_GEN_DIR}"    
+    "${CMAKE_CURRENT_SOURCE_DIR}/source"     
 )
 
 target_link_libraries(ce_scriptc PRIVATE
