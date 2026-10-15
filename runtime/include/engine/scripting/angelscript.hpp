@@ -6,6 +6,8 @@
 #include <vector>
 #include <filesystem>
 
+#include "ce_common/as_compiler/bytecode.hpp"
+
 #include "engine/audio/audio.hpp"
 #include "engine/common/fs/vfs.hpp"
 #include "engine/input/text.hpp"
@@ -147,9 +149,9 @@ namespace CE::Scripting {
             return mScriptDebugger;
         }
 
-        // this vector is empty on release builds
-        const std::vector<std::string>& GetScriptSectionNames() {
-            return mSectionNames;
+        // this vector is empty when the bytecode has no debugging info 
+        const std::vector<Impl::ScriptSectionInfo>& GetScriptSectionNames() {
+            return mSectionInfos;
         }
 
         int ExportAngelscriptConfig(const std::filesystem::path& path) {
@@ -231,7 +233,7 @@ namespace CE::Scripting {
         std::string OutputDebugASInfoPath = "";
         bool mOutputDebugASInfo = false;
 
-        std::vector<std::string> mSectionNames;
+        std::vector<Impl::ScriptSectionInfo> mSectionInfos;
         std::shared_ptr<ScriptDebugger> mScriptDebugger;
     };
 } // namespace CE::Scripting

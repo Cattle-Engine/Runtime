@@ -370,6 +370,20 @@ namespace {
 
             if (options.Debug) {
                 writer.SetDebugSymbols(importer.GetGeneratedSymbols());
+
+                for (const auto& section : sections) {
+                    CE::Scripting::Impl::ScriptSectionInfo info;
+                    info.Name = section.Name;
+                    info.GeneratedSource = section.Code;
+                    info.Source = section.Source;
+
+                    if (!writer.AddSection(std::move(info))) {
+                        std::cerr << "ce_scriptc: failed to add script section '"
+                                << section.Name << "'\n";
+                        engine->ShutDownAndRelease();
+                        return 1;
+                    }
+                }
             }
 
             const std::string entry_point = importer.GetGeneratedEntrypoint("main");

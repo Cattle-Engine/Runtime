@@ -125,8 +125,9 @@ namespace CE::UI {
             }
 
             if (ImGui::Button("Create")) {
-                const auto& files = mRuntime.GetScriptSectionNames();
-                const bool knownFile = std::find(files.begin(), files.end(), file_path) != files.end();
+                const auto& sections = mRuntime.GetScriptSectionNames();
+                const bool knownFile = std::any_of(sections.begin(), sections.end(),
+                    [&](const auto& section) { return section.Name == file_path; });
                 show_error_text = !knownFile || line <= 0;
                 if (!show_error_text) {
                     mDebugger->AddFileBreakPoint(file_path, line);
@@ -178,16 +179,25 @@ namespace CE::UI {
     }
 
     void AngelscriptDebuggerWindow::DrawLoadedScriptsTab() {
-        const auto& files = mRuntime.GetScriptSectionNames();
+        const auto& sections = mRuntime.GetScriptSectionNames();
 
         static int selected_file = -1;
+        // When a section has both, which one to show. Generated is what AngelScript
+        // actually compiled, so its line numbers match breakpoints and the current line.
+        static bool prefer_generated = true;
+
+        // The runtime may have been reloaded with fewer sections.
+        if (selected_file >= static_cast<int>(sections.size())) {
+            selected_file = -1;
+        }
 
         if (const auto location = mDebugger->GetCurrentLocation()) {
             if (mLastDebuggerFile != location->file) {
-                const auto it = std::find(files.begin(), files.end(), location->file);
-                if (it != files.end()) {
+                const auto it = std::find_if(sections.begin(), sections.end(),
+                    [&](const auto& section) { return section.Name == location->file; });
+                if (it != sections.end()) {
                     selected_file = static_cast<int>(
-                        std::distance(files.begin(), it)
+                        std::distance(sections.begin(), it)
                     );
                 }
 
@@ -202,8 +212,8 @@ namespace CE::UI {
             ImGuiChildFlags_Borders
         );
 
-        for (int i = 0; i < static_cast<int>(files.size()); ++i) {
-            if (ImGui::Selectable(files[i].c_str(), selected_file == i)) {
+        for (int i = 0; i < static_cast<int>(sections.size()); ++i) {
+            if (ImGui::Selectable(sections[i].Name.c_str(), selected_file == i)) {
                 selected_file = i;
             }
         }
@@ -218,53 +228,95 @@ namespace CE::UI {
             ImGuiChildFlags_Borders
         );
 
-        if (selected_file >= 0 &&
-            selected_file < static_cast<int>(mCachedScriptCodeSource.size())) {
+        if (selected_file >= 0) {
+            const auto& section = sections[selected_file];
+            const bool has_source = section.Source.has_value();
+            const bool has_generated = section.GeneratedSource.has_value();
 
-            ImGui::TextUnformatted(files[selected_file].c_str());
-            ImGui::Separator();
+            ImGui::TextUnformatted(section.Name.c_str());
 
-            ImGui::BeginChild(
-                "source",
-                ImVec2(0.0f, 0.0f),
-                ImGuiChildFlags_None,
-                ImGuiWindowFlags_HorizontalScrollbar
-            );
+            if (!has_source && !has_generated) {
+                ImGui::Separator();
+                ImGui::TextDisabled("No source code was stored for this script");
+            } else {
+                bool show_generated = has_generated && (!has_source || prefer_generated);
 
-            const auto breakpoints = mDebugger->GetBreakPoints();
-            const auto current = mDebugger->GetCurrentLocation();
-            const std::string& selectedFile = files[selected_file];
-            std::istringstream source(mCachedScriptCodeSource[selected_file]);
-            std::string lineText;
-            int lineNumber = 1;
+                if (has_source && has_generated) {
+                    ImGui::SameLine();
 
-            while (std::getline(source, lineText)) {
-                const bool isCurrent = current && current->file == selectedFile && current->line == lineNumber;
-                const bool hasBreakpoint = std::any_of(breakpoints.begin(), breakpoints.end(),
-                    [&selectedFile, lineNumber](const auto& breakpoint) {
-                        return !breakpoint.function && breakpoint.name == selectedFile && breakpoint.line == lineNumber;
-                    });
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 1.0f));
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(2.0f, 2.0f));
 
-                ImGui::PushID(lineNumber);
-                if (ImGui::SmallButton(hasBreakpoint ? "-" : "+")) {
-                    if (hasBreakpoint)
-                        mDebugger->RemoveFileBreakPoint(files[selected_file], lineNumber);
-                    else
-                        mDebugger->AddFileBreakPoint(files[selected_file], lineNumber);
+                    if (ImGui::RadioButton("Generated", show_generated)) {
+                        prefer_generated = true;
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::RadioButton("Original", !show_generated)) {
+                        prefer_generated = false;
+                    }
+
+                    ImGui::PopStyleVar(2);
+
+                    show_generated = prefer_generated;
                 }
-                ImGui::SameLine();
-                ImGui::TextDisabled("%4d", lineNumber);
-                ImGui::SameLine();
-                if (isCurrent)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.2f, 1.0f));
-                ImGui::TextUnformatted(lineText.c_str());
-                if (isCurrent)
-                    ImGui::PopStyleColor();
-                ImGui::PopID();
-                ++lineNumber;
-            }
 
-            ImGui::EndChild();
+                // Line numbers only match the VM when we show what was actually compiled.
+                // Without generated source the original is assumed to be what was compiled.
+                const bool lines_match_vm = !has_generated || show_generated;
+                if (!lines_match_vm) {
+                    ImGui::TextDisabled("Line numbers may differ from the compiled script, switch to Generated to set breakpoints");
+                }
+
+                ImGui::Separator();
+
+                ImGui::BeginChild(
+                    "source",
+                    ImVec2(0.0f, 0.0f),
+                    ImGuiChildFlags_None,
+                    ImGuiWindowFlags_HorizontalScrollbar
+                );
+
+                const auto breakpoints = mDebugger->GetBreakPoints();
+                const auto current = mDebugger->GetCurrentLocation();
+                const std::string& selectedFile = section.Name;
+                const std::string& text = show_generated ? *section.GeneratedSource : *section.Source;
+                std::istringstream source(text);
+                std::string lineText;
+                int lineNumber = 1;
+
+                while (std::getline(source, lineText)) {
+                    const bool isCurrent = lines_match_vm && current &&
+                                           current->file == selectedFile && current->line == lineNumber;
+                    const bool hasBreakpoint = lines_match_vm && std::any_of(breakpoints.begin(), breakpoints.end(),
+                        [&selectedFile, lineNumber](const auto& breakpoint) {
+                            return !breakpoint.function && breakpoint.name == selectedFile && breakpoint.line == lineNumber;
+                        });
+
+                    ImGui::PushID(lineNumber);
+                    if (lines_match_vm) {
+                        if (ImGui::SmallButton(hasBreakpoint ? "-" : "+")) {
+                            if (hasBreakpoint)
+                                mDebugger->RemoveFileBreakPoint(selectedFile, lineNumber);
+                            else
+                                mDebugger->AddFileBreakPoint(selectedFile, lineNumber);
+                        }
+                        ImGui::SameLine();
+                    }
+                    ImGui::TextDisabled("%4d", lineNumber);
+                    ImGui::SameLine();
+                    if (isCurrent)
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.85f, 0.2f, 1.0f));
+                    ImGui::TextUnformatted(lineText.c_str());
+                    if (isCurrent)
+                        ImGui::PopStyleColor();
+                    ImGui::PopID();
+                    ++lineNumber;
+                }
+
+                ImGui::EndChild();
+            }
         } else {
             ImGui::TextUnformatted("Select a script");
         }

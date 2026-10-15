@@ -190,6 +190,8 @@ namespace CE::Scripting {
             update_entrypoint = bytecode.GetEntryPoint("update");
             imgui_entrypoint = bytecode.GetEntryPoint("imgui");
 
+            mSectionInfos = bytecode.GetSections();
+
             #ifdef CE_DEBUG
                 mScriptDebugger = std::make_shared<ScriptDebugger>(bytecode.GetDebugSymbols());
                 mScriptDebugger->SetEngine(mScriptEngine);

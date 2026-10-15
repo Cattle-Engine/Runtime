@@ -320,6 +320,8 @@ namespace CE::Scripting::Impl::Semantics {
 
     AST::ASTModule SymanticAnalyser::LoadAndParseModule(const std::string& module_path) {
         std::string source = Common::GetScriptFromFS(module_path);
+        mModuleSources[module_path] = source;
+
         auto tokens = Lexer::Lex(source, module_path);
         return Parser::ParseLexerOutput(tokens);
     }

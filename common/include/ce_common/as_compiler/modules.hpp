@@ -13,6 +13,7 @@ namespace CE::Scripting::Impl {
     struct GeneratedScriptSection {
         std::string Name;
         std::string Code;
+        std::string Source; // DO NOT, use this to compile
     };
 
     struct SourceLocation {

@@ -10,33 +10,7 @@
 namespace CE::UI {
     class AngelscriptDebuggerWindow {
         public:
-            AngelscriptDebuggerWindow(Scripting::SharedScriptDebuger debugger, Scripting::Runtime& runtime, Common::FS::VFS::VFS& vfs) : mDebugger(debugger), mRuntime(runtime), mVFS(vfs) {
-                for (const auto& file : mRuntime.GetScriptSectionNames()) {
-                    // very unlikely but best to be sure
-                    if (!mVFS.FileExists(file)) {
-                        CE_LOG(LogLevel::Error, "[ASDebugWindow] Script file '{}' does not exist", file);
-                        mCachedScriptCodeSource.emplace_back("<File not found>");
-                        continue;
-                    }
-
-                    const auto file_data = mVFS.OpenFile(file);
-
-                    if (!file_data->IsOpen()) {
-                        CE_LOG(LogLevel::Error, "[ASDebugWindow] Failed to open script file '{}'", file);
-                        mCachedScriptCodeSource.emplace_back("<Could not open file>");
-                        continue;
-                    }
-
-                    std::optional<std::string> file_string = file_data->ReadToString();
-                    if (!file_string) {
-                        CE_LOG(LogLevel::Error, "[ASDebugWindow] Failed to get file string '{}'", file);
-                        mCachedScriptCodeSource.emplace_back("<Could not read file>");
-                        continue;
-                    }
-
-                    mCachedScriptCodeSource.push_back(std::move(*file_string));
-                }
-            }
+            AngelscriptDebuggerWindow(Scripting::SharedScriptDebuger debugger, Scripting::Runtime& runtime, Common::FS::VFS::VFS& vfs) : mDebugger(debugger), mRuntime(runtime), mVFS(vfs) {}
 
             void DrawWindow();
 
@@ -59,6 +33,5 @@ namespace CE::UI {
             Scripting::SharedScriptDebuger mDebugger;
             Scripting::Runtime& mRuntime;
             Common::FS::VFS::VFS mVFS;
-            std::vector<std::string> mCachedScriptCodeSource;
     };
 }

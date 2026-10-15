@@ -125,6 +125,7 @@ namespace CE::Scripting::Impl {
         const std::string source = Common::GetScriptFromFS(absolute.string());
         AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(source, filepath));
         Semantics::SymanticAnalyser analyser(mImportPaths);
+        analyser.SetModuleSource(absolute.string(), source);
         if (!mImportPaths.empty()) {
             const std::string prelude_path = FindGeneratedPrelude(mImportPaths);
             if (!prelude_path.empty()) {
@@ -150,8 +151,23 @@ namespace CE::Scripting::Impl {
                 }
             }
         }
+
         Codegen::Generator generator(analyser);
-        return generator.GenerateScriptSections(analyser.GetEmissionOrder(), analyser.GetParsedModules());
+
+        auto sections = generator.GenerateScriptSections(
+            analyser.GetEmissionOrder(),
+            analyser.GetParsedModules());
+
+        const auto& module_sources = analyser.GetModuleSources();
+
+        for (auto& section : sections) {
+            const auto it = module_sources.find(section.Name);
+            if (it != module_sources.end()) {
+                section.Source = it->second;
+            }
+        }
+
+        return sections;
     }
 
     ModuleInfo ModuleImporter::LoadModule(const std::string& name) {

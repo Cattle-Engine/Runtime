@@ -71,6 +71,14 @@ namespace CE::Scripting::Impl::Semantics {
             return mParsedModules;
         }
 
+        const std::unordered_map<std::string, std::string>& GetModuleSources() const {
+            return mModuleSources;
+        }
+
+        void SetModuleSource(const std::string& module_path, const std::string& source) {
+            mModuleSources[module_path] = source;
+        }
+
         const Symbol* FindDeclarationSymbol(const std::string& qualified_name, const std::string& module_path,
                                             const AST::ASTDeclaration& decl) const;
 
@@ -93,6 +101,7 @@ namespace CE::Scripting::Impl::Semantics {
         std::unordered_map<std::string, AST::ASTModule> mParsedModules;
         std::vector<std::string> mEmissionOrder;
         std::unordered_map<std::string, std::vector<ExportInfo>> mModuleUsing;
+        std::unordered_map<std::string, std::string> mModuleSources;
 
         void VisitDeclaration(AST::ASTDeclaration& decl, const std::string& enclosing_namespace,
                               const std::string& module_hash, const std::string& module_path);
