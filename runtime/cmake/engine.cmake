@@ -119,12 +119,12 @@ function(configure_ce_runtime target)
     )
 endfunction()
 
-add_library(ce_runtime STATIC)
-configure_ce_runtime(ce_runtime)
+# add_library(ce_runtime STATIC)
+# configure_ce_runtime(ce_runtime)
 
 add_library(ce_runtime_shared SHARED)
 configure_ce_runtime(ce_runtime_shared)
 
-set_target_properties(ce_runtime ce_runtime_shared PROPERTIES
+set_target_properties(ce_runtime_shared PROPERTIES
     OUTPUT_NAME ce_runtime
 )

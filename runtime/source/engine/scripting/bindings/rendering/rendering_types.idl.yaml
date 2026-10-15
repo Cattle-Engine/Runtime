@@ -1129,9 +1129,8 @@ ASEnums:
   - Name: ShaderStage
     CppType: CE::Renderer::ShaderStage
     Values:
-      - Fragment
       - Vertex
-  
+      - Fragment
   - Name: TextureFlip
     CppType: CE::Renderer::TextureFlip
     Values:

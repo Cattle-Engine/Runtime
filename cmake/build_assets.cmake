@@ -8,6 +8,16 @@ set(CE_ASSET_DATAFILE_NAME
     CACHE STRING "Name of the generated TCF archive"
 )
 
+set(CE_SCRIPT_BASEFILE
+    "startup.as"
+    CACHE STRING "Startup script source filename"
+)
+
+option(CE_SCRIPT_DEBUG
+    "Enable script compiler debug information"
+    OFF
+)
+
 set(CE_ASSET_OUTPUT_DIR
     "${CE_BIN_DIR}/$<CONFIG>"
 )
@@ -39,6 +49,17 @@ set(CE_JSON_TO_TDF_SCRIPT
 set(CE_PACK_SCRIPT
     "${CMAKE_CURRENT_LIST_DIR}/pack_assets.cmake"
 )
+
+set(CE_SCRIPT_BYTECODE_NAME
+    "startup"
+    CACHE STRING "Compiled script bytecode filename without extension"
+)
+
+set(CE_SCRIPT_BYTECODE_EXTENSION
+    ".cbc"
+    CACHE STRING "Compiled script bytecode file extension"
+)
+
 
 if(NOT IS_DIRECTORY "${CE_ASSET_SOURCE_DIR}")
     message(FATAL_ERROR
@@ -84,6 +105,22 @@ if(NOT TARGET tcf)
 endif()
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+if(TARGET ce_scriptc)
+    set(CE_SCRIPTC_EXECUTABLE "$<TARGET_FILE:ce_scriptc>")
+else()
+    find_program(
+        CE_SCRIPTC_EXECUTABLE
+        NAMES ce_scriptc ce_scriptc.exe
+    )
+
+    if(NOT CE_SCRIPTC_EXECUTABLE)
+        message(FATAL_ERROR
+            "Could not find ce_scriptc. Build the ce_scriptc target "
+            "or add the executable to PATH."
+        )
+    endif()
+endif()
 
 find_program(
     CE_GLSLC
@@ -223,10 +260,16 @@ add_custom_command(
         "-DCE_JSON_TO_TDF_SCRIPT=${CE_JSON_TO_TDF_SCRIPT}"
         "-DCE_PYTHON_EXECUTABLE=${Python3_EXECUTABLE}"
         "-DCE_TCF_EXECUTABLE=$<TARGET_FILE:tcf>"
+        "-DCE_SCRIPTC_EXECUTABLE=$<TARGET_FILE:ce_scriptc>"
+        "-DCE_SCRIPT_BASEFILE=${CE_SCRIPT_BASEFILE}"
+        "-DCE_SCRIPT_DEBUG=${CE_SCRIPT_DEBUG}"
+        "-DCE_SCRIPT_BYTECODE_NAME=${CE_SCRIPT_BYTECODE_NAME}"
+        "-DCE_SCRIPT_BYTECODE_EXTENSION=${CE_SCRIPT_BYTECODE_EXTENSION}"
         -P "${CE_PACK_SCRIPT}"
 
     DEPENDS
         tcf
+        ce_scriptc
         ${CE_ASSET_FILES}
         ${CE_SHADER_SPV_FILES}
         "${CE_JSON_TO_TDF_SCRIPT}"

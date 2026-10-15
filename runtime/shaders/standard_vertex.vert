@@ -13,7 +13,7 @@ layout(set = 1, binding = 0) uniform UBO {
 
 void main() {
     gl_Position = mvp * vec4(inPos, 1.0);
-    gl_Position.y = -gl_Position.y;
+    // gl_Position.y = -gl_Position.y;
 
     fragColor = inColor;
     fragUV = inUV;
