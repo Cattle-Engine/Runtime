@@ -7,3 +7,4 @@
 #include "ce_common/as_compiler/parser.hpp"
 #include "ce_common/as_compiler/semantics.hpp"
 #include "ce_common/as_compiler/bytecode.hpp"
+#include "ce_common/as_compiler/preprocessor.hpp"

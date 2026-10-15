@@ -181,6 +181,11 @@ namespace CE::UI {
     void AngelscriptDebuggerWindow::DrawLoadedScriptsTab() {
         const auto& sections = mRuntime.GetScriptSectionNames();
 
+        if (sections.empty()) {
+            ImGui::TextDisabled("No debugging symbols available!");
+            return;
+        }
+
         static int selected_file = -1;
         // When a section has both, which one to show. Generated is what AngelScript
         // actually compiled, so its line numbers match breakpoints and the current line.

@@ -69,6 +69,7 @@ List of bindings to do:
 - [X] Refactor the build system to have a lot more in cmake
 - [X] Make like a ce-scriptc to make a cebyc
 - [X] Gdb style thing inside the debug window for angelscript. also lets you modify variables
+- [X] AngelScript #define, #ifdef and shish
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -134,7 +135,6 @@ struct foo {
     
 }
 ```
-- [ ] AngelScript #define, #ifdef and shish
 - [ ] Make a Retained UI system
 - [ ] Make it so you can load a UI from a file (probs gonna use tdf with a .ceui extension)
 

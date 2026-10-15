@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ce_common/as_compiler/ast.hpp"
+#include "ce_common/as_compiler/preprocessor.hpp"
 
 namespace CE::Scripting::Impl::Semantics {
     struct FunctionSignature {
@@ -39,7 +40,7 @@ namespace CE::Scripting::Impl::Semantics {
         /**
          * @brief Creates a semantic analyser.
          */
-        explicit SymanticAnalyser(std::vector<std::filesystem::path> import_paths = {});
+        explicit SymanticAnalyser( Preprocessor& processor, std::vector<std::filesystem::path> import_paths = {});
 
         /**
          * @brief Analyses a module for semantic errors and adds to the mono script if no errors
@@ -100,6 +101,7 @@ namespace CE::Scripting::Impl::Semantics {
         std::unordered_map<std::string, bool> mAnalyzedModules; // false = in-progres, true = done
         std::unordered_map<std::string, AST::ASTModule> mParsedModules;
         std::vector<std::string> mEmissionOrder;
+        Preprocessor& mPreprocessor;
         std::unordered_map<std::string, std::vector<ExportInfo>> mModuleUsing;
         std::unordered_map<std::string, std::string> mModuleSources;
 

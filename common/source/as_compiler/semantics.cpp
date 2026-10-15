@@ -108,7 +108,7 @@ namespace CE::Scripting::Impl::Semantics {
     }
 
     // Symantic parser functions
-    SymanticAnalyser::SymanticAnalyser(std::vector<std::filesystem::path> import_paths) : mImportPaths(import_paths) {}
+    SymanticAnalyser::SymanticAnalyser(Preprocessor& processor,std::vector<std::filesystem::path> import_paths) : mImportPaths(import_paths),mPreprocessor(processor)  {}
 
     std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) const {
         std::string signature;
@@ -318,11 +318,22 @@ namespace CE::Scripting::Impl::Semantics {
         mAnalyzedModules[module_path] = true;
     }
 
-    AST::ASTModule SymanticAnalyser::LoadAndParseModule(const std::string& module_path) {
+    AST::ASTModule SymanticAnalyser::LoadAndParseModule(
+        const std::string& module_path
+    ) {
         std::string source = Common::GetScriptFromFS(module_path);
-        mModuleSources[module_path] = source;
+        std::string processed_source;
 
-        auto tokens = Lexer::Lex(source, module_path);
+        if (!mPreprocessor.Process(source, processed_source)) {
+            throw Exceptions::SemanticError(
+                "Preprocessing failed for module '" + module_path + "'",
+                {}
+            );
+        }
+
+        mModuleSources[module_path] = processed_source;
+
+        auto tokens = Lexer::Lex(processed_source, module_path);
         return Parser::ParseLexerOutput(tokens);
     }
 

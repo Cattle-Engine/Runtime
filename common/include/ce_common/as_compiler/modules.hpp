@@ -7,6 +7,8 @@
 
 #include <filesystem>
 
+#include "ce_common/as_compiler/preprocessor.hpp"
+
 namespace FS = std::filesystem;
 
 namespace CE::Scripting::Impl {
@@ -68,7 +70,7 @@ namespace CE::Scripting::Impl {
 
     class ModuleImporter {
       public:
-        explicit ModuleImporter(std::vector<FS::path> import_paths);
+        explicit ModuleImporter(std::vector<FS::path> import_paths, Preprocessor& processor);
 
         /**
          * @brief Used to load 1 script file and resolve it's imports
@@ -93,5 +95,6 @@ namespace CE::Scripting::Impl {
         std::unordered_map<std::string, std::string> mEntrypoints;
         std::unordered_map<std::string, std::string> mDiagnosticSymbolNames;
         std::vector<GeneratedSymbolInfo> mGeneratedSymbols;
+        Preprocessor& mPreprocessor;
     };
 } // namespace CE::Scripting::Impl

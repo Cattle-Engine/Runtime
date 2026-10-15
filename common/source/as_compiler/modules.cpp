@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <sstream>
 #include <utility>
 
@@ -93,7 +94,7 @@ namespace CE::Scripting::Impl {
         return {};
     }
 
-    ModuleImporter::ModuleImporter(std::vector<FS::path> import_paths) : mImportPaths(std::move(import_paths)) {}
+    ModuleImporter::ModuleImporter(std::vector<FS::path> import_paths, Preprocessor& p) : mImportPaths(std::move(import_paths)), mPreprocessor(p) {}
 
     FS::path ModuleImporter::ResolvePath(const FS::path& path) const {
         if (path.is_absolute())
@@ -123,9 +124,20 @@ namespace CE::Scripting::Impl {
         mGeneratedSymbols.clear();
 
         const std::string source = Common::GetScriptFromFS(absolute.string());
-        AST::ASTModule root = Parser::ParseLexerOutput(Lexer::Lex(source, filepath));
-        Semantics::SymanticAnalyser analyser(mImportPaths);
-        analyser.SetModuleSource(absolute.string(), source);
+        std::string processed_source;
+
+        if (!mPreprocessor.Process(source, processed_source)) {
+            throw std::runtime_error(
+                "Preprocessing failed for module: " + filepath
+            );
+        }
+
+        AST::ASTModule root = Parser::ParseLexerOutput(
+            Lexer::Lex(processed_source, filepath)
+        );
+
+        Semantics::SymanticAnalyser analyser(mPreprocessor, mImportPaths);
+        analyser.SetModuleSource(absolute.string(), processed_source);
         if (!mImportPaths.empty()) {
             const std::string prelude_path = FindGeneratedPrelude(mImportPaths);
             if (!prelude_path.empty()) {
