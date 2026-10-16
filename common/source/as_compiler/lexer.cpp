@@ -98,6 +98,8 @@ namespace CE::Scripting::Impl::Lexer {
                     token.Type = Token::TokenType::KeywordAuto;
                 } else if (value == "using") {
                     token.Type = Token::TokenType::KeywordUsing;
+                } else if (value == "static_assert") {
+                    token.Type = Token::TokenType::KeywordAssert;
                 } else {
                     token.Type = Token::TokenType::Identifier;
                 }

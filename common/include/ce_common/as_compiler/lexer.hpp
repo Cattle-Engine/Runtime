@@ -16,6 +16,7 @@ namespace CE::Scripting::Impl::Lexer {
             KeywordConst,     // const
             KeywordAuto,      // auto
             KeywordUsing,     // used for: using module::symbol
+            KeywordAssert,    // static_assert(foo = 1); 
 
             OpenBracket,  // [
             CloseBracket, // ]

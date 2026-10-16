@@ -49,7 +49,13 @@ namespace CE::Scripting::Impl::AST {
 
         std::vector<ASTParameter> Parameters;
         std::vector<Lexer::Token> Body;
-        std::vector<ASTLocalVariable> LocalVariables; // Exactly what you need
+        std::vector<ASTLocalVariable> LocalVariables;
+    };
+
+    struct ASTAssert {
+        std::vector<Lexer::Token> Condition;
+        std::string Message;
+        SourceLocation Location;
     };
 
     struct ASTGlobal {
@@ -94,6 +100,7 @@ namespace CE::Scripting::Impl::AST {
     struct ASTModule {
         std::vector<ASTImport> Imports;
         std::vector<ASTDeclaration> Declarations;
+        std::vector<ASTAssert> Assertions;
     };
 
     /**

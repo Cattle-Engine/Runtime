@@ -112,5 +112,9 @@ namespace CE::Scripting::Impl::Semantics {
         std::string GenerateInternalName(const AST::ASTDeclaration& decl, const std::string& namespace_path,
                                          const std::string& module_hash);
         std::string GenerateSignatureHash(const AST::ASTFunction func) const;
+        void CheckAssertions(
+            const AST::ASTModule& module,
+            const std::string& module_path
+        );
     };
 } // namespace CE::Scripting::Impl::Semantics

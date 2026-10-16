@@ -21,6 +21,11 @@ namespace CE::Scripting::Impl::Parser {
                     continue;
                 }
 
+                if (Current().Type == Lexer::Token::TokenType::KeywordAssert) {
+                    script_module.Assertions.push_back(ParseAssert());
+                    continue;
+                }
+
                 if (Current().Type == Lexer::Token::TokenType::KeywordExport &&
                     (Peek().Type == Lexer::Token::TokenType::KeywordImport ||
                      Peek().Type == Lexer::Token::TokenType::KeywordUsing)) {
@@ -106,6 +111,8 @@ namespace CE::Scripting::Impl::Parser {
                     return "','";
                 case TokenType::Semicolon:
                     return "';'";
+                case TokenType::KeywordAssert:
+                    return "static_assert";
                 case TokenType::EndOfFile:
                     return "end of file";
                 default:
@@ -336,6 +343,114 @@ namespace CE::Scripting::Impl::Parser {
 
             Expect(Lexer::Token::TokenType::Semicolon);
             return result;
+        }
+
+
+        AST::ASTAssert ParseAssert() {
+            AST::ASTAssert assertion;
+            assertion.Location = Current().Location;
+
+            Expect(
+                Lexer::Token::TokenType::KeywordAssert,
+                "to begin a static assertion"
+            );
+            Expect(
+                Lexer::Token::TokenType::OpenParen,
+                "after 'static_assert'"
+            );
+
+            int paren_depth = 0;
+            int bracket_depth = 0;
+            int brace_depth = 0;
+
+            // Capture the condition until its top-level comma.
+            while (Current().Type != Lexer::Token::TokenType::EndOfFile) {
+                const auto type = Current().Type;
+
+                if (type == Lexer::Token::TokenType::Comma &&
+                    paren_depth == 0 &&
+                    bracket_depth == 0 &&
+                    brace_depth == 0) {
+                    break;
+                }
+
+                if (type == Lexer::Token::TokenType::CloseParen &&
+                    paren_depth == 0) {
+                    Error(
+                        "expected ',' after the static assertion condition"
+                    );
+                }
+
+                if (type == Lexer::Token::TokenType::OpenParen) {
+                    ++paren_depth;
+                } else if (type == Lexer::Token::TokenType::CloseParen) {
+                    --paren_depth;
+                } else if (type == Lexer::Token::TokenType::OpenBracket) {
+                    ++bracket_depth;
+                } else if (type == Lexer::Token::TokenType::CloseBracket) {
+                    if (bracket_depth == 0) {
+                        Error("unexpected ']' in static assertion condition");
+                    }
+                    --bracket_depth;
+                } else if (type == Lexer::Token::TokenType::OpenBrace) {
+                    ++brace_depth;
+                } else if (type == Lexer::Token::TokenType::CloseBrace) {
+                    if (brace_depth == 0) {
+                        Error("unexpected '}' in static assertion condition");
+                    }
+                    --brace_depth;
+                }
+
+                assertion.Condition.push_back(Current());
+                Advance();
+            }
+
+            if (Current().Type == Lexer::Token::TokenType::EndOfFile) {
+                Error(
+                    "expected ',' and an assertion message, "
+                    "but reached end of file"
+                );
+            }
+
+            if (assertion.Condition.empty()) {
+                Error("expected a condition in static assertion");
+            }
+
+            Expect(
+                Lexer::Token::TokenType::Comma,
+                "between the static assertion condition and message"
+            );
+
+            const Lexer::Token& message_token = Expect(
+                Lexer::Token::TokenType::String,
+                "as the static assertion message"
+            );
+
+            // The lexer retains the quotes in string token values.
+            assertion.Message = message_token.Value;
+
+            if (assertion.Message.size() >= 2) {
+                const char quote = assertion.Message.front();
+
+                if ((quote == '"' || quote == '\'') &&
+                    assertion.Message.back() == quote) {
+                    assertion.Message = assertion.Message.substr(
+                        1,
+                        assertion.Message.size() - 2
+                    );
+                }
+            }
+
+            Expect(
+                Lexer::Token::TokenType::CloseParen,
+                "to close 'static_assert'"
+            );
+            Expect(
+                Lexer::Token::TokenType::Semicolon,
+                "after 'static_assert'"
+            );
+
+            return assertion;
         }
 
         AST::ASTFunction ParseFunction(

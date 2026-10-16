@@ -5,7 +5,6 @@ The current implemented ones are:
 
 Planned for ones are: 
 - Type alias system (angelscript techincally has typedef but this can only be used on basic types)
-- Precursor (similar style to the C++ precursor with #define, #ifdef etc)
 
 # Module documentation
 At its core a module is a script file on disk.

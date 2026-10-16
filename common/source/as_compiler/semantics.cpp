@@ -1,8 +1,15 @@
 #include "ce_common/as_compiler/semantics.hpp"
 
 #include <algorithm>
-#include <unordered_set>
+#include <cerrno>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
 #include <filesystem>
+#include <functional>
+#include <limits>
+#include <optional>
+#include <unordered_set>
 
 #include "ce_common/detail/tracelog.hpp"
 #include "ce_common/detail/hasher.hpp"
@@ -49,6 +56,554 @@ namespace CE::Scripting::Impl::Semantics {
         const AST::ASTDeclaration* FindDeclarationInModule(const AST::ASTModule& module,
                                                            const std::string& qualified_name) {
             return FindDeclarationInDecls(module.Declarations, qualified_name, "");
+        }
+
+        // ====================================================================
+        // Compile-time expression evaluation (used by static_assert)
+        // ====================================================================
+
+        // A typed compile-time value. Int is 64-bit signed with checked overflow.
+        struct ConstValue {
+            enum class Kind { Int, Float, Bool, String };
+
+            Kind K = Kind::Int;
+            int64_t I = 0;
+            double F = 0.0;
+            bool B = false;
+            std::string S;
+
+            static ConstValue MakeInt(int64_t v) {
+                ConstValue c;
+                c.K = Kind::Int;
+                c.I = v;
+                return c;
+            }
+            static ConstValue MakeFloat(double v) {
+                ConstValue c;
+                c.K = Kind::Float;
+                c.F = v;
+                return c;
+            }
+            static ConstValue MakeBool(bool v) {
+                ConstValue c;
+                c.K = Kind::Bool;
+                c.B = v;
+                return c;
+            }
+            static ConstValue MakeString(std::string v) {
+                ConstValue c;
+                c.K = Kind::String;
+                c.S = std::move(v);
+                return c;
+            }
+
+            bool IsNumeric() const { return K == Kind::Int || K == Kind::Float; }
+            double AsDouble() const { return K == Kind::Int ? static_cast<double>(I) : F; }
+        };
+
+        const char* KindName(ConstValue::Kind k) {
+            switch (k) {
+            case ConstValue::Kind::Int:    return "int";
+            case ConstValue::Kind::Float:  return "float";
+            case ConstValue::Kind::Bool:   return "bool";
+            case ConstValue::Kind::String: return "string";
+            }
+            return "unknown";
+        }
+
+        struct EvalTok {
+            enum class Kind { Number, Ident, String, Op, LParen, RParen } Type;
+            std::string Text;
+        };
+
+        using ConstResolver = std::function<std::optional<ConstValue>(const std::string&)>;
+
+        // Lexers often emit operators as single chars (e.g. '&' '&'), so merge runs of
+        // operator-ish tokens and re-split them greedily against the known operator set.
+        // Also joins `A :: B` into a single identifier `A::B`.
+        std::vector<EvalTok> NormaliseTokens(const std::vector<Lexer::Token>& in) {
+            using TT = Lexer::Token::TokenType;
+            static const char* kOps[] = {"&&", "||", "==", "!=", "<=", ">=", "<", ">", "+",
+                                         "-",  "*",  "/",  "%",  "!",  "="};
+            std::vector<EvalTok> out;
+            std::string run;
+            bool join_next = false; // previous token was '::'
+
+            auto flush = [&]() {
+                size_t i = 0;
+                while (i < run.size()) {
+                    bool matched = false;
+                    for (const char* op : kOps) {
+                        size_t len = std::char_traits<char>::length(op);
+                        if (run.compare(i, len, op) == 0) {
+                            out.push_back({EvalTok::Kind::Op, op});
+                            i += len;
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        // unknown operator char; emit as-is so the parser reports it
+                        out.push_back({EvalTok::Kind::Op, std::string(1, run[i])});
+                        ++i;
+                    }
+                }
+                run.clear();
+            };
+
+            for (const auto& t : in) {
+                if (t.Type == TT::Symbol || t.Type == TT::Assignment || t.Type == TT::Reference) {
+                    run += (t.Type == TT::Assignment ? "=" : t.Type == TT::Reference ? "&" : t.Value);
+                    join_next = false;
+                    continue;
+                }
+                flush();
+
+                switch (t.Type) {
+                case TT::ScopeResolution:
+                    if (!out.empty() && out.back().Type == EvalTok::Kind::Ident) {
+                        out.back().Text += "::";
+                        join_next = true;
+                    } else {
+                        out.push_back({EvalTok::Kind::Op, "::"}); // parser will reject
+                    }
+                    continue;
+                case TT::Identifier:
+                    if (join_next && !out.empty() && out.back().Type == EvalTok::Kind::Ident)
+                        out.back().Text += t.Value;
+                    else
+                        out.push_back({EvalTok::Kind::Ident, t.Value});
+                    break;
+                case TT::Number:     out.push_back({EvalTok::Kind::Number, t.Value}); break;
+                case TT::String:     out.push_back({EvalTok::Kind::String, t.Value}); break;
+                case TT::OpenParen:  out.push_back({EvalTok::Kind::LParen, "("}); break;
+                case TT::CloseParen: out.push_back({EvalTok::Kind::RParen, ")"}); break;
+                case TT::Semicolon:  break; // ignore stray terminators
+                default:
+                    out.push_back({EvalTok::Kind::Op, t.Value}); // will be rejected by the parser
+                    break;
+                }
+                join_next = false;
+            }
+            flush();
+            return out;
+        }
+
+        class ConstExprEvaluator {
+        public:
+            ConstExprEvaluator(std::vector<EvalTok> toks, ConstResolver resolver, SourceLocation loc)
+                : mToks(std::move(toks)), mResolver(std::move(resolver)), mLoc(loc) {}
+
+            ConstValue Evaluate() {
+                if (mToks.empty())
+                    Fail("static_assert has an empty condition");
+                ConstValue v = ParseOr();
+                if (mPos != mToks.size())
+                    Fail("Unexpected '" + mToks[mPos].Text + "' in static_assert condition");
+                return v;
+            }
+
+        private:
+            std::vector<EvalTok> mToks;
+            ConstResolver mResolver;
+            SourceLocation mLoc;
+            size_t mPos = 0;
+
+            [[noreturn]] void Fail(const std::string& msg) const { throw Exceptions::SemanticError(msg, mLoc); }
+
+            bool PeekOp(const char* op) const {
+                return mPos < mToks.size() && mToks[mPos].Type == EvalTok::Kind::Op && mToks[mPos].Text == op;
+            }
+            bool PeekWord(const char* word) const {
+                return mPos < mToks.size() && mToks[mPos].Type == EvalTok::Kind::Ident && mToks[mPos].Text == word;
+            }
+            bool MatchOp(const char* op) {
+                if (PeekOp(op)) {
+                    ++mPos;
+                    return true;
+                }
+                return false;
+            }
+            bool MatchOpOrWord(const char* op, const char* word) {
+                if (PeekOp(op) || PeekWord(word)) {
+                    ++mPos;
+                    return true;
+                }
+                return false;
+            }
+
+            // ---------------------------------------------------------------
+            // Typed helpers
+            // ---------------------------------------------------------------
+
+            bool RequireBool(const ConstValue& v, const char* op) const {
+                if (v.K != ConstValue::Kind::Bool)
+                    Fail(std::string("Operator '") + op + "' requires bool operands, got " + KindName(v.K));
+                return v.B;
+            }
+
+            ConstValue Arith(char op, const ConstValue& a, const ConstValue& b) const {
+                using K = ConstValue::Kind;
+
+                // string concatenation
+                if (a.K == K::String && b.K == K::String) {
+                    if (op == '+')
+                        return ConstValue::MakeString(a.S + b.S);
+                    Fail(std::string("Operator '") + op + "' cannot be applied to strings");
+                }
+
+                if (!a.IsNumeric() || !b.IsNumeric()) {
+                    Fail(std::string("Operator '") + op + "' cannot be applied to " + KindName(a.K) + " and " +
+                         KindName(b.K));
+                }
+
+                // integer arithmetic (checked, truncating division like C++/AngelScript)
+                if (a.K == K::Int && b.K == K::Int) {
+                    const int64_t x = a.I;
+                    const int64_t y = b.I;
+                    constexpr int64_t kMax = std::numeric_limits<int64_t>::max();
+                    constexpr int64_t kMin = std::numeric_limits<int64_t>::min();
+
+                    switch (op) {
+                    case '+':
+                        if ((y > 0 && x > kMax - y) || (y < 0 && x < kMin - y))
+                            Fail("Integer overflow in static_assert condition");
+                        return ConstValue::MakeInt(x + y);
+                    case '-':
+                        if ((y < 0 && x > kMax + y) || (y > 0 && x < kMin + y))
+                            Fail("Integer overflow in static_assert condition");
+                        return ConstValue::MakeInt(x - y);
+                    case '*': {
+                        if (std::fabs(static_cast<long double>(x) * static_cast<long double>(y)) >=
+                            9223372036854775808.0L)
+                            Fail("Integer overflow in static_assert condition");
+                        return ConstValue::MakeInt(x * y);
+                    }
+                    case '/':
+                        if (y == 0)
+                            Fail("Division by zero in static_assert condition");
+                        if (x == kMin && y == -1)
+                            Fail("Integer overflow in static_assert condition");
+                        return ConstValue::MakeInt(x / y);
+                    case '%':
+                        if (y == 0)
+                            Fail("Modulo by zero in static_assert condition");
+                        if (y == -1)
+                            return ConstValue::MakeInt(0);
+                        return ConstValue::MakeInt(x % y);
+                    }
+                    Fail("Unknown operator");
+                }
+
+                // float arithmetic (any int operand is promoted)
+                const double x = a.AsDouble();
+                const double y = b.AsDouble();
+                switch (op) {
+                case '+': return ConstValue::MakeFloat(x + y);
+                case '-': return ConstValue::MakeFloat(x - y);
+                case '*': return ConstValue::MakeFloat(x * y);
+                case '/':
+                    if (y == 0.0)
+                        Fail("Division by zero in static_assert condition");
+                    return ConstValue::MakeFloat(x / y);
+                case '%':
+                    if (y == 0.0)
+                        Fail("Modulo by zero in static_assert condition");
+                    return ConstValue::MakeFloat(std::fmod(x, y));
+                }
+                Fail("Unknown operator");
+            }
+
+            template <typename T>
+            static bool CompareOp(const std::string& op, const T& x, const T& y) {
+                if (op == "==" || op == "=") return x == y;
+                if (op == "!=") return x != y;
+                if (op == "<")  return x < y;
+                if (op == "<=") return x <= y;
+                if (op == ">")  return x > y;
+                return x >= y; // ">="
+            }
+
+            ConstValue Compare(const std::string& op, const ConstValue& a, const ConstValue& b) const {
+                using K = ConstValue::Kind;
+
+                if (a.K == K::String && b.K == K::String)
+                    return ConstValue::MakeBool(CompareOp(op, a.S, b.S)); // byte-wise lexicographic
+
+                if (a.K == K::Bool && b.K == K::Bool) {
+                    if (op != "==" && op != "=" && op != "!=")
+                        Fail("Operator '" + op + "' cannot be applied to bool operands");
+                    return ConstValue::MakeBool(CompareOp(op, a.B, b.B));
+                }
+
+                if (a.IsNumeric() && b.IsNumeric()) {
+                    if (a.K == K::Int && b.K == K::Int)
+                        return ConstValue::MakeBool(CompareOp(op, a.I, b.I));
+                    return ConstValue::MakeBool(CompareOp(op, a.AsDouble(), b.AsDouble()));
+                }
+
+                Fail(std::string("Cannot compare ") + KindName(a.K) + " with " + KindName(b.K));
+            }
+
+            // ---------------------------------------------------------------
+            // Grammar
+            // ---------------------------------------------------------------
+
+            ConstValue ParseOr() {
+                ConstValue l = ParseAnd();
+                while (MatchOpOrWord("||", "or")) {
+                    bool lb = RequireBool(l, "||");
+                    ConstValue r = ParseAnd(); // no short-circuit; both sides are side-effect free
+                    bool rb = RequireBool(r, "||");
+                    l = ConstValue::MakeBool(lb || rb);
+                }
+                return l;
+            }
+
+            ConstValue ParseAnd() {
+                ConstValue l = ParseEquality();
+                while (MatchOpOrWord("&&", "and")) {
+                    bool lb = RequireBool(l, "&&");
+                    ConstValue r = ParseEquality();
+                    bool rb = RequireBool(r, "&&");
+                    l = ConstValue::MakeBool(lb && rb);
+                }
+                return l;
+            }
+
+            ConstValue ParseEquality() {
+                ConstValue l = ParseRelational();
+                for (;;) {
+                    if (MatchOp("=="))
+                        l = Compare("==", l, ParseRelational());
+                    else if (MatchOp("!="))
+                        l = Compare("!=", l, ParseRelational());
+                    else
+                        return l;
+                }
+            }
+
+            ConstValue ParseRelational() {
+                ConstValue l = ParseAdditive();
+                for (;;) {
+                    if (MatchOp("<="))      l = Compare("<=", l, ParseAdditive());
+                    else if (MatchOp(">=")) l = Compare(">=", l, ParseAdditive());
+                    else if (MatchOp("<"))  l = Compare("<", l, ParseAdditive());
+                    else if (MatchOp(">"))  l = Compare(">", l, ParseAdditive());
+                    else return l;
+                }
+            }
+
+            ConstValue ParseAdditive() {
+                ConstValue l = ParseMultiplicative();
+                for (;;) {
+                    if (MatchOp("+"))      l = Arith('+', l, ParseMultiplicative());
+                    else if (MatchOp("-")) l = Arith('-', l, ParseMultiplicative());
+                    else return l;
+                }
+            }
+
+            ConstValue ParseMultiplicative() {
+                ConstValue l = ParseUnary();
+                for (;;) {
+                    if (MatchOp("*"))      l = Arith('*', l, ParseUnary());
+                    else if (MatchOp("/")) l = Arith('/', l, ParseUnary());
+                    else if (MatchOp("%")) l = Arith('%', l, ParseUnary());
+                    else return l;
+                }
+            }
+
+            ConstValue ParseUnary() {
+                if (MatchOpOrWord("!", "not")) {
+                    ConstValue v = ParseUnary();
+                    return ConstValue::MakeBool(!RequireBool(v, "!"));
+                }
+                if (MatchOp("-")) {
+                    ConstValue v = ParseUnary();
+                    if (v.K == ConstValue::Kind::Int) {
+                        if (v.I == std::numeric_limits<int64_t>::min())
+                            Fail("Integer overflow in static_assert condition");
+                        return ConstValue::MakeInt(-v.I);
+                    }
+                    if (v.K == ConstValue::Kind::Float)
+                        return ConstValue::MakeFloat(-v.F);
+                    Fail(std::string("Unary '-' cannot be applied to ") + KindName(v.K));
+                }
+                if (MatchOp("+")) {
+                    ConstValue v = ParseUnary();
+                    if (!v.IsNumeric())
+                        Fail(std::string("Unary '+' cannot be applied to ") + KindName(v.K));
+                    return v;
+                }
+                return ParsePrimary();
+            }
+
+            ConstValue ParsePrimary() {
+                if (mPos >= mToks.size())
+                    Fail("Unexpected end of static_assert condition");
+
+                const EvalTok& t = mToks[mPos];
+
+                switch (t.Type) {
+                case EvalTok::Kind::LParen: {
+                    ++mPos;
+                    ConstValue v = ParseOr();
+                    if (mPos >= mToks.size() || mToks[mPos].Type != EvalTok::Kind::RParen)
+                        Fail("Expected ')' in static_assert condition");
+                    ++mPos;
+                    return v;
+                }
+                case EvalTok::Kind::Number: {
+                    ++mPos;
+                    return ParseNumber(t.Text);
+                }
+                case EvalTok::Kind::String: {
+                    ++mPos;
+                    return ConstValue::MakeString(Unquote(t.Text));
+                }
+                case EvalTok::Kind::Ident: {
+                    ++mPos;
+                    if (t.Text == "true")
+                        return ConstValue::MakeBool(true);
+                    if (t.Text == "false")
+                        return ConstValue::MakeBool(false);
+                    if (mResolver) {
+                        if (auto v = mResolver(t.Text))
+                            return *v;
+                    }
+                    Fail("'" + t.Text + "' is not a compile-time constant");
+                }
+                default:
+                    Fail("Unexpected '" + t.Text + "' in static_assert condition");
+                }
+            }
+
+            ConstValue ParseNumber(std::string text) const {
+                const bool hex = text.size() > 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X');
+                const bool bin = text.size() > 2 && text[0] == '0' && (text[1] == 'b' || text[1] == 'B');
+                const bool oct = text.size() > 2 && text[0] == '0' && (text[1] == 'o' || text[1] == 'O');
+
+                if (hex || bin || oct) {
+                    const int base = hex ? 16 : bin ? 2 : 8;
+                    errno = 0;
+                    char* end = nullptr;
+                    unsigned long long v = std::strtoull(text.c_str() + 2, &end, base);
+                    if (end == text.c_str() + 2 || *end != '\0')
+                        Fail("Invalid numeric literal '" + text + "' in static_assert condition");
+                    if (errno == ERANGE || v > static_cast<unsigned long long>(std::numeric_limits<int64_t>::max()))
+                        Fail("Integer literal '" + text + "' is out of range");
+                    return ConstValue::MakeInt(static_cast<int64_t>(v));
+                }
+
+                // float if it has a '.', an exponent, or an 'f' suffix
+                const bool is_float = text.find('.') != std::string::npos ||
+                                      text.find('e') != std::string::npos || text.find('E') != std::string::npos ||
+                                      (!text.empty() && (text.back() == 'f' || text.back() == 'F'));
+
+                if (is_float) {
+                    if (!text.empty() && (text.back() == 'f' || text.back() == 'F'))
+                        text.pop_back();
+                    char* end = nullptr;
+                    double v = std::strtod(text.c_str(), &end);
+                    if (end == text.c_str() || *end != '\0')
+                        Fail("Invalid numeric literal '" + text + "' in static_assert condition");
+                    return ConstValue::MakeFloat(v);
+                }
+
+                errno = 0;
+                char* end = nullptr;
+                unsigned long long v = std::strtoull(text.c_str(), &end, 10);
+                if (end == text.c_str() || *end != '\0')
+                    Fail("Invalid numeric literal '" + text + "' in static_assert condition");
+                if (errno == ERANGE || v > static_cast<unsigned long long>(std::numeric_limits<int64_t>::max()))
+                    Fail("Integer literal '" + text + "' is out of range");
+                return ConstValue::MakeInt(static_cast<int64_t>(v));
+            }
+
+            // Strips surrounding quotes if the lexer left them on, and resolves
+            // common escape sequences. If the lexer already did both, this is a no-op
+            // apart from a string that itself starts and ends with a quote character.
+            static std::string Unquote(const std::string& raw) {
+                std::string s = raw;
+
+                if (s.size() >= 6 && s.compare(0, 3, "\"\"\"") == 0 && s.compare(s.size() - 3, 3, "\"\"\"") == 0) {
+                    return s.substr(3, s.size() - 6); // heredoc: no escapes
+                }
+
+                if (s.size() >= 2 && (s.front() == '"' || s.front() == '\'') && s.back() == s.front())
+                    s = s.substr(1, s.size() - 2);
+
+                std::string out;
+                out.reserve(s.size());
+                for (size_t i = 0; i < s.size(); ++i) {
+                    if (s[i] != '\\' || i + 1 >= s.size()) {
+                        out += s[i];
+                        continue;
+                    }
+                    char c = s[++i];
+                    switch (c) {
+                    case 'n':  out += '\n'; break;
+                    case 't':  out += '\t'; break;
+                    case 'r':  out += '\r'; break;
+                    case '0':  out += '\0'; break;
+                    case '\\': out += '\\'; break;
+                    case '"':  out += '"'; break;
+                    case '\'': out += '\''; break;
+                    default:   out += '\\'; out += c; break;
+                    }
+                }
+                return out;
+            }
+        };
+
+        // Converts a constant's evaluated initializer to its declared type.
+        // Returns nullopt if the declared type can't be a compile-time constant.
+        std::optional<ConstValue> CoerceToDeclaredType(const AST::ASTTypeRef& type, ConstValue v,
+                                                       const std::string& name, const SourceLocation& loc) {
+            using K = ConstValue::Kind;
+
+            if (type.IsHandle || type.IsReference || type.ArrayDepth > 0)
+                return std::nullopt;
+
+            if (type.IsAuto)
+                return v;
+
+            const std::string t = StripNamespace(type.Name);
+
+            static const std::unordered_set<std::string> kInts = {"int",  "int8",  "int16",  "int32", "int64",
+                                                                  "uint", "uint8", "uint16", "uint32", "uint64"};
+
+            auto mismatch = [&]() -> std::optional<ConstValue> {
+                throw Exceptions::SemanticError("Constant '" + name + "' of type '" + type.Name +
+                                                    "' cannot be initialised with a " + KindName(v.K) +
+                                                    " value",
+                                                loc);
+            };
+
+            if (kInts.count(t)) {
+                if (v.K == K::Int)
+                    return v;
+                if (v.K == K::Float)
+                    return ConstValue::MakeInt(static_cast<int64_t>(v.F)); // implicit truncation
+                return mismatch();
+            }
+            if (t == "float" || t == "double") {
+                if (v.IsNumeric())
+                    return ConstValue::MakeFloat(v.AsDouble());
+                return mismatch();
+            }
+            if (t == "bool") {
+                if (v.K == K::Bool)
+                    return v;
+                return mismatch();
+            }
+            if (t == "string") {
+                if (v.K == K::String)
+                    return v;
+                return mismatch();
+            }
+
+            return std::nullopt; // some other type: not a supported constant
         }
     } // namespace
     void AddFunctionOverloads(std::vector<const Symbol*>& result, const SymbolTable& table, const std::string& name) {
@@ -311,6 +866,8 @@ namespace CE::Scripting::Impl::Semantics {
         for (auto& decl : module.Declarations) {
             VisitDeclaration(decl, "", module_hash, module_path);
         }
+
+        CheckAssertions(module, module_path);
 
         if (include_in_emission) {
             mEmissionOrder.push_back(module_path);
@@ -797,5 +1354,89 @@ namespace CE::Scripting::Impl::Semantics {
         }
 
         return nullptr;
+    }
+
+    void SymanticAnalyser::CheckAssertions(const AST::ASTModule& module, const std::string& module_path) {
+        using TT = Lexer::Token::TokenType;
+
+        std::unordered_set<const Symbol*> visiting; // cycle guard: const A = B; const B = A;
+
+        // Resolves `name` as seen from `from_module` to a const global's typed value.
+        std::function<std::optional<ConstValue>(const std::string&, const std::string&, const SourceLocation&)>
+            resolve_const;
+
+        resolve_const = [&](const std::string& from_module, const std::string& name,
+                            const SourceLocation& loc) -> std::optional<ConstValue> {
+            const Symbol* sym = ResolveSymbol(from_module, name);
+            if (!sym || sym->Kind != AST::ASTDeclaration::Kind::Global)
+                return std::nullopt;
+
+            auto mod = mParsedModules.find(sym->SourceModule);
+            if (mod == mParsedModules.end())
+                return std::nullopt;
+
+            const auto* decl = FindDeclarationInModule(mod->second, sym->QualifiedName);
+            if (!decl || decl->Type != AST::ASTDeclaration::Kind::Global)
+                return std::nullopt;
+
+            const auto& global = std::get<AST::ASTGlobal>(decl->Data);
+
+            if (!global.Type.IsConst)
+                throw Exceptions::SemanticError(
+                    "'" + name + "' is not const, so it can't be used in a static_assert", loc);
+
+            if (!visiting.insert(sym).second)
+                throw Exceptions::SemanticError("Circular constant dependency involving '" + name + "'", loc);
+
+            // Tolerate a leading '=' and trailing ';' in the stored initializer.
+            std::vector<Lexer::Token> toks = global.Initializer;
+            if (!toks.empty() && toks.front().Type == TT::Assignment)
+                toks.erase(toks.begin());
+            if (!toks.empty() && toks.back().Type == TT::Semicolon)
+                toks.pop_back();
+
+            if (toks.empty())
+                throw Exceptions::SemanticError("Constant '" + name + "' has no initializer", loc);
+
+            // Evaluate in the context of the module that defines the constant.
+            const std::string defining_module = sym->SourceModule;
+            ConstExprEvaluator inner(
+                NormaliseTokens(toks),
+                [&, defining_module](const std::string& n) { return resolve_const(defining_module, n, loc); }, loc);
+
+            ConstValue raw = inner.Evaluate();
+            visiting.erase(sym);
+
+            auto coerced = CoerceToDeclaredType(global.Type, std::move(raw), name, loc);
+            if (!coerced)
+                throw Exceptions::SemanticError(
+                    "Constant '" + name + "' has type '" + global.Type.Name +
+                        "', which can't be used in a static_assert (only int, float, bool and string are supported)",
+                    loc);
+            return coerced;
+        };
+
+        for (const auto& assertion : module.Assertions) {
+            const SourceLocation loc = assertion.Location;
+
+            ConstExprEvaluator evaluator(
+                NormaliseTokens(assertion.Condition),
+                [&](const std::string& name) { return resolve_const(module_path, name, loc); }, loc);
+
+            ConstValue result = evaluator.Evaluate();
+
+            if (result.K != ConstValue::Kind::Bool) {
+                throw Exceptions::SemanticError(
+                    std::string("static_assert condition must be a bool expression, got ") + KindName(result.K),
+                    loc);
+            }
+
+            if (!result.B) {
+                std::string msg = "static_assert failed";
+                if (!assertion.Message.empty())
+                    msg += ": " + assertion.Message;
+                throw Exceptions::SemanticError(msg, loc);
+            }
+        }
     }
 } // namespace CE::Scripting::Impl::Semantics
