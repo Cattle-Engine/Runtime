@@ -106,7 +106,7 @@ void main() {
 ```
 
 Script export
-```angelscrxxipt
+```angelscript
 export int FooInt = 100;
 
 export int foo_func() {
@@ -126,15 +126,6 @@ export int foo_func() {
 - [ ] 3D model animation support
 - [ ] AngelScript bindings for bones
 - [ ] Add an arguemnt "--mess-with-ce" to unlock the ability to eg, change pi at runtime, or modify the contents of memory 
-
-- [ ] AngelScript attributes:
-Basically a thing you can put on classes, structs and variables. Will look like this:
-```angelscript
-@foo_attribute,@test_able
-struct foo {
-    
-}
-```
 - [ ] Make a Retained UI system
 - [ ] Make it so you can load a UI from a file (probs gonna use tdf with a .ceui extension)
 

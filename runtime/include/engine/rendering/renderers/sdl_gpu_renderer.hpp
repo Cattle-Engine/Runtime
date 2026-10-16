@@ -129,6 +129,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         glm::vec4 ambientColourIntensity{1.0f, 1.0f, 1.0f, 0.2f};
         glm::vec4 materialTint{1.0f};
         glm::vec4 materialProps{1.0f, 0.0f, 32.0f, 0.0f};
+        glm::vec4 emissionColourStrength{0.0f};
         glm::vec4 cameraPositionShininess{0.0f, 0.0f, 0.0f, 32.0f};
         glm::vec4 normalExists{0.0f};
     };
@@ -197,6 +198,10 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         glm::vec4 materialProps{1.0f, 0.0f, 0.0f, 0.0f};
         bool isTransparent = false;
         float distanceToCamera = 0.0f;
+        // emission stuff
+        SDLGPUTexData* emissiontex = nullptr;
+        glm::vec4 emissionColour{0.0f};
+        float emissionStrength = 1.0f;
     };
 
     class SDL_GPU_Renderer : public Renderer::IRenderer {

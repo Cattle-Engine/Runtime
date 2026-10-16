@@ -773,6 +773,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                            ? static_cast<SDLGPUTexData*>(material.metallicRoughnessTex->handle)
                            : nullptr;
 
+        auto* emissionData = material.emissionTex && material.emissionTex->handle
+            ? static_cast<SDLGPUTexData*>(material.emissionTex->handle)
+            : nullptr;
+
         const glm::mat4 modelMatrix = BuildTransformMatrix(transform);
         const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);
 
@@ -783,6 +787,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         command.mrtex = mrData;         // Slot 2: Metallic-Roughness
         command.sampler = albedoData ? albedoData->sampler : mWhiteSampler;
         SDL_GPU_Renderer_Shader* shader = mCurrentShader;
+        command.emissiontex = emissionData;
+        command.emissionColour = ToColourVec4(material.emissionColour);
+        command.emissionStrength = material.emissionStrength;
 
         if (material.shader && material.shader->handle) {
             shader = static_cast<SDL_GPU_Renderer_Shader*>(material.shader->handle);
@@ -1077,6 +1084,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             fragmentUniform.materialTint = activeShader ? activeShader->Tint * command.tint : command.tint;
             fragmentUniform.materialProps = glm::vec4(std::clamp(command.materialProps.x, 0.0f, 1.0f),
                                                       std::clamp(command.materialProps.y, 0.0f, 1.0f), 0.0f, 0.0f);
+            fragmentUniform.emissionColourStrength = glm::vec4(
+                command.emissionColour.r / 255.0f,
+                command.emissionColour.g / 255.0f,
+                command.emissionColour.b / 255.0f,
+                command.emissionStrength
+            );
+            
             fragmentUniform.cameraPositionShininess = glm::vec4(mCamera3DState.position, 0.0f);
             fragmentUniform.normalExists = glm::vec4((command.normaltex && command.normaltex->gpuTex) ? 1.0f : 0.0f);
             fragmentUniform.resolution =
