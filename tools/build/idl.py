@@ -705,10 +705,13 @@ def _function_helper_name(function: ASFunction, index: int) -> str:
 
 
 def _operator_self_parameter(as_type: ASType, operator: ASOperator) -> str:
+    if operator.operator in {"=", "+=", "-=", "*=", "/="}:
+        return f"{as_type.cpp_type}& self"
+
     if operator.is_const:
         return f"const {as_type.cpp_type}& self"
-    return f"{as_type.cpp_type}& self"
 
+    return f"{as_type.cpp_type}& self"
 
 def _operator_cpp_parameter_type(as_type: ASType, part: str) -> str:
     normalized = part.replace(" ", "")

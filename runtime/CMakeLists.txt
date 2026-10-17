@@ -7,6 +7,25 @@ set(CE_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(CE_GENERATED_BINDINGS_DIR "${CE_GENERATED_DIR}/bindings")
 set(CE_DATA_FILE_NAME "data.tcf")
 
+option(CE_ENABLE_SANITIZERS "Enable AddressSanitizer and UBSan" OFF)
+
+if(CE_ENABLE_SANITIZERS)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        add_compile_options(
+            $<$<COMPILE_LANGUAGE:CXX>:-fsanitize=address,undefined>
+            $<$<COMPILE_LANGUAGE:CXX>:-fno-omit-frame-pointer>
+            $<$<COMPILE_LANGUAGE:CXX>:-g>
+        )
+
+        add_link_options(
+            -fsanitize=address,undefined
+        )
+    else()
+        message(FATAL_ERROR
+            "CE_ENABLE_SANITIZERS requires GCC or Clang")
+    endif()
+endif()
+
 include("${CE_RUNTIME_ROOT}/cmake/options.cmake")
 
 project(ce_runtime VERSION 1.0.0 LANGUAGES C CXX)

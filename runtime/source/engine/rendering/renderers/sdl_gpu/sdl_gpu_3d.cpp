@@ -1085,9 +1085,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             fragmentUniform.materialProps = glm::vec4(std::clamp(command.materialProps.x, 0.0f, 1.0f),
                                                       std::clamp(command.materialProps.y, 0.0f, 1.0f), 0.0f, 0.0f);
             fragmentUniform.emissionColourStrength = glm::vec4(
-                command.emissionColour.r / 255.0f,
-                command.emissionColour.g / 255.0f,
-                command.emissionColour.b / 255.0f,
+                command.emissionColour.r,
+                command.emissionColour.g,
+                command.emissionColour.b,
                 command.emissionStrength
             );
             

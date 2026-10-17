@@ -26,7 +26,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         // declare the format of their actual render-pass target; using the
         // swapchain format here makes the draws invalid whenever it differs from
         // the fixed offscreen R8G8B8A8 texture (and leaves it black).
-        colorDesc.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        colorDesc.format = mRenderTextureFormat;
 
         SDL_GPUColorTargetBlendState blend{};
         blend.enable_blend = true;

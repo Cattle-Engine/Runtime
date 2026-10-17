@@ -17,7 +17,7 @@
 #include <assimp/Importer.hpp>
 
 namespace {
-    using kModel = CE::Renderer::Resources::Model;
+    using Model = CE::Renderer::Resources::Model;
 
     static SDL_Surface* CreateWhiteSurface() {
         SDL_Surface* surface = SDL_CreateSurface(1, 1, SDL_PIXELFORMAT_RGBA32);
@@ -213,17 +213,25 @@ namespace CE::Assets::Model3DImporter {
         return result;
     }
 
-    uint32_t ConvertNode(aiNode* node, kModel& model) {
-        uint32_t nodeIndex = static_cast<uint32_t>(model.Nodes.size());
+    uint32_t ConvertNode(aiNode* node, Model& model) {
+        const uint32_t nodeIndex = static_cast<uint32_t>(model.Nodes.size());
+
         model.Nodes.emplace_back();
-        kModel::Node& outNode = model.Nodes[nodeIndex];
-        outNode.Transform = ConvertMatrix(node->mTransformation);
-        outNode.MeshIndices.reserve(node->mNumMeshes);
-        for (uint32_t i = 0; i < node->mNumMeshes; ++i)
-            outNode.MeshIndices.push_back(node->mMeshes[i]);
-        outNode.Children.reserve(node->mNumChildren);
-        for (uint32_t i = 0; i < node->mNumChildren; ++i)
-            outNode.Children.push_back(ConvertNode(node->mChildren[i], model));
+        model.Nodes[nodeIndex].Transform = ConvertMatrix(node->mTransformation);
+
+        model.Nodes[nodeIndex].MeshIndices.reserve(node->mNumMeshes);
+        for (uint32_t i = 0; i < node->mNumMeshes; ++i) {
+            model.Nodes[nodeIndex].MeshIndices.push_back(node->mMeshes[i]);
+        }
+
+        std::vector<uint32_t> children;
+        children.reserve(node->mNumChildren);
+
+        for (uint32_t i = 0; i < node->mNumChildren; ++i) {
+            children.push_back(ConvertNode(node->mChildren[i], model));
+        }
+
+        model.Nodes[nodeIndex].Children = std::move(children);
         return nodeIndex;
     }
 
@@ -421,7 +429,7 @@ namespace CE::Assets::Model3DImporter {
 
     Renderer::Resources::Model ModelImporter::ImportModel(std::string path) {
         Utils::ScopedTimer total_timer("[3D Model Importer] Total import time");
-        kModel model;
+        Model model;
         CE_LOG(LogLevel::Debug, "[3D Model Importer] Attempting to load: {}", path);
 
         if (!mVFS.FileExists(path.c_str())) {
@@ -492,6 +500,19 @@ namespace CE::Assets::Model3DImporter {
         }
 
         model.RootNode = ConvertNode(scene->mRootNode, model);
+
+        for (std::size_t i = 0; i < model.Nodes.size(); ++i) {
+            const auto& node = model.Nodes[i];
+
+            for (const auto meshIndex : node.MeshIndices) {
+                if (meshIndex >= model.Meshes.size()) {
+                    CE_LOG(LogLevel::Error,
+                        "Node {} has invalid mesh index {} (mesh count {})",
+                        i, meshIndex, model.Meshes.size());
+                }
+            }
+        }
+
         return model;
     }
 

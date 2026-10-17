@@ -42,6 +42,7 @@ ASClassFunctions:
     Description: Easily load a model (eg, gltf, fbx) from the VFS
     Class: m3DModelImporter
     CppMethod: ImportModel
+    CallingConvention: Generic
 
   - Name: Set3DCameraPos
     ReturnType: void

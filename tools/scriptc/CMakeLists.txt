@@ -83,6 +83,17 @@ file(GLOB_RECURSE CE_SCRIPTC_SOURCES CONFIGURE_DEPENDS
 
 add_executable(ce_scriptc ${CE_SCRIPTC_SOURCES})
 
+if(CE_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(ce_scriptc PRIVATE
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+
+    target_link_options(ce_scriptc PRIVATE
+        -fsanitize=address,undefined
+    )
+endif()
+
 target_sources(ce_scriptc PRIVATE
     ${ANGELSCRIPT_ADDON_SOURCES}
     "${CE_DUMMY_SOURCE}"       

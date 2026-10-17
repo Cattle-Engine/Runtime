@@ -64,6 +64,24 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 2;
         }
 
+        mSupportsHDR = SDL_GPUTextureSupportsFormat(
+            mDevice,
+            SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT,
+            SDL_GPU_TEXTURETYPE_2D,
+            SDL_GPU_TEXTUREUSAGE_COLOR_TARGET |
+            SDL_GPU_TEXTUREUSAGE_SAMPLER
+        );
+
+        CE_LOG(
+            LogLevel::Info,
+            "[SDL_GPU Renderer] HDR rendering: {}",
+            mSupportsHDR ? "supported" : "unsupported"
+        );
+
+        mRenderTextureFormat = mSupportsHDR
+            ? SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT
+            : SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+
         if (!SDL_ClaimWindowForGPUDevice(mDevice, window)) {
             CE_LOG(LogLevel::Fatal, "[SDL_GPU Renderer] Unable to bind window to GPU: {}", SDL_GetError());
             ShowError("[SDL_GPU Renderer] Unable to bind window to gpu device");
@@ -289,7 +307,9 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         CE_LOG(LogLevel::Info, "[SDL_GPU Renderer] Creating render texture");
         SDL_GPUTextureCreateInfo render_texture_info{};
         render_texture_info.type = SDL_GPU_TEXTURETYPE_2D;
-        render_texture_info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        render_texture_info.format = mSupportsHDR
+            ? SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT
+            : SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
         render_texture_info.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET |
                             SDL_GPU_TEXTUREUSAGE_SAMPLER;
         render_texture_info.width = static_cast<Uint32>(pRenderSize.x);

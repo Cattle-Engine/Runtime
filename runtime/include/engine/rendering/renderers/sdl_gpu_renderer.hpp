@@ -473,6 +473,9 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         Transform3D mCamera3DTransform{glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f)};
 
         detail::RTexture mRenderTexture;
+
+        bool mSupportsHDR = false;
+        SDL_GPUTextureFormat mRenderTextureFormat;
     };
 } // namespace CE::Renderer::SDL_GPU_Renderer
 

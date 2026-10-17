@@ -107,6 +107,13 @@ ASTypes:
           self->~Model();
         CallingConvention: CDeclObjLast
 
+    Operators:
+      - Operator: "="
+        ReturnType: Model
+        Signature: "Model & in"
+        Body: |
+          return self = arg0;
+
     Properties:
       - Type: CE::Containers::MeshVector
         CppMember: Meshes
