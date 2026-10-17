@@ -56,6 +56,7 @@ namespace CE::Renderer::Software {
         int EndFrame(SDL_Window* window) override;
 
         Texture* GetErrorTexture() override;
+        Texture* GetWhiteTexture() override;
         void* GetNativeTextureHandle(Texture* texture) override;
 
         int Debug_GetVertCount() override;

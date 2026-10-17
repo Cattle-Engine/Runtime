@@ -1075,8 +1075,8 @@ C++ type: `CE::Renderer::ShaderStage`
 
 Values:
 
-- `Fragment`
 - `Vertex`
+- `Fragment`
 
 ### TextureFlip
 C++ type: `CE::Renderer::TextureFlip`

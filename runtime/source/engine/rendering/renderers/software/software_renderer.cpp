@@ -685,6 +685,10 @@ namespace CE::Renderer::Software {
         return mErrorTexture;
     }
 
+    Texture* Software_Renderer::GetWhiteTexture() {
+        return mWhiteTexture;
+    }
+
     void* Software_Renderer::GetNativeTextureHandle(Texture* texture) {
         if (texture == nullptr || texture->handle == nullptr) {
             return nullptr;

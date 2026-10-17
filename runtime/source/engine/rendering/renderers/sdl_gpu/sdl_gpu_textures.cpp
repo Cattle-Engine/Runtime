@@ -1,6 +1,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_image/SDL_image.h>
 
+#include "engine/rendering/renderer.hpp"
 #include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
 #include "engine/common/tracelog.hpp"
 
@@ -410,6 +411,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         errorTexture.backend = RendererBackend::Vulkan;
 
         return &errorTexture;
+    }
+
+    Texture* SDL_GPU_Renderer::GetWhiteTexture() {
+        static Texture white_texture;
+        static SDLGPUTexData data;
+        data.gpuTex = mWhiteTex;
+        data.sampler = mWhiteSampler;
+        data.repeatSampler = mWhiteSampler;
+
+        white_texture.handle = &data;
+        white_texture.width = 1;
+        white_texture.height = 1;
+        white_texture.format = TextureFormat::RGBA8;
+        white_texture.backend = mBackend;
+
+        return &white_texture;
     }
 
     void* SDL_GPU_Renderer::GetNativeTextureHandle(Texture* texture) {

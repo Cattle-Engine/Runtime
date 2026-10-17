@@ -2,14 +2,19 @@
 
 ## CE::Graphics::Materials
 ### CreateMaterial
-Return type: `void`
+Return type: `Material`
 
 Signature:
 ```angelscript
-Material& out handle, const Texture& in texture
+const Texture& in texture
 ```
 
-No description given
+Creates a material with a texture. If the texture could not be found it is an error texture
+
+### CreateMaterial
+Return type: `Material`
+
+Creates a material without the need for a texture
 
 ### DestroyMaterial
 Return type: `void`
@@ -80,6 +85,36 @@ const Material& in, const Shader& in
 ```
 
 No description given
+
+### SetMaterialEmissionColour
+Return type: `bool`
+
+Signature:
+```angelscript
+const Material& in material, const Colour& in colour
+```
+
+Sets the colour of the emission. Returns false on error.
+
+### SetMaterialEmissionStrength
+Return type: `bool`
+
+Signature:
+```angelscript
+const Material& in material, const float strength
+```
+
+Sets the strength of an emission.
+
+### SetMaterialEmissionTexture
+Return type: `bool`
+
+Signature:
+```angelscript
+const Material& in material, const Texture& in texture
+```
+
+Sets the texture of an emission texture. Returns false on a fail (eg an invalid texture handle)
 
 ## CE::Graphics::Textures
 ### LoadTexture

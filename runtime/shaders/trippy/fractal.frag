@@ -8,15 +8,16 @@ layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
     vec4 misc;
     vec4 customVec4[8];
     ivec4 customInt4[4];
+
     vec4 sunDirectionEnabled;
     vec4 sunColourIntensity;
     vec4 ambientColourIntensity;
     vec4 materialTint;
     vec4 materialProps;
+    vec4 emissionColourStrength;
     vec4 cameraPositionShininess;
     vec4 normalExists;
 };
-
 mat2 rotate(float a) {
     float c = cos(a);
     float s = sin(a);

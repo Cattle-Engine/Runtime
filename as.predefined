@@ -4,8 +4,8 @@ namespace CE {
 void Quit();
 
 enum ShaderStage {
-    Fragment,
-    Vertex
+    Vertex,
+    Fragment
 };
 
 enum TextureFlip {
@@ -344,7 +344,9 @@ void SetRenderResolution(CE::Window::WindowSize& in size, CE::TextureFilter filt
 }
 
 namespace CE::Graphics::Materials {
-void CreateMaterial(Material& out handle, const Texture& in texture);
+Material CreateMaterial(const Texture& in texture);
+
+Material CreateMaterial();
 
 void DestroyMaterial(const Material& in handle);
 
@@ -359,6 +361,12 @@ void SetMaterialMetallic(const Material& in handle, const float& in metallic);
 bool MaterialExists(const Material& in handle);
 
 void SetMaterialShader(const Material& in, const Shader& in);
+
+bool SetMaterialEmissionColour(const Material& in material, const Colour& in colour);
+
+bool SetMaterialEmissionStrength(const Material& in material, const float strength);
+
+bool SetMaterialEmissionTexture(const Material& in material, const Texture& in texture);
 }
 
 namespace CE::Graphics::Render2D {

@@ -1,6 +1,7 @@
 #include "engine/rendering/resources/material_manager.hpp"
 
 #include "engine/common/tracelog.hpp"
+#include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/shader_manager.hpp"
 
 namespace CE::Renderer::Resources {
@@ -31,6 +32,15 @@ namespace CE::Renderer::Resources {
         handle.id = mNextHandleID++;
         mMaterials.emplace(handle, std::move(entry));
         return handle;
+    }
+
+    MaterialHandle MaterialManager::CreateMaterial() {
+        MaterialEntry entry;
+        entry.IsError = false;
+        MaterialHandle handle;
+        handle.id = mNextHandleID++;
+        mMaterials.emplace(handle, std::move(entry));
+        return handle;     
     }
 
     void MaterialManager::SetMaterialColour(MaterialHandle matt_handle, Colour colour) {
@@ -135,6 +145,43 @@ namespace CE::Renderer::Resources {
                 material->Resource.shader = nullptr;
             } else {
                 material->Resource.shader = material->Shader.Get();
+            }
+        }
+    }
+
+    bool MaterialManager::SetEmissionColour(MaterialHandle handle, Colour colour) {
+        auto material = GetMaterial(handle);
+
+        if (material) {
+            material->emissionColour = colour;
+            return true;
+        }
+
+        CE_LOG(LogLevel::Error, "[Material Manager] [SetEmissionColour] Material {} not found.", handle.id);
+        return false;
+    }
+
+    bool MaterialManager::SetEmissionStrength(MaterialHandle handle, float strength) {
+        auto material = GetMaterial(handle);
+
+        if (material) {
+            material->emissionStrength = strength;
+            return true;
+        }
+        CE_LOG(LogLevel::Error, "[Material Manager] [SetEmissionStrength] Material {} not found.", handle.id);
+        return false;
+    }
+
+    bool MaterialManager::SetEmissionTexture(MaterialHandle handle, TextureHandle tex_handle) {
+        auto material = GetMaterialEntry(handle);
+
+        if (material) {
+            material->EmissionTex = mTextureManager.Acquire(tex_handle);
+            if (!material->EmissionTex.IsValid()) {
+                CE_LOG(LogLevel::Error, "[Material Manager] [SetEmissionTexture] Could not find texture handle");
+                material->EmissionTex.Reset();
+                material->Resource.emissionTex = nullptr;
+                return false;
             }
         }
     }

@@ -466,7 +466,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 8;
         }
 
-        mDefault3DFragmentShader = Utils::LoadShader(mDevice, "standard_3d.frag", 3, 1, 0, 0, mVFS);
+        mDefault3DFragmentShader = Utils::LoadShader(mDevice, "standard_3d.frag", 4, 1, 0, 0, mVFS);
         if (!mDefault3DFragmentShader) {
             SDL_ReleaseGPUShader(mDevice, mDefault3DVertexShader);
             mDefault3DVertexShader = nullptr;
@@ -1106,7 +1106,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             SDL_PushGPUFragmentUniformData(mCommandBuffer, 0, &fragmentUniform, sizeof(fragmentUniform));
 
-            const size_t baseSamplerCount = 3;
+            const size_t baseSamplerCount = 4;
             const size_t samplerCount = activeShader
                                             ? std::max<size_t>(baseSamplerCount, activeShader->FragmentSamplerCount)
                                             : baseSamplerCount;
@@ -1124,6 +1124,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             bindings[1].sampler = command.sampler ? command.sampler : mWhiteSampler;
             bindings[2].texture = (command.mrtex && command.mrtex->gpuTex) ? command.mrtex->gpuTex : mWhiteTex;
             bindings[2].sampler = command.sampler ? command.sampler : mWhiteSampler;
+            bindings[3].texture = (command.emissiontex && command.emissiontex->gpuTex)
+                          ? command.emissiontex->gpuTex
+                          : mWhiteTex;
+            bindings[3].sampler = (command.emissiontex && command.emissiontex->sampler)
+                                    ? command.emissiontex->sampler
+                                    : mWhiteSampler;
 
             if (activeShader) {
                 for (size_t slot = 0; slot < samplerCount && slot < activeShader->BoundTextures.size(); ++slot) {

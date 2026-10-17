@@ -295,6 +295,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         int EndFrame(SDL_Window* window) override;
 
         Texture* GetErrorTexture() override;
+        Texture* GetWhiteTexture() override;
         void* GetNativeTextureHandle(Texture* texture) override;
 
         int Debug_GetVertCount() override;

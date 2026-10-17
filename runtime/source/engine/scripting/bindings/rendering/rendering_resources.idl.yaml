@@ -14,12 +14,25 @@ ASNamespace: CE::Graphics
 ASClassFunctions:
   # === Material functions ===
   - Name: CreateMaterial
-    ReturnType: void
-    Signature: Material& out handle, const Texture& in texture
-    CppSignature: CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
+    ReturnType: Material
+    CppReturnType: CE::Renderer::Resources::MaterialHandle
+    Signature: const Texture& in texture
+    CppSignature: const CE::Renderer::Resources::TextureHandle&
     Namespace: CE::Graphics::Materials
     Function: |
-      arg0 = mRuntime.mMaterialManager.CreateMaterial(arg1);
+      return mRuntime.mMaterialManager.CreateMaterial(arg0);
+    Description: Creates a material with a texture. If the texture could not be found it is an error texture
+    CallingConvention: Generic
+
+  - Name: CreateMaterial
+    ReturnType: Material
+    CppReturnType: CE::Renderer::Resources::MaterialHandle
+    Signature: ""
+    Namespace: CE::Graphics::Materials
+    Function: |
+      return mRuntime.mMaterialManager.CreateMaterial();
+    Description: Creates a material without the need for a texture
+    CallingConvention: Generic
   
   - Name: DestroyMaterial
     ReturnType: void
@@ -76,7 +89,34 @@ ASClassFunctions:
     Namespace: CE::Graphics::Materials
     Function: |
       mRuntime.mMaterialManager.SetShader(arg0, arg1);
+
+  - Name: SetMaterialEmissionColour
+    ReturnType: bool
+    Signature: const Material& in material, const Colour& in colour
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Colour&
+    Namespace: CE::Graphics::Materials
+    CppMethod: SetEmissionColour
+    Class: mMaterialManager
+    Description: Sets the colour of the emission. Returns false on error.
   
+  - Name: SetMaterialEmissionStrength
+    ReturnType: bool
+    Signature: const Material& in material, const float strength
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const float
+    Namespace: CE::Graphics::Materials
+    CppMethod: SetEmissionStrength
+    Class: mMaterialManager
+    Description: Sets the strength of an emission.
+
+  - Name: SetMaterialEmissionTexture
+    ReturnType: bool
+    Signature: const Material& in material, const Texture& in texture
+    CppSignature: const CE::Renderer::Resources::MaterialHandle&, const CE::Renderer::Resources::TextureHandle&
+    Namespace: CE::Graphics::Materials
+    Class: mMaterialManager
+    CppMethod: SetEmissionTexture
+    Description: Sets the texture of an emission texture. Returns false on a fail (eg an invalid texture handle)
+
   # === Texture functions ===
   - Name: LoadTexture
     ReturnType: CE::Texture

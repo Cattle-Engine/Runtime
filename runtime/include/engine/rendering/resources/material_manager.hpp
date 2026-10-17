@@ -39,6 +39,7 @@ namespace CE::Renderer::Resources {
         MaterialManager(TextureManager& texture_manager, IRenderer& renderer, ShaderManager& shader_manager);
 
         MaterialHandle CreateMaterial(TextureHandle tex_handle);
+        MaterialHandle CreateMaterial();
 
         // Internally used
         Material* GetMaterial(MaterialHandle matt_handle);
@@ -56,6 +57,12 @@ namespace CE::Renderer::Resources {
         void SetNormalTexture(MaterialHandle handle, TextureHandle tex_handle);
         void SetTransparent(MaterialHandle handle, bool transparent);
 
+        // returns false when the material handle could not be found
+        bool SetEmissionColour(MaterialHandle handle, Colour colour);
+        bool SetEmissionStrength(MaterialHandle handle, float strength);
+        // if the texture handle is 0, it sets the emission texture to 0
+        bool SetEmissionTexture(MaterialHandle handle, TextureHandle tex_handle);
+
         // if a shader handle id is zero, this will set the shader to none
         void SetShader(MaterialHandle handle,ShaderHandle shader);
       private:
@@ -65,6 +72,7 @@ namespace CE::Renderer::Resources {
             TextureRef AlbedoTex;
             TextureRef MetallicRoughnessTex;
             TextureRef NormalTex;
+            TextureRef EmissionTex;
             bool IsError;
         };
 

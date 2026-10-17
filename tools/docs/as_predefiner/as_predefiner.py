@@ -10,7 +10,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_IDL_DIRECTORY = ROOT / "source" / "engine" / "scripting" / "bindings"
+DEFAULT_IDL_DIRECTORY = ROOT / "runtime" / "source" / "engine" / "scripting" / "bindings"
 DEFAULT_OUTPUT = ROOT / "as.predefined"
 
 OPERATOR_NAMES = {

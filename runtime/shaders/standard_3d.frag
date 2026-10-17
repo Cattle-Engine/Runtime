@@ -10,6 +10,7 @@ layout(location = 5) in float fragTangentSign;
 layout(set = 2, binding = 0) uniform sampler2D albedoSampler;
 layout(set = 2, binding = 1) uniform sampler2D normalSampler;
 layout(set = 2, binding = 2) uniform sampler2D metallicRoughnessSampler;
+layout(set = 2, binding = 3) uniform sampler2D emissionSampler;
 
 layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
     vec4 tint;
@@ -17,15 +18,16 @@ layout(set = 3, binding = 0, std140) uniform FragmentShaderUserData {
     vec4 misc;
     vec4 customVec4[8];
     ivec4 customInt4[4];
+
     vec4 sunDirectionEnabled;
     vec4 sunColourIntensity;
     vec4 ambientColourIntensity;
     vec4 materialTint;
     vec4 materialProps;
+    vec4 emissionColourStrength;
     vec4 cameraPositionShininess;
     vec4 normalExists;
 };
-
 layout(location = 0) out vec4 outColor;
 
 const float PI = 3.14159265359;
@@ -110,5 +112,12 @@ void main() {
         lighting += (kD * albedo / PI + specular) * radiance * NdotL;
     }
     
+    vec3 emissionSample = texture(emissionSampler, fragUV).rgb;
+    vec3 emission = emissionSample * emissionColourStrength.rgb * emissionColourStrength.a;
+
+    lighting += emission;
+
+    outColor = vec4(lighting, alpha);
+
     outColor = vec4(lighting, alpha);
 }

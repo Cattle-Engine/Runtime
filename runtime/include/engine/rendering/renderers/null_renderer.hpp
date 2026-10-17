@@ -248,6 +248,10 @@ namespace CE::Renderer {
             return nullptr;
         }
 
+        Texture* GetWhiteTexture() override {
+            return nullptr;
+        }
+
         void* GetNativeTextureHandle(Texture* texture) override {
             (void)texture;
             return nullptr;
