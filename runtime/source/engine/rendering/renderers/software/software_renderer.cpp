@@ -153,13 +153,12 @@ namespace CE::Renderer::Software {
         return mRenderer != nullptr && SDL_SetRenderDrawColor(mRenderer, r, g, b, a);
     }
 
-    void Software_Renderer::DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+    void Software_Renderer::DrawRect(float x, float y, float w, float h, Colour colour,
                                      float rotation) {
-        DrawSprite(mWhiteTexture, x, y, w, h, Colour{r, g, b, a}, rotation);
+        DrawSprite(mWhiteTexture, x, y, w, h, colour, rotation);
     }
 
-    void Software_Renderer::DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                                       uint8_t a) {
+    void Software_Renderer::DrawCircle(float cx, float cy, float radius, int segments, Colour colour) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
@@ -179,7 +178,7 @@ namespace CE::Renderer::Software {
 
         SDL_Vertex vertices[3];
         vertices[0].position = centre;
-        vertices[0].color = SDL_FColor{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
+        vertices[0].color = SDL_FColor{colour.r, colour.g, colour.b, colour.a};
         vertices[0].tex_coord = SDL_FPoint{0.0f, 0.0f};
 
         for (int i = 0; i < segmentCount; ++i) {
@@ -199,8 +198,7 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g,
-                                     uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawLine(float x1, float y1, float x2, float y2, float thickness, Colour colour) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
@@ -218,7 +216,7 @@ namespace CE::Renderer::Software {
         const float scaledThickness = std::max(1.0f, thickness * mCamera.zoom);
 
         if (scaledThickness <= 1.0f) {
-            if (SetDrawColour(r, g, b, a)) {
+            if (SetDrawColour(colour.r, colour.g, colour.b, colour.a)) {
                 SDL_RenderLine(mRenderer, p1.x, p1.y, p2.x, p2.y);
             }
             return;
@@ -236,7 +234,7 @@ namespace CE::Renderer::Software {
         const float half = scaledThickness * 0.5f;
 
         SDL_Vertex verts[4];
-        const SDL_FColor color{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
+        const SDL_FColor color{colour.r, colour.g, colour.b, colour.a};
 
         verts[0].position = SDL_FPoint{p1.x + nx * half, p1.y + ny * half};
         verts[1].position = SDL_FPoint{p1.x - nx * half, p1.y - ny * half};
@@ -588,8 +586,7 @@ namespace CE::Renderer::Software {
         }
     }
 
-    void Software_Renderer::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r,
-                                         uint8_t g, uint8_t b, uint8_t a, float) {
+    void Software_Renderer::DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, Colour colour, float) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
@@ -602,7 +599,7 @@ namespace CE::Renderer::Software {
         }
 
         SDL_Vertex verts[3];
-        const SDL_FColor color{r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
+        const SDL_FColor color{colour.r, colour.g, colour.b, colour.a};
 
         verts[0].position = ApplyCamera(x0, y0);
         verts[1].position = ApplyCamera(x1, y1);
@@ -616,8 +613,7 @@ namespace CE::Renderer::Software {
         SDL_RenderGeometry(mRenderer, nullptr, verts, 3, nullptr, 0);
     }
 
-    void Software_Renderer::DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g,
-                                          uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawRectLines(float x, float y, float w, float h, float thickness, Colour colour) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
@@ -625,14 +621,13 @@ namespace CE::Renderer::Software {
         if (!m2DFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside 2D frame!");
         }
-        DrawLine(x, y, x + w, y, thickness, r, g, b, a);
-        DrawLine(x + w, y, x + w, y + h, thickness, r, g, b, a);
-        DrawLine(x + w, y + h, x, y + h, thickness, r, g, b, a);
-        DrawLine(x, y + h, x, y, thickness, r, g, b, a);
+        DrawLine(x, y, x + w, y, thickness, colour);
+        DrawLine(x + w, y, x + w, y + h, thickness, colour);
+        DrawLine(x + w, y + h, x, y + h, thickness, colour);
+        DrawLine(x, y + h, x, y, thickness, colour);
     }
 
-    void Software_Renderer::DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r,
-                                            uint8_t g, uint8_t b, uint8_t a) {
+    void Software_Renderer::DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, Colour colour) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }
@@ -648,7 +643,7 @@ namespace CE::Renderer::Software {
             const float angle1 = angleStep * static_cast<float>(i + 1);
 
             DrawLine(cx + std::cos(angle0) * radius, cy + std::sin(angle0) * radius, cx + std::cos(angle1) * radius,
-                     cy + std::sin(angle1) * radius, thickness, r, g, b, a);
+                     cy + std::sin(angle1) * radius, thickness, colour);
         }
     }
 

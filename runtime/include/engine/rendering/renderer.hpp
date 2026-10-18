@@ -160,6 +160,7 @@ namespace CE::Renderer {
         float emissionStrength = 1.0f;
 
         bool isTransparent = false;
+        bool isDoubleSided = false;
     };
 
     struct DirectionalLight {

@@ -6,6 +6,7 @@ RequiredCppHeaders:
   - "engine/scripting/bindings/stl_vector_binder.hpp"
   - "engine/rendering/resources/model_renderer.hpp"
   - "engine/rendering/renderer.hpp"
+  - <utility>
 
 ASEnums:
   - Name: Camera3DProjectionMode
@@ -195,6 +196,17 @@ ASTypes:
         Body: |
           self->~ASCubemap();
         CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        ReturnType: Cubemap&
+        Signature: Cubemap& in
+        CppSignature: CE::Scripting::Bindings::ASCubemap&
+        Body: |
+          self = std::move(arg0);
+          return self;
+        CallingConvention: Generic
+        IsConst: false
 
     Properties:
       - Type: CubemapFace

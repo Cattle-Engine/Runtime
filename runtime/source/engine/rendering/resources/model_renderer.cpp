@@ -8,11 +8,12 @@ namespace CE::Renderer::Resources {
         : mMaterialManager(mat_manager), mGPUMeshManager(gpu_mesh_man), mRenderer(renderer) {}
 
     void ModelRenderer::RenderModel(const Model& model, const Transform3D& transform) {
-        if (model.Nodes.empty())
+        if (model.Nodes.empty()) {
+            CE_LOG(LogLevel::Error, "Model has no nodes");
             return;
+        }
 
         glm::mat4 rootMatrix = Common::Transform3DToMatrix(transform);
-
         RenderNode(model, model.RootNode, rootMatrix);
     }
 

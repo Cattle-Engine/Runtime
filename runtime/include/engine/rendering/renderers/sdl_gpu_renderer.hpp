@@ -197,6 +197,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         glm::vec4 tint{1.0f};
         glm::vec4 materialProps{1.0f, 0.0f, 0.0f, 0.0f};
         bool isTransparent = false;
+        bool isDoubleSided = false;
         float distanceToCamera = 0.0f;
         // emission stuff
         SDLGPUTexData* emissiontex = nullptr;
@@ -373,7 +374,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         void DestroyDefault3DPipeline();
         SDL_GPUGraphicsPipeline* Create3DGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
                                                           SDL_GPUShader* fragmentShader, bool isSkybox = false,
-                                                          bool isTransparent = false) const;
+                                                          bool isTransparent = false, bool isDoubleSided = false) const;
         bool EnsureDepthTexture(SDL_Window* window);
         bool EnsureSkyboxMesh();
         bool EnsureSkyboxCubemap(const CubeMap& skybox);
@@ -458,6 +459,8 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         SDL_GPU_Renderer_Shader* mCurrentShader = nullptr;
         SDL_GPUGraphicsPipeline* m3DPipeline = nullptr;
         SDL_GPUGraphicsPipeline* mTransparent3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mDoubleSided3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mTransparentDoubleSided3DPipeline = nullptr;
         SDL_GPUGraphicsPipeline* mSkyboxPipeline = nullptr;
         SDL_GPUShader* mDefault3DVertexShader = nullptr;
         SDL_GPUShader* mDefault3DFragmentShader = nullptr;

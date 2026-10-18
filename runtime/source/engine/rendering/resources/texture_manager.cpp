@@ -175,7 +175,9 @@ namespace CE::Renderer::Resources {
     void TextureManager::UnloadAll() {
         for (auto& [name, texinfo] : mTextureCache) {
             if (!texinfo.IsError) {
-                texinfo.State->texture = nullptr;
+                if (texinfo.State) {
+                    texinfo.State->texture = nullptr;
+                }
                 mRenderer.UnloadTex(texinfo.Resource);
             }
         }

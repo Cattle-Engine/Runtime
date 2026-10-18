@@ -368,6 +368,24 @@ def phase2(doc: Doc, w: Writer, opts: Options) -> None:
         w.set_ns(a.get("Namespace", doc.ns))
         w.check(f'engine->RegisterTypedef("{esc(a["Name"])}", "{esc(a["Target"])}")')
 
+    # Runtime bindings may register std::vector wrappers from an ASType's
+    # AfterRegister snippet.  The script compiler needs the same script-side
+    # declarations so properties such as Model.materials type-check correctly.
+    # All object types have been registered before this phase runs.
+    vector_pattern = re.compile(
+        r'RegisterVector\s*<[^>]+>\s*\(\s*&mScriptEngine\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)'
+    )
+    for t in doc.data.get("ASTypes", []):
+        after_register = t.get("AfterRegister", "")
+        for vector_name, element_name in vector_pattern.findall(after_register):
+            type_namespace = t.get("Namespace", doc.ns)
+            if "::" not in element_name and type_namespace:
+                element_name = f"{type_namespace}::{element_name}"
+            w.set_ns("CE::Containers")
+            w.check(
+                f'CE_RegisterStubVector(engine, "{esc(vector_name)}", "{esc(element_name)}")'
+            )
+
 
 def behaviour_decl(type_name: str, behaviour_macro: str, params: str) -> str:
     if behaviour_macro in _FIXED_BEHAVIOUR_DECL:
@@ -491,6 +509,7 @@ def generate_source(docs: list[Doc], header_include: str, func_name: str, opts: 
     out.w("#include <angelscript.h>")
     out.w("#include <cstdint>")
     out.w("#include <cstdio>")
+    out.w("#include <string>")
 
     if opts.real_types:
         headers: list[str] = []
@@ -520,6 +539,19 @@ def generate_source(docs: list[Doc], header_include: str, func_name: str, opts: 
     out.w("namespace")
     out.w("{")
     out.w(f"void {STUB}(asIScriptGeneric*) {{}}")
+    out.w()
+    out.w("bool CE_RegisterStubVector(asIScriptEngine* engine, const char* vectorName, const char* elementName)")
+    out.w("{")
+    out.w("    const int typeResult = engine->RegisterObjectType(vectorName, 64, asOBJ_VALUE | asOBJ_POD);")
+    out.w("    if (typeResult < 0) return false;")
+    out.w("    const std::string element(elementName);")
+    out.w("    const std::string index = element + \" &opIndex(uint)\";")
+    out.w("    const std::string constIndex = \"const \" + element + \" &opIndex(uint) const\";")
+    out.w("    if (engine->RegisterObjectMethod(vectorName, index.c_str(), asFUNCTION(CE_StubGeneric), asCALL_GENERIC) < 0) return false;")
+    out.w("    if (engine->RegisterObjectMethod(vectorName, constIndex.c_str(), asFUNCTION(CE_StubGeneric), asCALL_GENERIC) < 0) return false;")
+    out.w("    if (engine->RegisterObjectMethod(vectorName, \"uint size() const\", asFUNCTION(CE_StubGeneric), asCALL_GENERIC) < 0) return false;")
+    out.w("    return true;")
+    out.w("}")
     out.w()
 
     calls: list[list[str]] = [[] for _ in PHASES]

@@ -56,6 +56,7 @@ namespace CE::Renderer::Resources {
         void SetMetallicRoughnessTexture(MaterialHandle handle, TextureHandle tex_handle);
         void SetNormalTexture(MaterialHandle handle, TextureHandle tex_handle);
         void SetTransparent(MaterialHandle handle, bool transparent);
+        void SetDoubleSided(MaterialHandle handle, bool doubleSided);
 
         // returns false when the material handle could not be found
         bool SetEmissionColour(MaterialHandle handle, Colour colour);

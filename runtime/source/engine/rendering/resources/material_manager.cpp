@@ -64,6 +64,13 @@ namespace CE::Renderer::Resources {
         }
     }
 
+    void MaterialManager::SetDoubleSided(MaterialHandle handle, bool doubleSided) {
+        auto entry = GetMaterialEntry(handle);
+        if (entry) {
+            entry->Resource.isDoubleSided = doubleSided;
+        }
+    }
+
     void MaterialManager::SetMaterialMetallic(MaterialHandle matt_handle, float metallic) {
         auto entry = GetMaterialEntry(matt_handle);
         if (entry) {

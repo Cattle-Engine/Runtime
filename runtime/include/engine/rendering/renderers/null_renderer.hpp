@@ -133,7 +133,7 @@ namespace CE::Renderer {
             float x0, float y0,
             float x1, float y1,
             float x2, float y2,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+            [[maybe_unused]] Colour colour,
             float rotation
         ) override {
             (void)x0;
@@ -142,10 +142,6 @@ namespace CE::Renderer {
             (void)y1;
             (void)x2;
             (void)y2;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
             (void)rotation;
         }
 
@@ -153,17 +149,13 @@ namespace CE::Renderer {
             float x, float y,
             float w, float h,
             float thickness,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            [[maybe_unused]] Colour colour
         ) override {
             (void)x;
             (void)y;
             (void)w;
             (void)h;
             (void)thickness;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
         }
 
         void DrawCircleLines(
@@ -171,33 +163,25 @@ namespace CE::Renderer {
             float radius,
             int segments,
             float thickness,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            [[maybe_unused]] Colour colour
         ) override {
             (void)cx;
             (void)cy;
             (void)radius;
             (void)segments;
             (void)thickness;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
         }
 
         void DrawRect(
             float x, float y,
             float w, float h,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+            [[maybe_unused]] Colour colour,
             float rotation
         ) override {
             (void)x;
             (void)y;
             (void)w;
             (void)h;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
             (void)rotation;
         }
 
@@ -205,33 +189,25 @@ namespace CE::Renderer {
             float cx, float cy,
             float radius,
             int segments,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            [[maybe_unused]] Colour colour
         ) override {
             (void)cx;
             (void)cy;
             (void)radius;
             (void)segments;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
         }
 
         void DrawLine(
             float x1, float y1,
             float x2, float y2,
             float thickness,
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            [[maybe_unused]] Colour colour
         ) override {
             (void)x1;
             (void)y1;
             (void)x2;
             (void)y2;
             (void)thickness;
-            (void)r;
-            (void)g;
-            (void)b;
-            (void)a;
         }
 
         int BeginFrame(SDL_Window* window) override {

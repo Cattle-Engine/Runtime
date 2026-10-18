@@ -27,12 +27,10 @@ namespace CE::Renderer::Software {
 
         void ChangeCameraPos2D(float X, float Y, float zoom) override;
 
-        void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        void DrawRect(float x, float y, float w, float h, Colour colour,
                       float rotation) override;
-        void DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                        uint8_t a) override;
-        void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                      uint8_t a) override;
+        void DrawCircle(float cx, float cy, float radius, int segments, Colour colour) override;
+        void DrawLine(float x1, float y1, float x2, float y2, float thickness, Colour colour) override;
         void SetClearColour(float r, float g, float b, float a) override;
 
         Texture* LoadTex(const char* path) override;
@@ -45,12 +43,9 @@ namespace CE::Renderer::Software {
         void DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                        Colour colour, float rotation, TextureFlip flip = TextureFlip::None) override;
         void UnloadTex(Texture* texture) override;
-        void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g, uint8_t b,
-                          uint8_t a, float rotation) override;
-        void DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                           uint8_t a) override;
-        void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r, uint8_t g,
-                             uint8_t b, uint8_t a) override;
+        void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, Colour colour, float rotation) override;
+        void DrawRectLines(float x, float y, float w, float h, float thickness, Colour colour) override;
+        void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, Colour colour) override;
 
         int BeginFrame(SDL_Window* window) override;
         int EndFrame(SDL_Window* window) override;

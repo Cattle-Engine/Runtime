@@ -10,6 +10,8 @@
 
 #include "ce_common/detail/tracelog.hpp"
 
+#include "engine/rendering/resources/material_manager.hpp"
+
 #include <angelscript.h>
 
 #include <datetime/datetime.h>
@@ -407,11 +409,6 @@ namespace {
 
         engine->SetDefaultNamespace("CE::Containers");
         CEScriptC::RegisterVector<asUINT>(engine, "Uint32Vector", "uint32");
-        CEScriptC::RegisterVector<asUINT>(engine, "MeshVector", "uint32");
-        CEScriptC::RegisterVector<asUINT>(engine, "MaterialVector", "uint32");
-        CEScriptC::RegisterVector<asUINT>(engine, "ModelNodeVector", "uint32");
-        CEScriptC::RegisterVector<asUINT>(engine, "Vertex3DVector", "uint32");
-        CEScriptC::RegisterVector<asUINT>(engine, "AudioDeviceInfoVector", "uint32");
         engine->SetDefaultNamespace("");
 
         engine->SetDefaultNamespace("CE::Input::Keyboard");

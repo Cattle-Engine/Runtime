@@ -34,7 +34,7 @@ namespace CE::Renderer::Resources {
         }
 
         constexpr explicit operator bool() const {
-            return id != 0 && mTexture->texture != nullptr;
+            return id != 0 && mTexture && mTexture->texture != nullptr;
         }
 
         constexpr bool operator==(const TextureHandle& other) const {
@@ -61,7 +61,7 @@ namespace CE::Renderer::Resources {
 
         TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex);
 
-        ~TextureRef(); // Not inline anymore
+        ~TextureRef();
         void Reset();
         Texture* Get() const {
             return mTexture;
@@ -71,7 +71,7 @@ namespace CE::Renderer::Resources {
             return mTexture != nullptr;
         }
 
-        uint64_t GetHandleID() {
+        uint64_t GetHandleID() const {
             return mHandle.id;
         }
 

@@ -156,7 +156,6 @@ namespace CE::Memory {
 
 } // namespace CE::Memory
 
-/*
 void* operator new(std::size_t size) {
     const auto total = sizeof(AllocationHeader) + size;
 
@@ -293,4 +292,3 @@ void operator delete(void* ptr, std::align_val_t alignment, const std::nothrow_t
 void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow_t&) noexcept {
     operator delete[](ptr, alignment);
 }
-    */

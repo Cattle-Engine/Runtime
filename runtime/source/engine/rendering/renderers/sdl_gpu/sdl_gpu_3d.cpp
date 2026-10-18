@@ -101,7 +101,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
     SDL_GPUGraphicsPipeline* SDL_GPU_Renderer::Create3DGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
                                                                         SDL_GPUShader* fragmentShader, bool isSkybox,
-                                                                        bool isTransparent) const {
+                                                                        bool isTransparent, bool isDoubleSided) const {
         if (!mDevice || !window || !vertexShader || !fragmentShader || mDepthFormat == SDL_GPU_TEXTUREFORMAT_INVALID) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Create3DGraphicsPipeline received invalid input");
             return nullptr;
@@ -170,7 +170,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         pipelineCreateInfo.vertex_input_state.vertex_attributes = attrs;
         pipelineCreateInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-        pipelineCreateInfo.rasterizer_state.cull_mode = isSkybox ? SDL_GPU_CULLMODE_NONE : SDL_GPU_CULLMODE_BACK;
+        pipelineCreateInfo.rasterizer_state.cull_mode = (isSkybox || isDoubleSided) ? SDL_GPU_CULLMODE_NONE
+                                                                                     : SDL_GPU_CULLMODE_BACK;
         pipelineCreateInfo.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
         pipelineCreateInfo.rasterizer_state.enable_depth_clip = true;
         pipelineCreateInfo.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
@@ -487,6 +488,20 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return 10;
         }
 
+        mDoubleSided3DPipeline =
+            Create3DGraphicsPipeline(window, mDefault3DVertexShader, mDefault3DFragmentShader, false, false, true);
+        if (!mDoubleSided3DPipeline) {
+            DestroyDefault3DPipeline();
+            return 10;
+        }
+
+        mTransparentDoubleSided3DPipeline =
+            Create3DGraphicsPipeline(window, mDefault3DVertexShader, mDefault3DFragmentShader, false, true, true);
+        if (!mTransparentDoubleSided3DPipeline) {
+            DestroyDefault3DPipeline();
+            return 10;
+        }
+
         mSkyboxFragmentShader = Utils::LoadShader(mDevice, "skybox_3d.frag", 1, 1, 0, 0, mVFS);
         if (!mSkyboxFragmentShader) {
             DestroyDefault3DPipeline();
@@ -529,6 +544,16 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         if (mTransparent3DPipeline) {
             SDL_ReleaseGPUGraphicsPipeline(mDevice, mTransparent3DPipeline);
             mTransparent3DPipeline = nullptr;
+        }
+
+        if (mDoubleSided3DPipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, mDoubleSided3DPipeline);
+            mDoubleSided3DPipeline = nullptr;
+        }
+
+        if (mTransparentDoubleSided3DPipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(mDevice, mTransparentDoubleSided3DPipeline);
+            mTransparentDoubleSided3DPipeline = nullptr;
         }
 
         if (mSkyboxPipeline) {
@@ -801,6 +826,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         command.tint = ToColourVec4(material.tint);
         command.materialProps = glm::vec4(material.roughness, material.metallic, 0.0f, 0.0f);
         command.isTransparent = material.isTransparent;
+        command.isDoubleSided = material.isDoubleSided;
         command.distanceToCamera = glm::distance(mCamera3DState.position, transform.position);
 
         if (command.shader && command.shader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
@@ -832,25 +858,41 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         auto* normalData =
             material.normal && material.normal->handle ? static_cast<SDLGPUTexData*>(material.normal->handle) : nullptr;
 
-        auto* mrData = material.metallicRoughnessTex && material.metallicRoughnessTex->handle
-                           ? static_cast<SDLGPUTexData*>(material.metallicRoughnessTex->handle)
-                           : nullptr;
+        auto* mrData =
+            material.metallicRoughnessTex && material.metallicRoughnessTex->handle
+                ? static_cast<SDLGPUTexData*>(material.metallicRoughnessTex->handle)
+                : nullptr;
+
+        auto* emissionData =
+            material.emissionTex && material.emissionTex->handle
+                ? static_cast<SDLGPUTexData*>(material.emissionTex->handle)
+                : nullptr;
 
         const glm::mat4 modelMatrix = transform;
         const glm::mat4 normalMatrix = glm::inverseTranspose(modelMatrix);
 
         MeshDrawCommand command{};
         command.mesh = meshData;
-        command.texture = albedoData;   // Slot 0: Albedo
-        command.normaltex = normalData; // Slot 1: Normal
-        command.mrtex = mrData;         // Slot 2: Metallic-Roughness
+        command.texture = albedoData;
+        command.normaltex = normalData;
+        command.mrtex = mrData;
+        command.emissiontex = emissionData;
         command.sampler = albedoData ? albedoData->sampler : mWhiteSampler;
-        command.shader = mCurrentShader;
+
+        SDL_GPU_Renderer_Shader* shader = mCurrentShader;
+        if (material.shader && material.shader->handle) {
+            shader = static_cast<SDL_GPU_Renderer_Shader*>(material.shader->handle);
+        }
+        command.shader = shader;
+
         command.model = modelMatrix;
         command.normalMatrix = normalMatrix;
         command.tint = ToColourVec4(material.tint);
         command.materialProps = glm::vec4(material.roughness, material.metallic, 0.0f, 0.0f);
+        command.emissionColour = ToColourVec4(material.emissionColour);
+        command.emissionStrength = material.emissionStrength;
         command.isTransparent = material.isTransparent;
+        command.isDoubleSided = material.isDoubleSided;
         command.distanceToCamera = glm::distance(mCamera3DState.position, glm::vec3(transform[3]));
 
         if (command.shader && command.shader->Mode != SDL_GPU_Renderer_Shader::PipelineMode::Mode3D) {
@@ -1039,7 +1081,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             if (!command.mesh)
                 return;
 
-            SDL_GPUGraphicsPipeline* activePipeline = isTransparentMode ? mTransparent3DPipeline : m3DPipeline;
+            SDL_GPUGraphicsPipeline* activePipeline = command.isDoubleSided
+                                                        ? (isTransparentMode ? mTransparentDoubleSided3DPipeline
+                                                                             : mDoubleSided3DPipeline)
+                                                        : (isTransparentMode ? mTransparent3DPipeline : m3DPipeline);
             SDL_GPU_Renderer_Shader* activeShader = command.shader;
 
             if (activeShader) {

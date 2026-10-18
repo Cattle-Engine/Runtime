@@ -417,6 +417,10 @@ namespace CE::Assets::Model3DImporter {
 
         mMaterialManager.SetTransparent(material, transparent);
 
+        int twoSided = 0;
+        mat->Get(AI_MATKEY_TWOSIDED, twoSided);
+        mMaterialManager.SetDoubleSided(material, twoSided != 0);
+
         float metallic_factor = 0.0f, roughness_factor = 1.0f;
         mat->Get(AI_MATKEY_METALLIC_FACTOR, metallic_factor);
         mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness_factor);

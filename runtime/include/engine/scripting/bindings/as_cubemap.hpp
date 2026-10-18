@@ -67,6 +67,12 @@ namespace CE::Scripting::Bindings {
             Face Bottom = Face(*this, Faces::Bottom);
             Face Front = Face(*this, Faces::Front);
             Face Back = Face(*this, Faces::Back);
+            
+            ASCubemap(const ASCubemap&) = delete;
+            ASCubemap& operator=(const ASCubemap&) = delete;
+
+            ASCubemap(ASCubemap&&) noexcept = default;
+            ASCubemap& operator=(ASCubemap&&) noexcept = default;
         private:
             CE::Renderer::Resources::TextureManager* mTextureManager = nullptr;
 
@@ -75,6 +81,6 @@ namespace CE::Scripting::Bindings {
             std::array<TexRef, 6> mTextureRefs;
 
             void SetCubemapFace(const TexHandle& handle, Faces face);       
-             std::string FaceToString(Faces face);
+            std::string FaceToString(Faces face);
     };
 }
