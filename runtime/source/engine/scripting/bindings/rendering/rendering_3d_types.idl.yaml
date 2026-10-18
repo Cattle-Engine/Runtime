@@ -72,10 +72,28 @@ ASTypes:
           new(self) CE::Renderer::Resources::Model::Node();
         CallingConvention: CDeclObjLast
 
+      - Type: Construct
+        Signature: const ModelNode& in
+        CppSignature: const CE::Renderer::Resources::Model::Node&
+        Body: |
+          new(self) CE::Renderer::Resources::Model::Node(arg0);
+        CallingConvention: CDeclObjLast
+
       - Type: Destruct
         Body: |
           self->~Node();
         CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        ReturnType: ModelNode&
+        Signature: const ModelNode& in
+        CppSignature: const CE::Renderer::Resources::Model::Node&
+        Body: |
+          self = arg0;
+          return self;
+        CallingConvention: CDeclObjLast
+        IsConst: false
 
     Properties:
       - Type: Mat4
@@ -102,6 +120,13 @@ ASTypes:
           new(self) CE::Renderer::Resources::Model();
         CallingConvention: CDeclObjLast
 
+      - Type: Construct
+        Signature: const Model& in
+        CppSignature: const CE::Renderer::Resources::Model&
+        Body: |
+          new(self) CE::Renderer::Resources::Model(arg0);
+        CallingConvention: CDeclObjLast
+
       - Type: Destruct
         Body: |
           self->~Model();
@@ -109,12 +134,14 @@ ASTypes:
 
     Operators:
       - Operator: "="
-        ReturnType: Model &
-        Signature: "Model & in"
+        ReturnType: Model&
+        Signature: const Model& in
+        CppSignature: const CE::Renderer::Resources::Model&
         Body: |
           self = arg0;
           return self;
         CallingConvention: Generic
+        IsConst: false
 
     Properties:
       - Type: CE::Containers::MeshVector

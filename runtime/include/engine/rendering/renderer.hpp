@@ -70,10 +70,10 @@ namespace CE::Renderer {
     };
 
     struct Colour { // BRITISH SPELLING HEEEEEEEEEHHEHEHE
-        uint8_t r = 255;
-        uint8_t g = 255;
-        uint8_t b = 255;
-        uint8_t a = 255;
+        float r = 1.0f;
+        float g = 1.0f;
+        float b = 1.0f;
+        float a = 1.0f;
 
         static const Colour White;
         static const Colour Black;
@@ -82,11 +82,11 @@ namespace CE::Renderer {
         static const Colour Blue;
     };
 
-    inline const Colour Colour::White{255, 255, 255, 255};
-    inline const Colour Colour::Black{0, 0, 0, 255};
-    inline const Colour Colour::Red{255, 0, 0, 255};
-    inline const Colour Colour::Green{0, 255, 0, 255};
-    inline const Colour Colour::Blue{0, 0, 255, 255};
+    inline const Colour Colour::White{1.0f, 1.0f, 1.0f, 1.0f};
+    inline const Colour Colour::Black{0, 0, 0, 1.0f};
+    inline const Colour Colour::Red{1.0f, 0, 0, 1.0f};
+    inline const Colour Colour::Green{0, 1.0f, 0, 1.0f};
+    inline const Colour Colour::Blue{0, 0, 1.0f, 1.0f};
 
     struct Vector2 {
         int x, y;
@@ -95,7 +95,7 @@ namespace CE::Renderer {
     struct Vertex3D {
         glm::vec3 position{0.0f};
         glm::vec3 normal{0.0f, 1.0f, 0.0f};
-        Colour colour{255, 255, 255, 255};
+        Colour colour{1.0f, 1.0f, 1.0f, 1.0f};
         glm::vec2 uv{0.0f};
         glm::vec3 tangent{1.0f, 0.0f, 0.0f};
         float tangentSign{1.0f}; 
@@ -128,7 +128,7 @@ namespace CE::Renderer {
 
     struct Vertex {
         float x, y, z;
-        uint8_t r, g, b, a;
+        float r, g, b, a;
         float u, v;
     };
 
@@ -153,7 +153,7 @@ namespace CE::Renderer {
         Shader* shader = nullptr;
 
         Colour tint;
-        Colour emissionColour = Colour(0, 0, 0, 255);
+        Colour emissionColour = Colour(0, 0, 0, 1.0f);
 
         float roughness = 1.0f;
         float metallic = 0.0f;
@@ -217,10 +217,10 @@ namespace CE::Renderer {
         virtual void ChangeCameraPos3D(const Transform3D& transform) = 0;
 
         virtual void SetCamera3D(const Camera3D& camera) {
-
             mCamera3DState = camera;
             ChangeCameraPos3D({camera.position, camera.rotation, glm::vec3(1.0f)});
         }
+
         virtual void SetSkyBox(const CubeMap& cubemap) {
             mSkyBoxState = cubemap;
         }
@@ -231,32 +231,74 @@ namespace CE::Renderer {
         virtual void EndMode3D() = 0;
 
         virtual void SetClearColour(float r, float g, float b, float a) = 0;
+        
         virtual Texture* LoadTex(const char* path) = 0;
-        virtual Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
-                                               int pitch = 0, TextureFilter filter = TextureFilter::Linear,
-                                               TextureWrap wrap = TextureWrap::Clamp,
-                                               TextureUploadBatch* batch = nullptr) = 0;
-        virtual void DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
-                             TextureFlip flip = TextureFlip::None) = 0;
-        virtual void DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
-                               Colour colour, float rotation, TextureFlip flip = TextureFlip::None) = 0;
+        virtual Texture* CreateTextureFromData(
+            int width, int height, 
+            const void* pixels, 
+            TextureFormat format,
+            int pitch = 0, 
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp,
+            TextureUploadBatch* batch = nullptr
+        ) = 0;
+        virtual void DrawSprite(
+            Texture* texture, 
+            float x, float y, 
+            float w, float h, 
+            Colour colour, 
+            float rotation,
+            TextureFlip flip = TextureFlip::None
+        ) = 0;
+        virtual void DrawSpriteUV(
+            Texture* tex, 
+            float x, float y, 
+            float w, float h, 
+            float u0, float v0, float u1, float v1,
+            Colour colour, 
+            float rotation, 
+            TextureFlip flip = TextureFlip::None
+        ) = 0;
         virtual void UnloadTex(Texture* texture) = 0;
 
         // TODO: update these to take a Colour, not what ever this is
-        virtual void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, uint8_t r, uint8_t g,
-                                  uint8_t b, uint8_t a, float rotation) = 0;
+        virtual void DrawTriangle(
+            float x0, float y0, 
+            float x1, float y1,
+            float x2, float y2, 
+            Colour colour,
+            float rotation
+        ) = 0;
         // TODO: add suport for rotating this
-        virtual void DrawRectLines(float x, float y, float w, float h, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                                   uint8_t a) = 0;
-        virtual void DrawCircleLines(float cx, float cy, float radius, int segments, float thickness, uint8_t r,
-                                     uint8_t g, uint8_t b, uint8_t a) = 0;
-
-        virtual void DrawRect(float x, float y, float w, float h, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-                              float rotation) = 0;
-        virtual void DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                                uint8_t a) = 0;
-        virtual void DrawLine(float x1, float y1, float x2, float y2, float thickness, uint8_t r, uint8_t g, uint8_t b,
-                              uint8_t a) = 0;
+        virtual void DrawRectLines(
+            float x, float y, 
+            float w, float h, 
+            float thickness, 
+            Colour colour
+        ) = 0;
+        virtual void DrawCircleLines(
+            float cx, float cy, 
+            float radius, 
+            int segments, 
+            float thickness, 
+            Colour colour
+        ) = 0;
+        virtual void DrawRect(
+            float x, float y, 
+            float w, float h, 
+            Colour colour,
+            float rotation
+        ) = 0;
+        virtual void DrawCircle(
+            float cx, float cy, 
+            float radius, int segments, 
+            Colour colour
+        ) = 0;
+        virtual void DrawLine(
+            float x1, float y1, 
+            float x2, float y2, 
+            float thickness, Colour colour
+        ) = 0;
 
         virtual int BeginFrame(SDL_Window* window) = 0;
         virtual int EndFrame(SDL_Window* window) = 0;

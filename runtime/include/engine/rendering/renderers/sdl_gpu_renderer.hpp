@@ -218,7 +218,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         void DrawRect(
             float x, float y, 
             float w, float h, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+            Colour colour,
             float rotation
         ) override;
 
@@ -226,21 +226,21 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
             float x0, float y0, 
             float x1, float y1, 
             float x2, float y2, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a, 
+            Colour colour,
             float rotation
         ) override;
 
         void DrawCircle(
             float cx, float cy, 
             float radius, int segments, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            Colour colour
         ) override;
 
         void DrawLine(
             float x1, float y1, 
             float x2, float y2, 
             float thickness, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            Colour colour
         ) override;
 
         void SetClearColour(float r, float g, float b, float a) override;
@@ -282,13 +282,14 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
             float x, float y, 
             float w, float h, 
             float thickness, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a) override;
+            Colour colour
+        ) override;
 
         void DrawCircleLines(
             float cx, float cy, 
             float radius, int segments, 
             float thickness, 
-            uint8_t r, uint8_t g, uint8_t b, uint8_t a
+            Colour colour
         ) override;
 
         int BeginFrame(SDL_Window* window) override;

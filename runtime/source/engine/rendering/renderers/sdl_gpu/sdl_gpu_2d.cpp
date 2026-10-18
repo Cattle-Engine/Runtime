@@ -90,7 +90,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         for (int i = 0; i < 4; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
-            mMappedTexVerts[base + i] = {px[i], py[i], 0, r, g, b, a, pu[i], pv[i]};
+            mMappedTexVerts[base + i] = {px[i], py[i], 0, colour.r, colour.g, colour.b, colour.a, pu[i], pv[i]};
         }
 
         mMappedTexIndices[mTexIndexCount + 0] = base;
@@ -110,7 +110,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float cx, float cy, 
         float radius, int segments, 
         float thickness, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        Colour colour
     ) {
         if (!mFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -128,13 +128,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
                 cx + (std::cos(a0) * radius), 
                 cy + (std::sin(a0) * radius), 
                 cx + (std::cos(a1) * radius),
-                cy + (std::sin(a1) * radius), thickness, r, g, b, a
+                cy + (std::sin(a1) * radius), thickness, colour
             );
         }
     }
 
-    void SDL_GPU_Renderer::DrawCircle(float cx, float cy, float radius, int segments, uint8_t r, uint8_t g, uint8_t b,
-                                      uint8_t a) {
+    void SDL_GPU_Renderer::DrawCircle(float cx, float cy, float radius, int segments, Colour colour) {
         if (!mFrameActive) {
             if (!mWarnedOutsideFrame) {
                 CE_LOG(LogLevel::Error, "[SDL_GPU renderer] Can't draw outside of draw begin frame!");
@@ -158,7 +157,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         uint16_t centre = (uint16_t)mVertCount;
-        mMappedVerts[centre] = {cx, cy, 0, r, g, b, a, 0.5f, 0.5f};
+        mMappedVerts[centre] = {cx, cy, 0, colour.r, colour.g, colour.b, colour.a, 0.5f, 0.5f};
         mVertCount++;
 
         float step = (float)(2.0 * M_PI) / (float)segments;
@@ -168,7 +167,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             float vy = cy + (std::sin(angle) * radius);
             float u = (std::cos(angle) + 1.0f) * 0.5f;
             float v = (std::sin(angle) + 1.0f) * 0.5f;
-            mMappedVerts[mVertCount + i] = {vx, vy, 0, r, g, b, a, u, v};
+            mMappedVerts[mVertCount + i] = {vx, vy, 0, colour.r, colour.g, colour.b, colour.a, u, v};
         }
 
         for (int i = 0; i < segments; ++i) {
@@ -186,7 +185,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::DrawRect(
         float x, float y, 
         float w, float h, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        Colour colour,
         float rotation
     ) {
         if (!mFrameActive) {
@@ -215,7 +214,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint16_t base = (uint16_t)mVertCount;
         for (int i = 0; i < 4; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
-            mMappedVerts[base + i] = {px[i], py[i], 0, r, g, b, a, 0, 0};
+            mMappedVerts[base + i] = {px[i], py[i], 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
         }
 
         mMappedIndices[mIndexCount++] = base;
@@ -233,7 +232,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float x, float y, 
         float w, float h, 
         float thickness, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        Colour colour
     ) {
         if (!mFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -242,17 +241,17 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             }
             return;
         }
-        DrawLine(x, y, x + w, y, thickness, r, g, b, a);         // top
-        DrawLine(x + w, y, x + w, y + h, thickness, r, g, b, a); // right
-        DrawLine(x + w, y + h, x, y + h, thickness, r, g, b, a); // bottom
-        DrawLine(x, y + h, x, y, thickness, r, g, b, a);         // left
+        DrawLine(x, y, x + w, y, thickness, colour);         // top
+        DrawLine(x + w, y, x + w, y + h, thickness, colour); // right
+        DrawLine(x + w, y + h, x, y + h, thickness, colour); // bottom
+        DrawLine(x, y + h, x, y, thickness, colour);         // left
     }
 
     void SDL_GPU_Renderer::DrawTriangle(
         float x0, float y0, 
         float x1, float y1, 
         float x2, float y2, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a, 
+        Colour colour,
         float rotation
     ) {
         if (!mFrameActive) {
@@ -282,7 +281,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         uint16_t base = (uint16_t)mVertCount;
         for (int i = 0; i < 3; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
-            mMappedVerts[base + i] = {px[i], py[i], 0, r, g, b, a, 0, 0};
+            mMappedVerts[base + i] = {px[i], py[i], 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
         }
 
         mMappedIndices[mIndexCount++] = base;
@@ -298,7 +297,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float x1, float y1, 
         float x2, float y2, 
         float thickness, 
-        uint8_t r, uint8_t g, uint8_t b, uint8_t a
+        Colour colour
     ) {
         if (!mFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -329,10 +328,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         uint16_t base = (uint16_t)mVertCount;
 
-        mMappedVerts[base + 0] = {x1 + nx, y1 + ny, 0, r, g, b, a, 0, 0};
-        mMappedVerts[base + 1] = {x2 + nx, y2 + ny, 0, r, g, b, a, 0, 0};
-        mMappedVerts[base + 2] = {x2 - nx, y2 - ny, 0, r, g, b, a, 0, 0};
-        mMappedVerts[base + 3] = {x1 - nx, y1 - ny, 0, r, g, b, a, 0, 0};
+        mMappedVerts[base + 0] = {x1 + nx, y1 + ny, 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
+        mMappedVerts[base + 1] = {x2 + nx, y2 + ny, 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
+        mMappedVerts[base + 2] = {x2 - nx, y2 - ny, 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
+        mMappedVerts[base + 3] = {x1 - nx, y1 - ny, 0, colour.r, colour.g, colour.b, colour.a, 0, 0};
 
         mMappedIndices[mIndexCount++] = base;
         mMappedIndices[mIndexCount++] = base + 1;
@@ -401,7 +400,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         for (int i = 0; i < 4; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
-            mMappedTexVerts[base + i] = {px[i], py[i], 0, r, g, b, a, pu[i], pv[i]};
+            mMappedTexVerts[base + i] = {px[i], py[i], 0, colour.r, colour.g, colour.b, colour.a, pu[i], pv[i]};
         }
 
         mMappedTexIndices[mTexIndexCount + 0] = base;

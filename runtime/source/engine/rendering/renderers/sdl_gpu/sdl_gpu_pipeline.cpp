@@ -61,7 +61,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[2].buffer_slot = 0;
         attrs[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
         attrs[2].location = 2;
-        attrs[2].offset = (sizeof(float) * 3) + (sizeof(uint8_t) * 4);
+        attrs[2].offset = (sizeof(float) * 3) + (sizeof(float) * 4);
 
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.target_info.num_color_targets = 1;

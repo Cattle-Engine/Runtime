@@ -1,36 +1,3 @@
-okay for the texture manager gonna do this for the texture handle to avoid having to do a unordered map lookup everyframe
-
-```cpp
-struct TextureHandleState {
-    Texture* Texture = nullptr;
-};
-```
-
-TextureHandle owns a shared_ptr to that state and TextureEntry holds the same state. 
-```cpp
-struct TextureEntry {
-    std::shared_ptr<TextureHandleState> State;
-    Texture* Resource = nullptr;
-    uint32_t RefCount = 0;
-    std::string Path;
-    bool IsError = false;
-    bool IsPendingUnload = false;
-};
-```
-on unloading we do this ```entry->State->Texture = nullptr;``` and when the refcount goes to zero we actually unload the texture
-
-
-# Rework user side, use of skyboxes
-Instead of using a dedicated manager just expose cubemap. 
-I will make "ASCubemap" with initialisers like this:
-
-```cpp
-ASCubemap("", "", "", "", "", "") // Six paths to textures, if empty it just ignores 
-ASCubemap(tex1, tex2, tex3, tex4, tex5, tex6) // Take 6 texture handles, if a texutre handle id is 0 the texture in the actual cubemap object is set to nullptr
-ASCubemap() // All textures nullptr
-```
-
-
 # Update system
 
 Okay so due to having the VFS it makes it easy enough to have an update system. I'm thinking of using a seperate file format for updates.
@@ -74,23 +41,29 @@ enum class CEUpdateType : uint8_t {
 
 struct CEUpdate {
     uint8_t UpdateType = 0; // gets casted to an CEUpdateType
-    uint32_t PatchLength = 0;
-    
+    uint64_t PatchOffset = 0;
+};
+
+struct CEUpdatePatchedFileChunk {
+    uint64_t ChunkID;
+    void* Data;
+    uint8_t CompressionType;
+    uint64_t CompressedSize;
+    uint64_t UnCompressedSize;
+    uint32_t Crc32;
+};
+
+struct CEUpdatePatchedFile {
+    std::vector<CEUpdatePatchedFileChunk> Chunks; // Any new chunks added must be monotonic to the existing file chunks
+    uint32_t FileID;
+};
+
+struct CEUpdateReplacedFile {
+    uint32_t FileID;
+    int64_t DataModified;
+    std::vector<CEUpdatePatchedFileChunk> Chunks;
 };
 ```
-
-# How games gonna be ran with CE
-
-For windows, linux and mac (if I ever support) the engine and game shall be split into dis
-```
-ce_runtime.dll
-game.exe
-```
-game.exe loads ce_runtime.dll manually and calls C api functions to load the engine and create an instance.
-At the logical end of the file some core info is (base game data, ce_runtime.dll name as it can be anything) as drum roll please, TDF XD
-
-# Namespace refactor program
-Just a small C++ program that uses clangs libtooling to help with refactoring stuff from 1 namespace to another
 
 # Refactor audio bus system
 Maybe use handles instead of strings for audio buses
