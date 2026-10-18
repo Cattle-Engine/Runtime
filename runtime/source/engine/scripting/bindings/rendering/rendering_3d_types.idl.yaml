@@ -109,10 +109,12 @@ ASTypes:
 
     Operators:
       - Operator: "="
-        ReturnType: Model
+        ReturnType: Model &
         Signature: "Model & in"
         Body: |
-          return self = arg0;
+          self = arg0;
+          return self;
+        CallingConvention: Generic
 
     Properties:
       - Type: CE::Containers::MeshVector
