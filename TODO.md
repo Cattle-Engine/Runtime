@@ -70,6 +70,9 @@ List of bindings to do:
 - [X] Make like a ce-scriptc to make a cebyc
 - [X] Gdb style thing inside the debug window for angelscript. also lets you modify variables
 - [X] AngelScript #define, #ifdef and shish
+- [X] Emission textures
+- [X] HDR rendering
+- [X] Tone mapping
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -116,9 +119,6 @@ export int foo_func() {
 
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
-- [ ] Emission textures
-- [ ] HDR rendering
-- [ ] Tone mapping
 - [ ] Bloom
 - [ ] Make glass materials actually work
 - [ ] Multiple light support
