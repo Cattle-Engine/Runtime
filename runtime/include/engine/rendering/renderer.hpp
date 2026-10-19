@@ -152,7 +152,7 @@ namespace CE::Renderer {
         Texture* emissionTex = nullptr;
         Shader* shader = nullptr;
 
-        Colour tint;
+        Colour tint = Colour(0,0,0,1.0f);
         Colour emissionColour = Colour(0, 0, 0, 1.0f);
 
         float roughness = 1.0f;

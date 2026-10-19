@@ -610,7 +610,7 @@ namespace CE::UI {
         CE::UI::Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Fonts")) {
-
+            static float atlas_zoom = 1.0f;
             auto defaultFont = mFontManager.Debug_GetDefaultFontName();
             ImGui::Text("Default Font: %s", defaultFont.c_str());
 
@@ -631,11 +631,33 @@ namespace CE::UI {
 
             if (tex) {
                 ImGui::Text("Atlas Preview:");
+                ImGui::PushID("AtlasViewer");
+
+                ImGui::SliderFloat("Zoom", &atlas_zoom, 0.25f, 8.0f, "%.2fx");
+
+                if (ImGui::Button("Reset")) {
+                    atlas_zoom = 1.0f;
+                }
+
+                ImGui::PopID();
+                ImGui::SameLine();
+                
                 void* nativeTexture = mRenderer.GetNativeTextureHandle(tex);
+
                 if (nativeTexture) {
-                    ImGui::Image((ImTextureID)(intptr_t)nativeTexture, ImVec2(256, 256));
+                    ImVec2 imageSize(
+                        256.0f * atlas_zoom,
+                        256.0f * atlas_zoom
+                    );
+
+                    ImGui::Image(
+                        (ImTextureID)(intptr_t)nativeTexture,
+                        imageSize
+                    );
                 } else {
-                    ImGui::TextDisabled("Atlas texture is not available for ImGui preview");
+                    ImGui::TextDisabled(
+                        "Atlas texture is not available for ImGui preview"
+                    );
                 }
             } else {
                 ImGui::TextDisabled("No atlas found");

@@ -39,9 +39,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         };
 
         glm::vec4 ToColourVec4(const Colour& colour) {
-            constexpr float kInvByte = 1.0f / 255.0f;
-            return glm::vec4(static_cast<float>(colour.r) * kInvByte, static_cast<float>(colour.g) * kInvByte,
-                             static_cast<float>(colour.b) * kInvByte, static_cast<float>(colour.a) * kInvByte);
+            return glm::vec4(colour.r, colour.g, colour.b, colour.a);
         }
 
         glm::quat ToQuaternion(const glm::vec3& eulerRadians) {

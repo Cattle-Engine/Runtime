@@ -5,7 +5,7 @@ layout(location = 0) in vec2 fragUV;
 layout(set = 2, binding = 0) uniform sampler2D renderTexture;
 layout(location = 0) out vec4 outColor;
 
-const float exposure = 0.4555;
+const float exposure = 0.30;
 
 vec3 ACESFilm(vec3 x) {
     return clamp(

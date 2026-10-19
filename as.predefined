@@ -372,9 +372,9 @@ bool SetMaterialEmissionTexture(const Material& in material, const Texture& in t
 namespace CE::Graphics::Render2D {
 void DrawSprite(const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
 
-void DrawSprite(const Texture& in, float x, float y, const Colour& in, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSprite(const Texture& in, float x, float y, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
 
-void DrawSprite(const Texture& in, float x, float y, const Colour& in);
+void DrawSprite(const Texture& in, float x, float y, const Colour& in tint);
 
 void DrawSprite(const Texture& in, float x, float y);
 
@@ -385,12 +385,6 @@ void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float
 void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1, const Colour& in tint);
 
 void DrawSpriteUV(const Texture& in, float x, float y, float u0, float v0, float u1, float v1);
-
-void DrawCircle(float x, float y, float radius, int segments, const Colour& in);
-
-void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Colour& in);
-
-void DrawLine(float x1, float y1, float x2, float y2, float thickness, const Colour& in);
 
 void Set2DCameraPos(Camera2D& in camera);
 
@@ -438,11 +432,17 @@ void DrawFrame(const AnimationInstance& in);
 }
 
 namespace CE::Graphics::Render2D::Primitves {
-void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Colour& in, float rotation);
+void DrawTriangle(float x0, float y0, float x1, float y1, float x2, float y2, const Colour& in tint, float rotation);
 
-void DrawRectangleLines(float x, float y, float w, float h, float thickness, const Colour& in);
+void DrawRectangleLines(float x, float y, float w, float h, float thickness, const Colour& in tint);
 
-void DrawRectangle(float x, float y, float w, float h, const Colour& in, float rotation);
+void DrawRectangle(float x, float y, float w, float h, const Colour& in tint, float rotation);
+
+void DrawCircle(float x, float y, float radius, int segments, const Colour& in tint);
+
+void DrawCircleLines(float x, float y, float radius, int segments, float thickness, const Colour& in tint);
+
+void DrawLine(float x1, float y1, float x2, float y2, float thickness, const Colour& in tint);
 }
 
 namespace CE::Graphics::Render2D::Text {
@@ -496,7 +496,9 @@ class CubemapFace {
 
 class ModelNode {
     void f();
+    void f(const ModelNode& in);
     void f();
+    ModelNode& opAssign(const ModelNode& in);
     Mat4 Transform;
     CE::Containers::Uint32Vector mesh_indices;
     CE::Containers::Uint32Vector children;
@@ -504,7 +506,10 @@ class ModelNode {
 
 class Model {
     void f();
+    void f(const Model& in);
     void f();
+    void SetAllMeshMaterials(const Material& in);
+    Model& opAssign(const Model& in);
     CE::Containers::MeshVector meshes;
     CE::Containers::MaterialVector materials;
     CE::Containers::Uint32Vector mesh_material_indices;
@@ -516,6 +521,7 @@ class Cubemap {
     void f();
     void f(const Texture& in left, const Texture& in right = NoTexture, const Texture& in top = NoTexture, const Texture& in bottom = NoTexture, const Texture& in front = NoTexture, const Texture& in back = NoTexture);
     void f();
+    Cubemap& opAssign(Cubemap& in);
     CubemapFace right;
     CubemapFace left;
     CubemapFace top;
@@ -677,6 +683,38 @@ void EndMenu();
 bool MenuItem(const string& in label);
 
 bool Checkbox(const string& in label, bool checked);
+
+int InputInt(const string& in label, int value);
+
+float InputFloat(const string& in label, float value);
+
+int SliderInt(const string& in label, int value, int min, int max);
+
+float SliderFloat(const string& in label, float value, float min, float max);
+
+int DragInt(const string& in label, int value, float speed = 1.0f, int min = 0, int max = 0);
+
+float DragFloat(const string& in label, float value, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
+
+bool InputFloat2(const string& in label, float x, float y, float &out outX, float &out outY);
+
+bool InputFloat3(const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ);
+
+bool DragFloat2(const string& in label, float x, float y, float &out outX, float &out outY, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
+
+bool DragFloat3(const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ, float speed = 1.0f, float min = 0.0f, float max = 0.0f);
+
+bool SliderFloat2(const string& in label, float x, float y, float &out outX, float &out outY, float min, float max);
+
+bool SliderFloat3(const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ, float min, float max);
+
+Colour ColourEdit3(const string& in label, Colour colour);
+
+Colour ColourEdit4(const string& in label, Colour colour);
+
+Colour ColourPicker4(const string& in label, Colour colour);
+
+bool ColourButton(const string& in id, Colour colour);
 }
 
 namespace CE::Input::Bindings {

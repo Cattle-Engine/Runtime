@@ -61,7 +61,24 @@ Type: `CE::Containers::Uint32Vector`
 ### Behaviours
 #### Construct
 
+#### Construct
+Signature:
+```angelscript
+const ModelNode& in
+```
+
+
 #### Destruct
+
+### Operators
+#### =
+Return type: `ModelNode&`
+
+Signature:
+```angelscript
+const ModelNode& in
+```
+
 
 
 ## Model
@@ -90,7 +107,34 @@ Type: `uint`
 ### Behaviours
 #### Construct
 
+#### Construct
+Signature:
+```angelscript
+const Model& in
+```
+
+
 #### Destruct
+
+### Methods
+#### SetAllMeshMaterials
+Return type: `void`
+
+Signature:
+```angelscript
+const Material& in
+```
+
+
+### Operators
+#### =
+Return type: `Model&`
+
+Signature:
+```angelscript
+const Model& in
+```
+
 
 
 ## Cubemap
@@ -130,6 +174,16 @@ const Texture& in left, const Texture& in right = NoTexture, const Texture& in t
 
 
 #### Destructor
+
+### Operators
+#### =
+Return type: `Cubemap&`
+
+Signature:
+```angelscript
+Cubemap& in
+```
+
 
 
 ## Camera3D

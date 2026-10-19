@@ -165,6 +165,13 @@ ASTypes:
         CppMember: RootNode
         ASMember: root_node
 
+    Methods:
+      - Name: SetAllMeshMaterials
+        ReturnType: void
+        Signature: "const Material& in"
+        CppFunction: "asMETHOD(CE::Renderer::Resources::Model, SetAllMeshMaterials)"
+        CallingConvention: ThisCall
+
   - Name: Cubemap
     CppType: CE::Scripting::Bindings::ASCubemap
     Flags:

@@ -54,7 +54,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         attrs[0].offset = 0;
 
         attrs[1].buffer_slot = 0;
-        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM;
+        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
         attrs[1].location = 1;
         attrs[1].offset = sizeof(float) * 3;
 

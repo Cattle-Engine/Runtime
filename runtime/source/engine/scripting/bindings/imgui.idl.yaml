@@ -1,4 +1,4 @@
-RegistrationPriority: 100
+RegistrationPriority: 99
 
 ASNamespace: CE::ImGui
 
@@ -230,3 +230,130 @@ ASFunctions:
     CppFunction: CE::Scripting::Bindings::ImGui::Checkbox
     CallingConvention: Generic
     Description: Draws a checkbox from the provided value and returns the updated checked state.
+
+  - Name: InputInt
+    ReturnType: int
+    Signature: const string& in label, int value
+    CppSignature: const std::string&, int
+    CppFunction: CE::Scripting::Bindings::ImGui::InputInt
+    CallingConvention: Generic
+    Description: Draws an integer input field from the provided value and returns the updated value.
+
+  - Name: InputFloat
+    ReturnType: float
+    Signature: const string& in label, float value
+    CppSignature: const std::string&, float
+    CppFunction: CE::Scripting::Bindings::ImGui::InputFloat
+    CallingConvention: Generic
+    Description: Draws a float input field from the provided value and returns the updated value.
+
+  - Name: SliderInt
+    ReturnType: int
+    Signature: const string& in label, int value, int min, int max
+    CppSignature: const std::string&, int, int, int
+    CppFunction: CE::Scripting::Bindings::ImGui::SliderInt
+    CallingConvention: Generic
+    Description: Draws an integer slider clamped to [min, max] and returns the updated value.
+
+  - Name: SliderFloat
+    ReturnType: float
+    Signature: const string& in label, float value, float min, float max
+    CppSignature: const std::string&, float, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::SliderFloat
+    CallingConvention: Generic
+    Description: Draws a float slider clamped to [min, max] and returns the updated value.
+
+  - Name: DragInt
+    ReturnType: int
+    Signature: const string& in label, int value, float speed = 1.0f, int min = 0, int max = 0
+    CppSignature: const std::string&, int, float, int, int
+    CppFunction: CE::Scripting::Bindings::ImGui::DragInt
+    CallingConvention: Generic
+    Description: Draws a draggable integer field and returns the updated value; min >= max means unbounded.
+
+  - Name: DragFloat
+    ReturnType: float
+    Signature: const string& in label, float value, float speed = 1.0f, float min = 0.0f, float max = 0.0f
+    CppSignature: const std::string&, float, float, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::DragFloat
+    CallingConvention: Generic
+    Description: Draws a draggable float field and returns the updated value; min >= max means unbounded.
+
+  - Name: InputFloat2
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float &out outX, float &out outY
+    CppSignature: const std::string&, float, float, float&, float&
+    CppFunction: CE::Scripting::Bindings::ImGui::InputFloat2
+    CallingConvention: Generic
+    Description: Draws a two-component float input; writes the edited values to outX and outY and returns true when changed.
+
+  - Name: InputFloat3
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ
+    CppSignature: const std::string&, float, float, float, float&, float&, float&
+    CppFunction: CE::Scripting::Bindings::ImGui::InputFloat3
+    CallingConvention: Generic
+    Description: Draws a three-component float input; writes the edited values to outX, outY and outZ and returns true when changed.
+
+  - Name: DragFloat2
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float &out outX, float &out outY, float speed = 1.0f, float min = 0.0f, float max = 0.0f
+    CppSignature: const std::string&, float, float, float&, float&, float, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::DragFloat2
+    CallingConvention: Generic
+    Description: Draws a draggable two-component float field; writes the edited values to outX and outY and returns true when changed.
+
+  - Name: DragFloat3
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ, float speed = 1.0f, float min = 0.0f, float max = 0.0f
+    CppSignature: const std::string&, float, float, float, float&, float&, float&, float, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::DragFloat3
+    CallingConvention: Generic
+    Description: Draws a draggable three-component float field; writes the edited values to outX, outY and outZ and returns true when changed.
+
+  - Name: SliderFloat2
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float &out outX, float &out outY, float min, float max
+    CppSignature: const std::string&, float, float, float&, float&, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::SliderFloat2
+    CallingConvention: Generic
+    Description: Draws a two-component float slider clamped to [min, max]; writes the edited values to outX and outY and returns true when changed.
+
+  - Name: SliderFloat3
+    ReturnType: bool
+    Signature: const string& in label, float x, float y, float z, float &out outX, float &out outY, float &out outZ, float min, float max
+    CppSignature: const std::string&, float, float, float, float&, float&, float&, float, float
+    CppFunction: CE::Scripting::Bindings::ImGui::SliderFloat3
+    CallingConvention: Generic
+    Description: Draws a three-component float slider clamped to [min, max]; writes the edited values to outX, outY and outZ and returns true when changed.
+  - Name: ColourEdit3
+    ReturnType: Colour
+    Signature: const string& in label, Colour colour
+    CppSignature: const std::string&, CE::Renderer::Colour
+    CppFunction: CE::Scripting::Bindings::ImGui::ColourEdit3
+    CallingConvention: Generic
+    Description: Draws an RGB colour editor (alpha is preserved) and returns the updated colour.
+
+  - Name: ColourEdit4
+    ReturnType: Colour
+    Signature: const string& in label, Colour colour
+    CppSignature: const std::string&, CE::Renderer::Colour
+    CppFunction: CE::Scripting::Bindings::ImGui::ColourEdit4
+    CallingConvention: Generic
+    Description: Draws an RGBA colour editor and returns the updated colour.
+
+  - Name: ColourPicker4
+    ReturnType: Colour
+    Signature: const string& in label, Colour colour
+    CppSignature: const std::string&, CE::Renderer::Colour
+    CppFunction: CE::Scripting::Bindings::ImGui::ColourPicker4
+    CallingConvention: Generic
+    Description: Draws a full RGBA colour picker and returns the updated colour.
+
+  - Name: ColourButton
+    ReturnType: bool
+    Signature: const string& in id, Colour colour
+    CppSignature: const std::string&, CE::Renderer::Colour
+    CppFunction: CE::Scripting::Bindings::ImGui::ColourButton
+    Description: Draws a small colour swatch and returns true when clicked.
+    CallingConvention: Generic

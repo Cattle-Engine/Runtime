@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <vector>
+#include <algorithm>
+#include <iterator>
 
 #include "engine/rendering/renderer.hpp"
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
@@ -24,6 +26,28 @@ namespace CE::Renderer::Resources {
         std::vector<Node> Nodes;
 
         uint32_t RootNode = 0;
+        
+        void SetAllMeshMaterials(const MaterialHandle& materialHandle) {
+            uint32_t materialIndex = 0;
+
+            for (; materialIndex < Materials.size(); ++materialIndex) {
+                if (Materials[materialIndex] == materialHandle)
+                    break;
+            }
+
+            if (materialIndex == Materials.size()) {
+                Materials.push_back(materialHandle);
+            }
+
+            materialIndex = static_cast<uint32_t>(
+                std::distance(Materials.begin(),
+                            std::find(Materials.begin(), Materials.end(), materialHandle))
+            );
+
+            for (uint32_t& index : MeshMaterialIndices) {
+                index = materialIndex;
+            }
+        }
     };
 
     class ModelRenderer {

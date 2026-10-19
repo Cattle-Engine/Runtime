@@ -83,10 +83,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         uint16_t base = (uint16_t)mTexVertCount;
-        uint8_t r = colour.r;
-        uint8_t g = colour.g;
-        uint8_t b = colour.b;
-        uint8_t a = colour.a;
+        float r = colour.r;
+        float g = colour.g;
+        float b = colour.b;
+        float a = colour.a;
 
         for (int i = 0; i < 4; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
@@ -393,10 +393,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         uint16_t base = (uint16_t)mTexVertCount;
-        uint8_t r = colour.r;
-        uint8_t g = colour.g;
-        uint8_t b = colour.b;
-        uint8_t a = colour.a;
+        float r = colour.r;
+        float g = colour.g;
+        float b = colour.b;
+        float a = colour.a;
 
         for (int i = 0; i < 4; i++) {
             RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
