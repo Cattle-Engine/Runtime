@@ -126,5 +126,10 @@ add_library(ce_runtime_shared SHARED)
 configure_ce_runtime(ce_runtime_shared)
 
 set_target_properties(ce_runtime_shared PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+)
+
+set_target_properties(ce_runtime_shared PROPERTIES
     OUTPUT_NAME ce_runtime
 )

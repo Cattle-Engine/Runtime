@@ -1,0 +1,42 @@
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="/opt/vcpkg:${PATH}"
+
+# System tools, compiler, graphics libraries, and build dependencies.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    curl \
+    zip \
+    unzip \
+    tar \
+    pkg-config \
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-yaml \
+    gdb \
+    autoconf \
+    autoconf-archive \
+    automake \
+    libtool \
+    glslc \
+    libassimp-dev \
+    libglm-dev \
+    libxxhash-dev \
+    libgl1-mesa-dev \
+    libvulkan-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install vcpkg in the image.
+RUN git clone https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}" \
+    && "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+
+WORKDIR /workspace
+
+CMD ["bash"]

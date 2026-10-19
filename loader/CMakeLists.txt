@@ -21,6 +21,11 @@ if(CE_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     )
 endif()
 
+set_target_properties(ce_loader PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+)
+
 target_link_libraries(ce_loader PRIVATE
     ce_runtime_shared
     SDL3::SDL3

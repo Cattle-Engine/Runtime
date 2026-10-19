@@ -21,6 +21,11 @@ if(CE_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     )
 endif()
 
+set_target_properties(cebyc_dump PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+)
+
 target_link_libraries(cebyc_dump PRIVATE
     ce_common
     Angelscript::angelscript

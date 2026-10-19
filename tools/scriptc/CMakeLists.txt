@@ -114,5 +114,10 @@ target_link_libraries(ce_scriptc PRIVATE
 )
 
 set_target_properties(ce_scriptc PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+)
+
+set_target_properties(ce_scriptc PROPERTIES
     OUTPUT_NAME ce_scriptc
 )
