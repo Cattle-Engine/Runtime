@@ -40,6 +40,15 @@ namespace CE {
 
         Common::RendererName2String(msettings.Settings.rendererName, mBackend);
         CE_LOG(LogLevel::Info, "[Engine] Rendererbackend name: {}", msettings.Settings.rendererName);
+
+        const int count = SDL_GetNumVideoDrivers();
+
+        CE_LOG(LogLevel::Info, "Available SDL video drivers: {}", count);
+
+        for (int i = 0; i < count; ++i) {
+            CE_LOG(LogLevel::Info, "SDL video driver [{}]: {}", i, SDL_GetVideoDriver(i));
+        }
+
         if (msettings.Settings.rendererName != "None") {
             if (!SDL_Init(SDL_INIT_VIDEO)) {
                 CE_LOG(LogLevel::Fatal, "[Engine] SDL_Init(SDL_INIT_VIDEO) failed: {}", SDL_GetError());

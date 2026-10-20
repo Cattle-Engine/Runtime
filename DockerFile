@@ -31,6 +31,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxxhash-dev \
     libgl1-mesa-dev \
     libvulkan-dev \
+    libx11-dev \
+    libxext-dev \
+    libxrandr-dev \
+    libxcursor-dev \
+    libxinerama-dev \
+    libxi-dev \
+    libxfixes-dev \
+    libltdl-dev \
+    libxss-dev \
+    libxtst-dev \
+    libxkbcommon-dev \
+    libwayland-dev \
+    wayland-protocols \
     && rm -rf /var/lib/apt/lists/*
 
 # Install vcpkg in the image.
