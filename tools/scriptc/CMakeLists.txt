@@ -24,7 +24,7 @@ endif()
 
 if(NOT DEFINED ANGELSCRIPT_ADDON_SOURCE_DIR)
     set(ANGELSCRIPT_ADDON_SOURCE_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/angelscript"
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include/angelscript"
     )
 endif()
 
