@@ -113,6 +113,43 @@ namespace CE::ACCS {
                 return entry && entry->type == std::type_index(typeid(T));
             }
 
+            template <typename T>
+            T* GetComponent(ActorHandle actorHandle) {
+                static_assert(std::is_base_of_v<IComponent, T>,
+                    "T must inherit from IComponent");
+
+                Actor* actor = GetActor(actorHandle);
+                if (!actor) {
+                    return nullptr;
+                }
+
+                for (ComponentID id : actor->components) {
+                    if (T* component = GetComponent<T>(id)) {
+                        return component;
+                    }
+                }
+
+                return nullptr;
+            }
+
+            template <typename T>
+            const T* GetComponent(ActorHandle actorHandle) const {
+                static_assert(std::is_base_of_v<IComponent, T>,
+                    "T must inherit from IComponent");
+
+                const Actor* actor = GetActor(actorHandle);
+                if (!actor) {
+                    return nullptr;
+                }
+
+                for (ComponentID id : actor->components) {
+                    if (const T* component = GetComponent<T>(id)) {
+                        return component;
+                    }
+                }
+
+                return nullptr;
+            }
         private:
             struct ActorSlot {
                 std::unique_ptr<Actor> actor;
