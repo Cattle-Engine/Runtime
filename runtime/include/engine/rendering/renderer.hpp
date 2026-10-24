@@ -256,7 +256,8 @@ namespace CE::Renderer {
             float w, float h, 
             Colour colour, 
             float rotation,
-            TextureFlip flip = TextureFlip::None
+            TextureFlip flip = TextureFlip::None,
+            glm::vec2 scale = glm::vec2{}
         ) = 0;
         virtual void DrawSpriteUV(
             Texture* tex, 

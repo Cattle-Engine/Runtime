@@ -85,7 +85,8 @@ namespace CE::Renderer {
             float h,
             Colour colour,
             float rotation,
-            TextureFlip flip = TextureFlip::None
+            TextureFlip flip = TextureFlip::None,
+            glm::vec2 = glm::vec2{}
         ) override {
             (void)texture;
             (void)x;

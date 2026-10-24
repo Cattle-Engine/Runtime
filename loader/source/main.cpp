@@ -48,6 +48,7 @@ std::string LoadPath(const std::filesystem::path& base_path) {
 
 int main(int argc, char** argv) {
     ce_engine_arguments_t engine_args{};
+    engine_args.headless = false;
     CE_ParseProgramArguments(argc, argv, &engine_args);
 
     const char* base_path = SDL_GetBasePath();

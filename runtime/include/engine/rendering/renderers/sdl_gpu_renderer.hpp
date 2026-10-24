@@ -263,7 +263,8 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
             float w, float h, 
             Colour colour, 
             float rotation,
-            TextureFlip flip = TextureFlip::None
+            TextureFlip flip = TextureFlip::None,
+            glm::vec2 scale = glm::vec2{}
         ) override;
 
         void DrawSpriteUV(

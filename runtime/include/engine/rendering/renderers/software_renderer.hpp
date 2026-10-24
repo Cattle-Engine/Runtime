@@ -39,7 +39,7 @@ namespace CE::Renderer::Software {
                                        TextureWrap wrap = TextureWrap::Clamp,
                                        TextureUploadBatch* batch = nullptr) override;
         void DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
-                     TextureFlip flip = TextureFlip::None) override;
+                     TextureFlip flip = TextureFlip::None, glm::vec2 = glm::vec2{}) override;
         void DrawSpriteUV(Texture* tex, float x, float y, float w, float h, float u0, float v0, float u1, float v1,
                        Colour colour, float rotation, TextureFlip flip = TextureFlip::None) override;
         void UnloadTex(Texture* texture) override;

@@ -396,7 +396,7 @@ namespace CE::Renderer::Software {
     }
 
     void Software_Renderer::DrawSprite(Texture* texture, float x, float y, float w, float h, Colour colour, float rotation,
-                                    TextureFlip flip) {
+                                    TextureFlip flip, glm::vec2) {
         if (!mFrameActive) {
             CE_LOG(LogLevel::Error, "[Software Renderer] Cannot draw outside the begining of a frame!");
         }

@@ -76,6 +76,7 @@ namespace CE::Renderer::Resources {
     }
 
     TextureHandle TextureManager::Load(std::string path) {
+        CE_LOG(LogLevel::Info, "[Texture Manager] Attempting to load texture: {}", path);
         if (auto it = mPathCache.find(path); it != mPathCache.end()) {
             TextureEntry* entry = GetTextureEntry(it->second);
             if (entry && !entry->IsPendingUnload) {
@@ -85,7 +86,7 @@ namespace CE::Renderer::Resources {
 
         TextureEntry texentry = {};
 
-        if (!mVFS.FileExists(path.c_str())) {
+        if (!mVFS.FileExists(path)) {
             CE_LOG(LogLevel::Error, "[Texture Manager] File doesn't exist: {}", path);
             texentry.Resource = mRenderer.GetErrorTexture();
             texentry.IsError = true;
@@ -113,6 +114,7 @@ namespace CE::Renderer::Resources {
         mTextureCache.emplace(handle, std::move(texentry));
         mPathCache[path] = handle;
 
+        CE_LOG(LogLevel::Info, "[Texture Manager] Loaded texture: {}", path);
         return handle;
     }
 

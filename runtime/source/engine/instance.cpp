@@ -115,6 +115,10 @@ namespace CE {
             mAudioSystem.reset();
         }
 
+        CE_LOG(LogLevel::Info, "[Instance {}] Creating ACCS", mInstanceID);
+        Bootstrap_ACCS();
+        CE_LOG(LogLevel::Info, "[Instance {}], Created ACCS", mInstanceID);
+
         mScriptingManager = std::make_unique<CE::Scripting::Runtime>(
             *mVFS, 
             *mGameInfo, 
@@ -192,7 +196,7 @@ namespace CE {
             case SDL_EVENT_WINDOW_FOCUS_LOST: {
                     auto window_mode = mWindow->GetWindowMode();
                     if (mGameInfo->pauseRenderingWhenFocusLostInWindowedMode && window_mode != Common::Window::WindowMode::Fullscreen && window_mode != Common::Window::WindowMode::Borderless) {
-                        mShouldExit = false;
+                        mShouldRender = false;
                     }
 
                     // Due to it being wasteful on the GPU to render the window when its not even visible
@@ -208,7 +212,7 @@ namespace CE {
                     }
 
                     if (mGameInfo->pauseUpdateWhenFocusLost) {
-                        mShouldRender = false;
+                        mWindowFocus = false;
                     }
 
                     break;
@@ -245,7 +249,7 @@ namespace CE {
         mRenderer->SetClearColour(255, 255, 255, 255);
         mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Logic, mACCS->world);
         mGameStateManager.Emit("Update");
-        if (mShouldExit) {
+        if (mShouldRender) {
             int bfr = mRenderer->BeginFrame(mWindow->GetWindow());
             if (bfr != 0) {
                 return 1;

@@ -5,7 +5,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 
 namespace CE::ACCS::Components {
-    class Sprite2D : IComponent {
+    class Sprite2D : public IComponent {
         public:
             // NOLINTBEGIN
             // stop clang-tidy complaining about name styling

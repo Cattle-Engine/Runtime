@@ -350,7 +350,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         float w, float h, 
         Colour colour, 
         float rotation,
-        TextureFlip flip
+        TextureFlip flip,
+        glm::vec2 scale
     ) {
         if (!mFrameActive) {
             if (!mWarnedOutsideFrame) {
@@ -392,17 +393,23 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             std::swap(pv[1], pv[2]);
         }
 
-        uint16_t base = (uint16_t)mTexVertCount;
-        float r = colour.r;
-        float g = colour.g;
-        float b = colour.b;
-        float a = colour.a;
+        auto base = (uint16_t)mTexVertCount;
 
         for (int i = 0; i < 4; i++) {
-            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
-            mMappedTexVerts[base + i] = {px[i], py[i], 0, colour.r, colour.g, colour.b, colour.a, pu[i], pv[i]};
-        }
+            // Scale relative to the sprite's center.
+            px[i] = cx + (px[i] - cx) * scale.x;
+            py[i] = cy + (py[i] - cy) * scale.y;
 
+            // Rotate the scaled vertex around the same center.
+            RotatePoint(px[i], py[i], cx, cy, sinA, cosA);
+
+            mMappedTexVerts[base + i] = {
+                px[i], py[i], 0,
+                colour.r, colour.g, colour.b, colour.a,
+                pu[i], pv[i]
+            };
+        }
+        
         mMappedTexIndices[mTexIndexCount + 0] = base;
         mMappedTexIndices[mTexIndexCount + 1] = base + 1;
         mMappedTexIndices[mTexIndexCount + 2] = base + 2;

@@ -14,7 +14,7 @@ namespace CE::ACCS {
 
     class SystemManager {
         public:
-            SystemManager(ACCS& accs);
+            SystemManager(ACCS& accs) : mACCS(accs) {}
 
             template<typename T, typename... Args>
             T& RegisterSystem(FrameUpdateType types, Args&&... args) {

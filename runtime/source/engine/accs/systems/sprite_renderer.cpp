@@ -12,7 +12,7 @@ namespace CE::ACCS::Systems {
         if (type != FrameUpdateType::Render2D) return;
 
         accs.world.Each<Components::Sprite2D, Components::Transform>(
-            [this](Components::Transform& transform, Components::Sprite2D& sprite_2d) {
+            [this](Components::Sprite2D& sprite_2d, Components::Transform& transform) {
                 mEntries.push_back({&sprite_2d, &transform.transfrom_2d});
             }
         );
@@ -33,7 +33,8 @@ namespace CE::ACCS::Systems {
                 entry.sprite->texture_height,
                 entry.sprite->colour,
                 entry.transform->rotation,
-                entry.sprite->texture_flip
+                entry.sprite->texture_flip,
+                entry.transform->scale
             );
         }
 
