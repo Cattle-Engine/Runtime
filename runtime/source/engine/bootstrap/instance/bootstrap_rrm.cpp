@@ -5,13 +5,13 @@
 namespace CE {
     int Instance::Bootstrap_RendererResourceManagers() {
         mTextureManager = std::make_unique<CE::Renderer::Resources::TextureManager>(*mVFS, *mRenderer);
-        gFontManager = std::make_unique<CE::Assets::Fonts::FontManager>(*mRenderer, *mVFS, gInstanceID);
+        mFontManager = std::make_unique<CE::Assets::Fonts::FontManager>(*mRenderer, *mVFS, mInstanceID);
 
         mShaderManager = std::make_unique<CE::Renderer::Resources::ShaderManager>(*mVFS, *mRenderer, *mTextureManager);
         mMaterialManager = std::make_unique<CE::Renderer::Resources::MaterialManager>(*mTextureManager, *mRenderer, *mShaderManager);
         mGPUMeshManager = std::make_unique<CE::Renderer::Resources::GPUMeshManager>(*mRenderer, *mMaterialManager);
-        gAnimatedTextureManager =
-            std::make_unique<CE::Assets::Animations::AnimatedTextureManager>(*mVFS, *mRenderer, gInstanceID);
+        mAnimatedTextureManager =
+            std::make_unique<CE::Assets::Animations::AnimatedTextureManager>(*mVFS, *mRenderer, mInstanceID);
         mModelRenderer =
             std::make_unique<CE::Renderer::Resources::ModelRenderer>(*mMaterialManager, *mGPUMeshManager, *mRenderer);
 

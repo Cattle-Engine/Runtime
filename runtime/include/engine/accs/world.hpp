@@ -1,11 +1,15 @@
+
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <typeindex>
 #include <type_traits>
+#include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -16,6 +20,7 @@ namespace CE::ACCS {
     class World {
         public:
             World() = default;
+
             World(const World&) = delete;
             World& operator=(const World&) = delete;
 
@@ -32,19 +37,55 @@ namespace CE::ACCS {
                     throw std::invalid_argument("Invalid actor handle");
                 }
 
-                auto component = std::make_shared<T>(std::forward<Args>(args)...);
+                const std::type_index type(typeid(T));
+
+                if (actor->component_lookup.contains(type)) {
+                    throw std::logic_error(
+                        "Actor already has this component type");
+                }
+
+                auto component = std::make_shared<T>(
+                    std::forward<Args>(args)...);
+
                 ComponentID id = AllocateComponentID();
                 auto& slot = mComponents[id.index];
+
+                bool component_added = false;
+                bool lookup_added = false;
 
                 try {
                     slot.entry.emplace(ComponentEntry{
                         id.generation,
                         actorHandle,
-                        std::type_index(typeid(T)),
+                        type,
                         std::move(component)
                     });
+
                     actor->components.emplace_back(id);
+                    component_added = true;
+
+                    auto result = actor->component_lookup.emplace(type, id);
+                    if (!result.second) {
+                        throw std::logic_error(
+                            "Actor already has this component type");
+                    }
+
+                    lookup_added = true;
                 } catch (...) {
+                    if (lookup_added) {
+                        actor->component_lookup.erase(type);
+                    }
+
+                    if (component_added) {
+                        for (auto it = actor->components.begin();
+                            it != actor->components.end(); ++it) {
+                            if (*it == id) {
+                                actor->components.erase(it);
+                                break;
+                            }
+                        }
+                    }
+
                     slot.entry.reset();
                     ReleaseComponentID(id);
                     throw;
@@ -59,7 +100,9 @@ namespace CE::ACCS {
                     "T must inherit from IComponent");
 
                 ComponentEntry* entry = GetComponentEntry(id);
-                if (!entry || entry->type != std::type_index(typeid(T))) {
+
+                if (!entry ||
+                    entry->type != std::type_index(typeid(T))) {
                     return nullptr;
                 }
 
@@ -72,7 +115,9 @@ namespace CE::ACCS {
                     "T must inherit from IComponent");
 
                 const ComponentEntry* entry = GetComponentEntry(id);
-                if (!entry || entry->type != std::type_index(typeid(T))) {
+
+                if (!entry ||
+                    entry->type != std::type_index(typeid(T))) {
                     return nullptr;
                 }
 
@@ -85,13 +130,18 @@ namespace CE::ACCS {
 
             bool RemoveComponent(ComponentID id) {
                 ComponentEntry* entry = GetComponentEntry(id);
+
                 if (!entry) {
                     return false;
                 }
 
                 Actor* actor = GetActor(entry->owner);
+
                 if (actor) {
-                    for (auto it = actor->components.begin(); it != actor->components.end(); ++it) {
+                    actor->component_lookup.erase(entry->type);
+
+                    for (auto it = actor->components.begin();
+                        it != actor->components.end(); ++it) {
                         if (*it == id) {
                             actor->components.erase(it);
                             break;
@@ -101,6 +151,7 @@ namespace CE::ACCS {
 
                 mComponents[id.index].entry.reset();
                 ReleaseComponentID(id);
+
                 return true;
             }
 
@@ -110,7 +161,9 @@ namespace CE::ACCS {
                     "T must inherit from IComponent");
 
                 const ComponentEntry* entry = GetComponentEntry(id);
-                return entry && entry->type == std::type_index(typeid(T));
+
+                return entry &&
+                    entry->type == std::type_index(typeid(T));
             }
 
             template <typename T>
@@ -119,17 +172,8 @@ namespace CE::ACCS {
                     "T must inherit from IComponent");
 
                 Actor* actor = GetActor(actorHandle);
-                if (!actor) {
-                    return nullptr;
-                }
 
-                for (ComponentID id : actor->components) {
-                    if (T* component = GetComponent<T>(id)) {
-                        return component;
-                    }
-                }
-
-                return nullptr;
+                return actor ? GetComponentFromActor<T>(*actor) : nullptr;
             }
 
             template <typename T>
@@ -138,18 +182,96 @@ namespace CE::ACCS {
                     "T must inherit from IComponent");
 
                 const Actor* actor = GetActor(actorHandle);
-                if (!actor) {
-                    return nullptr;
-                }
 
-                for (ComponentID id : actor->components) {
-                    if (const T* component = GetComponent<T>(id)) {
-                        return component;
-                    }
-                }
-
-                return nullptr;
+                return actor ? GetComponentFromActor<T>(*actor) : nullptr;
             }
+
+            template <typename T>
+            bool HasComponent(ActorHandle actorHandle) const {
+                return GetComponent<T>(actorHandle) != nullptr;
+            }
+
+            // Iterates over every actor that has all requested components.
+            // Components are passed to the callback in template argument order.
+            template <typename... Components, typename Func>
+            void Each(Func&& func) {
+                static_assert(sizeof...(Components) > 0,
+                    "At least one component type is required");
+
+                static_assert(
+                    (std::is_base_of_v<IComponent, Components> && ...),
+                    "All types must inherit from IComponent");
+
+                for (auto& slot : mActorSlots) {
+                    if (!slot.actor) {
+                        continue;
+                    }
+
+                    Actor& actor = *slot.actor;
+
+                    auto components =
+                        std::tuple<Components*...>{
+                            GetComponentFromActor<Components>(actor)...
+                        };
+
+                    const bool matches = std::apply(
+                        [](auto*... ptrs) {
+                            return ((ptrs != nullptr) && ...);
+                        },
+                        components);
+
+                    if (!matches) {
+                        continue;
+                    }
+
+                    std::apply(
+                        [&func](auto*... ptrs) {
+                            std::invoke(func, *ptrs...);
+                        },
+                        components);
+                }
+            }
+
+            // Const iteration provides read-only component access.
+            template <typename... Components, typename Func>
+            void Each(Func&& func) const {
+                static_assert(sizeof...(Components) > 0,
+                    "At least one component type is required");
+
+                static_assert(
+                    (std::is_base_of_v<IComponent, Components> && ...),
+                    "All types must inherit from IComponent");
+
+                for (const auto& slot : mActorSlots) {
+                    if (!slot.actor) {
+                        continue;
+                    }
+
+                    const Actor& actor = *slot.actor;
+
+                    auto components =
+                        std::tuple<const Components*...>{
+                            GetComponentFromActor<Components>(actor)...
+                        };
+
+                    const bool matches = std::apply(
+                        [](auto*... ptrs) {
+                            return ((ptrs != nullptr) && ...);
+                        },
+                        components);
+
+                    if (!matches) {
+                        continue;
+                    }
+
+                    std::apply(
+                        [&func](auto*... ptrs) {
+                            std::invoke(func, *ptrs...);
+                        },
+                        components);
+                }
+            }
+
         private:
             struct ActorSlot {
                 std::unique_ptr<Actor> actor;
@@ -182,7 +304,10 @@ namespace CE::ACCS {
                 }
 
                 auto& slot = mComponents[id.index];
-                if (!slot.entry || slot.generation != id.generation) {
+
+                if (!slot.entry ||
+                    slot.generation != id.generation ||
+                    slot.entry->generation != id.generation) {
                     return nullptr;
                 }
 
@@ -195,11 +320,38 @@ namespace CE::ACCS {
                 }
 
                 const auto& slot = mComponents[id.index];
-                if (!slot.entry || slot.generation != id.generation) {
+
+                if (!slot.entry ||
+                    slot.generation != id.generation ||
+                    slot.entry->generation != id.generation) {
                     return nullptr;
                 }
 
                 return &*slot.entry;
+            }
+
+            template <typename T>
+            T* GetComponentFromActor(Actor& actor) {
+                const auto it = actor.component_lookup.find(
+                    std::type_index(typeid(T)));
+
+                if (it == actor.component_lookup.end()) {
+                    return nullptr;
+                }
+
+                return GetComponent<T>(it->second);
+            }
+
+            template <typename T>
+            const T* GetComponentFromActor(const Actor& actor) const {
+                const auto it = actor.component_lookup.find(
+                    std::type_index(typeid(T)));
+
+                if (it == actor.component_lookup.end()) {
+                    return nullptr;
+                }
+
+                return GetComponent<T>(it->second);
             }
 
             std::vector<ActorSlot> mActorSlots;

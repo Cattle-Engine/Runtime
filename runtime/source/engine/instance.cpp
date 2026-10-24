@@ -8,6 +8,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 
+#include "engine/accs/system.hpp"
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/fs/os_fs/directory_file_provider.hpp"
@@ -25,91 +26,91 @@
 namespace CE {
     Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
                        EngineArguements args)
-        : gGameStateManager(gEventBus) {
-        gProgramArguments = args;
+        : mGameStateManager(mEventBus) {
+        mProgramArguments = args;
         GLOBALINSTANCESCOUNTER++;
-        gInstanceID = GLOBALINSTANCESCOUNTER;
-        gDebug = debugmode;
-        gPerformanceFrequency = SDL_GetPerformanceFrequency();
-        gLastFrameCounter = SDL_GetPerformanceCounter();
+        mInstanceID = GLOBALINSTANCESCOUNTER;
+        mDebug = debugmode;
+        mPerformanceFrequency = SDL_GetPerformanceFrequency();
+        mLastFrameCounter = SDL_GetPerformanceCounter();
 
         mVFS = std::make_unique<CE::Common::FS::VFS::VFS>();
         mGameInfo = std::make_unique<CE::GameInfo>();
 
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Setting up game data", gInstanceID);
-        int gds_return = Bootstrap::Init_GameData(mVFS, data_file_path, gDebug);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Setting up game data", mInstanceID);
+        int gds_return = Bootstrap::Init_GameData(mVFS, data_file_path, mDebug);
         if (gds_return != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Gamedata mount returned with code {}", gInstanceID, gds_return));
+                std::format("[Instance {}] Gamedata mount returned with code {}", mInstanceID, gds_return));
         }
 
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating game info", gInstanceID);
-        int gis_return = Bootstrap::Init_GameInfo(mVFS, mGameInfo, gDebug); 
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating game info", mInstanceID);
+        int gis_return = Bootstrap::Init_GameInfo(mVFS, mGameInfo, mDebug); 
         if (gis_return != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to get gameinfo with code: {}", gInstanceID, gis_return));
+                std::format("[Instance {}] Failed to get gameinfo with code: {}", mInstanceID, gis_return));
         }
         mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/config", 100,
                                                                        Platforms::GetConfigPath(mGameInfo->gameNameString));
 
-        mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, gInstanceID);
+        mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, mInstanceID);
         mSettingsManager->SetInstance(*this);
 
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", mInstanceID);
         int vis = Bootstrap_Video(gpudevice);
 
         if (vis != 0) {
-            throw std::runtime_error(std::format("[Instance {}] Video setup returned with: {}", gInstanceID, vis));
+            throw std::runtime_error(std::format("[Instance {}] Video setup returned with: {}", mInstanceID, vis));
         }
 
         mRenderer->SetVSync(mSettingsManager->Settings.enableVSync);
-        gInstanceWindowID = SDL_GetWindowID(mWindow->GetWindow());
+        mInstanceWindowID = SDL_GetWindowID(mWindow->GetWindow());
         if (!mGameInfo->windowIcon.empty()) {
             mWindow->SetWindowIcon(mGameInfo->windowIcon);
         }
 
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating renderer resource managers", mInstanceID);
         int brrms = this->Bootstrap_RendererResourceManagers();
         if (brrms != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to init renderer resource managers: {}", gInstanceID, brrms));
+                std::format("[Instance {}] Failed to init renderer resource managers: {}", mInstanceID, brrms));
         }
 
         int aiam = this->Bootstrap_AssetImportersAndManagers();
         if (aiam != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to init asset importers and managers {}", gInstanceID, aiam));
+                std::format("[Instance {}] Failed to init asset importers and managers {}", mInstanceID, aiam));
         }
 
         int bootstrap_input_return = Bootstrap_InputManagers();
         if (bootstrap_input_return != 0) {
             throw std::runtime_error(
-                std::format("[Instance {}] Failed to init input managers", gInstanceID)
+                std::format("[Instance {}] Failed to init input managers", mInstanceID)
             );
         }
 
         try {
             if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-                CE_LOG(LogLevel::Error, "[Instance {}] Failed to init SDL audio: {}", gInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Error, "[Instance {}] Failed to init SDL audio: {}", mInstanceID, SDL_GetError());
                 throw std::runtime_error("Failed to init SDL audio");
             }
 
-            CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", gInstanceID);
+            CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", mInstanceID);
             
             SDL_AudioDeviceID audio_device_id = Core::Audio::AudioSystem::GetAudioDeviceID(mSettingsManager->Settings.audioDeviceName);
             mAudioSystem = std::make_unique<CE::Core::Audio::AudioSystem>(
                 *mVFS, 
-                gInstanceID, 
+                mInstanceID, 
                 static_cast<uint32_t>(audio_device_id), 
                 Core::Audio::AudioSystem::IsAudioDeviceStereo(audio_device_id)
             );
 
-            mAudioManager = std::make_unique<CE::Audio::Resources::AudioManager>(*mAudioSystem, *mVFS, gInstanceID);
+            mAudioManager = std::make_unique<CE::Audio::Resources::AudioManager>(*mAudioSystem, *mVFS, mInstanceID);
             mAudioManager->SetMasterVolume(mSettingsManager->Settings.masterVolume);
             mAudioManager->SetMusicVolume(mSettingsManager->Settings.musicVolume);
             mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
         } catch (const std::exception& e) {
-            CE_LOG(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", gInstanceID, e.what());
+            CE_LOG(CE::LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", mInstanceID, e.what());
             mAudioManager.reset();
             mAudioSystem.reset();
         }
@@ -123,33 +124,33 @@ namespace CE {
             *mModelRenderer,
             *mTextureManager, 
             *mShaderManager, 
-            *gFontManager, 
-            *g3DModelImporter,
+            *mFontManager, 
+            *m3DModelImporter,
             *mGPUMeshManager, 
             *mMaterialManager, 
-            *gAnimatedTextureManager, 
+            *mAnimatedTextureManager, 
             *mKeyboardManger,
             *mMouseManger, 
             *mTextInputManager,
             *mInputBindingManager, 
             *mRendererResourcesNameRegistry, 
-            gProgramArguments.OutputDebugASInfo,
-            gProgramArguments.OutputDebugASInfoPath, 
+            mProgramArguments.OutputDebugASInfo,
+            mProgramArguments.OutputDebugASInfoPath, 
             *mWindow,
-            gGameStateManager,
+            mGameStateManager,
             mAudioManager.get(),
             mAudioSystem.get()
         );
 
         if (!mScriptingManager->Init()) {
             ShowError(mScriptingManager->GetLastError());
-            throw std::runtime_error(std::format("[Instance {}] AngelScript initialization failed: {}", gInstanceID,
+            throw std::runtime_error(std::format("[Instance {}] AngelScript initialization failed: {}", mInstanceID,
                                                  mScriptingManager->GetLastError()));
         }
 
         if (!mScriptingManager->RunStartup()) {
             ShowError(mScriptingManager->GetLastError());
-            throw std::runtime_error(std::format("[Instance {}] AngelScript startup failed: {}", gInstanceID,
+            throw std::runtime_error(std::format("[Instance {}] AngelScript startup failed: {}", mInstanceID,
                                                  mScriptingManager->GetLastError()));
         }
 
@@ -158,19 +159,19 @@ namespace CE {
         #endif
 
 
-        gDebugWindow = std::make_unique<UI::DebugWindow>(
-            *mRenderer, *mTextureManager, *mShaderManager, *gFontManager, *mGameInfo, *mSettingsManager,
+        mDebugWindow = std::make_unique<UI::DebugWindow>(
+            *mRenderer, *mTextureManager, *mShaderManager, *mFontManager, *mGameInfo, *mSettingsManager,
             mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get(), mASDebuggerWindow.get());
 
-        gWindowFocus = true;
+        mWindowFocus = true;
     }
 
     bool Instance::ShouldExit() {
-        return gShouldExit;
+        return mShouldExit;
     }
 
     int Instance::Update() {
-        if (gShouldExit)
+        if (mShouldExit)
             return 1;
 
         const Uint64 frame_start_counter = SDL_GetPerformanceCounter();
@@ -179,35 +180,35 @@ namespace CE {
         mMouseManger->Update();
         mTextInputManager->Update();
         CE::Scripting::Bindings::ASCubemap::SetDefaultTextureManager(*mTextureManager);
-        auto indices = CE::SDL_Events::GetWindowEventIndices(gInstanceWindowID);
+        auto indices = CE::SDL_Events::GetWindowEventIndices(mInstanceWindowID);
 
         for (size_t i : indices) {
             const SDL_Event& e = CE::SDL_Events::gEvents[i];
 
             switch (e.type) {
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                gShouldExit = true;
+                mShouldExit = true;
                 break;
             case SDL_EVENT_WINDOW_FOCUS_LOST: {
                     auto window_mode = mWindow->GetWindowMode();
                     if (mGameInfo->pauseRenderingWhenFocusLostInWindowedMode && window_mode != Common::Window::WindowMode::Fullscreen && window_mode != Common::Window::WindowMode::Borderless) {
-                        gShouldRender = false;
+                        mShouldExit = false;
                     }
 
                     // Due to it being wasteful on the GPU to render the window when its not even visible
                     // and on windows the swapchain texture returns nullptr renderering is paused
                     if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                        gShouldRender = false;
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
+                        mShouldRender = false;
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
                     } else if (window_mode == Common::Window::WindowMode::Borderless) {
-                        gShouldRender = false;
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_BORDERLESS");
+                        mShouldRender = false;
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_BORDERLESS");
                     } else {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
                     }
 
                     if (mGameInfo->pauseUpdateWhenFocusLost) {
-                        gWindowFocus = false;
+                        mShouldRender = false;
                     }
 
                     break;
@@ -215,137 +216,141 @@ namespace CE {
             case SDL_EVENT_WINDOW_FOCUS_GAINED: {
                     auto window_mode = mWindow->GetWindowMode();
                     if (mGameInfo->pauseUpdateWhenFocusLost) {
-                        gWindowFocus = true;
+                        mWindowFocus = true;
                     }
-                    gShouldRender = true;
+                    mShouldRender = true;
                     if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
                     } else if (window_mode == Common::Window::WindowMode::Borderless) {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
                     } else {
-                        gGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
+                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
                     }
                     break;
                 }
             }
         }
 
-        if (gPendingSettingsReload) {
+        if (mPendingSettingsReload) {
             ApplySettingsReload();
-            gPendingSettingsReload = false;
+            mPendingSettingsReload = false;
         }
 
-        if (!gWindowFocus) {
-            gLastFrameCounter = SDL_GetPerformanceCounter();
-            gDeltaTime = 0.0f;
+        if (!mWindowFocus) {
+            mLastFrameCounter = SDL_GetPerformanceCounter();
+            mDeltaTime = 0.0f;
             return 0;
         }
 
         mRenderer->SetClearColour(255, 255, 255, 255);
-        gGameStateManager.Emit("Update");
-        if (gShouldRender) {
+        mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Logic, mACCS->world);
+        mGameStateManager.Emit("Update");
+        if (mShouldExit) {
             int bfr = mRenderer->BeginFrame(mWindow->GetWindow());
             if (bfr != 0) {
                 return 1;
             }
             mRenderer->BeginMode3D();
-            gGameStateManager.Emit("Draw3D");
+            mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Render3D, mACCS->world);
+            mGameStateManager.Emit("Draw3D");
             mRenderer->EndMode3D();
 
             mRenderer->BeginMode2D();
-            gGameStateManager.Emit("Draw2D");
+            mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Render2D, mACCS->world);
+            mGameStateManager.Emit("Draw2D");
             if (!mScriptingManager->RunUpdate()) {
                 ShowError(mScriptingManager->GetLastError());
-                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", gInstanceID);
-                gShouldExit = true;
+                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", mInstanceID);
+                mShouldExit = true;
                 return 1;
             }
-            gAnimatedTextureManager->Render();
+            mAnimatedTextureManager->Render();
             mRenderer->EndMode2D();
 
             mRenderer->ImGuiStartFrame();
-            gDebugWindow->Draw();
+            mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::ImGui, mACCS->world);
+            mDebugWindow->Draw();
             if (mASDebuggerWindow) {
                 mASDebuggerWindow->DrawWindow();
             }
 
             if (!mScriptingManager->RunImGui()) {
                 ShowError(mScriptingManager->GetLastError());
-                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript ImGui update failed, shutting down instance", gInstanceID);
-                gShouldExit = true;
+                CE_LOG(LogLevel::Error, "[Instance {}] AngelScript ImGui update failed, shutting down instance", mInstanceID);
+                mShouldExit = true;
                 return 1;
             }
 
-            gGameStateManager.Emit("DrawImgui");
+            mGameStateManager.Emit("DrawImgui");
 
             mRenderer->ImGuiEndFrame(mWindow->GetWindow());
 
             mRenderer->EndFrame(mWindow->GetWindow());
-            gFontManager->Update();
+            mFontManager->Update();
         }
 
         Uint64 frame_end_counter = SDL_GetPerformanceCounter();
-        gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                     static_cast<float>(gPerformanceFrequency) * 1000.0f;
+        mFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
+                     static_cast<float>(mPerformanceFrequency) * 1000.0f;
 
         if (mSettingsManager->Settings.maxFPS > 0) {
             const float target_frame_time_ms = 1000.0f / static_cast<float>(mSettingsManager->Settings.maxFPS);
 
-            if (gFrameTime < target_frame_time_ms) {
-                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - gFrameTime) * 1000000.0f));
+            if (mFrameTime < target_frame_time_ms) {
+                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - mFrameTime) * 1000000.0f));
 
                 frame_end_counter = SDL_GetPerformanceCounter();
-                gFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                             static_cast<float>(gPerformanceFrequency) * 1000.0f;
+                mFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
+                             static_cast<float>(mPerformanceFrequency) * 1000.0f;
             }
         }
 
-        gDeltaTime =
-            static_cast<float>(frame_end_counter - gLastFrameCounter) / static_cast<float>(gPerformanceFrequency);
+        mDeltaTime =
+            static_cast<float>(frame_end_counter - mLastFrameCounter) / static_cast<float>(mPerformanceFrequency);
 
-        gLastFrameCounter = frame_end_counter;
-        gAnimatedTextureManager->Update(gDeltaTime);
+        mLastFrameCounter = frame_end_counter;
+        mAnimatedTextureManager->Update(mDeltaTime);
         mTextureManager->UnloadPendingDeletions();
         return 0;
     }
 
     int Instance::GetInstanceID() {
-        return gInstanceID;
+        return mInstanceID;
     }
 
     void Instance::SetGameState(const std::string& state) {
-        gGameStateManager.ChangeState(state);
+        mGameStateManager.ChangeState(state);
     }
 
     const std::string& Instance::GetGameState() const {
-        return gGameStateManager.GetState();
+        return mGameStateManager.GetState();
     }
 
     CE::Core::EventBus& Instance::GetEventBus() {
-        return gEventBus;
+        return mEventBus;
     }
 
     CE::Core::GameState::GameStateManager& Instance::GetGameStateManager() {
-        return gGameStateManager;
+        return mGameStateManager;
     }
 
     float Instance::GetDeltaTime() const {
-        return gDeltaTime;
+        return mDeltaTime;
     }
 
     float Instance::GetFrameTime() const {
-        return gFrameTime;
+        return mFrameTime;
     }
 
     int Instance::GetFPS() const {
-        if (gDeltaTime <= 0.0f)
+        if (mDeltaTime <= 0.0f)
             return 0.0f;
-        return 1.0f / gDeltaTime;
+        return 1.0f / mDeltaTime;
     }
 
     void Instance::ReloadSettings() {
-        CE_LOG(LogLevel::Debug, "[Instance {}] ReloadSettings called", gInstanceID);
-        gPendingSettingsReload = true;
+        CE_LOG(LogLevel::Debug, "[Instance {}] ReloadSettings called", mInstanceID);
+        mPendingSettingsReload = true;
     }
 
     void Instance::ApplySettingsReload() {
@@ -366,11 +371,11 @@ namespace CE {
             mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
         }
 
-        gGameStateManager.Emit("CE_SETTINGS_RELOAD");
+        mGameStateManager.Emit("CE_SETTINGS_RELOAD");
     }
 
     void Instance::Exit() {
-        gShouldExit = true;
+        mShouldExit = true;
     }
 
     Instance::~Instance() {
@@ -378,9 +383,9 @@ namespace CE {
         mScriptingManager.reset();
         mAudioManager.reset();
         mAudioSystem.reset();
-        g3DModelImporter.reset();
-        gFontManager.reset();
-        gAnimatedTextureManager.reset();
+        m3DModelImporter.reset();
+        mFontManager.reset();
+        mAnimatedTextureManager.reset();
         mShaderManager.reset();
         mModelRenderer.reset();
         mGPUMeshManager.reset();

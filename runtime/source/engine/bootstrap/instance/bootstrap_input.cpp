@@ -6,11 +6,11 @@
 
 namespace CE {
     int Instance::Bootstrap_InputManagers() {
-        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", gInstanceID);
+        CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", mInstanceID);
         
-        mKeyboardManger = std::make_unique<CE::Input::Keyboard>(gInstanceWindowID);
-        mMouseManger = std::make_unique<CE::Input::Mouse>(gInstanceWindowID);
-        mTextInputManager = std::make_unique<CE::Input::TextInput>(gInstanceWindowID, *mWindow);
+        mKeyboardManger = std::make_unique<CE::Input::Keyboard>(mInstanceWindowID);
+        mMouseManger = std::make_unique<CE::Input::Mouse>(mInstanceWindowID);
+        mTextInputManager = std::make_unique<CE::Input::TextInput>(mInstanceWindowID, *mWindow);
         mInputBindingManager = std::make_unique<CE::Input::Bindings::BindingManager>(*mVFS, *mKeyboardManger, *mMouseManger);
         return 0;
     }

@@ -31,13 +31,13 @@ namespace CE {
         CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
 
         SDL_WindowFlags windowFlags = 0;
-        if (gRendererBackend == RendererBackend::OpenGL)
+        if (mRendererBackend == RendererBackend::OpenGL)
             windowFlags |= SDL_WINDOW_OPENGL;
         if (mGameInfo->resizableWindow)
             windowFlags |= SDL_WINDOW_RESIZABLE;
 
         try {
-            mWindow = std::make_unique<Common::Window>(gGameStateManager,*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
+            mWindow = std::make_unique<Common::Window>(mGameStateManager,*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
         } catch (const std::runtime_error& e) {
             ShowError("Failed to create game window :{");
             return 3;
@@ -55,7 +55,7 @@ namespace CE {
             mWindow->HideWindow(true);
         }
 
-        int rei = mRenderer->Init(mWindow->GetWindow(), gDebug, gpu_device);
+        int rei = mRenderer->Init(mWindow->GetWindow(), mDebug, gpu_device);
         if (rei != 0) {
             return 4 + rei;
         }

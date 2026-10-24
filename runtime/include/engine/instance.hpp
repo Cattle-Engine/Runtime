@@ -28,6 +28,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/window.hpp"
+#include "engine/accs/accs.hpp"
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/angelscript_debugger_window.hpp"
 
@@ -62,10 +63,11 @@ namespace CE {
         void ApplySettingsReload();
 
         // Only to be called at startup!
-        int Bootstrap_RendererResourceManagers();
-        int Bootstrap_InputManagers();
-        int Bootstrap_AssetImportersAndManagers();
-        int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device);
+        int Bootstrap_RendererResourceManagers(); // NOLINT
+        int Bootstrap_InputManagers(); // NOLINT
+        int Bootstrap_AssetImportersAndManagers(); // NOLINT
+        int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device); // NOLINT
+        int Bootstrap_ACCS(); // NOLINT
 
         std::unique_ptr<Common::FS::VFS::VFS> mVFS;
         std::unique_ptr<GameInfo> mGameInfo;
@@ -89,32 +91,34 @@ namespace CE {
         std::unique_ptr<Renderer::Resources::ModelRenderer> mModelRenderer;
         std::unique_ptr<Renderer::Resources::ShaderManager> mShaderManager;
 
-        std::unique_ptr<Assets::Animations::AnimatedTextureManager> gAnimatedTextureManager;
-        std::unique_ptr<Assets::Model3DImporter::ModelImporter> g3DModelImporter;
-        std::unique_ptr<Assets::Fonts::FontManager> gFontManager;
+        std::unique_ptr<Assets::Animations::AnimatedTextureManager> mAnimatedTextureManager;
+        std::unique_ptr<Assets::Model3DImporter::ModelImporter> m3DModelImporter;
+        std::unique_ptr<Assets::Fonts::FontManager> mFontManager;
+
+        std::unique_ptr<ACCS::ACCS> mACCS;
 
         std::unique_ptr<Common::Window> mWindow;
-        RendererBackend gRendererBackend = RendererBackend::None;
-        bool gDebug = false;
-        bool gShouldExit = false;
-        bool gWindowFocus = true;
-        bool gShouldRender = true;
-        bool gPendingSettingsReload = false;
-        float gDeltaTime = 0.0f;
-        float gFrameTime = 0.0f;
-        Uint64 gLastFrameCounter = 0;
-        Uint64 gPerformanceFrequency = 0;
+        RendererBackend mRendererBackend = RendererBackend::None;
+        bool mDebug = false;
+        bool mShouldExit = false;
+        bool mWindowFocus = true;
+        bool mShouldRender = true;
+        bool mPendingSettingsReload = false;
+        float mDeltaTime = 0.0f;
+        float mFrameTime = 0.0f;
+        Uint64 mLastFrameCounter = 0;
+        Uint64 mPerformanceFrequency = 0;
 
         // The id for the instance
-        int gInstanceID;
+        int mInstanceID;
         // The id for the window in the instance, provided by SDL
-        int gInstanceWindowID;
+        int mInstanceWindowID;
 
-        Core::EventBus gEventBus;
-        Core::GameState::GameStateManager gGameStateManager;
-        std::unique_ptr<UI::DebugWindow> gDebugWindow;
+        Core::EventBus mEventBus;
+        Core::GameState::GameStateManager mGameStateManager;
+        std::unique_ptr<UI::DebugWindow> mDebugWindow;
         std::unique_ptr<UI::AngelscriptDebuggerWindow> mASDebuggerWindow;
-        EngineArguements gProgramArguments;
+        EngineArguements mProgramArguments;
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;
