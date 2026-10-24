@@ -35,7 +35,7 @@ These 11 keys are REQUIRED
 | `[Graphics]` | `Window_Height` | Integer | `720` | Initial window height in pixels. |
 | `[Graphics]` | `Window_Title` | String | `My Game` | Window title displayed by the operating system. |
 | `[Graphics]` | `Max_FPS` | Integer | `144` | Maximum frame rate setting. |
-| `[Graphics]` | `Renderer` | String | `Vulkan` | Renderer selection. Supported values depend on the engine. |
+| `[Graphics]` | `Renderer` | String | `Vulkan` | Renderer selection. Vulkan and Software are only supported rn|
 | `[Graphics]` | `Enable_VSync` | Boolean | `true` | Enables or disables vertical synchronization. |
 | `[Graphics]` | `Window_Mode` | Integer | `2` | Window mode: `0` = Fullscreen, `1` = Borderless, `2` = Windowed. |
 | `[Graphics]` | `Resizable_Window` | Boolean | `true` | Allows the user to resize the window. |
