@@ -22,7 +22,6 @@
 #include "engine/settings.hpp"
 #include "engine/ui/debug_window.hpp"
 
-
 namespace CE {
     Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
                        EngineArguements args)
