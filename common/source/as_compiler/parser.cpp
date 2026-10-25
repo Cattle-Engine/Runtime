@@ -667,6 +667,17 @@ namespace CE::Scripting::Impl::Parser {
                 Lexer::Token::TokenType::Identifier,
                 "as the name of " + type_keyword
             ).Value;
+
+            // AngelScript classes may implement one or more interfaces. The
+            // compiler does not need to interpret that list; it only needs to
+            // retain it while lowering the source to AngelScript.
+            if (Current().Type == Lexer::Token::TokenType::Symbol && Current().Value == ":") {
+                while (Current().Type != Lexer::Token::TokenType::OpenBrace &&
+                       Current().Type != Lexer::Token::TokenType::EndOfFile) {
+                    type.BaseTypes.push_back(Current());
+                    Advance();
+                }
+            }
             Expect(
                 Lexer::Token::TokenType::OpenBrace,
                 "to begin " + type_keyword + " '" + type.Name + "'"

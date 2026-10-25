@@ -337,6 +337,10 @@ namespace CE {
         return mGameStateManager;
     }
 
+    ACCS::ACCS& Instance::GetACCS() {
+        return *mACCS;
+    }
+
     float Instance::GetDeltaTime() const {
         return mDeltaTime;
     }

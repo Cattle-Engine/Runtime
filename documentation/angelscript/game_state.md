@@ -1,7 +1,10 @@
 # Description
 The signature required for a function subscribed is: ```const string& in state, const string& in event_name```
 
+
 # CE::GameState
+
+Registration priority: `100`
 
 ## Functions
 ### ChangeState

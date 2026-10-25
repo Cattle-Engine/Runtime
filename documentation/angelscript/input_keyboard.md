@@ -1,5 +1,7 @@
 # CE::Input::Keyboard
 
+Registration priority: `100`
+
 ## Functions
 ### IsKeyRleased
 Return type: `bool`

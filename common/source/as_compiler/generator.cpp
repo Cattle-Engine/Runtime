@@ -515,7 +515,7 @@ namespace CE::Scripting::Impl::Codegen {
             return result + ";\n";
         }
         const auto& type = std::get<AST::ASTType>(declaration.Data);
-        return "class " + symbol->InternalName + " {" +
+        return "class " + symbol->InternalName + JoinTokens(type.BaseTypes) + " {" +
                JoinTokens(RewriteBody(type.Body, nullptr, module_path, name_space)) + "};\n";
     }
 

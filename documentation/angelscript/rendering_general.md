@@ -1,5 +1,7 @@
 # CE::Graphics
 
+Registration priority: `99`
+
 ## Functions
 ### SetClearColour
 Return type: `void`

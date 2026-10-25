@@ -2,7 +2,10 @@
 Fast 64-bit hashing helpers. Use StreamingHasher when a hash is built from multiple
 strings; Finalize returns the hash accumulated so far.
 
+
 # CE::Utils
+
+Registration priority: `100`
 
 ## StreamingHasher
 C++ type: `CE::Utils::StreamingHasher`
@@ -13,8 +16,10 @@ A scoped incremental 64-bit hasher.
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### AddString

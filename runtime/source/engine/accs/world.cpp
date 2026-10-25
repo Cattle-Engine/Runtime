@@ -52,6 +52,72 @@ namespace CE::ACCS {
         return true;
     }
 
+    ComponentID World::AddComponent(
+        ActorHandle actorHandle,
+        ComponentTypeKey type,
+        std::shared_ptr<IComponent> component) {
+        Actor* actor = GetActor(actorHandle);
+        if (!actor) {
+            throw std::invalid_argument("Invalid actor handle");
+        }
+        if (type == nullptr || !component) {
+            throw std::invalid_argument("Component type and instance are required");
+        }
+        if (actor->component_lookup.contains(type)) {
+            throw std::logic_error("Actor already has this component type");
+        }
+
+        ComponentID id = AllocateComponentID();
+        auto& slot = mComponents[id.index];
+        bool component_added = false;
+        bool lookup_added = false;
+
+        try {
+            slot.entry.emplace(ComponentEntry{
+                id.generation,
+                actorHandle,
+                type,
+                std::move(component)
+            });
+            actor->components.emplace_back(id);
+            component_added = true;
+
+            if (!actor->component_lookup.emplace(type, id).second) {
+                throw std::logic_error("Actor already has this component type");
+            }
+            lookup_added = true;
+        } catch (...) {
+            if (lookup_added) {
+                actor->component_lookup.erase(type);
+            }
+            if (component_added) {
+                actor->components.pop_back();
+            }
+            slot.entry.reset();
+            ReleaseComponentID(id);
+            throw;
+        }
+
+        return id;
+    }
+
+    std::vector<ActorHandle> World::GetActors() const {
+        std::vector<ActorHandle> actors;
+        actors.reserve(mActorSlots.size());
+        for (uint32_t index = 0; index < mActorSlots.size(); ++index) {
+            const ActorSlot& slot = mActorSlots[index];
+            if (slot.actor) {
+                actors.push_back({index, slot.generation});
+            }
+        }
+        return actors;
+    }
+
+    std::vector<ComponentID> World::GetComponents(ActorHandle actorHandle) const {
+        const Actor* actor = GetActor(actorHandle);
+        return actor ? actor->components : std::vector<ComponentID>{};
+    }
+
 
     Actor* World::GetActor(ActorHandle handle) {
         if (handle.index >= mActorSlots.size()) {
@@ -64,6 +130,18 @@ namespace CE::ACCS {
             return nullptr;
         }
 
+        return slot.actor.get();
+    }
+
+    const Actor* World::GetActor(ActorHandle handle) const {
+        if (handle.index >= mActorSlots.size()) {
+            return nullptr;
+        }
+
+        const ActorSlot& slot = mActorSlots[handle.index];
+        if (!slot.actor || slot.generation != handle.generation) {
+            return nullptr;
+        }
         return slot.actor.get();
     }
 

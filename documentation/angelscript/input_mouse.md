@@ -1,8 +1,13 @@
 # CE::Input::Mouse
 
+Registration priority: `100`
+
+## CE::Input::Mouse
 ## Enums
 ### MouseButtons
 C++ type: `CE::Input::MouseButtons`
+
+No description given
 
 Values:
 
@@ -14,6 +19,8 @@ Values:
 
 ### MouseVisiblity
 C++ type: `CE::Input::MouseVisibility`
+
+No description given
 
 Values:
 

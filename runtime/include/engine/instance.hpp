@@ -57,6 +57,7 @@ namespace CE {
         const std::string& GetGameState() const;
         Core::EventBus& GetEventBus();
         Core::GameState::GameStateManager& GetGameStateManager();
+        ACCS::ACCS& GetACCS();
         ~Instance();
 
       private:

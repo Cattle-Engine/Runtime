@@ -1,5 +1,7 @@
 # CE::Performance
 
+Registration priority: `100`
+
 ## Functions
 ### GetFPS
 Return type: `int`

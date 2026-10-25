@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 from __future__ import annotations
 
@@ -34,13 +35,56 @@ OPERATOR_NAMES = {
 }
 
 
-def declaration(return_type: str, name: str, signature: str, is_const: bool = False) -> str:
+def declaration(
+    return_type: str,
+    name: str,
+    signature: str,
+    is_const: bool = False,
+) -> str:
     result = f"{return_type} {name}({signature.strip()})"
     return f"{result} const" if is_const else result
 
 
 def namespace_for(item: dict[str, Any], default: str) -> str:
     return str(item.get("Namespace", default))
+
+
+def normalize_signature(signature: str) -> str:
+    """Normalize a raw AngelScript method declaration."""
+    signature = signature.strip()
+    if signature and not signature.endswith(";"):
+        signature += ";"
+    return signature
+
+
+def render_method(method: Any) -> str:
+    """Render an interface method from either a string or a mapping.
+
+    Supported forms:
+        "void Update(float dt, FrameUpdateType phase)"
+        {"Name": "Update", "ReturnType": "void",
+         "Signature": "float dt, FrameUpdateType phase"}
+    """
+    if isinstance(method, str):
+        return normalize_signature(method)
+
+    if not isinstance(method, dict):
+        raise ValueError(
+            f"Interface method must be a string or mapping, got {type(method).__name__}"
+        )
+
+    if "Name" not in method or "ReturnType" not in method:
+        raise ValueError(
+            f"Interface method mappings require Name and ReturnType: {method!r}"
+        )
+
+    result = declaration(
+        str(method["ReturnType"]),
+        str(method["Name"]),
+        str(method.get("Signature", "")),
+        bool(method.get("IsConst", False)),
+    )
+    return result + ";"
 
 
 def type_members(as_type: dict[str, Any]) -> list[str]:
@@ -52,7 +96,9 @@ def type_members(as_type: dict[str, Any]) -> list[str]:
     # Keeping that name matches asIScriptFunction::GetDeclaration(), which is
     # the runtime generator this tool is based on.
     for constructor in as_type.get("Constructors", []):
-        members.append(declaration("void", "f", str(constructor.get("Signature", ""))) + ";")
+        members.append(
+            declaration("void", "f", str(constructor.get("Signature", ""))) + ";"
+        )
 
     for behaviour in as_type.get("Behaviours", []):
         behaviour_type = str(behaviour.get("Type", ""))
@@ -77,7 +123,10 @@ def type_members(as_type: dict[str, Any]) -> list[str]:
         members.append(
             declaration(
                 str(operator["ReturnType"]),
-                OPERATOR_NAMES.get(str(operator["Operator"]), str(operator["Operator"])),
+                OPERATOR_NAMES.get(
+                    str(operator["Operator"]),
+                    str(operator["Operator"]),
+                ),
                 str(operator.get("Signature", "")),
                 bool(operator.get("IsConst", True)),
             )
@@ -90,17 +139,45 @@ def type_members(as_type: dict[str, Any]) -> list[str]:
     return members
 
 
+def render_interface(as_interface: dict[str, Any]) -> str:
+    """Render an AngelScript interface declaration."""
+    name = str(as_interface["Name"])
+    methods = [
+        render_method(method)
+        for method in as_interface.get("Methods", [])
+    ]
+
+    lines = [f"interface {name} {{"]
+    lines.extend(f"    {method}" for method in methods)
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def render_external_function(function: dict[str, Any]) -> str:
+    return (
+        declaration(
+            str(function["ReturnType"]),
+            str(function["Name"]),
+            str(function.get("Signature", "")),
+        )
+        + ";"
+    )
+
+
 def collect_declarations(idl_files: Iterable[Path]) -> dict[str, list[str]]:
-    """Collect predefinition declarations grouped by their AngelScript namespace."""
+    """Collect predefinition declarations grouped by AngelScript namespace."""
     by_namespace: dict[str, list[str]] = defaultdict(list)
 
     for idl_file in sorted(idl_files):
         with idl_file.open(encoding="utf-8") as source:
             data = yaml.safe_load(source) or {}
+
         default_namespace = str(data.get("ASNamespace", ""))
 
         for item in data.get("ASDeclarations", []):
-            by_namespace[namespace_for(item, default_namespace)].append(f"{item['Name']};")
+            by_namespace[namespace_for(item, default_namespace)].append(
+                f"{item['Name']};"
+            )
 
         for item in data.get("ASTypeAliases", []):
             by_namespace[namespace_for(item, default_namespace)].append(
@@ -110,15 +187,29 @@ def collect_declarations(idl_files: Iterable[Path]) -> dict[str, list[str]]:
         for enum in data.get("ASEnums", []):
             values = [str(value) for value in enum.get("Values", [])]
             lines = [f"enum {enum['Name']} {{"]
-            lines.extend(f"    {value}{',' if index + 1 < len(values) else ''}" for index, value in enumerate(values))
+            lines.extend(
+                f"    {value}{',' if index + 1 < len(values) else ''}"
+                for index, value in enumerate(values)
+            )
             lines.append("};")
-            by_namespace[namespace_for(enum, default_namespace)].append("\n".join(lines))
+
+            by_namespace[namespace_for(enum, default_namespace)].append(
+                "\n".join(lines)
+            )
 
         for as_type in data.get("ASTypes", []):
             lines = [f"class {as_type['Name']} {{"]
             lines.extend(f"    {member}" for member in type_members(as_type))
             lines.append("};")
-            by_namespace[namespace_for(as_type, default_namespace)].append("\n".join(lines))
+
+            by_namespace[namespace_for(as_type, default_namespace)].append(
+                "\n".join(lines)
+            )
+
+        for as_interface in data.get("ASInterfaces", []):
+            by_namespace[namespace_for(as_interface, default_namespace)].append(
+                render_interface(as_interface)
+            )
 
         for group_name in ("ASFunctions", "ASClassFunctions"):
             for function in data.get(group_name, []):
@@ -131,6 +222,13 @@ def collect_declarations(idl_files: Iterable[Path]) -> dict[str, list[str]]:
                     + ";"
                 )
 
+        # These are compiler-visible stubs for functions registered elsewhere.
+        # Do not treat them as C++ binding registrations.
+        for function in data.get("ASExternalFunctions", []):
+            by_namespace[
+                namespace_for(function, default_namespace)
+            ].append(render_external_function(function))
+
         for constant in data.get("ASConstants", []):
             by_namespace[namespace_for(constant, default_namespace)].append(
                 f"const {constant['Type']} {constant['Name']};"
@@ -140,7 +238,9 @@ def collect_declarations(idl_files: Iterable[Path]) -> dict[str, list[str]]:
 
 
 def render_predefined(declarations: dict[str, list[str]]) -> str:
-    sections: list[str] = ["// Generated by tools/docs/as_predefiner/as_predefiner.py. Do not edit."]
+    sections: list[str] = [
+        "// Generated by tools/docs/as_predefiner/as_predefiner.py. Do not edit."
+    ]
 
     for namespace in sorted(declarations):
         body = "\n\n".join(declarations[namespace])
@@ -154,18 +254,34 @@ def render_predefined(declarations: dict[str, list[str]]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--idl-dir", type=Path, default=DEFAULT_IDL_DIRECTORY,
-                        help="Directory recursively containing *.idl.yaml files.")
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT,
-                        help="Path of the generated as.predefined file.")
+    parser.add_argument(
+        "--idl-dir",
+        type=Path,
+        default=DEFAULT_IDL_DIRECTORY,
+        help="Directory recursively containing *.idl.yaml files.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="Path of the generated as.predefined file.",
+    )
     args = parser.parse_args()
 
     idl_files = list(args.idl_dir.rglob("*.idl.yaml"))
     if not idl_files:
         parser.error(f"no .idl.yaml files found under {args.idl_dir}")
 
+    try:
+        declarations = collect_declarations(idl_files)
+    except (KeyError, TypeError, ValueError) as exc:
+        parser.error(f"failed to process IDL declarations: {exc}")
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(render_predefined(collect_declarations(idl_files)), encoding="utf-8")
+    args.output.write_text(
+        render_predefined(declarations),
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "engine/accs/world.hpp"
 #include "engine/accs/system_manager.hpp"
 

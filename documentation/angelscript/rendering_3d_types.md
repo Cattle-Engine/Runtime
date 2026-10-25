@@ -1,5 +1,7 @@
 # CE::Graphics::Render3D
 
+Registration priority: `90`
+
 ## CubemapFace
 C++ type: `CE::Scripting::Bindings::ASCubemap::Face`
 
@@ -11,6 +13,7 @@ No description given
 #### GetTexture
 Return type: `Texture`
 
+No description given
 
 ### Operators
 #### =
@@ -21,6 +24,7 @@ Signature:
 const Texture& in
 ```
 
+No description given
 
 #### =
 Return type: `CubemapFace&`
@@ -30,6 +34,7 @@ Signature:
 const CubemapFace& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -39,6 +44,7 @@ Signature:
 const CubemapFace& in
 ```
 
+No description given
 
 
 ## ModelNode
@@ -60,6 +66,7 @@ Type: `CE::Containers::Uint32Vector`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -67,8 +74,10 @@ Signature:
 const ModelNode& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Operators
 #### =
@@ -79,6 +88,7 @@ Signature:
 const ModelNode& in
 ```
 
+No description given
 
 
 ## Model
@@ -106,6 +116,7 @@ Type: `uint`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -113,8 +124,10 @@ Signature:
 const Model& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### SetAllMeshMaterials
@@ -125,6 +138,7 @@ Signature:
 const Material& in
 ```
 
+No description given
 
 ### Operators
 #### =
@@ -135,6 +149,7 @@ Signature:
 const Model& in
 ```
 
+No description given
 
 
 ## Cubemap
@@ -165,6 +180,7 @@ Type: `CubemapFace`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -172,8 +188,10 @@ Signature:
 const Texture& in left, const Texture& in right = NoTexture, const Texture& in top = NoTexture, const Texture& in bottom = NoTexture, const Texture& in front = NoTexture, const Texture& in back = NoTexture
 ```
 
+No description given
 
 #### Destructor
+No description given
 
 ### Operators
 #### =
@@ -184,6 +202,7 @@ Signature:
 Cubemap& in
 ```
 
+No description given
 
 
 ## Camera3D
@@ -229,13 +248,18 @@ Type: `Camera3DProjectionMode`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destruct
+No description given
 
 
+## CE::Graphics::Render3D
 ## Enums
 ### Camera3DProjectionMode
 C++ type: `CE::Renderer::Camera3D::ProjectionMode`
+
+No description given
 
 Values:
 

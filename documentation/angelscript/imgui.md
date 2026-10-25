@@ -3,7 +3,10 @@ Minimal immediate-mode UI bindings. Call these only from the optional void imgui
 script function, which runs after the engine starts an ImGui frame and before it renders.
 You can also use the event that runs every frame "DrawImgui"
 
+
 # CE::ImGui
+
+Registration priority: `99`
 
 ## Functions
 ### Begin

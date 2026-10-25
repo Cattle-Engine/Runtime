@@ -125,6 +125,12 @@ class ASDeclaration:
     name: str
     namespace: str = ""
 
+@dataclass
+class ASInterface:
+    name: str
+    methods: list[str] = field(default_factory=list)
+    namespace: str = ""
+
 
 @dataclass
 class ASClassFunction(ASBindableCallable):
@@ -150,6 +156,7 @@ class ASBindingFile:
     constants: list[ASConstant] = field(default_factory=list)
     aliases: list[ASTypeAlias] = field(default_factory=list)
     declarations: list[ASDeclaration] = field(default_factory=list)
+    interfaces: list[ASInterface] = field(default_factory=list)
     class_functions: list[ASClassFunction] = field(default_factory=list)
 
 
@@ -291,6 +298,14 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 namespace=x.get("Namespace", default_namespace),
             )
             for x in data.get("ASDeclarations", [])
+        ],
+        interfaces=[
+            ASInterface(
+                name=x["Name"],
+                methods=list(x.get("Methods", [])),
+                namespace=x.get("Namespace", default_namespace),
+            )
+            for x in data.get("ASInterfaces", [])
         ],
         class_functions=[
             ASClassFunction(
@@ -984,6 +999,9 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
 
     for declaration in binding.declarations:
         as_binding_gen.generate_as_declaration(declaration, gen, binding.namespace)
+
+    for interface in binding.interfaces:
+        as_binding_gen.generate_as_interface_binding(interface, gen, binding.namespace)
 
     for class_function in binding.class_functions:
         function_name = class_function.generated_name or class_function.name

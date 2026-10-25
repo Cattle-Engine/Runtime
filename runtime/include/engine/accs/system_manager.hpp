@@ -21,17 +21,23 @@ namespace CE::ACCS {
                 static_assert(std::is_base_of_v<ISystem, T>,
                     "T must inherit from ISystem");
 
-                if (types == FrameUpdateType::None) {
-                    throw std::invalid_argument("System must have at least one update type");
-                }
-
                 auto system = std::make_unique<T>(
                     std::forward<Args>(args)...
                 );
 
                 T& ref = *system;
-                mSystems.emplace_back(std::move(system), types);
+                RegisterSystem(types, std::move(system));
                 return ref;
+            }
+
+            void RegisterSystem(FrameUpdateType types, std::unique_ptr<ISystem> system) {
+                if (types == FrameUpdateType::None) {
+                    throw std::invalid_argument("System must have at least one update type");
+                }
+                if (!system) {
+                    throw std::invalid_argument("System instance is required");
+                }
+                mSystems.emplace_back(std::move(system), types);
             }
 
             void Update(float dt, FrameUpdateType type, World& world) {

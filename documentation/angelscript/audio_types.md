@@ -1,5 +1,7 @@
 # CE::Audio
 
+Registration priority: `100`
+
 ## AudioEffect
 C++ type: `CE::Core::Audio::AudioEffect`
 
@@ -40,8 +42,10 @@ Type: `float`
 
 ### Behaviours
 #### Constructor
+No description given
 
 #### Destruct
+No description given
 
 
 ## AudioAsset
@@ -64,6 +68,7 @@ Signature:
 const AudioAsset& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -73,6 +78,7 @@ Signature:
 uint
 ```
 
+No description given
 
 #### =
 Return type: `AudioAsset`
@@ -82,6 +88,7 @@ Signature:
 AudioAsset & in
 ```
 
+No description given
 
 
 ## PlayingAudio
@@ -104,6 +111,7 @@ Signature:
 const PlayingAudio& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -113,6 +121,7 @@ Signature:
 uint
 ```
 
+No description given
 
 #### =
 Return type: `PlayingAudio`
@@ -122,6 +131,7 @@ Signature:
 const PlayingAudio & in
 ```
 
+No description given
 
 
 ## AudioDeviceInfo
@@ -143,8 +153,10 @@ Type: `string`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destruct
+No description given
 
 ### Operators
 #### =
@@ -155,6 +167,7 @@ Signature:
 const AudioDeviceInfo & in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -164,11 +177,15 @@ Signature:
 const AudioDeviceInfo & in
 ```
 
+No description given
 
 
+## CE::Audio
 ## Enums
 ### AudioType
 C++ type: `CE::Core::Audio::AudioType`
+
+No description given
 
 Values:
 
@@ -178,6 +195,8 @@ Values:
 
 ### AudioEffectType
 C++ type: `CE::Core::Audio::AudioEffect::Type`
+
+No description given
 
 Values:
 

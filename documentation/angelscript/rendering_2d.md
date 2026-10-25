@@ -1,5 +1,7 @@
 # CE::Graphics::Render2D
 
+Registration priority: `80`
+
 ## Functions
 ### DrawSprite
 Return type: `void`

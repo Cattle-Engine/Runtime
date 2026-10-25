@@ -1,5 +1,7 @@
 # CE::Graphics
 
+Registration priority: `90`
+
 ## CE::Graphics::Materials
 ### CreateMaterial
 Return type: `Material`

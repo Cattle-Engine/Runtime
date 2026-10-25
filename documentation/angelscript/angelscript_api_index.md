@@ -1,5 +1,6 @@
 # AngelScript API Index
 
+- [accs](accs.md)
 - [audio_functions](audio_functions.md)
 - [audio_types](audio_types.md)
 - [game_state](game_state.md)

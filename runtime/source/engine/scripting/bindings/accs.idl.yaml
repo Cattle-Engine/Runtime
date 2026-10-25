@@ -1,0 +1,50 @@
+RegistrationPriority: 200
+ASNamespace: CE::ACCS
+
+RequiredCppHeaders:
+  - "engine/accs/actor.hpp"
+  - "engine/accs/component.hpp"
+  - "engine/accs/system.hpp"
+
+ASEnums:
+  - Name: FrameUpdateType
+    CppType: CE::ACCS::FrameUpdateType
+    Values: [None, Logic, Render2D, Render3D, ImGui]
+
+ASTypes:
+  - Name: ActorHandle
+    CppType: CE::ACCS::ActorHandle
+    Flags: [Value, POD, AppClass, AppClassAllInts]
+    Properties:
+      - {Type: uint, CppMember: index, ASMember: index}
+      - {Type: uint, CppMember: generation, ASMember: generation}
+    Methods:
+      - {Name: IsValid, ReturnType: bool, CppFunction: IsValid, CallingConvention: Generic, IsConst: true}
+
+  - Name: ComponentID
+    CppType: CE::ACCS::ComponentID
+    Flags: [Value, POD, AppClass, AppClassAllInts]
+    Properties:
+      - {Type: uint, CppMember: index, ASMember: index}
+      - {Type: uint, CppMember: generation, ASMember: generation}
+    Methods:
+      - {Name: IsValid, ReturnType: bool, CppFunction: IsValid, CallingConvention: Generic, IsConst: true}
+
+ASInterfaces:
+  - Name: IComponent
+  - Name: ISystem
+    Methods: ["void Update(float dt, FrameUpdateType phase)"]
+
+# Registered by the hand-written ACCS binding. The script compiler consumes
+# these declarations as no-op stubs, so game code sees the same API.
+ASExternalFunctions:
+  - {Name: CreateActor, ReturnType: ActorHandle}
+  - {Name: DestroyActor, ReturnType: bool, Signature: "const ActorHandle &in"}
+  - {Name: IsActorAlive, ReturnType: bool, Signature: "const ActorHandle &in"}
+  - {Name: AddComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, IComponent@"}
+  - {Name: RemoveComponent, ReturnType: bool, Signature: "const ComponentID &in"}
+  - {Name: HasComponent, ReturnType: bool, Signature: "const ComponentID &in"}
+  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ComponentID &in"}
+  - {Name: GetActors, ReturnType: "array<ActorHandle>@"}
+  - {Name: GetComponents, ReturnType: "array<ComponentID>@", Signature: "const ActorHandle &in"}
+  - {Name: RegisterSystem, ReturnType: void, Signature: "FrameUpdateType, ISystem@"}

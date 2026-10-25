@@ -10,6 +10,7 @@
 #include "engine/scripting/bindings/stl_vector_binder.hpp"
 #include <bindings/binding_registry.hpp>
 #include "engine/scripting/bindings/game_state.hpp"
+#include "engine/scripting/bindings/accs.hpp"
 
 namespace CE::Scripting::Bindings {
     class ScriptBindings::Impl {
@@ -41,8 +42,6 @@ namespace CE::Scripting::Bindings {
             return false;
         }
 
-        script_engine.SetDefaultNamespace("CE");
-
         for (const auto& entry : mImpl->mBindings.bindings) {
             auto binding = entry.create(runtime, script_engine);
             
@@ -52,6 +51,14 @@ namespace CE::Scripting::Bindings {
             }
 
             mImpl->mScriptBindings.push_back(std::move(binding));
+        }
+
+        {
+            ACCSBinding binding(runtime, script_engine);
+            if (!binding.RegisterBindings()) {
+                CE_LOG(LogLevel::Error, "[Angelscript] Failed to bind ACCS");
+                return false;
+            }
         }
         
         return true;

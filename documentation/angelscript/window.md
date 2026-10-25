@@ -1,5 +1,7 @@
 # CE::Window
 
+Registration priority: `100`
+
 ## WindowSize
 C++ type: `CE::Common::Window::WindowSize`
 
@@ -15,9 +17,12 @@ Type: `int`
 Type: `int`
 
 
+## CE::Window
 ## Enums
 ### WindowMode
 C++ type: `CE::Common::Window::WindowMode`
+
+No description given
 
 Values:
 

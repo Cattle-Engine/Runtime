@@ -1,5 +1,7 @@
 # CE
 
+Registration priority: `100`
+
 ## Vec4
 C++ type: `glm::vec4`
 
@@ -22,6 +24,7 @@ Type: `float`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -29,6 +32,7 @@ Signature:
 float, float, float, float
 ```
 
+No description given
 
 #### Construct
 Signature:
@@ -36,8 +40,10 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### Length
@@ -45,18 +51,21 @@ Return type: `float`
 
 Const method
 
+No description given
 
 #### LengthSquared
 Return type: `float`
 
 Const method
 
+No description given
 
 #### Normalize
 Return type: `Vec4`
 
 Const method
 
+No description given
 
 #### Dot
 Return type: `float`
@@ -68,6 +77,7 @@ const Vec4& in
 
 Const method
 
+No description given
 
 #### Distance
 Return type: `float`
@@ -79,6 +89,7 @@ const Vec4& in
 
 Const method
 
+No description given
 
 #### Lerp
 Return type: `Vec4`
@@ -90,6 +101,7 @@ const Vec4& in, float
 
 Const method
 
+No description given
 
 #### Clamp
 Return type: `Vec4`
@@ -101,22 +113,26 @@ const Vec4& in, const Vec4& in
 
 Const method
 
+No description given
 
 #### Abs
 Return type: `Vec4`
 
 Const method
 
+No description given
 
 #### ToString
 Return type: `string`
 
 Const method
 
+No description given
 
 #### NormalizeInPlace
 Return type: `void`
 
+No description given
 
 #### Set
 Return type: `void`
@@ -126,12 +142,14 @@ Signature:
 float, float, float, float
 ```
 
+No description given
 
 #### IsZero
 Return type: `bool`
 
 Const method
 
+No description given
 
 ### Operators
 #### =
@@ -142,6 +160,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### +
 Return type: `Vec4`
@@ -151,6 +170,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### -
 Return type: `Vec4`
@@ -160,6 +180,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### /
 Return type: `Vec4`
@@ -169,6 +190,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### *
 Return type: `Vec4`
@@ -178,6 +200,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### *
 Return type: `Vec4`
@@ -187,6 +210,7 @@ Signature:
 float
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -196,6 +220,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 
 ## Colour
@@ -220,6 +245,7 @@ Type: `uint8`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -227,6 +253,7 @@ Signature:
 uint8, uint8, uint8, uint8
 ```
 
+No description given
 
 
 ## Material
@@ -249,6 +276,7 @@ Signature:
 const Material & in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -258,6 +286,7 @@ Signature:
 int64
 ```
 
+No description given
 
 
 ## Mesh
@@ -280,6 +309,7 @@ Signature:
 const Mesh & in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -289,6 +319,7 @@ Signature:
 int64
 ```
 
+No description given
 
 
 ## Shader
@@ -304,6 +335,7 @@ Type: `uint64`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -311,8 +343,10 @@ Signature:
 const Shader& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Operators
 #### ==
@@ -323,6 +357,7 @@ Signature:
 const Shader & in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -332,6 +367,7 @@ Signature:
 int64
 ```
 
+No description given
 
 #### =
 Return type: `Shader`
@@ -341,6 +377,7 @@ Signature:
 Shader & in
 ```
 
+No description given
 
 
 ## Texture
@@ -356,6 +393,7 @@ Type: `uint64`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -363,8 +401,10 @@ Signature:
 const Texture& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Operators
 #### ==
@@ -375,6 +415,7 @@ Signature:
 const Texture & in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -384,6 +425,7 @@ Signature:
 int64
 ```
 
+No description given
 
 #### =
 Return type: `Texture`
@@ -393,6 +435,7 @@ Signature:
 Texture & in
 ```
 
+No description given
 
 
 ## Vec2
@@ -411,6 +454,7 @@ Type: `float`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -418,6 +462,7 @@ Signature:
 float, float
 ```
 
+No description given
 
 #### Construct
 Signature:
@@ -425,8 +470,10 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### Length
@@ -434,18 +481,21 @@ Return type: `float`
 
 Const method
 
+No description given
 
 #### LengthSquared
 Return type: `float`
 
 Const method
 
+No description given
 
 #### Normalize
 Return type: `Vec2`
 
 Const method
 
+No description given
 
 #### Dot
 Return type: `float`
@@ -457,6 +507,7 @@ const Vec2 & in
 
 Const method
 
+No description given
 
 #### Distance
 Return type: `float`
@@ -468,6 +519,7 @@ const Vec2 & in
 
 Const method
 
+No description given
 
 #### Lerp
 Return type: `Vec2`
@@ -479,6 +531,7 @@ const Vec2 & in, float
 
 Const method
 
+No description given
 
 #### Reflect
 Return type: `Vec2`
@@ -490,6 +543,7 @@ const Vec2 & in
 
 Const method
 
+No description given
 
 #### Clamp
 Return type: `Vec2`
@@ -501,22 +555,26 @@ const Vec2 & in, const Vec2 & in
 
 Const method
 
+No description given
 
 #### Abs
 Return type: `Vec2`
 
 Const method
 
+No description given
 
 #### ToString
 Return type: `string`
 
 Const method
 
+No description given
 
 #### NormalizeInPlace
 Return type: `void`
 
+No description given
 
 #### Set
 Return type: `void`
@@ -526,18 +584,21 @@ Signature:
 float, float
 ```
 
+No description given
 
 #### IsZero
 Return type: `bool`
 
 Const method
 
+No description given
 
 #### Angle
 Return type: `float`
 
 Const method
 
+No description given
 
 #### Rotate
 Return type: `Vec2`
@@ -549,6 +610,7 @@ float
 
 Const method
 
+No description given
 
 ### Operators
 #### =
@@ -559,6 +621,7 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### +
 Return type: `Vec2`
@@ -568,6 +631,7 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### -
 Return type: `Vec2`
@@ -577,6 +641,7 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### /
 Return type: `Vec2`
@@ -586,6 +651,7 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### *
 Return type: `Vec2`
@@ -595,6 +661,7 @@ Signature:
 const Vec2& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -604,6 +671,7 @@ Signature:
 const Vec2 & in
 ```
 
+No description given
 
 
 ## Vec3
@@ -625,6 +693,7 @@ Type: `float`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -632,6 +701,7 @@ Signature:
 float, float, float
 ```
 
+No description given
 
 #### Construct
 Signature:
@@ -639,8 +709,10 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### Length
@@ -648,18 +720,21 @@ Return type: `float`
 
 Const method
 
+No description given
 
 #### LengthSquared
 Return type: `float`
 
 Const method
 
+No description given
 
 #### Normalize
 Return type: `Vec3`
 
 Const method
 
+No description given
 
 #### Dot
 Return type: `float`
@@ -671,6 +746,7 @@ const Vec3& in
 
 Const method
 
+No description given
 
 #### Cross
 Return type: `Vec3`
@@ -682,6 +758,7 @@ const Vec3& in
 
 Const method
 
+No description given
 
 #### Distance
 Return type: `float`
@@ -693,6 +770,7 @@ const Vec3& in
 
 Const method
 
+No description given
 
 #### Lerp
 Return type: `Vec3`
@@ -704,6 +782,7 @@ const Vec3& in, float
 
 Const method
 
+No description given
 
 #### Reflect
 Return type: `Vec3`
@@ -715,6 +794,7 @@ const Vec3& in
 
 Const method
 
+No description given
 
 #### Refract
 Return type: `Vec3`
@@ -726,6 +806,7 @@ const Vec3& in, float
 
 Const method
 
+No description given
 
 #### Clamp
 Return type: `Vec3`
@@ -737,22 +818,26 @@ const Vec3& in, const Vec3& in
 
 Const method
 
+No description given
 
 #### Abs
 Return type: `Vec3`
 
 Const method
 
+No description given
 
 #### ToString
 Return type: `string`
 
 Const method
 
+No description given
 
 #### NormalizeInPlace
 Return type: `void`
 
+No description given
 
 #### Set
 Return type: `void`
@@ -762,12 +847,14 @@ Signature:
 float, float, float
 ```
 
+No description given
 
 #### IsZero
 Return type: `bool`
 
 Const method
 
+No description given
 
 #### Rotate
 Return type: `Vec3`
@@ -779,6 +866,7 @@ float, const Vec3& in
 
 Const method
 
+No description given
 
 ### Operators
 #### =
@@ -789,6 +877,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### +
 Return type: `Vec3`
@@ -798,6 +887,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### -
 Return type: `Vec3`
@@ -807,6 +897,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### /
 Return type: `Vec3`
@@ -816,6 +907,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### *
 Return type: `Vec3`
@@ -825,6 +917,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -834,6 +927,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 
 ## Vertex3D
@@ -864,8 +958,10 @@ Type: `float`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destructor
+No description given
 
 
 ## MeshData
@@ -884,8 +980,10 @@ Type: `CE::Containers::Uint32Vector`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destructor
+No description given
 
 ### Operators
 #### =
@@ -896,6 +994,7 @@ Signature:
 MeshData& in other
 ```
 
+No description given
 
 
 ## Transform3D
@@ -917,8 +1016,10 @@ Type: `Vec3`
 
 ### Behaviours
 #### Constructor
+No description given
 
 #### Destructor
+No description given
 
 ### Operators
 #### =
@@ -929,6 +1030,7 @@ Signature:
 Transform3D& in other
 ```
 
+No description given
 
 
 ## Mat4
@@ -940,6 +1042,7 @@ No description given
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Construct
 Signature:
@@ -947,6 +1050,7 @@ Signature:
 float
 ```
 
+No description given
 
 #### Construct
 Signature:
@@ -954,8 +1058,10 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 #### Destruct
+No description given
 
 ### Methods
 #### Transpose
@@ -963,28 +1069,33 @@ Return type: `Mat4`
 
 Const method
 
+No description given
 
 #### Inverse
 Return type: `Mat4`
 
 Const method
 
+No description given
 
 #### Determinant
 Return type: `float`
 
 Const method
 
+No description given
 
 #### ToString
 Return type: `string`
 
 Const method
 
+No description given
 
 #### SetIdentity
 Return type: `void`
 
+No description given
 
 #### Translate
 Return type: `void`
@@ -994,6 +1105,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### Scale
 Return type: `void`
@@ -1003,6 +1115,7 @@ Signature:
 const Vec3& in
 ```
 
+No description given
 
 #### Rotate
 Return type: `void`
@@ -1012,6 +1125,7 @@ Signature:
 float, const Vec3& in
 ```
 
+No description given
 
 ### Operators
 #### =
@@ -1022,6 +1136,7 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 #### +
 Return type: `Mat4`
@@ -1031,6 +1146,7 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 #### -
 Return type: `Mat4`
@@ -1040,6 +1156,7 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 #### *
 Return type: `Mat4`
@@ -1049,6 +1166,7 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 #### *
 Return type: `Vec4`
@@ -1058,6 +1176,7 @@ Signature:
 const Vec4& in
 ```
 
+No description given
 
 #### ==
 Return type: `bool`
@@ -1067,11 +1186,15 @@ Signature:
 const Mat4& in
 ```
 
+No description given
 
 
+## CE
 ## Enums
 ### ShaderStage
 C++ type: `CE::Renderer::ShaderStage`
+
+No description given
 
 Values:
 
@@ -1081,6 +1204,8 @@ Values:
 ### TextureFlip
 C++ type: `CE::Renderer::TextureFlip`
 
+No description given
+
 Values:
 
 - `None`
@@ -1089,6 +1214,8 @@ Values:
 
 ### TextureFilter
 C++ type: `CE::Renderer::TextureFilter`
+
+No description given
 
 Values:
 

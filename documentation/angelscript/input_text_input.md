@@ -1,5 +1,7 @@
 # CE::Input::Text
 
+Registration priority: `100`
+
 ## Functions
 ### Begin
 Return type: `void`

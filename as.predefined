@@ -204,6 +204,55 @@ class Mat4 {
 const Texture NoTexture;
 }
 
+namespace CE::ACCS {
+enum FrameUpdateType {
+    None,
+    Logic,
+    Render2D,
+    Render3D,
+    ImGui
+};
+
+class ActorHandle {
+    bool IsValid() const;
+    uint index;
+    uint generation;
+};
+
+class ComponentID {
+    bool IsValid() const;
+    uint index;
+    uint generation;
+};
+
+interface IComponent {
+}
+
+interface ISystem {
+    void Update(float dt, FrameUpdateType phase);
+}
+
+ActorHandle CreateActor();
+
+bool DestroyActor(const ActorHandle &in);
+
+bool IsActorAlive(const ActorHandle &in);
+
+ComponentID AddComponent(const ActorHandle &in, IComponent@);
+
+bool RemoveComponent(const ComponentID &in);
+
+bool HasComponent(const ComponentID &in);
+
+IComponent@ GetComponent(const ComponentID &in);
+
+array<ActorHandle>@ GetActors();
+
+array<ComponentID>@ GetComponents(const ActorHandle &in);
+
+void RegisterSystem(FrameUpdateType, ISystem@);
+}
+
 namespace CE::Audio {
 AudioAsset LoadSound(const string& in filepath, const AudioType& in type);
 

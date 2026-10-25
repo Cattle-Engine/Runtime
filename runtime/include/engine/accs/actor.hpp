@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <limits>
 #include <vector>
-#include <typeindex>
 #include <unordered_map>
 
 #include "engine/accs/component.hpp"
@@ -24,6 +23,6 @@ namespace CE::ACCS {
 
     struct Actor {
         std::vector<ComponentID> components;
-        std::unordered_map<std::type_index, ComponentID> component_lookup;
+        std::unordered_map<ComponentTypeKey, ComponentID> component_lookup;
     };
 }

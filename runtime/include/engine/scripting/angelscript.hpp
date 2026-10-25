@@ -135,6 +135,7 @@ namespace CE::Scripting {
         bool Init();
 
         const std::string& GetLastError() const;
+        asIScriptEngine& GetScriptEngine() { return *mScriptEngine; }
 
         int SubscribeStateEvent(
             const std::string& state,

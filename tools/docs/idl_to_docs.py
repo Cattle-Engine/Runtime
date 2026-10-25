@@ -1,3 +1,4 @@
+
 import argparse
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -37,15 +38,27 @@ class EnumDocumentation:
     cpp_type: str = ""
     namespace: str = ""
     values: list[Any] = field(default_factory=list)
+    description: str = ""
+
+
+@dataclass
+class InterfaceDocumentation:
+    name: str
+    methods: list[str] = field(default_factory=list)
+    namespace: str = ""
+    description: str = ""
 
 
 @dataclass
 class BindingDocumentation:
     namespace: str = ""
     global_description: str = ""
+    registration_priority: int = 0
     types: list[TypeDocumentation] = field(default_factory=list)
     functions: list[DocumentationInfo] = field(default_factory=list)
+    external_functions: list[DocumentationInfo] = field(default_factory=list)
     enums: list[EnumDocumentation] = field(default_factory=list)
+    interfaces: list[InterfaceDocumentation] = field(default_factory=list)
     constants: list[dict[str, Any]] = field(default_factory=list)
     aliases: list[dict[str, Any]] = field(default_factory=list)
     declarations: list[dict[str, Any]] = field(default_factory=list)
@@ -69,6 +82,7 @@ def parse_binding_file(binding_file: Path) -> BindingDocumentation:
     return BindingDocumentation(
         namespace=default_namespace,
         global_description=data.get("Documentation", ""),
+        registration_priority=data.get("RegistrationPriority", 0),
         types=[
             TypeDocumentation(
                 name=x["Name"],
@@ -84,7 +98,6 @@ def parse_binding_file(binding_file: Path) -> BindingDocumentation:
             )
             for x in data.get("ASTypes", [])
         ],
-
         functions=[
             DocumentationInfo(
                 name=x["Name"],
@@ -95,21 +108,38 @@ def parse_binding_file(binding_file: Path) -> BindingDocumentation:
             )
             for x in data.get("ASFunctions", [])
         ],
-
+        external_functions=[
+            DocumentationInfo(
+                name=x["Name"],
+                namespace=_namespace(x, default_namespace),
+                return_type=x.get("ReturnType", ""),
+                signature=x.get("Signature", ""),
+                description=_description(x),
+            )
+            for x in data.get("ASExternalFunctions", [])
+        ],
         enums=[
             EnumDocumentation(
                 name=x["Name"],
                 cpp_type=x.get("CppType", ""),
                 namespace=_namespace(x, default_namespace),
                 values=x.get("Values", []),
+                description=_description(x),
             )
             for x in data.get("ASEnums", [])
         ],
-
+        interfaces=[
+            InterfaceDocumentation(
+                name=x["Name"],
+                methods=x.get("Methods", []),
+                namespace=_namespace(x, default_namespace),
+                description=_description(x),
+            )
+            for x in data.get("ASInterfaces", [])
+        ],
         constants=data.get("ASConstants", []),
         aliases=data.get("ASTypeAliases", []),
         declarations=data.get("ASDeclarations", []),
-
         class_functions=[
             DocumentationInfo(
                 name=x["Name"],
@@ -186,7 +216,10 @@ def generate_constructor_docs(
         if signature:
             write_signature(generator, signature)
 
-        generator.newline()
+        if constructor.get("Description"):
+            write_description(generator, constructor["Description"])
+        else:
+            generator.newline()
 
 
 def generate_behaviour_docs(
@@ -207,10 +240,7 @@ def generate_behaviour_docs(
         if signature:
             write_signature(generator, signature)
 
-        if behaviour.get("Description"):
-            write_description(generator, behaviour["Description"])
-        else:
-            generator.newline()
+        write_description(generator, behaviour.get("Description", ""))
 
 
 def generate_method_docs(
@@ -239,10 +269,7 @@ def generate_method_docs(
             generator.write_text("Const method")
             generator.newline()
 
-        if method.get("Description"):
-            write_description(generator, method["Description"])
-        else:
-            generator.newline()
+        write_description(generator, method.get("Description", ""))
 
 
 def generate_operator_docs(
@@ -266,11 +293,7 @@ def generate_operator_docs(
             generator.newline()
 
         write_signature(generator, signature)
-
-        if operator.get("Description"):
-            write_description(generator, operator["Description"])
-        else:
-            generator.newline()
+        write_description(generator, operator.get("Description", ""))
 
 
 def generate_type_docs(
@@ -359,34 +382,45 @@ def generate_enum_docs(
     if not enums:
         return
 
-    generator.write_header("Enums", 2)
+    grouped: dict[str, list[EnumDocumentation]] = defaultdict(list)
 
     for enum in enums:
-        generator.write_header(enum.name, 3)
+        grouped[enum.namespace].append(enum)
 
-        if enum.cpp_type:
-            generator.write_text(f"C++ type: `{enum.cpp_type}`")
-            generator.newline()
+    for namespace, namespace_enums in grouped.items():
+        if namespace:
+            generator.write_header(namespace, 2)
 
-        if enum.values:
-            generator.write_text("Values:")
-            generator.newline()
+        generator.write_header("Enums", 2)
 
-            for value in enum.values:
-                if isinstance(value, dict):
-                    name = value.get("Name", "Unknown")
-                    enum_value = value.get("Value")
+        for enum in namespace_enums:
+            generator.write_header(enum.name, 3)
 
-                    if enum_value is None:
-                        generator.write_text(f"- `{name}`")
+            if enum.cpp_type:
+                generator.write_text(f"C++ type: `{enum.cpp_type}`")
+                generator.newline()
+
+            write_description(generator, enum.description)
+
+            if enum.values:
+                generator.write_text("Values:")
+                generator.newline()
+
+                for value in enum.values:
+                    if isinstance(value, dict):
+                        name = value.get("Name", "Unknown")
+                        enum_value = value.get("Value")
+
+                        if enum_value is None:
+                            generator.write_text(f"- `{name}`")
+                        else:
+                            generator.write_text(
+                                f"- `{name}` = `{enum_value}`"
+                            )
                     else:
-                        generator.write_text(
-                            f"- `{name}` = `{enum_value}`"
-                        )
-                else:
-                    generator.write_text(f"- `{value}`")
+                        generator.write_text(f"- `{value}`")
 
-            generator.newline()
+                generator.newline()
 
 
 def generate_constant_docs(
@@ -412,10 +446,7 @@ def generate_constant_docs(
         generator.write_text(f"Value: `{value}`")
         generator.newline()
 
-        write_description(
-            generator,
-            constant.get("Description", ""),
-        )
+        write_description(generator, constant.get("Description", ""))
 
 
 def generate_alias_docs(
@@ -437,10 +468,7 @@ def generate_alias_docs(
             generator.write_text(f"Alias of: `{target}`")
             generator.newline()
 
-        write_description(
-            generator,
-            alias.get("Description", ""),
-        )
+        write_description(generator, alias.get("Description", ""))
 
 
 def generate_declaration_docs(
@@ -456,11 +484,73 @@ def generate_declaration_docs(
         name = declaration.get("Name", "Unknown")
 
         generator.write_header(name, 3)
+        write_description(generator, declaration.get("Description", ""))
 
-        write_description(
-            generator,
-            declaration.get("Description", ""),
-        )
+
+def generate_interface_docs(
+    generator: markdown_generator.MarkdownWriter,
+    interfaces: list[InterfaceDocumentation],
+    default_namespace: str = "",
+) -> None:
+    if not interfaces:
+        return
+
+    grouped: dict[str, list[InterfaceDocumentation]] = defaultdict(list)
+
+    for interface in interfaces:
+        grouped[interface.namespace].append(interface)
+
+    for namespace, namespace_interfaces in grouped.items():
+        if namespace and namespace != default_namespace:
+            generator.write_header(namespace, 2)
+        else:
+            generator.write_header("Interfaces", 2)
+
+        for interface in namespace_interfaces:
+            generator.write_header(interface.name, 3)
+            write_description(generator, interface.description)
+
+            if interface.methods:
+                generator.write_header("Methods", 4)
+
+                for method in interface.methods:
+                    generator.write_single_line_codeblock(
+                        method,
+                        "angelscript",
+                    )
+                    generator.newline()
+
+
+def generate_external_function_docs(
+    generator: markdown_generator.MarkdownWriter,
+    functions: list[DocumentationInfo],
+    default_namespace: str = "",
+) -> None:
+    if not functions:
+        return
+
+    grouped: dict[str, list[DocumentationInfo]] = defaultdict(list)
+
+    for function in functions:
+        grouped[function.namespace].append(function)
+
+    for namespace, namespace_functions in grouped.items():
+        if namespace and namespace != default_namespace:
+            generator.write_header(namespace, 2)
+        else:
+            generator.write_header("External Functions", 2)
+
+        for function in namespace_functions:
+            generator.write_header(function.name, 3)
+
+            if function.return_type:
+                generator.write_text(
+                    f"Return type: `{function.return_type}`"
+                )
+                generator.newline()
+
+            write_signature(generator, function.signature)
+            write_description(generator, function.description)
 
 
 def generate_markdown(binding: BindingDocumentation) -> str:
@@ -469,9 +559,16 @@ def generate_markdown(binding: BindingDocumentation) -> str:
     if binding.global_description:
         generator.write_header("Description", 1)
         generator.write_text(binding.global_description)
+        generator.newline()
 
     if binding.namespace:
         generator.write_header(binding.namespace, 1)
+        generator.newline()
+
+    if binding.registration_priority:
+        generator.write_text(
+            f"Registration priority: `{binding.registration_priority}`"
+        )
         generator.newline()
 
     for as_type in binding.types:
@@ -484,6 +581,7 @@ def generate_markdown(binding: BindingDocumentation) -> str:
     )
 
     generate_enum_docs(generator, binding.enums)
+
     generate_constant_docs(generator, binding.constants)
     generate_alias_docs(generator, binding.aliases)
     generate_declaration_docs(generator, binding.declarations)
@@ -492,6 +590,18 @@ def generate_markdown(binding: BindingDocumentation) -> str:
         generator,
         binding.class_functions,
         "Functions",
+        binding.namespace,
+    )
+
+    generate_interface_docs(
+        generator,
+        binding.interfaces,
+        binding.namespace,
+    )
+
+    generate_external_function_docs(
+        generator,
+        binding.external_functions,
         binding.namespace,
     )
 
@@ -537,17 +647,17 @@ def main() -> int:
     for file in files:
         binding = parse_binding_file(file)
 
-        if not any(
-            [
-                binding.types,
-                binding.functions,
-                binding.enums,
-                binding.constants,
-                binding.aliases,
-                binding.declarations,
-                binding.class_functions,
-            ]
-        ):
+        if not any([
+            binding.types,
+            binding.functions,
+            binding.external_functions,
+            binding.enums,
+            binding.constants,
+            binding.aliases,
+            binding.declarations,
+            binding.class_functions,
+            binding.interfaces,
+        ]):
             print(f"Nothing to create docs out of in {file}")
             continue
 

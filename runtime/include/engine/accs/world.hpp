@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
-#include <typeindex>
 #include <type_traits>
 #include <tuple>
 #include <unordered_map>
@@ -37,61 +36,24 @@ namespace CE::ACCS {
                     throw std::invalid_argument("Invalid actor handle");
                 }
 
-                const std::type_index type(typeid(T));
-
-                if (actor->component_lookup.contains(type)) {
-                    throw std::logic_error(
-                        "Actor already has this component type");
-                }
-
                 auto component = std::make_shared<T>(
                     std::forward<Args>(args)...);
+                return AddComponent(actorHandle, GetComponentTypeKey<T>(), std::move(component));
+            }
 
-                ComponentID id = AllocateComponentID();
-                auto& slot = mComponents[id.index];
+            ComponentID AddComponent(
+                ActorHandle actorHandle,
+                ComponentTypeKey type,
+                std::shared_ptr<IComponent> component);
 
-                bool component_added = false;
-                bool lookup_added = false;
+            IComponent* GetComponent(ComponentID id) {
+                ComponentEntry* entry = GetComponentEntry(id);
+                return entry ? entry->instance.get() : nullptr;
+            }
 
-                try {
-                    slot.entry.emplace(ComponentEntry{
-                        id.generation,
-                        actorHandle,
-                        type,
-                        std::move(component)
-                    });
-
-                    actor->components.emplace_back(id);
-                    component_added = true;
-
-                    auto result = actor->component_lookup.emplace(type, id);
-                    if (!result.second) {
-                        throw std::logic_error(
-                            "Actor already has this component type");
-                    }
-
-                    lookup_added = true;
-                } catch (...) {
-                    if (lookup_added) {
-                        actor->component_lookup.erase(type);
-                    }
-
-                    if (component_added) {
-                        for (auto it = actor->components.begin();
-                            it != actor->components.end(); ++it) {
-                            if (*it == id) {
-                                actor->components.erase(it);
-                                break;
-                            }
-                        }
-                    }
-
-                    slot.entry.reset();
-                    ReleaseComponentID(id);
-                    throw;
-                }
-
-                return id;
+            const IComponent* GetComponent(ComponentID id) const {
+                const ComponentEntry* entry = GetComponentEntry(id);
+                return entry ? entry->instance.get() : nullptr;
             }
 
             template <typename T>
@@ -102,7 +64,7 @@ namespace CE::ACCS {
                 ComponentEntry* entry = GetComponentEntry(id);
 
                 if (!entry ||
-                    entry->type != std::type_index(typeid(T))) {
+                    entry->type != GetComponentTypeKey<T>()) {
                     return nullptr;
                 }
 
@@ -117,7 +79,7 @@ namespace CE::ACCS {
                 const ComponentEntry* entry = GetComponentEntry(id);
 
                 if (!entry ||
-                    entry->type != std::type_index(typeid(T))) {
+                    entry->type != GetComponentTypeKey<T>()) {
                     return nullptr;
                 }
 
@@ -163,7 +125,7 @@ namespace CE::ACCS {
                 const ComponentEntry* entry = GetComponentEntry(id);
 
                 return entry &&
-                    entry->type == std::type_index(typeid(T));
+                    entry->type == GetComponentTypeKey<T>();
             }
 
             template <typename T>
@@ -190,6 +152,9 @@ namespace CE::ACCS {
             bool HasComponent(ActorHandle actorHandle) const {
                 return GetComponent<T>(actorHandle) != nullptr;
             }
+
+            std::vector<ActorHandle> GetActors() const;
+            std::vector<ComponentID> GetComponents(ActorHandle actorHandle) const;
 
             // Iterates over every actor that has all requested components.
             // Components are passed to the callback in template argument order.
@@ -282,7 +247,7 @@ namespace CE::ACCS {
             struct ComponentEntry {
                 uint32_t generation;
                 ActorHandle owner;
-                std::type_index type;
+                ComponentTypeKey type;
                 std::shared_ptr<IComponent> instance;
             };
 
@@ -332,8 +297,7 @@ namespace CE::ACCS {
 
             template <typename T>
             T* GetComponentFromActor(Actor& actor) {
-                const auto it = actor.component_lookup.find(
-                    std::type_index(typeid(T)));
+                const auto it = actor.component_lookup.find(GetComponentTypeKey<T>());
 
                 if (it == actor.component_lookup.end()) {
                     return nullptr;
@@ -344,8 +308,7 @@ namespace CE::ACCS {
 
             template <typename T>
             const T* GetComponentFromActor(const Actor& actor) const {
-                const auto it = actor.component_lookup.find(
-                    std::type_index(typeid(T)));
+                const auto it = actor.component_lookup.find(GetComponentTypeKey<T>());
 
                 if (it == actor.component_lookup.end()) {
                     return nullptr;

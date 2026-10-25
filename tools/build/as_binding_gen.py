@@ -471,6 +471,16 @@ def generate_as_declaration(
 
     gen.pop_as_namespace(restore_namespace)
 
+
+def generate_as_interface_binding(interface, gen: generator.CodeWriter, restore_namespace: str = "") -> None:
+    gen.push_as_namespace(interface.namespace)
+    gen.write(f'CE_CHECK_AS(mScriptEngine.RegisterInterface("{interface.name}"));')
+    for method in interface.methods:
+        gen.write(
+            f'CE_CHECK_AS(mScriptEngine.RegisterInterfaceMethod("{interface.name}", "{method}"));'
+        )
+    gen.pop_as_namespace(restore_namespace)
+
 def generate_as_class_function(
         func: idl.ASClassFunction,
         gen: generator.CodeWriter

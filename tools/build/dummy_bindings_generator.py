@@ -218,6 +218,11 @@ def render_flags(flags: list[str], cpp_type: str, opts: Options) -> tuple[str, b
         if flag == "AutoGetFlags":
             auto = True
             continue
+        # The dummy compiler does not know the native value type's size.
+        # asOBJ_APP_CLASS_ALLINTS validates that size, so retain only the
+        # script-visible value/POD declaration in this mode.
+        if not opts.real_types and flag == "AppClassAllInts":
+            continue
         resolved = resolve_flag(flag)
         if resolved is None:
             raise ValueError(f"unknown flag '{flag}'")
@@ -329,6 +334,10 @@ STUB = "CE_StubGeneric"
 
 
 def phase1(doc: Doc, w: Writer, opts: Options) -> None:
+    for interface in doc.data.get("ASInterfaces", []):
+        w.set_ns(interface.get("Namespace", doc.ns))
+        w.check(f'engine->RegisterInterface("{esc(interface["Name"])}")')
+
     for e in doc.data.get("ASEnums", []):
         ns = e.get("Namespace", doc.ns)
         w.set_ns(ns)
@@ -402,6 +411,13 @@ def operator_name(op: str, params: str) -> str:
 
 
 def phase3(doc: Doc, w: Writer, opts: Options) -> None:
+    for interface in doc.data.get("ASInterfaces", []):
+        w.set_ns(interface.get("Namespace", doc.ns))
+        for method in interface.get("Methods", []):
+            w.check(
+                f'engine->RegisterInterfaceMethod("{esc(interface["Name"])}", "{esc(method)}")'
+            )
+
     for t in doc.data.get("ASTypes", []):
         ns = t.get("Namespace", doc.ns)
         name = esc(t["Name"])
@@ -455,6 +471,16 @@ _const_counter = 0
 
 def phase4(doc: Doc, w: Writer, opts: Options) -> None:
     global _const_counter
+
+    # Functions implemented by a hand-written runtime binding. They still need
+    # declarations in the standalone script compiler, whose bindings are
+    # intentionally no-op stubs.
+    for f in doc.data.get("ASExternalFunctions", []):
+        w.set_ns(f.get("Namespace", doc.ns))
+        decl = f'{f["ReturnType"]} {f["Name"]}({reg_signature(f.get("Signature", ""))})'
+        w.check(
+            f'engine->RegisterGlobalFunction("{esc(decl)}", asFUNCTION({STUB}), asCALL_GENERIC)'
+        )
 
     for f in doc.data.get("ASFunctions", []):
         w.set_ns(f.get("Namespace", doc.ns))

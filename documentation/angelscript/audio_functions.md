@@ -1,5 +1,7 @@
 # CE::Audio
 
+Registration priority: `90`
+
 ## Functions
 ### LoadSound
 Return type: `AudioAsset`

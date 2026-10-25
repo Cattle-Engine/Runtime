@@ -28,4 +28,15 @@ namespace CE::ACCS {
         public:
             virtual ~IComponent() = default;
     };
+
+    // A component type is deliberately represented by an opaque, stable token.
+    // Native component types use one token per C++ type; integrations with a
+    // runtime type system (such as AngelScript) can provide their own token.
+    using ComponentTypeKey = const void*;
+
+    template <typename T>
+    ComponentTypeKey GetComponentTypeKey() {
+        static const int key = 0;
+        return &key;
+    }
 }

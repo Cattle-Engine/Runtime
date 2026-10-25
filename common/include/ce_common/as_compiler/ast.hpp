@@ -68,6 +68,9 @@ namespace CE::Scripting::Impl::AST {
     struct ASTType {
         std::string Name;
 
+        // Tokens between the class name and its body, e.g. ": ISystem".
+        // Keeping these verbatim preserves AngelScript interface inheritance.
+        std::vector<Lexer::Token> BaseTypes;
         std::vector<Lexer::Token> Body;
     };
 

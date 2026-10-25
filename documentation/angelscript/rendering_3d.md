@@ -1,5 +1,7 @@
 # CE::Graphics::Render3D
 
+Registration priority: `89`
+
 ## Functions
 ### SetSkybox
 Return type: `void`

@@ -1,5 +1,7 @@
 # CE::Graphics::Render2D
 
+Registration priority: `89`
+
 ## Camera2D
 C++ type: `CE::Renderer::Camera2D`
 

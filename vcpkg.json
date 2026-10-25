@@ -1,5 +1,5 @@
 {
-  "name": "ce-engine",
+  "name": "ce-sdk",
   "version-string": "0.1.0",
   "dependencies": [
     {

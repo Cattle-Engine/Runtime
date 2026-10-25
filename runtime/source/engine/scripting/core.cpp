@@ -90,6 +90,7 @@ namespace CE::Scripting {
 
     Runtime::~Runtime() {
         ReleaseStateCallbacks();
+        mScriptBindings.reset();
         if (mUpdateCtx != nullptr) {
             mUpdateCtx->Release();
             mUpdateCtx = nullptr;

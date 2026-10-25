@@ -40,8 +40,10 @@ Type: `string`
 
 ### Behaviours
 #### Construct
+No description given
 
 #### Destructor
+No description given
 
 
 ## Functions

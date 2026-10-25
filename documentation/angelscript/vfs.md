@@ -2,7 +2,10 @@
 Provides access to the instance's virtual file system. All paths are virtual paths
 and resolve through the mounts configured by the engine. File handles are scoped.
 
+
 # CE::VFS
+
+Registration priority: `100`
 
 ## File
 C++ type: `CE::Scripting::Bindings::ASIFile`
@@ -98,9 +101,12 @@ Const method
 Returns whether the read cursor has reached end-of-file.
 
 
+## CE::VFS
 ## Enums
 ### SeekOrigin
 C++ type: `CE::Common::FS::VFS::SeekOrigin`
+
+No description given
 
 Values:
 
@@ -110,6 +116,8 @@ Values:
 
 ### OpenFlags
 C++ type: `CE::Common::FS::VFS::OpenFlags`
+
+No description given
 
 Values:
 

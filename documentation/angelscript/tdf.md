@@ -3,7 +3,10 @@ TDF is CE's typed data-file format. Build values with Make functions, store them
 File, then Save or Load it through the virtual file system. Typed Read functions return
 a default value when given a value of the wrong type.
 
+
 # CE::TDF
+
+Registration priority: `100`
 
 ## Value
 C++ type: `CE::TDF::Value`
@@ -189,9 +192,12 @@ const File& in file, const string& in key
 
 Gets a copy of a value, or a null value when the key does not exist.
 
+## CE::TDF
 ## Enums
 ### Type
 C++ type: `CE::TDF::Type`
+
+No description given
 
 Values:
 

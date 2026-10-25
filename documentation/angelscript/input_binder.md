@@ -1,7 +1,10 @@
 # Description
 CE will not auto load bindings. You will have to do it manually.
 
+
 # CE::Input::Bindings
+
+Registration priority: `90`
 
 ## Functions
 ### IsBindingPressed

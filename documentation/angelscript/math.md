@@ -1,5 +1,7 @@
 # CE::Math
 
+Registration priority: `10`
+
 ## Functions
 ### ToRadians
 Return type: `float`
