@@ -15,29 +15,6 @@
 
 namespace CE::Scripting::Impl {
     namespace {
-        std::string FindGeneratedPrelude(const std::vector<FS::path>& import_paths) {
-            const FS::path candidate_name = "as.predefined";
-
-            for (const auto& root : import_paths) {
-                const auto root_candidate = root / candidate_name;
-                if (std::filesystem::exists(root_candidate))
-                    return root_candidate.string();
-            }
-
-            for (FS::path current = std::filesystem::current_path(); ; ) {
-                const auto search = current / candidate_name;
-                if (std::filesystem::exists(search))
-                    return search.string();
-
-                const auto parent = current.parent_path();
-                if (parent == current)
-                    break;
-                current = parent;
-            }
-
-            return {};
-        }
-
         void CollectDiagnosticSymbolNames(const AST::ASTDeclaration& declaration, const std::string& module_path,
                                           const std::string& name_space, const Semantics::SymanticAnalyser& analyser,
                                           std::unordered_map<std::string, std::string>& names,
@@ -138,16 +115,6 @@ namespace CE::Scripting::Impl {
 
         Semantics::SymanticAnalyser analyser(mPreprocessor, mImportPaths);
         analyser.SetModuleSource(absolute.string(), processed_source);
-        if (!mImportPaths.empty()) {
-            const std::string prelude_path = FindGeneratedPrelude(mImportPaths);
-            if (!prelude_path.empty()) {
-                const std::string prelude_source = Common::GetScriptFromFS(prelude_path);
-                if (!prelude_source.empty()) {
-                    AST::ASTModule prelude = Parser::ParseLexerOutput(Lexer::Lex(prelude_source, prelude_path));
-                    analyser.CheckModule(prelude, prelude_path, false);
-                }
-            }
-        }
         analyser.CheckModule(root, absolute.string());
         for (const auto& [module_path, module] : analyser.GetParsedModules()) {
             for (const auto& declaration : module.Declarations) {

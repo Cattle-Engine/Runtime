@@ -190,6 +190,8 @@ namespace CE::Renderer::Resources {
                 material->Resource.emissionTex = nullptr;
                 return false;
             }
+            return true;
         }
+        return false;
     }
 } // namespace CE::Renderer::Resources

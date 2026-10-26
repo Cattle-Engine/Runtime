@@ -5,7 +5,7 @@ layout(location = 0) in vec2 fragUV;
 layout(set = 2, binding = 0) uniform sampler2D renderTexture;
 layout(location = 0) out vec4 outColor;
 
-const float exposure = 0.30;
+const float exposure = 0.5;
 
 vec3 ACESFilm(vec3 x) {
     return clamp(
@@ -16,14 +16,19 @@ vec3 ACESFilm(vec3 x) {
     );
 }
 
+vec3 LinearToSRGB(vec3 x) {
+    vec3 low = x * 12.92;
+    vec3 high = 1.055 * pow(x, vec3(1.0 / 2.4)) - 0.055;
+
+    return mix(low, high, step(vec3(0.0031308), x));
+}
+
 void main() {
     vec4 hdr = texture(renderTexture, fragUV);
 
     vec3 exposed = hdr.rgb * exposure;
     vec3 mapped = ACESFilm(exposed);
-
-    // Convert linear RGB to sRGB for display.
-    vec3 srgb = pow(mapped, vec3(1.0 / 2.2));
+    vec3 srgb = LinearToSRGB(mapped);
 
     outColor = vec4(srgb, hdr.a);
 }
