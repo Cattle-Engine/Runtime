@@ -983,6 +983,46 @@ ASTypes:
         CppMember: scale
         ASMember: scale
 
+  - Name: Transform2D
+    CppType: CE::Renderer::Transform2D
+    Flags: 
+      - Value
+      - AutoGetFlags
+
+    Behaviours:
+      - Type: Constructor
+        Body: |
+          new(self) CE::Renderer::Transform2D();
+        CallingConvention: CDeclObjLast
+
+      - Type: Destructor
+        Body: |
+          self->~Transform2D();
+        CallingConvention: CDeclObjLast
+
+    Operators:
+      - Operator: "="
+        ReturnType: Transform2D&
+        Signature: Transform2D& in other
+        CppSignature: CE::Renderer::Transform2D&
+        Body: |
+          return const_cast<CE::Renderer::Transform2D&>(self) = arg0;
+        IsConst: false
+
+    Properties:
+      - Type: Vec2
+        CppMember: position
+        ASMember: position
+
+      - Type: float
+        CppMember: rotation
+        ASMember: rotation
+
+      - Type: Vec2
+        CppMember: scale
+        ASMember: scale
+
+
   - Name: Mat4
     CppType: glm::mat4
 
