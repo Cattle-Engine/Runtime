@@ -10,6 +10,9 @@ It has experimental 3D support not the best but it works!
 
 Licences for third party stuff can be found in [/thirdparty/README.md](thirdparty/README.md)
 
+I have a discord server for CE
+https://discord.gg/A3WBrByzvm
+
 ## Building
 Primary workflow:
 
