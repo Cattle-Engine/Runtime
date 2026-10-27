@@ -1,5 +1,9 @@
 #include "engine/scripting/bindings/accs.hpp"
 
+#include "engine/accs/components/2d_rendering.hpp"
+#include "engine/accs/components/3d_rendering.hpp"
+#include "engine/accs/components/transform.hpp"
+
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -173,7 +177,68 @@ namespace CE::Scripting::Bindings {
                 CE_LOG(LogLevel::Error, "[AngelScript] Failed to register ACCS system: {}", exception.what());
             }
         }
+
+        template <typename T>
+        T* GetNativeByID(const ACCS::ComponentID& id, Runtime& runtime) {
+            // World::GetComponent<T>(id) checks the stored type key, so a wrong ID returns nullptr.
+            return GetACCS(runtime).world.GetComponent<T>(id);
+        }
+
+        template <typename T>
+        T* GetNativeByActor(const ACCS::ActorHandle& actor, Runtime& runtime) {
+            return GetACCS(runtime).world.GetComponent<T>(actor);
+        }
+
+        template <typename T, typename BindMembers>
+        bool RegisterNativeComponent(
+            asIScriptEngine& engine,
+            Runtime& runtime,
+            NativeTypeRegistry& registry,
+            const std::string& name,
+            BindMembers&& bindMembers
+        ) {
+            CE_CHECK_AS(engine.RegisterObjectType(name.c_str(), 0, asOBJ_REF | asOBJ_NOCOUNT));
+
+            if (!bindMembers(name.c_str())) {
+                return false;
+            }
+
+            registry.Register<T>(name);
+
+            const std::string getter = "Get" + name;
+
+            CE_CHECK_AS(engine.RegisterGlobalFunction(
+                (name + "@ " + getter + "(const ActorHandle &in)").c_str(),
+                asFUNCTION(GetNativeByActor<T>),
+                asCALL_CDECL_OBJLAST, &runtime));
+
+            CE_CHECK_AS(engine.RegisterGlobalFunction(
+                (name + "@ " + getter + "(const ComponentID &in)").c_str(),
+                asFUNCTION(GetNativeByID<T>),
+                asCALL_CDECL_OBJLAST, &runtime));
+
+            return true;
+        }
     } // namespace
+
+    ACCS::ComponentID ACCSBinding::AddNativeComponent(
+        const ACCS::ActorHandle& actor,
+        const std::string& type
+    ) {
+        try {
+            return native_types.Create(
+                type,
+                GetACCS(mRuntime).world,
+                actor
+            );
+        } catch (const std::exception& exception) {
+            CE_LOG(LogLevel::Error,
+                "[ACCS] Failed to add native component '{}': {}",
+                type,
+                exception.what());
+            return {};
+        }
+    }
 
     bool ACCSBinding::RegisterBindings() {
         mScriptEngine.SetDefaultNamespace("CE::ACCS");
@@ -208,6 +273,41 @@ namespace CE::Scripting::Bindings {
         CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
             "void RegisterSystem(FrameUpdateType, ISystem@)", asFUNCTIONPR(RegisterSystem, (ACCS::FrameUpdateType, asIScriptObject*, Runtime&), void),
             asCALL_CDECL_OBJLAST, &mRuntime));
+
+        CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
+            "ComponentID AddNativeComponent(const ActorHandle &in, const string &in)",
+            asMETHODPR(
+                ACCSBinding,
+                AddNativeComponent,
+                (const ACCS::ActorHandle&, const std::string&),
+                ACCS::ComponentID
+            ),
+            asCALL_THISCALL_ASGLOBAL,
+            this
+        ));
+
+        mScriptEngine.SetDefaultNamespace("");
+        return true;
+
+        CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
+            "ComponentID AddNativeComponent(const ActorHandle &in, const string &in)",
+            asMETHODPR(ACCSBinding, AddNativeComponent,
+                    (const ACCS::ActorHandle&, const std::string&), ACCS::ComponentID),
+            asCALL_THISCALL_ASGLOBAL, this));
+
+        if (!RegisterNativeComponent<ACCS::Components::Transform>(
+                mScriptEngine, mRuntime, native_types, "Transform",
+                [&](const char* n) {
+                    CE_CHECK_AS(mScriptEngine.RegisterObjectProperty(
+                        n, "Transform3D transform_3d",
+                        asOFFSET(ACCS::Components::Transform, transform_3d)));
+                    CE_CHECK_AS(mScriptEngine.RegisterObjectProperty(
+                        n, "Transform2D transform_2d",
+                        asOFFSET(ACCS::Components::Transform, transfrom_2d)));
+                    return true;
+                })) {
+            return false;
+        }
 
         mScriptEngine.SetDefaultNamespace("");
         return true;

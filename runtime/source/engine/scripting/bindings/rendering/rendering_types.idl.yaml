@@ -235,24 +235,24 @@ ASTypes:
           new(self) CE::Renderer::Colour();
         CallingConvention: CDeclObjLast
       - Type: Construct
-        Signature: uint8, uint8, uint8, uint8
-        CppSignature: uint8_t, uint8_t, uint8_t, uint8_t
+        Signature: float, float, float, float
+        CppSignature: float, float, float, float
         Body: |
           new(self) CE::Renderer::Colour{arg0, arg1, arg2, arg3};
         CallingConvention: CDeclObjLast
     
     Properties:
-      - Type: uint8
+      - Type: float
         CppMember: r
         ASMember: r
-      - Type: uint8
+      - Type: float
         CppMember: g
         ASMember: g
-      - Type: uint8
+      - Type: float
         CppMember: b
         ASMember: b
 
-      - Type: uint8
+      - Type: float
         CppMember: a
         ASMember: a
 

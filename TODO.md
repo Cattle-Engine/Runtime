@@ -73,6 +73,7 @@ List of bindings to do:
 - [X] Emission textures
 - [X] HDR rendering
 - [X] Tone mapping
+- [X] Add an ECS
 
 Going to do symbol mangling so this.
 (With the namespace hash it is generated from the full symbol)
@@ -128,8 +129,6 @@ export int foo_func() {
 - [ ] Add an arguemnt "--mess-with-ce" to unlock the ability to eg, change pi at runtime, or modify the contents of memory 
 - [ ] Make a Retained UI system
 - [ ] Make it so you can load a UI from a file (probs gonna use tdf with a .ceui extension)
-
-- [ ] Add an ECS
 - [ ] Physics via Jolt
 - [ ] Save system
 - [ ] plugins

@@ -48,3 +48,4 @@ ASExternalFunctions:
   - {Name: GetActors, ReturnType: "array<ActorHandle>@"}
   - {Name: GetComponents, ReturnType: "array<ComponentID>@", Signature: "const ActorHandle &in"}
   - {Name: RegisterSystem, ReturnType: void, Signature: "FrameUpdateType, ISystem@"}
+  - {Name: AddNativeComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, const string &in"}
