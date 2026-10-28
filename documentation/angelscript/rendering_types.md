@@ -232,16 +232,16 @@ No description given
 
 ### Properties
 #### r
-Type: `uint8`
+Type: `float`
 
 #### g
-Type: `uint8`
+Type: `float`
 
 #### b
-Type: `uint8`
+Type: `float`
 
 #### a
-Type: `uint8`
+Type: `float`
 
 ### Behaviours
 #### Construct
@@ -250,7 +250,7 @@ No description given
 #### Construct
 Signature:
 ```angelscript
-uint8, uint8, uint8, uint8
+float, float, float, float
 ```
 
 No description given
@@ -1028,6 +1028,42 @@ Return type: `Transform3D&`
 Signature:
 ```angelscript
 Transform3D& in other
+```
+
+No description given
+
+
+## Transform2D
+C++ type: `CE::Renderer::Transform2D`
+
+Flags: `Value`, `AutoGetFlags`
+
+No description given
+
+### Properties
+#### position
+Type: `Vec2`
+
+#### rotation
+Type: `float`
+
+#### scale
+Type: `Vec2`
+
+### Behaviours
+#### Constructor
+No description given
+
+#### Destructor
+No description given
+
+### Operators
+#### =
+Return type: `Transform2D&`
+
+Signature:
+```angelscript
+Transform2D& in other
 ```
 
 No description given

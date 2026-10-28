@@ -303,4 +303,3 @@ uint32 id, bool stereo
 ```
 
 Sets the current audio playback device.
-NOTE: This will stop ALL playing audio!

@@ -165,3 +165,13 @@ FrameUpdateType, ISystem@
 ```
 
 No description given
+
+### AddNativeComponent
+Return type: `ComponentID`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given

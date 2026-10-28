@@ -1,6 +1,7 @@
 #include "engine/audio/audio_resource_manager.hpp"
 
 #include <algorithm>
+#include <utility>
 
 #include "engine/common/tracelog.hpp"
 
@@ -366,5 +367,104 @@ namespace CE::Audio::Resources {
         if (found) {
             mAudioSys.StopSound(mPlayingSounds[oldest].Sound);
         }
+    }
+
+    bool AudioManager::SetAudioDevice(uint32_t device_id, bool stereo) {
+        struct SavedSound {
+            uint32_t Handle = 0;
+            Core::Audio::PlayingSound Sound;
+            bool WasPlaying = false;
+            bool WasPaused = false;
+            float PositionSeconds = 0.0f;
+        };
+
+        std::vector<SavedSound> saved_sounds;
+        saved_sounds.reserve(mPlayingSounds.size());
+
+        // Snapshot every sound before the old mixer destroys its tracks.
+        for (auto& [handle, info] : mPlayingSounds) {
+            SavedSound saved;
+            saved.Handle = handle;
+            saved.Sound = info.Sound;
+            saved.PositionSeconds = info.Sound.PositionSeconds;
+
+            MIX_Track* track = info.Sound.Track;
+            if (track) {
+                saved.WasPaused = MIX_TrackPaused(track);
+                saved.WasPlaying = MIX_TrackPlaying(track) || saved.WasPaused;
+
+                const Sint64 frames = MIX_GetTrackPlaybackPosition(track);
+                if (frames >= 0) {
+                    const Sint64 milliseconds = MIX_TrackFramesToMS(track, frames);
+                    if (milliseconds >= 0) {
+                        saved.PositionSeconds =
+                            static_cast<float>(milliseconds) / 1000.0f;
+                    }
+                }
+            }
+
+            saved.Sound.Track = nullptr;
+            saved.Sound.PositionSeconds = saved.PositionSeconds;
+            saved.Sound.IsPlaying = saved.WasPlaying;
+
+            saved_sounds.push_back(std::move(saved));
+        }
+
+        if (!mAudioSys.SetAudioDevice(device_id, stereo)) {
+            return false;
+        }
+
+        // Rebuild the mixer-specific tracks while keeping the manager's handles.
+        for (auto& saved : saved_sounds) {
+            auto it = mPlayingSounds.find(saved.Handle);
+            if (it == mPlayingSounds.end() || !saved.Sound.Clip) {
+                continue;
+            }
+
+            AMPlayingSoundInfo& info = it->second;
+
+            Core::Audio::PlayingSound rebuilt =
+                mAudioSys.CreateSoundInstance(*saved.Sound.Clip);
+
+            if (!rebuilt.Track) {
+                CE_LOG(LogLevel::Error,
+                    "[Audio Manager {}] Failed to recreate sound instance {} "
+                    "after changing audio device",
+                    mInstanceID, saved.Handle);
+                info.Sound = std::move(rebuilt);
+                continue;
+            }
+
+            // Restore the sound instance's logical state.
+            rebuilt.Volume = saved.Sound.Volume;
+            rebuilt.Bus = std::move(saved.Sound.Bus);
+            rebuilt.Filter = std::move(saved.Sound.Filter);
+            rebuilt.Effects = std::move(saved.Sound.Effects);
+            rebuilt.PositionSeconds = saved.PositionSeconds;
+            rebuilt.IsPlaying = false;
+
+            info.Sound = std::move(rebuilt);
+
+            // Reapply per-track gain, bus and DSP configuration.
+            mAudioSys.UpdateSound(info.Sound);
+
+            if (!saved.WasPlaying) {
+                continue;
+            }
+
+            // Start the track, then seek. Seeking before PlaySound() can be
+            // ineffective because starting a track resets its start position.
+            mAudioSys.PlaySound(info.Sound);
+
+            if (saved.PositionSeconds > 0.0f) {
+                mAudioSys.SeekSound(info.Sound, saved.PositionSeconds);
+            }
+
+            if (saved.WasPaused) {
+                mAudioSys.PauseSound(info.Sound);
+            }
+        }
+
+        return true;
     }
 } // namespace CE::Audio::Resources

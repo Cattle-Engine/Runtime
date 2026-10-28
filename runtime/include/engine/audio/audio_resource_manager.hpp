@@ -67,6 +67,8 @@ namespace CE::Audio::Resources {
         void SetSoundLabel(PlayingAudioHandle handle, std::string label);
         std::string GetSoundLabel(PlayingAudioHandle handle);
 
+        bool SetAudioDevice(uint32_t device_id, bool stereo);
+
         struct DebugPlayingSound {
             PlayingAudioHandle Handle{};
             std::string Label;
@@ -81,7 +83,6 @@ namespace CE::Audio::Resources {
         };
         size_t Debug_CachedClipsCount() const;
         std::vector<DebugPlayingSound> Debug_PlayingSoundsSnapshot() const;
-
       private:
         struct AMPlayingSoundInfo {
             PlayingAudioHandle Handle;

@@ -18,7 +18,7 @@
 
     {
       "name": "sdl3",
-      "features": ["vulkan", "x11", "wayland", "ibus", "dbus"],
+      "features": ["vulkan", "x11", "wayland", "ibus", "dbus", "alsa"],
       "platform": "linux"
     },
 

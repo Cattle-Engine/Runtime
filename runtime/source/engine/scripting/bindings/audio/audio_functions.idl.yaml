@@ -303,7 +303,6 @@ ASClassFunctions:
     Signature: uint32 id, bool stereo
     Description: |
       Sets the current audio playback device.
-      NOTE: This will stop ALL playing audio!
     Function: |
-      if(!mRuntime.mAudioSystem) return false;
-      return mRuntime.mAudioSystem->SetAudioDevice(arg0, arg1);
+      if(!mRuntime.mAudioManager) return false;
+      return mRuntime.mAudioManager->SetAudioDevice(arg0, arg1);

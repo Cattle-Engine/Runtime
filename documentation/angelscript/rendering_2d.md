@@ -8,7 +8,7 @@ Return type: `void`
 
 Signature:
 ```angelscript
-const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
+const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None, Vec2 scale = Vec2(1.0f, 1.0f)
 ```
 
 No description given
@@ -18,7 +18,7 @@ Return type: `void`
 
 Signature:
 ```angelscript
-const Texture& in, float x, float y, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None
+const Texture& in, float x, float y, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None, Vec2 scale = Vec2(1.0f, 1.0f)
 ```
 
 No description given

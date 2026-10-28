@@ -89,10 +89,23 @@ namespace CE {
         }
 
         try {
+            CE_LOG(LogLevel::Info, "[Instance {}] SDL audio drivers:", mInstanceID);
+
+            for (int i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
+                CE_LOG(LogLevel::Info, "  {}", SDL_GetAudioDriver(i));
+            }
+
             if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-                CE_LOG(LogLevel::Error, "[Instance {}] Failed to init SDL audio: {}", mInstanceID, SDL_GetError());
+                CE_LOG(LogLevel::Error,
+                    "[Instance {}] Failed to init SDL audio: {}",
+                    mInstanceID, SDL_GetError());
+
                 throw std::runtime_error("Failed to init SDL audio");
             }
+
+            CE_LOG(LogLevel::Info,
+                "[Instance {}] SDL audio driver: {}",
+                mInstanceID, SDL_GetCurrentAudioDriver());
 
             CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating audio system", mInstanceID);
             

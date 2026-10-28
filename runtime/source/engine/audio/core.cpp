@@ -45,8 +45,32 @@ namespace CE::Core::Audio {
         }
     }
 
-    bool AudioSystem::SetAudioDevice(uint32_t device_id, bool stero) {
-        StopAll();
+    bool AudioSystem::SetAudioDevice(uint32_t device_id, bool stereo) {
+        SDL_AudioSpec spec = {};
+        spec.channels = stereo ? 2 : 1;
+        spec.freq = 48000;
+        spec.format = SDL_AUDIO_F32;
+
+        MIX_Mixer* new_mixer = MIX_CreateMixerDevice(
+            static_cast<SDL_AudioDeviceID>(device_id), &spec
+        );
+
+        if (!new_mixer) {
+            CE_LOG(LogLevel::Error,
+                "[Audio {}] Failed to create mixer device: {}",
+                mInstanceID, SDL_GetError());
+            return false;
+        }
+
+        SDL_AudioSpec new_mixer_spec = spec;
+        if (!MIX_GetMixerFormat(new_mixer, &new_mixer_spec)) {
+            CE_LOG(LogLevel::Warn,
+                "[Audio {}] Failed to query mixer format: {}",
+                mInstanceID, SDL_GetError());
+            new_mixer_spec = spec;
+        }
+
+        MIX_Mixer* old_mixer = mMixer;
 
         for (MIX_Track* track : mTracks) {
             {
@@ -57,28 +81,11 @@ namespace CE::Core::Audio {
         }
         mTracks.clear();
 
-        if (mMixer) {
-            MIX_DestroyMixer(mMixer);
-            mMixer = nullptr;
-        }
+        mMixer = new_mixer;
+        mMixerSpec = new_mixer_spec;
 
-        SDL_AudioSpec spec = {};
-        if (stero) {
-            spec.channels = 2;
-        } else {
-            spec.channels = 1;
-        }
-        spec.freq = 48000;
-        spec.format = SDL_AUDIO_F32;
-        mMixer = MIX_CreateMixerDevice(static_cast<SDL_AudioDeviceID>(device_id), &spec);
-        if (!mMixer) {
-            CE_LOG(LogLevel::Error, "[Audio {}] Failed to create mixer device: {}", mInstanceID, SDL_GetError());
-            return false;
-        }
-
-        if (!MIX_GetMixerFormat(mMixer, &mMixerSpec)) {
-            CE_LOG(LogLevel::Warn, "[Audio {}] Failed to query mixer format: {}", mInstanceID, SDL_GetError());
-            mMixerSpec = spec;
+        if (old_mixer) {
+            MIX_DestroyMixer(old_mixer);
         }
 
         return true;

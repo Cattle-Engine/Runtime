@@ -424,7 +424,7 @@ namespace CE::UI {
 
                             selected_audio_device = i;
 
-                            mAudioSystem->SetAudioDevice(
+                            mAudioManager->SetAudioDevice(
                                 mAudioDevices[i].Id,
                                 mAudioDevices[i].stereo
                             );
