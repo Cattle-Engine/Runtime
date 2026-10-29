@@ -52,10 +52,7 @@ namespace CE::ACCS {
         return true;
     }
 
-    ComponentID World::AddComponent(
-        ActorHandle actorHandle,
-        ComponentTypeKey type,
-        std::shared_ptr<IComponent> component) {
+    ComponentID World::AddComponentRaw(ActorHandle actorHandle, ComponentTypeKey type, std::shared_ptr<IComponent> component) {
         Actor* actor = GetActor(actorHandle);
         if (!actor) {
             throw std::invalid_argument("Invalid actor handle");
@@ -181,5 +178,63 @@ namespace CE::ACCS {
 
         slot.next_free = mComponentFreeHead;
         mComponentFreeHead = id.index;
+    }
+
+    ComponentID World::AddComponent(ActorHandle handle, const std::string& name) {
+        const ComponentTypeInfo* info = mRegistry.Find(name);
+        Actor* actor = GetActor(handle);
+
+        if (!info || !actor) {
+            return ComponentID{};
+        }
+
+        if (actor->component_lookup.find(info->key) != actor->component_lookup.end()) {
+            return ComponentID{};
+        }
+
+        return AddComponentRaw(handle, info->key, info->create());
+    }
+
+    ComponentID World::AddComponent(ActorHandle actorHandle, ComponentTypeKey type, std::shared_ptr<IComponent> component) {
+        Actor* actor = GetActor(actorHandle);
+        if (!actor) {
+            throw std::invalid_argument("Invalid actor handle");
+        }
+        if (type == nullptr || !component) {
+            throw std::invalid_argument("Component type and instance are required");
+        }
+        if (actor->component_lookup.contains(type)) {
+            throw std::logic_error("Actor already has this component type");
+        }
+
+        return AddComponentRaw(actorHandle, type, std::move(component));
+    }
+
+    IComponent* World::GetComponent(ActorHandle handle, const std::string& name) {
+        const ComponentTypeInfo* info = mRegistry.Find(name);
+        Actor* actor = GetActor(handle);
+
+        if (!info || !actor) {
+            return nullptr;
+        }
+
+        auto it = actor->component_lookup.find(info->key);
+        return it == actor->component_lookup.end() ? nullptr : GetComponent(it->second);
+    }
+
+    const IComponent* World::GetComponent(ActorHandle handle, const std::string& name) const {
+        const ComponentTypeInfo* info = mRegistry.Find(name);
+        const Actor* actor = GetActor(handle);
+
+        if (!info || !actor) {
+            return nullptr;
+        }
+
+        auto it = actor->component_lookup.find(info->key);
+        return it == actor->component_lookup.end() ? nullptr : GetComponent(it->second);
+    }
+
+    bool World::HasComponent(ActorHandle handle, const std::string& name) const {
+        return GetComponent(handle, name) != nullptr;
     }
 }

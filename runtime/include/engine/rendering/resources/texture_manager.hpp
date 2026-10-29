@@ -33,13 +33,13 @@ namespace CE::Renderer::Resources {
             }
         }
 
-        int GetTexturwWidth() const {
+        int GetTextureWidth() const {
             if (mTexture) {
                 return mTexture->texture->width;
             }
             return 0;
         }
-
+        
         int GetTextureHeight() const {
             if (mTexture) {
                 return mTexture->texture->height;

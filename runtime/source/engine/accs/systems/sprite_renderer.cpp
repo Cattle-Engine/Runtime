@@ -13,7 +13,7 @@ namespace CE::ACCS::Systems {
 
         accs.world.Each<Components::Sprite2D, Components::Transform>(
             [this](Components::Sprite2D& sprite_2d, Components::Transform& transform) {
-                mEntries.push_back({&sprite_2d, &transform.transfrom_2d});
+                mEntries.push_back({&sprite_2d, &transform.transform_2d});
             }
         );
 

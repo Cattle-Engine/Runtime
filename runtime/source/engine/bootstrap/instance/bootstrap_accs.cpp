@@ -45,7 +45,7 @@ namespace CE {
 
         thing->texture = mTextureManager->Load("welcome.gif");
         thing->texture_height = thing->texture.GetTextureHeight();
-        thing->texture_width = thing->texture.GetTexturwWidth();
+        thing->texture_width = static_cast<float>(thing->texture.GetTextureWidth());
         */
 
         return 0;

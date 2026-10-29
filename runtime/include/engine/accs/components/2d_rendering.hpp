@@ -16,8 +16,8 @@ namespace CE::ACCS::Components {
             Renderer::Colour colour = Renderer::Colour::White;
             Renderer::TextureFlip texture_flip = Renderer::TextureFlip::None;
 
-            float texture_width = texture.GetTexturwWidth();
-            float texture_height = texture.GetTextureHeight();
+            float texture_width = 0.0f;
+            float texture_height = 0.0f;
             // NOLINTEND
     };
 }

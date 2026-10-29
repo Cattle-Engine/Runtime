@@ -22,7 +22,6 @@ namespace CE::Scripting::Bindings {
           public:
             explicit ScriptComponent(asIScriptObject& object) : mObject(&object) {
                 mObject->AddRef();
-                asOBJ_VALUE;
             }
 
             ~ScriptComponent() override {
@@ -92,12 +91,10 @@ namespace CE::Scripting::Bindings {
         }
 
         bool IsActorAlive(const ACCS::ActorHandle& actor, Runtime& runtime) {
-            for (const auto& candidate : GetACCS(runtime).world.GetActors()) {
-                if (candidate == actor) {
-                    return true;
-                }
-            }
-            return false;
+            const auto& actors = GetACCS(runtime).world.GetActors();
+            return std::ranges::any_of(actors.begin(), actors.end(), [&](const auto& candidate) {
+                return candidate == actor;
+            });
         }
 
         ACCS::ComponentID AddComponent(const ACCS::ActorHandle& actor, asIScriptObject* object, Runtime& runtime) {
@@ -139,7 +136,8 @@ namespace CE::Scripting::Bindings {
             Runtime& runtime,
             std::string_view declaration,
             const std::vector<T>& values) {
-            asITypeInfo* type = runtime.GetScriptEngine().GetTypeInfoByDecl(declaration.data());
+            const std::string type_name = std::string(declaration);
+            asITypeInfo* type = runtime.GetScriptEngine().GetTypeInfoByDecl(type_name.c_str());
             if (!type) {
                 return nullptr;
             }
@@ -273,7 +271,6 @@ namespace CE::Scripting::Bindings {
         CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
             "void RegisterSystem(FrameUpdateType, ISystem@)", asFUNCTIONPR(RegisterSystem, (ACCS::FrameUpdateType, asIScriptObject*, Runtime&), void),
             asCALL_CDECL_OBJLAST, &mRuntime));
-
         CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
             "ComponentID AddNativeComponent(const ActorHandle &in, const string &in)",
             asMETHODPR(
@@ -286,15 +283,6 @@ namespace CE::Scripting::Bindings {
             this
         ));
 
-        mScriptEngine.SetDefaultNamespace("");
-        return true;
-
-        CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction(
-            "ComponentID AddNativeComponent(const ActorHandle &in, const string &in)",
-            asMETHODPR(ACCSBinding, AddNativeComponent,
-                    (const ACCS::ActorHandle&, const std::string&), ACCS::ComponentID),
-            asCALL_THISCALL_ASGLOBAL, this));
-
         if (!RegisterNativeComponent<ACCS::Components::Transform>(
                 mScriptEngine, mRuntime, native_types, "Transform",
                 [&](const char* n) {
@@ -303,13 +291,15 @@ namespace CE::Scripting::Bindings {
                         asOFFSET(ACCS::Components::Transform, transform_3d)));
                     CE_CHECK_AS(mScriptEngine.RegisterObjectProperty(
                         n, "Transform2D transform_2d",
-                        asOFFSET(ACCS::Components::Transform, transfrom_2d)));
+                        asOFFSET(ACCS::Components::Transform, transform_2d)));
                     return true;
                 })) {
+            
+            mScriptEngine.SetDefaultNamespace("");
             return false;
         }
-
         mScriptEngine.SetDefaultNamespace("");
+
         return true;
     }
 } // namespace CE::Scripting::Bindings
