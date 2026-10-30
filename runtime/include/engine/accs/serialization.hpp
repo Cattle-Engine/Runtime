@@ -29,7 +29,6 @@ namespace CE::ACCS {
             static constexpr uint32_t kMaxActors     = 1u << 24;
             static constexpr uint32_t kMaxTypes      = 1u << 16;
 
-            // Open the stream with std::ios::binary. Returns false on any failure.
             static bool Save(const World& world, std::ostream& os) {
                 BinaryWriter w(os);
                 const std::vector<ActorHandle> actors = world.GetActors();
@@ -51,31 +50,17 @@ namespace CE::ACCS {
 
                 for (size_t i = 0; i < actors.size(); ++i) {
                     for (ComponentID cid : world.GetComponents(actors[i])) {
-                        const auto& entries = perActor[i];
-
-                        std::ostringstream mbuf(std::ios::binary);
-                        BinaryWriter mw(mbuf);
-                        if (!WriteActorMeta(world, actors[i], mw) || !mbuf) return false;
-
-                        const std::string meta = mbuf.str();
-                        if (meta.size() > kMaxChunkSize ||
-                            !w.WriteU32(static_cast<uint32_t>(meta.size())) ||
-                            !w.WriteBytes(meta.data(), meta.size())) {
-                            return false;
-                        }
-
-                        if (!w.WriteU32(static_cast<uint32_t>(entries.size()))) return false;
-
                         const std::string* name = world.GetComponentName(cid);
                         const ComponentTypeInfo* info =
                             name ? world.GetRegistry().Find(*name) : nullptr;
 
                         if (!info || !info->IsSerializable()) {
-                            continue; // transient or unregistered
+                            continue;
                         }
 
                         auto [it, inserted] = typeIndex.try_emplace(
                             *name, static_cast<uint32_t>(typeNames.size()));
+
                         if (inserted) {
                             typeNames.push_back(*name);
                         }
@@ -84,15 +69,18 @@ namespace CE::ACCS {
                     }
                 }
 
-                if (!w.WriteBytes("CEWD", 4) || !w.WriteU32(kFormatVersion)) {
+                if (typeNames.size() > kMaxTypes || actors.size() > kMaxActors) {
                     return false;
                 }
 
-                if (!w.WriteU32(static_cast<uint32_t>(typeNames.size()))) {
+                if (!w.WriteBytes("CEWD", 4) ||
+                    !w.WriteU32(kFormatVersion) ||
+                    !w.WriteU32(static_cast<uint32_t>(typeNames.size()))) {
                     return false;
                 }
-                for (const std::string& n : typeNames) {
-                    if (!w.WriteSizedString(n)) {
+
+                for (const std::string& name : typeNames) {
+                    if (!w.WriteSizedString(name)) {
                         return false;
                     }
                 }
@@ -101,7 +89,25 @@ namespace CE::ACCS {
                     return false;
                 }
 
-                for (const auto& entries : perActor) {
+                for (size_t i = 0; i < actors.size(); ++i) {
+                    // Write actor metadata exactly once.
+                    std::ostringstream mbuf(std::ios::binary);
+                    BinaryWriter mw(mbuf);
+
+                    if (!WriteActorMeta(world, actors[i], mw) || !mbuf) {
+                        return false;
+                    }
+
+                    const std::string meta = mbuf.str();
+
+                    if (meta.size() > kMaxChunkSize ||
+                        !w.WriteU32(static_cast<uint32_t>(meta.size())) ||
+                        !w.WriteBytes(meta.data(), meta.size())) {
+                        return false;
+                    }
+
+                    const auto& entries = perActor[i];
+
                     if (!w.WriteU32(static_cast<uint32_t>(entries.size()))) {
                         return false;
                     }
@@ -112,20 +118,17 @@ namespace CE::ACCS {
                             return false;
                         }
 
-                        // Buffer the chunk so its size is known up front and
-                        // the target stream doesn't need to be seekable.
                         std::ostringstream buf(std::ios::binary);
                         BinaryWriter cw(buf);
+
                         if (!e.info->save(*comp, cw, ctx) || !buf) {
                             return false;
                         }
 
                         const std::string bytes = buf.str();
-                        if (bytes.size() > kMaxChunkSize) {
-                            return false;
-                        }
 
-                        if (!w.WriteU32(e.type) ||
+                        if (bytes.size() > kMaxChunkSize ||
+                            !w.WriteU32(e.type) ||
                             !w.WriteU32(static_cast<uint32_t>(bytes.size())) ||
                             !w.WriteBytes(bytes.data(), bytes.size())) {
                             return false;

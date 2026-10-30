@@ -19,7 +19,8 @@ namespace CE::Common::FS::VFS {
         Read = 1u << 0,
         Write = 1u << 1,
         Create = 1u << 2,
-        Append = 1u << 3
+        Append = 1u << 3,
+        Truncate = 1u << 4,
     };
 
     constexpr OpenFlags operator|(OpenFlags lhs, OpenFlags rhs) {

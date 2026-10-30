@@ -31,6 +31,10 @@ namespace CE::Common::FS::OSFS {
             mode |= std::ios::out;
         }
 
+        if ((static_cast<unsigned>(flags) & static_cast<unsigned>(VFS::OpenFlags::Truncate)) != 0) {
+            mode |= std::ios::trunc;
+        }
+
         return mode;
     }
 

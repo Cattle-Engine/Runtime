@@ -5,11 +5,15 @@ RequiredCppHeaders:
   - "engine/accs/actor.hpp"
   - "engine/accs/component.hpp"
   - "engine/accs/system.hpp"
+  - "engine/accs/serialization.hpp"
 
 ASEnums:
   - Name: FrameUpdateType
     CppType: CE::ACCS::FrameUpdateType
     Values: [None, Logic, Render2D, Render3D, ImGui]
+  - Name: LoadResult
+    CppType: CE::ACCS::LoadResult
+    Values: [Ok, Partial, Failed]
 
 ASTypes:
   - Name: ActorHandle
@@ -38,14 +42,36 @@ ASInterfaces:
 # Registered by the hand-written ACCS binding. The script compiler consumes
 # these declarations as no-op stubs, so game code sees the same API.
 ASExternalFunctions:
+  # Actors
   - {Name: CreateActor, ReturnType: ActorHandle}
   - {Name: DestroyActor, ReturnType: bool, Signature: "const ActorHandle &in"}
   - {Name: IsActorAlive, ReturnType: bool, Signature: "const ActorHandle &in"}
-  - {Name: AddComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, IComponent@"}
-  - {Name: RemoveComponent, ReturnType: bool, Signature: "const ComponentID &in"}
-  - {Name: HasComponent, ReturnType: bool, Signature: "const ComponentID &in"}
-  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ComponentID &in"}
   - {Name: GetActors, ReturnType: "array<ActorHandle>@"}
+
+  - {Name: SetActorName, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: GetActorName, ReturnType: string, Signature: "const ActorHandle &in"}
+  - {Name: SetActorActive, ReturnType: bool, Signature: "const ActorHandle &in, bool"}
+  - {Name: IsActorActive, ReturnType: bool, Signature: "const ActorHandle &in"}
+  - {Name: AddActorTag, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: RemoveActorTag, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: HasActorTag, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: GetActorTags, ReturnType: "array<string>@", Signature: "const ActorHandle &in"}
+
+  - {Name: RegisterComponent, ReturnType: bool, Signature: "const string &in"}
+  - {Name: RegisterComponent, ReturnType: bool, Signature: "const string &in, const string &in"}
+
+  - {Name: AddComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: AddComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, IComponent@"}
+  - {Name: HasComponent, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: HasComponent, ReturnType: bool, Signature: "const ComponentID &in"}
+  - {Name: RemoveComponent, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
+  - {Name: RemoveComponent, ReturnType: bool, Signature: "const ComponentID &in"}
+  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ActorHandle &in, const string &in"}
+  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ComponentID &in"}
+  - {Name: GetComponentName, ReturnType: string, Signature: "const ComponentID &in"}
   - {Name: GetComponents, ReturnType: "array<ComponentID>@", Signature: "const ActorHandle &in"}
+
+  - {Name: SaveWorld, ReturnType: bool, Signature: "const string &in"}
+  - {Name: LoadWorld, ReturnType: LoadResult, Signature: "const string &in"}
+
   - {Name: RegisterSystem, ReturnType: void, Signature: "FrameUpdateType, ISystem@"}
-  - {Name: AddNativeComponent, ReturnType: ComponentID, Signature: "const ActorHandle &in, const string &in"}

@@ -237,4 +237,18 @@ namespace CE::ACCS {
     bool World::HasComponent(ActorHandle handle, const std::string& name) const {
         return GetComponent(handle, name) != nullptr;
     }
+
+    ComponentID World::AddComponentInstance(ActorHandle handle, const std::string& name, std::shared_ptr<IComponent> instance) {
+        const ComponentTypeInfo* info = mRegistry.Find(name);
+        Actor* actor = GetActor(handle);
+
+        if (!info || !actor || !instance) {
+            return ComponentID{};
+        }
+        if (actor->component_lookup.find(info->key) != actor->component_lookup.end()) {
+            return ComponentID{};
+        }
+
+        return AddComponentRaw(handle, info->key, std::move(instance));
+    }
 }

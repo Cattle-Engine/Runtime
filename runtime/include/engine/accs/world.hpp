@@ -321,6 +321,10 @@ namespace CE::ACCS {
                 return actor ? &actor->tags : nullptr;
             }
 
+            bool IsActorAlive(ActorHandle handle) const { return GetActor(handle) != nullptr; }
+
+            ComponentID AddComponentInstance(ActorHandle actor, const std::string& name, std::shared_ptr<IComponent> instance);
+
         private:
             struct ActorSlot {
                 std::unique_ptr<Actor> actor;
