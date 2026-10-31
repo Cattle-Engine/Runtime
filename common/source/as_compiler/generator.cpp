@@ -27,6 +27,10 @@ namespace CE::Scripting::Impl::Codegen {
                 return true;
             }
 
+            if (b == "<" || b == ">" || a == "<") {
+                return false;
+            }
+
             const bool a_word =
                 IsIdentifier(previous) ||
                 previous.Type == Lexer::Token::TokenType::Number ||
@@ -82,12 +86,15 @@ namespace CE::Scripting::Impl::Codegen {
         return result;
     }
 
-    std::string Generator::EmitTypeRef(const AST::ASTTypeRef& type, const std::string& module_path,
-                                       const std::string& name_space) const {
+    std::string Generator::EmitTypeRef(const AST::ASTTypeRef& type, const std::string& module_path, const std::string& name_space) const {
         std::string name = type.Name;
+
         if (!type.IsAuto) {
             const std::string qualified =
-                name.find("::") != std::string::npos || name_space.empty() ? name : name_space + "::" + name;
+                name.find("::") != std::string::npos || name_space.empty()
+                    ? name
+                    : name_space + "::" + name;
+
             if (const auto* symbol = mAnalyser.ResolveSymbol(module_path, qualified)) {
                 if (symbol->Kind == AST::ASTDeclaration::Kind::Type)
                     name = symbol->InternalName;
@@ -96,14 +103,36 @@ namespace CE::Scripting::Impl::Codegen {
                     name = symbol->InternalName;
             }
         }
+
         std::string result = type.IsConst ? "const " : "";
         result += type.IsAuto ? "auto" : name;
+
+        if (!type.TemplateArguments.empty()) {
+            result += "<";
+
+            for (size_t i = 0; i < type.TemplateArguments.size(); ++i) {
+                if (i > 0)
+                    result += ", ";
+
+                result += EmitTypeRef(
+                    type.TemplateArguments[i],
+                    module_path,
+                    name_space
+                );
+            }
+
+            result += ">";
+        }
+
         for (uint32_t i = 0; i < type.ArrayDepth; ++i)
             result += "[]";
+
         if (type.IsHandle)
             result += '@';
+
         if (type.IsReference)
             result += '&';
+
         return result;
     }
 

@@ -59,6 +59,20 @@ namespace CE::Scripting::Impl::Parser {
             return true;
         }
 
+        bool IsSymbol(const std::string& value) {
+            return Current().Type == Lexer::Token::TokenType::Symbol &&
+                Current().Value == value;
+        }
+
+        bool MatchSymbol(const std::string& value) {
+            if (!IsSymbol(value)) {
+                return false;
+            }
+
+            Advance();
+            return true;
+        }
+
         std::string TokenTypeName(Lexer::Token::TokenType type) {
             using TokenType = Lexer::Token::TokenType;
 
@@ -256,36 +270,19 @@ namespace CE::Scripting::Impl::Parser {
         }
 
         bool IsTypeRefAhead() {
-            // A qualified type is detected at its first component only.
-            // Without this guard `MyType::Nested value` is recorded twice,
-            // once as MyType::Nested and again at Nested.
-            if (mPosition > 0 &&
-                mTokens[mPosition - 1].Type ==
-                    Lexer::Token::TokenType::ScopeResolution) {
+            const size_t saved_position = mPosition;
+
+            try {
+                ParseTypeRef();
+
+                const bool result = Current().Type == Lexer::Token::TokenType::Identifier;
+
+                mPosition = saved_position;
+                return result;
+            } catch (const Exceptions::ParserError&) {
+                mPosition = saved_position;
                 return false;
             }
-            if (Current().Type == Lexer::Token::TokenType::KeywordConst ||
-                Current().Type == Lexer::Token::TokenType::KeywordAuto) {
-                return true;
-            }
-            if (Current().Type != Lexer::Token::TokenType::Identifier) {
-                return false;
-            }
-
-            size_t scanPos = mPosition + 1; // first identifier already consumed
-            while (scanPos + 1 < mTokens.size() && mTokens[scanPos].Type == Lexer::Token::TokenType::ScopeResolution &&
-                   mTokens[scanPos + 1].Type == Lexer::Token::TokenType::Identifier) {
-                scanPos += 2;
-            }
-
-            if (scanPos < mTokens.size()) {
-                auto nextT = mTokens[scanPos].Type;
-                if (nextT == Lexer::Token::TokenType::Handle || nextT == Lexer::Token::TokenType::Reference ||
-                    nextT == Lexer::Token::TokenType::Identifier) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         AST::ASTImport ParseImport() {
@@ -726,18 +723,16 @@ namespace CE::Scripting::Impl::Parser {
         AST::ASTTypeRef ParseTypeRef() {
             AST::ASTTypeRef typeref;
 
-            // check for const
-            if (Current().Type ==
-                Lexer::Token::TokenType::KeywordConst) {
+            // Check for const.
+            if (Current().Type == Lexer::Token::TokenType::KeywordConst) {
                 typeref.IsConst = true;
                 Advance();
             }
 
-            if (Current().Type ==
-                Lexer::Token::TokenType::KeywordAuto) {
+            if (Current().Type == Lexer::Token::TokenType::KeywordAuto) {
                 typeref.IsAuto = true;
                 Advance();
-                return typeref; // cant have modifiers with auto
+                return typeref;
             }
 
             typeref.Name = Expect(
@@ -745,29 +740,49 @@ namespace CE::Scripting::Impl::Parser {
                 "as a type name"
             ).Value;
 
-            while (Current().Type ==
-                   Lexer::Token::TokenType::ScopeResolution) {
-                Advance(); // consume the ::
+            // Parse qualified type names, e.g. CE::Graphics::Vec3.
+            while (Current().Type == Lexer::Token::TokenType::ScopeResolution) {
+                Advance();
 
                 typeref.Name += "::" + Expect(
                     Lexer::Token::TokenType::Identifier,
-                    "as a type name after '" +
-                        typeref.Name + "::'"
+                    "as a type name after '" + typeref.Name + "::'"
                 ).Value;
             }
 
-            // parse modifiers
+            // Parse template arguments, e.g. array<int>.
+            if (MatchSymbol("<")) {
+                if (IsSymbol(">")) {
+                    Error("expected at least one template argument for type '" + typeref.Name + "'");
+                }
+
+                while (true) {
+                    typeref.TemplateArguments.push_back(ParseTypeRef());
+
+                    if (Match(Lexer::Token::TokenType::Comma)) {
+                        continue;
+                    }
+
+                    if (MatchSymbol(">")) {
+                        break;
+                    }
+
+                    Error(
+                        "expected ',' or '>' after template argument for type '" +
+                        typeref.Name + "'"
+                    );
+                }
+            }
+
+            // Parse type modifiers.
             while (true) {
-                if (Current().Type ==
-                    Lexer::Token::TokenType::Handle) {
+                if (Current().Type == Lexer::Token::TokenType::Handle) {
                     typeref.IsHandle = true;
                     Advance();
-                } else if (Current().Type ==
-                           Lexer::Token::TokenType::Reference) {
+                } else if (Current().Type == Lexer::Token::TokenType::Reference) {
                     typeref.IsReference = true;
                     Advance();
-                } else if (Current().Type ==
-                           Lexer::Token::TokenType::OpenBracket) {
+                } else if (Current().Type == Lexer::Token::TokenType::OpenBracket) {
                     typeref.ArrayDepth++;
                     Advance();
 
@@ -782,7 +797,6 @@ namespace CE::Scripting::Impl::Parser {
 
             return typeref;
         }
-
         AST::ASTNamespace ParseNamespace() {
             AST::ASTNamespace ns;
 

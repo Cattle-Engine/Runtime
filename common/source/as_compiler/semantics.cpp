@@ -33,6 +33,54 @@ namespace CE::Scripting::Impl::Semantics {
             return name;
         }
 
+        std::string BuildTypeSignature(const AST::ASTTypeRef& type) {
+            std::string result = type.Name;
+
+            result += type.IsConst ? "C" : "";
+            result += type.IsAuto ? "A" : "";
+            result += type.IsHandle ? "H" : "";
+            result += type.IsReference ? "R" : "";
+            result += std::to_string(type.ArrayDepth);
+
+            if (!type.TemplateArguments.empty()) {
+                result += "<";
+
+                for (size_t i = 0; i < type.TemplateArguments.size(); ++i) {
+                    if (i > 0) {
+                        result += ",";
+                    }
+
+                    result += BuildTypeSignature(type.TemplateArguments[i]);
+                }
+
+                result += ">";
+            }
+
+            return result;
+        }
+
+        bool AreTypesEqual(const AST::ASTTypeRef& a, const AST::ASTTypeRef& b) {
+            // Keep the analyser's existing namespace-insensitive type comparison,
+            // but include all qualifiers and recursively compare template arguments.
+            if (StripNamespace(a.Name) != StripNamespace(b.Name) ||
+                a.IsConst != b.IsConst ||
+                a.IsAuto != b.IsAuto ||
+                a.IsHandle != b.IsHandle ||
+                a.IsReference != b.IsReference ||
+                a.ArrayDepth != b.ArrayDepth ||
+                a.TemplateArguments.size() != b.TemplateArguments.size()) {
+                return false;
+            }
+
+            for (size_t i = 0; i < a.TemplateArguments.size(); ++i) {
+                if (!AreTypesEqual(a.TemplateArguments[i], b.TemplateArguments[i])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         const AST::ASTDeclaration* FindDeclarationInDecls(const std::vector<AST::ASTDeclaration>& decls,
                                                           const std::string& target_qualified_name,
                                                           const std::string& current_namespace) {
@@ -58,10 +106,7 @@ namespace CE::Scripting::Impl::Semantics {
             return FindDeclarationInDecls(module.Declarations, qualified_name, "");
         }
 
-        // ====================================================================
-        // Compile-time expression evaluation (used by static_assert)
-        // ====================================================================
-
+        // Compile-time expression evaluation (used by static_assert).
         // A typed compile-time value. Int is 64-bit signed with checked overflow.
         struct ConstValue {
             enum class Kind { Int, Float, Bool, String };
@@ -143,7 +188,7 @@ namespace CE::Scripting::Impl::Semantics {
                         }
                     }
                     if (!matched) {
-                        // unknown operator char; emit as-is so the parser reports it
+                        // Unknown operator char; emit as-is so the parser reports it.
                         out.push_back({EvalTok::Kind::Op, std::string(1, run[i])});
                         ++i;
                     }
@@ -232,10 +277,7 @@ namespace CE::Scripting::Impl::Semantics {
                 return false;
             }
 
-            // ---------------------------------------------------------------
-            // Typed helpers
-            // ---------------------------------------------------------------
-
+            // Typed helpers.
             bool RequireBool(const ConstValue& v, const char* op) const {
                 if (v.K != ConstValue::Kind::Bool)
                     Fail(std::string("Operator '") + op + "' requires bool operands, got " + KindName(v.K));
@@ -245,7 +287,7 @@ namespace CE::Scripting::Impl::Semantics {
             ConstValue Arith(char op, const ConstValue& a, const ConstValue& b) const {
                 using K = ConstValue::Kind;
 
-                // string concatenation
+                // String concatenation.
                 if (a.K == K::String && b.K == K::String) {
                     if (op == '+')
                         return ConstValue::MakeString(a.S + b.S);
@@ -257,7 +299,6 @@ namespace CE::Scripting::Impl::Semantics {
                          KindName(b.K));
                 }
 
-                // integer arithmetic (checked, truncating division like C++/AngelScript)
                 if (a.K == K::Int && b.K == K::Int) {
                     const int64_t x = a.I;
                     const int64_t y = b.I;
@@ -295,7 +336,7 @@ namespace CE::Scripting::Impl::Semantics {
                     Fail("Unknown operator");
                 }
 
-                // float arithmetic (any int operand is promoted)
+                // Float arithmetic (any int operand is promoted).
                 const double x = a.AsDouble();
                 const double y = b.AsDouble();
                 switch (op) {
@@ -345,10 +386,7 @@ namespace CE::Scripting::Impl::Semantics {
                 Fail(std::string("Cannot compare ") + KindName(a.K) + " with " + KindName(b.K));
             }
 
-            // ---------------------------------------------------------------
-            // Grammar
-            // ---------------------------------------------------------------
-
+            // Grammar.
             ConstValue ParseOr() {
                 ConstValue l = ParseAnd();
                 while (MatchOpOrWord("||", "or")) {
@@ -495,7 +533,7 @@ namespace CE::Scripting::Impl::Semantics {
                     return ConstValue::MakeInt(static_cast<int64_t>(v));
                 }
 
-                // float if it has a '.', an exponent, or an 'f' suffix
+                // Float if it has a '.', an exponent, or an 'f' suffix.
                 const bool is_float = text.find('.') != std::string::npos ||
                                       text.find('e') != std::string::npos || text.find('E') != std::string::npos ||
                                       (!text.empty() && (text.back() == 'f' || text.back() == 'F'));
@@ -526,7 +564,8 @@ namespace CE::Scripting::Impl::Semantics {
             static std::string Unquote(const std::string& raw) {
                 std::string s = raw;
 
-                if (s.size() >= 6 && s.compare(0, 3, "\"\"\"") == 0 && s.compare(s.size() - 3, 3, "\"\"\"") == 0) {
+                if (s.size() >= 6 && s.compare(0, 3, "\"\"\"") == 0 &&
+                    s.compare(s.size() - 3, 3, "\"\"\"") == 0) {
                     return s.substr(3, s.size() - 6); // heredoc: no escapes
                 }
 
@@ -562,8 +601,10 @@ namespace CE::Scripting::Impl::Semantics {
                                                        const std::string& name, const SourceLocation& loc) {
             using K = ConstValue::Kind;
 
-            if (type.IsHandle || type.IsReference || type.ArrayDepth > 0)
+            if (type.IsHandle || type.IsReference || type.ArrayDepth > 0 ||
+                !type.TemplateArguments.empty()) {
                 return std::nullopt;
+            }
 
             if (type.IsAuto)
                 return v;
@@ -606,6 +647,7 @@ namespace CE::Scripting::Impl::Semantics {
             return std::nullopt; // some other type: not a supported constant
         }
     } // namespace
+
     void AddFunctionOverloads(std::vector<const Symbol*>& result, const SymbolTable& table, const std::string& name) {
         auto overloads = table.FindOverloads(name);
 
@@ -616,7 +658,7 @@ namespace CE::Scripting::Impl::Semantics {
         }
     }
 
-    // Symbol table functions
+    // Symbol table functions.
     bool SymbolTable::Declare(Symbol symbol) {
         auto& bucket = mSymbols[symbol.QualifiedName];
 
@@ -628,10 +670,10 @@ namespace CE::Scripting::Impl::Semantics {
             return true;
         }
 
-        // functions, collide only if InternalName matches (same signature)
+        // Functions collide only if InternalName matches (same signature).
         for (const auto& existing : bucket) {
             if (existing.InternalName == symbol.InternalName) {
-                return false; // identical signature already delcared
+                return false; // identical signature already declared
             }
         }
         bucket.push_back(std::move(symbol));
@@ -662,15 +704,16 @@ namespace CE::Scripting::Impl::Semantics {
         return result;
     }
 
-    // Symantic parser functions
-    SymanticAnalyser::SymanticAnalyser(Preprocessor& processor,std::vector<std::filesystem::path> import_paths) : mImportPaths(import_paths),mPreprocessor(processor)  {}
+    // Semantic analyser functions.
+    SymanticAnalyser::SymanticAnalyser(Preprocessor& processor,
+                                       std::vector<std::filesystem::path> import_paths)
+        : mImportPaths(import_paths), mPreprocessor(processor) {}
 
     std::string SymanticAnalyser::GenerateSignatureHash(const AST::ASTFunction func) const {
         std::string signature;
 
         for (const auto& param : func.Parameters) {
-            signature += "_" + param.Type.Name + (param.Type.IsConst ? "C" : "") + (param.Type.IsHandle ? "H" : "") +
-                         (param.Type.IsReference ? "R" : "") + std::to_string(param.Type.ArrayDepth) + param.Direction;
+            signature += "_" + BuildTypeSignature(param.Type) + param.Direction;
         }
 
         return Utils::Hash2String(Utils::Hash64(signature));
@@ -698,7 +741,7 @@ namespace CE::Scripting::Impl::Semantics {
 
         case AST::ASTDeclaration::Kind::Global: {
             auto global = std::get<AST::ASTGlobal>(decl.Data);
-            std::string type_hash = Utils::Hash2String(Utils::Hash64(global.Type.Name));
+            std::string type_hash = Utils::Hash2String(Utils::Hash64(BuildTypeSignature(global.Type)));
 
             prefix = kInternalGlobalPrefix;
             suffix = module_hash + "_" + namespace_hash + "_" + symbol_hash + "_" + type_hash;
@@ -712,7 +755,7 @@ namespace CE::Scripting::Impl::Semantics {
         }
 
         case AST::ASTDeclaration::Kind::Namespace:
-            // namespaces don't generate symbools directly
+            // Namespaces don't generate symbols directly.
             return decl.Name;
 
         case AST::ASTDeclaration::Kind::Raw:
@@ -792,7 +835,7 @@ namespace CE::Scripting::Impl::Semantics {
         for (auto& import : module.Imports) {
             std::string imported_path = Common::Import2Path(import, mImportPaths);
 
-            // check if this is a file import (symbol present and path exists)
+            // Check if this is a file import (symbol present and path exists).
             if (import.Symbol.has_value() && !imported_path.empty() && std::filesystem::exists(imported_path)) {
                 import.IsFileImport = true;
             }
@@ -808,9 +851,9 @@ namespace CE::Scripting::Impl::Semantics {
             const auto& imported_exports = mModuleExports[imported_path];
 
             if (import.IsUsing) {
-                // using: bring symbols into scope )
+                // using: bring symbols into scope.
                 if (import.IsFileImport) {
-                    // using tests::testing; (testing is a file  bring all exports from that file
+                    // using tests::testing; (testing is a file): bring all exports from that file.
                     for (const auto& exp : imported_exports) {
                         mModuleUsing[module_path].push_back(exp);
                     }
@@ -825,21 +868,21 @@ namespace CE::Scripting::Impl::Semantics {
                     }
                     mModuleUsing[module_path].push_back(*match);
                 } else {
-                    // using module; bring all exports
+                    // using module; bring all exports.
                     for (const auto& exp : imported_exports) {
                         mModuleUsing[module_path].push_back(exp);
                     }
                 }
             } else {
-                // import: can export if marked
+                // import: can export if marked.
                 if (import.IsFileImport) {
-                    // import tests::foo; (foo is a file)  treat like whole-module import
+                    // import tests::foo; (foo is a file): treat like whole-module import.
                     if (import.Exported) {
                         for (const auto& exp : imported_exports) {
                             mModuleExports[module_path].push_back(exp);
                         }
                     }
-                    // no symbol lookup; we just let the import exist for resolution
+                    // No symbol lookup; we just let the import exist for resolution.
                 } else if (import.Symbol.has_value()) {
                     // import module::symbol;
                     auto match = std::find_if(imported_exports.begin(), imported_exports.end(),
@@ -875,17 +918,12 @@ namespace CE::Scripting::Impl::Semantics {
         mAnalyzedModules[module_path] = true;
     }
 
-    AST::ASTModule SymanticAnalyser::LoadAndParseModule(
-        const std::string& module_path
-    ) {
+    AST::ASTModule SymanticAnalyser::LoadAndParseModule(const std::string& module_path) {
         std::string source = Common::GetScriptFromFS(module_path);
         std::string processed_source;
 
         if (!mPreprocessor.Process(source, processed_source)) {
-            throw Exceptions::SemanticError(
-                "Preprocessing failed for module '" + module_path + "'",
-                {}
-            );
+            throw Exceptions::SemanticError("Preprocessing failed for module '" + module_path + "'", {});
         }
 
         mModuleSources[module_path] = processed_source;
@@ -914,12 +952,12 @@ namespace CE::Scripting::Impl::Semantics {
 
     const Symbol* SymanticAnalyser::ResolveSymbol(const std::string& module_path,
                                                   const std::string& qualified_name) const {
-        // first check local symbols
+        // First check local symbols.
         if (const Symbol* local = FindSymbol(qualified_name, module_path)) {
             return local;
         }
 
-        // check symbols brought in via 'using'
+        // Check symbols brought in via 'using'.
         auto using_it = mModuleUsing.find(module_path);
         if (using_it != mModuleUsing.end()) {
             for (const auto& export_info : using_it->second) {
@@ -937,7 +975,7 @@ namespace CE::Scripting::Impl::Semantics {
             }
         }
 
-        // then check imports
+        // Then check imports.
         auto parsed = mParsedModules.find(module_path);
         if (parsed == mParsedModules.end()) {
             return nullptr;
@@ -962,7 +1000,7 @@ namespace CE::Scripting::Impl::Semantics {
                                                       ? export_info.OriginalName
                                                       : export_info.Namespace + "::" + export_info.OriginalName;
 
-                // Build the full module path from import.Path
+                // Build the full module path from import.Path.
                 std::string full_module_path;
                 for (size_t i = 0; i < import.Path.size(); ++i) {
                     if (i > 0)
@@ -1035,11 +1073,12 @@ namespace CE::Scripting::Impl::Semantics {
         if (parsed == mParsedModules.end())
             return result;
 
-        // debug loop show imports and exports
+        // Debug loop showing imports and exports.
         for (const auto& import : parsed->second.Imports) {
             const std::string imported_path = Common::Import2Path(import, mImportPaths);
 
-            CE_LOG(CECommon::LogLevel::Debug, "Import {} -> {}", import.Path.empty() ? "empty" : import.Path[0], imported_path);
+            CE_LOG(CECommon::LogLevel::Debug, "Import {} -> {}",
+                   import.Path.empty() ? "empty" : import.Path[0], imported_path);
 
             auto exports = mModuleExports.find(imported_path);
 
@@ -1131,10 +1170,7 @@ namespace CE::Scripting::Impl::Semantics {
                 const auto& expected = parameters[i];
                 const auto& actual = arguments[i];
 
-                std::string expected_name = StripNamespace(expected.Name);
-                std::string actual_name = StripNamespace(actual.Name);
-
-                if (actual_name == "null") {
+                if (StripNamespace(actual.Name) == "null") {
                     if (!expected.IsHandle) {
                         valid = false;
                         break;
@@ -1142,27 +1178,7 @@ namespace CE::Scripting::Impl::Semantics {
                     continue; // skip rest of checks for null matching a handle
                 }
 
-                if (expected_name != actual_name) {
-                    valid = false;
-                    break;
-                }
-
-                if (expected.IsConst != actual.IsConst) {
-                    valid = false;
-                    break;
-                }
-
-                if (expected.IsHandle != actual.IsHandle) {
-                    valid = false;
-                    break;
-                }
-
-                if (expected.IsReference != actual.IsReference) {
-                    valid = false;
-                    break;
-                }
-
-                if (expected.ArrayDepth != actual.ArrayDepth) {
+                if (!AreTypesEqual(expected, actual)) {
                     valid = false;
                     break;
                 }
@@ -1170,7 +1186,7 @@ namespace CE::Scripting::Impl::Semantics {
 
             if (valid) {
                 if (match != nullptr) {
-                    // ambiguous overload
+                    // Ambiguous overload.
                     return nullptr;
                 }
 
@@ -1195,7 +1211,7 @@ namespace CE::Scripting::Impl::Semantics {
 
     AST::ASTTypeRef SymanticAnalyser::GetMemberType(const std::string& class_name, const std::string& member_name,
                                                     const std::string& module_path) const {
-        // 1. Check hardcoded engine types first
+        // 1. Check hardcoded engine types first.
         std::string clean_class = StripNamespace(class_name);
         if (clean_class == "Colour") {
             if (member_name == "r" || member_name == "g" || member_name == "b" || member_name == "a") {
@@ -1245,7 +1261,7 @@ namespace CE::Scripting::Impl::Semantics {
             }
         }
 
-        // 2. Check script-defined classes
+        // 2. Check script-defined classes.
         const Symbol* class_sym = ResolveSymbol(module_path, class_name);
         if (class_sym && class_sym->Kind == AST::ASTDeclaration::Kind::Type) {
             auto mod_it = mParsedModules.find(class_sym->SourceModule);
@@ -1323,7 +1339,6 @@ namespace CE::Scripting::Impl::Semantics {
     const Symbol* SymanticAnalyser::FindDeclarationSymbol(const std::string& qualified_name,
                                                           const std::string& module_path,
                                                           const AST::ASTDeclaration& decl) const {
-
         auto module = mModuleSymbols.find(module_path);
 
         if (module == mModuleSymbols.end())

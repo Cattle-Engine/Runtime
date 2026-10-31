@@ -29,6 +29,8 @@ namespace CE::Scripting::Impl::AST {
         bool IsHandle = false;
         uint32_t ArrayDepth = 0;
         bool IsAuto = false;
+
+        std::vector<ASTTypeRef> TemplateArguments;
     };
 
     struct ASTParameter {
