@@ -1,4 +1,5 @@
 #include <memory>
+#include "engine/accs/component.hpp"
 #include "engine/accs/components/2d_rendering.hpp"
 #include "engine/accs/components/transform.hpp"
 #include "engine/accs/system.hpp"
@@ -33,6 +34,8 @@ namespace CE {
             *mWindow,
             *mRendererResourcesNameRegistry
         });
+
+        mACCS->world.RegisterComponent<CE::ACCS::Components::Transform>("Transform");
 
         mACCS->system_manager.RegisterSystem<ACCS::Systems::SpriteRenderer>(ACCS::FrameUpdateType::Render2D);
         mACCS->system_manager.RegisterSystem<ACCS::Systems::MeshRenderer>(ACCS::FrameUpdateType::Render3D);

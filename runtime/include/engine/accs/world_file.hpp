@@ -7,6 +7,7 @@
 #include "engine/accs/serialization.hpp"
 #include "engine/common/fs/ifile_stream.hpp"
 #include "engine/common/fs/vfs.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::ACCS {
     namespace vfs_fs = CE::Common::FS::VFS;
@@ -18,29 +19,53 @@ namespace CE::ACCS {
         const std::string target(path);
         const std::string temp = target + ".tmp";
 
-        bool written = false;
+        // Open temporary file.
+        auto file = vfs.OpenFile(temp, kWorldSaveOpenFlags);
+        if (!file || !file->IsOpen()) {
+            CE_LOG(LogLevel::Error, "[WorldSave] Failed to open temporary file '{}'", temp);
+            return false;
+        }
+
+        bool serialized = false;
+        bool stream_good = false;
+
         {
-            auto file = vfs.OpenFile(temp, kWorldSaveOpenFlags);
-            if (!file) {
-                return false;
+            vfs_fs::OStream out(std::move(file));
+
+            serialized = WorldSerializer::Save(world, out);
+
+            if (serialized) {
+                out.flush();
             }
 
-            vfs_fs::OStream out(std::move(file));
-            written = WorldSerializer::Save(world, out) && out.good();
-        } // stream destroyed here: flushed and closed
+            stream_good = out.good();
+        }
 
-        if (!written) {
-            vfs.DeleteFile(temp);
+        if (!serialized || !stream_good) {
+            CE_LOG(LogLevel::Error,
+                "[WorldSave] Failed to write temporary file '{}'. Serialization: {}, Stream good: {}",
+                temp, serialized, stream_good);
+
+            if (!vfs.DeleteFile(temp)) {
+                CE_LOG(LogLevel::Error, "[WorldSave] Failed to clean up '{}'", temp);
+            }
+
             return false;
         }
 
-        if (vfs.FileExists(target) && !vfs.DeleteFile(target)) {
-            vfs.DeleteFile(temp);
+        // Replace the old save with the temporary file.
+        if (!vfs.MoveFile(temp, target)) {
+            CE_LOG(LogLevel::Error,
+                "[WorldSave] Failed to replace '{}' with '{}'",
+                target, temp);
+
             return false;
         }
 
-        return vfs.MoveFile(temp, target);
+        CE_LOG(LogLevel::Info, "[WorldSave] Successfully saved '{}'", target);
+        return true;
     }
+
 
     inline LoadResult LoadWorldFromFile(World& world, vfs_fs::VFS& vfs, std::string_view path) {
         auto file = vfs.OpenFile(path, vfs_fs::OpenFlags::Read);

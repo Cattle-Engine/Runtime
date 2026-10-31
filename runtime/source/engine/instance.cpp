@@ -51,6 +51,7 @@ namespace CE {
         }
         mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/config", 100,
                                                                        Platforms::GetConfigPath(mGameInfo->gameNameString));
+        mVFS->AddMountPoint<CE::Common::FS::OSFS::DirectoryFileProvider>("/saves", 100, Platforms::GetSavePath(mGameInfo->gameNameString));
 
         mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, mInstanceID);
         mSettingsManager->SetInstance(*this);

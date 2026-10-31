@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <unordered_set>
+#include "ce_common/as_compiler/lexer.hpp"
 
 namespace CE::Scripting::Impl::Codegen {
     namespace {
@@ -33,11 +34,13 @@ namespace CE::Scripting::Impl::Codegen {
 
             const bool a_word =
                 IsIdentifier(previous) ||
+                previous.Type == Lexer::Token::TokenType::KeywordConst ||
                 previous.Type == Lexer::Token::TokenType::Number ||
                 previous.Type == Lexer::Token::TokenType::String;
 
             const bool b_word =
                 IsIdentifier(current) ||
+                current.Type == Lexer::Token::TokenType::KeywordConst ||
                 current.Type == Lexer::Token::TokenType::Number ||
                 current.Type == Lexer::Token::TokenType::String;
 
