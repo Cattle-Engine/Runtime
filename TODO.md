@@ -118,6 +118,7 @@ export int foo_func() {
 }
 ```
 
+- [ ] Add a Game_PackageName requirement to Gameinfo.txt, for use with paths as a stable identifier (like android package names, org.cattle_engine.example)
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Bloom
