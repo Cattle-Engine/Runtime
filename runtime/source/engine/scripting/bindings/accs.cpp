@@ -18,6 +18,7 @@
 
 #include <angelscript.h>
 #include <scriptarray/scriptarray.h>
+#include <scripthandle/scripthandle.h>
 
 #include "engine/accs/accs.hpp"
 #include "engine/accs/serialization_context.hpp"
@@ -619,31 +620,48 @@ namespace CE::Scripting::Bindings {
                 GetWorld(runtime).GetComponents(actor));
         }
 
-        asIScriptObject* ToScriptObject(ACCS::IComponent* component) {
-            auto* script_component =
-                dynamic_cast<ScriptComponent*>(component);
-
-            if (!script_component) {
-                return nullptr;
+        CScriptHandle ToScriptHandle(
+            ACCS::IComponent* component,
+            const ACCS::ComponentTypeInfo* info,
+            Runtime& runtime) {
+            if (!component || !info) {
+                return {};
             }
 
-            asIScriptObject& object = script_component->GetObject();
-            object.AddRef();
-            return &object;
+            if (auto* script_component = dynamic_cast<ScriptComponent*>(component)) {
+                asIScriptObject& object = script_component->GetObject();
+                return {&object, object.GetObjectType()};
+            }
+
+            // Native components are application-registered reference types. Their
+            // registered component name is also their script type name.
+            // Bindings are registered in CE::ACCS, but this lookup runs after
+            // the binding scope has restored the engine's default namespace.
+            const std::string declaration = "CE::ACCS::" + info->name;
+            asITypeInfo* type = runtime.GetScriptEngine().GetTypeInfoByDecl(
+                declaration.c_str());
+            return type ? CScriptHandle(component, type) : CScriptHandle{};
         }
 
-        asIScriptObject* GetComponentObjectByID(
+        CScriptHandle GetComponentObjectByID(
             const ComponentID& component, Runtime& runtime) {
-            return ToScriptObject(
-                GetWorld(runtime).GetComponent(component));
+            ACCS::World& world = GetWorld(runtime);
+            const std::string* name = world.GetComponentName(component);
+            return ToScriptHandle(
+                world.GetComponent(component),
+                name ? world.GetRegistry().Find(*name) : nullptr,
+                runtime);
         }
 
-        asIScriptObject* GetComponentObjectByName(
+        CScriptHandle GetComponentObjectByName(
             const ActorHandle& actor,
             const std::string& name,
             Runtime& runtime) {
-            return ToScriptObject(
-                GetWorld(runtime).GetComponent(actor, name));
+            ACCS::World& world = GetWorld(runtime);
+            return ToScriptHandle(
+                world.GetComponent(actor, name),
+                world.GetRegistry().Find(name),
+                runtime);
         }
 
         bool RegisterScriptComponent(
@@ -944,10 +962,10 @@ namespace CE::Scripting::Bindings {
             RemoveComponentByID);
 
         ACCS_BIND(
-            "IComponent@ GetComponent(const ActorHandle &in, const string &in name)",
+            "ref@ GetComponent(const ActorHandle &in, const string &in name)",
             GetComponentObjectByName);
         ACCS_BIND(
-            "IComponent@ GetComponent(const ComponentID &in)",
+            "ref@ GetComponent(const ComponentID &in)",
             GetComponentObjectByID);
 
         ACCS_BIND(

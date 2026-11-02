@@ -17,6 +17,7 @@
 
 #include <angelscript.h>
 #include <scriptarray/scriptarray.h>
+#include <scripthandle/scripthandle.h>
 #include <scriptstdstring/scriptstdstring.h>
 
 namespace {
@@ -133,6 +134,7 @@ namespace CE::Scripting {
         RegisterStdString(mScriptEngine);
         RegisterScriptArray(mScriptEngine, true /* enable gc support */);
         RegisterStdStringUtils(mScriptEngine);
+        RegisterScriptHandle(mScriptEngine);
 
         if (!mScriptBindings->RegisterAllBindings(*mScriptEngine, *this)) {
             return false;

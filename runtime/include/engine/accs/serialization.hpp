@@ -33,7 +33,7 @@ namespace CE::ACCS {
                 BinaryWriter w(os);
                 const std::vector<ActorHandle> actors = world.GetActors();
 
-                SaveContext ctx;
+                SaveContext ctx(world.GetRegistry().GetDepdencies());
                 for (uint32_t i = 0; i < actors.size(); ++i) {
                     ctx.mIds[SaveContext::Key(actors[i])] = i;
                 }
@@ -143,7 +143,7 @@ namespace CE::ACCS {
             // Component types must be registered before calling this.
             static LoadResult Load(World& world, std::istream& is) {
                 BinaryReader r(is);
-                LoadContext ctx;
+                LoadContext ctx(world.GetRegistry().GetDepdencies());
 
                 // On a structural failure, remove everything we created.
                 auto fail = [&]() {

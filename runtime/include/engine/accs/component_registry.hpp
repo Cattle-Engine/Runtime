@@ -100,6 +100,7 @@ namespace CE::ACCS {
                 return it == mByKey.end() ? nullptr : Find(it->second);
             }
 
+            Dependencies& GetDepdencies() const { return mDepdencies; }
         private:
             std::unordered_map<std::string, ComponentTypeInfo> mByName;
             std::unordered_map<ComponentTypeKey, std::string> mByKey;

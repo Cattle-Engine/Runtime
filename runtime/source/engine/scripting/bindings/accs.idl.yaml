@@ -76,8 +76,8 @@ ASExternalFunctions:
   - {Name: RemoveComponent, ReturnType: bool, Signature: "const ActorHandle &in, const string &in"}
   - {Name: RemoveComponent, ReturnType: bool, Signature: "const ComponentID &in"}
 
-  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ActorHandle &in, const string &in"}
-  - {Name: GetComponent, ReturnType: "IComponent@", Signature: "const ComponentID &in"}
+  - {Name: GetComponent, ReturnType: "ref@", Signature: "const ActorHandle &in, const string &in"}
+  - {Name: GetComponent, ReturnType: "ref@", Signature: "const ComponentID &in"}
 
   - {Name: GetComponentName, ReturnType: string, Signature: "const ComponentID &in"}
   - {Name: GetComponents, ReturnType: "array<ComponentID>@", Signature: "const ActorHandle &in"}

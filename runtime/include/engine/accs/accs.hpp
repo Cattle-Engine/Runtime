@@ -157,6 +157,6 @@ namespace CE::ACCS {
 
             // for internal use of systems only!
             Dependencies dependencies;
-            explicit ACCS(Dependencies dependencies) : dependencies(dependencies), system_manager(*this) {}
+            explicit ACCS(Dependencies dependencies) : dependencies(dependencies), system_manager(*this), world(dependencies) {}
     };
 }
