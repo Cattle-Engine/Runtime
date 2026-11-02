@@ -17,7 +17,8 @@ namespace CE::ACCS {
 
     class SaveContext;
     class LoadContext;
-
+    struct Dependencies;
+    
     struct ComponentTypeInfo {
         std::string name;
         ComponentTypeKey key = nullptr;
@@ -47,6 +48,8 @@ namespace CE::ACCS {
 
     class ComponentRegistry {
         public:
+            ComponentRegistry(Dependencies& deps) : mDepdencies(deps) {}
+            
             // Returns false if the name is empty, or the name or type is
             // already registered.
             template <typename T>
@@ -100,5 +103,6 @@ namespace CE::ACCS {
         private:
             std::unordered_map<std::string, ComponentTypeInfo> mByName;
             std::unordered_map<ComponentTypeKey, std::string> mByKey;
+            Dependencies& mDepdencies;
     };
 }

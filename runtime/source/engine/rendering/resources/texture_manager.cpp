@@ -144,15 +144,16 @@ namespace CE::Renderer::Resources {
 
         if (entry) {
             return entry->Resource;
-        } else {
-            return nullptr;
         }
+
+        return nullptr;
+        
     }
 
     void TextureManager::UnloadPendingDeletions() {
         std::vector<TextureHandle> still_pending;
 
-        for (TextureHandle handle : mPendingUnload) {
+        for (const TextureHandle& handle : mPendingUnload) {
             auto it = mTextureCache.find(handle);
 
             if (it == mTextureCache.end())
@@ -246,7 +247,7 @@ namespace CE::Renderer::Resources {
             }
         }
 
-        auto tex = mRenderer.CreateTextureFromData(width, height, pixels, format, pitch, filter, wrap, batch);
+        auto *tex = mRenderer.CreateTextureFromData(width, height, pixels, format, pitch, filter, wrap, batch);
         TextureEntry entry = {};
 
         if (tex == nullptr) {
@@ -275,10 +276,16 @@ namespace CE::Renderer::Resources {
     bool TextureManager::IsPathCached(std::string path) {
         auto list = mPathCache.find(path);
 
-        if (list == mPathCache.end()) {
-            return false;
-        } else {
-            return true;
+        return list != mPathCache.end();
+    }
+
+    std::string TextureManager::GetTexturePath(TextureHandle handle) const {
+        auto it = mTextureCache.find(handle);
+
+        if (it == mTextureCache.end()) {
+            return {};
         }
+
+        return it->second.Path;
     }
 } // namespace CE::Renderer::Resources

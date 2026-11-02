@@ -18,9 +18,11 @@
 #include "engine/accs/component_registry.hpp"
 
 namespace CE::ACCS {
+    struct Dependencies;
+    
     class World {
         public:
-            World() = default;
+            World(Dependencies& deps) : mRegistry(deps) {}
 
             World(const World&) = delete;
             World& operator=(const World&) = delete;

@@ -147,6 +147,7 @@ namespace CE::Renderer::Resources {
          * @brief Find if a path has been cached
          */
         bool IsPathCached(std::string path);
+        std::string GetTexturePath(TextureHandle handle) const;
 
         size_t GetLoadedTextureCount() const;
         size_t GetValidTextureCount() const;
