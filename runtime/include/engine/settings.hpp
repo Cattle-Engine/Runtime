@@ -53,7 +53,7 @@ namespace CE::Settings {
         CE::Ini::ParseError mParseError;
         CE::Ini::Options mOptions;
         std::string mPrevRendererName;
-        std::string mGameName;
+        std::string mGamePackageID;
         GameInfo mGameInfo;
         uint64_t mInstanceID = 0;
     };

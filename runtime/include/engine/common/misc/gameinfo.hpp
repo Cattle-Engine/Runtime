@@ -11,9 +11,11 @@
 
 namespace CE {
     struct GameInfo {
-        std::string gameNameString;
-        std::string gameVersionString;
+        std::string game_name;
+        std::string game_version;
 
+        std::string game_package_id;
+        
         int windowHeight;
         int windowWidth;
         std::string windowTitle;

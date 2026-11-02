@@ -1,4 +1,5 @@
 #include <string>
+#include <algorithm>
 
 #include "engine/bootstrap/engine.hpp"
 #include "engine/common/fs/ini.hpp"
@@ -62,8 +63,8 @@ namespace CE::Bootstrap::Engine {
             return 3;
         }
 
-        gameinfo.gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
-        gameinfo.gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
+        gameinfo.game_name = ini.get_string("Gameinfo", "Game_Name", "");
+        gameinfo.game_version = ini.get_string("Gameinfo", "Game_Version", "");
 
         gameinfo.windowWidth = ini.get_int("Graphics", "Window_Width", 0);
         gameinfo.windowHeight = ini.get_int("Graphics", "Window_Height", 0);
@@ -73,6 +74,25 @@ namespace CE::Bootstrap::Engine {
         gameinfo.enableVSync = ini.get_bool("Graphics", "Enable_VSync", false);
         int window_mode = ini.get_int("Graphics", "Window_Mode", 0);
         gameinfo.resizableWindow = ini.get_bool("Graphics", "Resizable_Window");
+        
+        gameinfo.game_package_id = ini.get_string("Gameinfo", "Game_PackageID");
+        
+        const std::string& package_id = gameinfo.game_package_id;
+        
+        if (package_id.empty() ||
+            package_id.front() == '.' ||
+            package_id.back() == '.' ||
+            package_id.find("..") != std::string::npos ||
+            !std::all_of(package_id.begin(), package_id.end(), [](unsigned char c) {
+                    return (c >= 'a' && c <= 'z') ||
+                    (c >= 'A' && c <= 'Z') ||
+                    (c >= '0' && c <= '9') ||
+                    c == '.' || c == '_' || c == '-';
+                })) {
+                CE_LOG(LogLevel::Error, "[Bootstrap] Invalid Game_PackageID '{}'", package_id);
+            return 4;
+        }
+        
         if (gameinfo.minWindowWidth > gameinfo.maxWindowWidth) {
             std::swap(gameinfo.minWindowWidth, gameinfo.maxWindowWidth);
         }

@@ -167,8 +167,9 @@ namespace CE::UI {
         Utils::SpaceSep();
 
         if (ImGui::CollapsingHeader("Gameinfo")) {
-            ImGui::Text("Game name: %s", mGameInfo.gameNameString.c_str());
-            ImGui::Text("Game version: %s", mGameInfo.gameVersionString.c_str());
+            ImGui::Text("Game name: %s", mGameInfo.game_name.c_str());
+            ImGui::Text("Game package ID: %s", mGameInfo.game_package_id.c_str());
+            ImGui::Text("Game version: %s", mGameInfo.game_version.c_str());
             ImGui::Text("Window title: %s", mGameInfo.windowTitle.c_str());
             ImGui::Text("Window size: %i x %i", mGameInfo.windowWidth, mGameInfo.windowHeight);
             ImGui::Text("VSync: %s", mGameInfo.enableVSync ? "Enabled" : "Disabled");

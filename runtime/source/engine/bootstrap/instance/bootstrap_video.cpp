@@ -17,7 +17,7 @@ namespace CE {
 
         std::string window_title;
         if (mGameInfo->windowTitle.empty()) { // If a window title was not provided use the game name
-            window_title = mGameInfo->gameNameString;
+            window_title = mGameInfo->game_name;
         } else {
             window_title = mGameInfo->windowTitle;
         }

@@ -14,14 +14,15 @@ namespace CE::Bootstrap {
         CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, datafilename);
 
+        /*
         if (debugmode) {
             vfs->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 10, "assets/");
         }
+        */
         return 0;
     }
 
-    int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo,
-                      [[maybe_unused]] bool debugmode) {
+    int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, [[maybe_unused]] bool debugmode) {
         auto file = vfs->OpenFile("/Gameinfo.txt");
         if (!file) {
             CE_LOG(LogLevel::Fatal, "[Bootstrap] Unable to open Gameinfo.txt");
@@ -58,8 +59,8 @@ namespace CE::Bootstrap {
 
         int window_mode = 0;
 
-        gameinfo->gameNameString = ini.get_string("Gameinfo", "Game_Name", "");
-        gameinfo->gameVersionString = ini.get_string("Gameinfo", "Game_Version", "");
+        gameinfo->game_name = ini.get_string("Gameinfo", "Game_Name", "");
+        gameinfo->game_version = ini.get_string("Gameinfo", "Game_Version", "");
 
         gameinfo->windowWidth = ini.get_int("Graphics", "Window_Width", 0);
         gameinfo->windowHeight = ini.get_int("Graphics", "Window_Height", 0);
@@ -82,6 +83,24 @@ namespace CE::Bootstrap {
         gameinfo->minWindowWidth = ini.get_int("Graphics", "Min_Window_Width", 3840);
         gameinfo->minWindowHeight = ini.get_int("Graphics", "Min_Window_Height", 2160);
 
+        gameinfo->game_package_id = ini.get_string("Gameinfo", "Game_PackageID");
+        
+        const std::string& package_id = gameinfo->game_package_id;
+        
+        if (package_id.empty() ||
+            package_id.front() == '.' ||
+            package_id.back() == '.' ||
+            package_id.find("..") != std::string::npos ||
+            !std::all_of(package_id.begin(), package_id.end(), [](unsigned char c) {
+                return (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                (c >= '0' && c <= '9') ||
+                c == '.' || c == '_' || c == '-';
+            })) {
+            CE_LOG(LogLevel::Error, "[Bootstrap] Invalid Game_PackageID '{}'", package_id);
+            return 4;
+        }
+        
         if (gameinfo->minWindowWidth > gameinfo->maxWindowWidth) {
             std::swap(gameinfo->minWindowWidth, gameinfo->maxWindowWidth);
         }
@@ -98,8 +117,8 @@ namespace CE::Bootstrap {
             gameinfo->windowMode = Common::Window::WindowMode::Windowed;
         }
 
-        CE_LOG(LogLevel::Info, "[Bootstrap] Game name: {}", gameinfo->gameNameString);
-        CE_LOG(LogLevel::Info, "[Bootstrap] Base game version: {}", gameinfo->gameVersionString);
+        CE_LOG(LogLevel::Info, "[Bootstrap] Game name: {}", gameinfo->game_name);
+        CE_LOG(LogLevel::Info, "[Bootstrap] Base game version: {}", gameinfo->game_version);
         return 0;
     }
 } // namespace CE::Bootstrap

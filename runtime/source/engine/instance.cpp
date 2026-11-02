@@ -50,8 +50,8 @@ namespace CE {
                 std::format("[Instance {}] Failed to get gameinfo with code: {}", mInstanceID, gis_return));
         }
         mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/config", 100,
-                                                                       Platforms::GetConfigPath(mGameInfo->gameNameString));
-        mVFS->AddMountPoint<CE::Common::FS::OSFS::DirectoryFileProvider>("/saves", 100, Platforms::GetSavePath(mGameInfo->gameNameString));
+                                                                       Platforms::GetConfigPath(mGameInfo->game_package_id));
+        mVFS->AddMountPoint<CE::Common::FS::OSFS::DirectoryFileProvider>("/saves", 100, Platforms::GetSavePath(mGameInfo->game_package_id));
 
         mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, mInstanceID);
         mSettingsManager->SetInstance(*this);

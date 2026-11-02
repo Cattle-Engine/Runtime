@@ -1,6 +1,7 @@
 #include "engine/settings.hpp"
 
 #include <algorithm>
+#include <filesystem>
 #include <format>
 
 #include "engine/common/fs/ini.hpp"
@@ -11,7 +12,7 @@
 
 namespace CE::Settings {
     SettingsManager::SettingsManager(const GameInfo& gameinfo, uint64_t instance_id) {
-        mGameName = gameinfo.gameNameString;
+        mGamePackageID = gameinfo.game_package_id;
         mGameInfo = gameinfo;
         mInstanceID = instance_id;
         Internal_ReloadSettings();
@@ -30,11 +31,14 @@ namespace CE::Settings {
         return reloaded;
     }
 
+    
     bool SettingsManager::Internal_ReloadSettings() {
-        std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
-        if (!CE::Ini::load_file(config_path, mIniFile, &mParseError)) {
-            CE_LOG(LogLevel::Error, "[Settings Manager {}] Setting parser error\n Line: {}, Column: {}, Message: {}",
-                   mInstanceID, mParseError.line, mParseError.column, mParseError.message);
+        const std::string config_path = std::format(
+            "{}/{}",
+            Platforms::GetConfigPath(mGamePackageID.c_str()), "settings.cfg"
+        );
+        
+        auto apply_defaults = [&]() {
             Settings.windowHeight = mGameInfo.windowHeight;
             Settings.windowWidth = mGameInfo.windowWidth;
             Settings.maxFPS = mGameInfo.maxFPS;
@@ -45,20 +49,81 @@ namespace CE::Settings {
             Settings.musicVolume = 1.0f;
             Settings.sfxVolume = 1.0f;
             Settings.audioDeviceName = "DefaultAudioDevice";
+        };
+        
+        // First launch: create the configuration file.
+        if (!std::filesystem::exists(config_path)) {
+            CE_LOG(
+                LogLevel::Info,
+                "[Settings Manager {}] No settings.cfg found. Creating default configuration.",
+                mInstanceID
+            );
+            
+            std::error_code ec;
+            std::filesystem::create_directories(
+                std::filesystem::path(config_path).parent_path(),
+                                                ec
+            );
+            
+            if (ec) {
+                CE_LOG(
+                    LogLevel::Error,
+                    "[Settings Manager {}] Failed to create config directory: {}",
+                    mInstanceID,
+                    ec.message()
+                );
+                return false;
+            }
+            
+            apply_defaults();
+            mIniFile = CE::Ini::IniFile{};
+            
+            FlushSettings();
+            return true;
+        }
+        
+        if (!CE::Ini::load_file(config_path, mIniFile, &mParseError)) {
+            CE_LOG(
+                LogLevel::Error,
+                "[Settings Manager {}] Setting parser error\n Line: {}, Column: {}, Message: {}",
+                mInstanceID,
+                mParseError.line,
+                mParseError.column,
+                mParseError.message
+            );
+            
+            apply_defaults();
             return false;
         }
+        
         int window_mode;
-        Settings.windowHeight =
-            static_cast<int>(std::clamp<int64_t>(mIniFile.get_int("graphics", "window_height", mGameInfo.windowHeight),
-                                                 mGameInfo.minWindowHeight, mGameInfo.maxWindowHeight));
-
-        Settings.windowWidth =
-            static_cast<int>(std::clamp<int64_t>(mIniFile.get_int("graphics", "window_width", mGameInfo.windowWidth),
-                                                 mGameInfo.minWindowWidth, mGameInfo.maxWindowWidth));
+        
+        Settings.windowHeight = static_cast<int>(
+            std::clamp<int64_t>(
+                mIniFile.get_int("graphics", "window_height", mGameInfo.windowHeight),
+                                mGameInfo.minWindowHeight,
+                                mGameInfo.maxWindowHeight
+            )
+        );
+        
+        Settings.windowWidth = static_cast<int>(
+            std::clamp<int64_t>(
+                mIniFile.get_int("graphics", "window_width", mGameInfo.windowWidth),
+                                mGameInfo.minWindowWidth,
+                                mGameInfo.maxWindowWidth
+            )
+        );
+        
         Settings.maxFPS = mIniFile.get_int("graphics", "max_fps", mGameInfo.maxFPS);
         Settings.enableVSync = mIniFile.get_bool("graphics", "vsync", mGameInfo.enableVSync);
         Settings.rendererName = mIniFile.get_string("graphics", "renderer", mGameInfo.rendererName);
-        window_mode = mIniFile.get_int("graphics", "window_mode", static_cast<int>(mGameInfo.windowMode));
+        
+        window_mode = mIniFile.get_int(
+            "graphics",
+            "window_mode",
+            static_cast<int>(mGameInfo.windowMode)
+        );
+        
         Settings.masterVolume = mIniFile.get_float("audio", "master_volume", 1.0f);
         Settings.musicVolume = mIniFile.get_float("audio", "music_volume", 1.0f);
         Settings.sfxVolume = mIniFile.get_float("audio", "sfx_volume", 1.0f);
@@ -67,13 +132,14 @@ namespace CE::Settings {
         if (window_mode >= 0 && window_mode <= 2) {
             Settings.windowMode = static_cast<Common::Window::WindowMode>(window_mode);
         } else {
-            CE_LOG(LogLevel::Error, "[Settings] Window_Mode is out of bounds, using game-info default)");
+            CE_LOG(LogLevel::Error, "[Settings] Window_Mode is out of bounds, using game-info default");
             CE_LOG(LogLevel::Debug, "0 = Fullscreen, 1 = Borderless, 2 = Windowed");
-            Settings.windowMode = mGameInfo.windowMode; 
+            Settings.windowMode = mGameInfo.windowMode;
         }
         
         return true;
     }
+    
 
     void SettingsManager::FlushSettings() {
         mIniFile.set_int("graphics", "window_height", Settings.windowHeight);
@@ -87,7 +153,7 @@ namespace CE::Settings {
         mIniFile.set_float("audio", "sfx_volume", Settings.sfxVolume);
         mIniFile.set_string("audio", "audio_device", Settings.audioDeviceName);
 
-        std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
+        std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGamePackageID.c_str()), "settings.cfg");
 
         if (!CE::Ini::save_file(config_path, mIniFile)) {
             CE_LOG(LogLevel::Error, "[Settings Manager {}] Failed to save file!", mInstanceID);
@@ -95,7 +161,7 @@ namespace CE::Settings {
     }
 
     std::string SettingsManager::GetSettingPath() {
-        std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGameName.c_str()), "settings.cfg");
+        std::string config_path = std::format("{}/{}", Platforms::GetConfigPath(mGamePackageID.c_str()), "settings.cfg");
         return config_path;
     }
 
