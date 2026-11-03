@@ -11,6 +11,8 @@
 #include "ce_common/binary_writer.hpp"
 #include "engine/accs/component.hpp"
 
+#include "engine/common/tracelog.hpp"
+
 namespace CE::ACCS {
     using CECommon::FS::BinaryReader;
     using CECommon::FS::BinaryWriter;
@@ -73,7 +75,15 @@ namespace CE::ACCS {
                     };
                 }
 
-                return Add(std::move(info));
+                const std::string registered_name = info.name;
+                const bool serializable = info.IsSerializable();
+                const bool result = Add(std::move(info));
+
+                CE_LOG(LogLevel::Debug,
+                    "[ComponentRegistry] Register '{}': result={}, serializable={}",
+                    registered_name, result, serializable);
+
+                return result;
             }
 
             // Also used directly for script-defined components with a custom key.
@@ -81,17 +91,36 @@ namespace CE::ACCS {
                 if (info.name.empty() || !info.key || !info.create) {
                     return false;
                 }
+
                 if (mByName.count(info.name) || mByKey.count(info.key)) {
                     return false;
                 }
 
-                mByKey.emplace(info.key, info.name);
-                mByName.emplace(info.name, std::move(info));
-                return true;
+                const std::string name = info.name;
+
+                auto [keyIt, keyInserted] = mByKey.emplace(info.key, name);
+                auto [nameIt, nameInserted] = mByName.emplace(name, std::move(info));
+
+                CE_LOG(LogLevel::Debug,
+                    "[ComponentRegistry] Add result: name='{}', keyInserted={}, nameInserted={}, stored='{}'",
+                    name, keyInserted, nameInserted, nameIt->first);
+
+                return keyInserted && nameInserted;
             }
 
             const ComponentTypeInfo* Find(const std::string& name) const {
                 auto it = mByName.find(name);
+
+                CE_LOG(LogLevel::Debug,
+                    "[ComponentRegistry] Find result: query='{}', length={}, found={}, entries={}",
+                    name, name.size(), it != mByName.end(), mByName.size());
+
+                for (const auto& [key, value] : mByName) {
+                    CE_LOG(LogLevel::Debug,
+                        "[ComponentRegistry] Stored name='{}', length={}",
+                        key, key.size());
+                }
+
                 return it == mByName.end() ? nullptr : &it->second;
             }
 

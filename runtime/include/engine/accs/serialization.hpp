@@ -13,6 +13,7 @@
 #include "ce_common/binary_writer.hpp"
 #include "engine/accs/serialization_context.hpp"
 #include "engine/accs/world.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::ACCS {
     enum class LoadResult {
@@ -55,9 +56,14 @@ namespace CE::ACCS {
                             name ? world.GetRegistry().Find(*name) : nullptr;
 
                         if (!info || !info->IsSerializable()) {
+                            CE_LOG(LogLevel::Warn,
+                                "[WorldSave] Skipping component '{}': registered={}, serializable={}",
+                                name ? *name : "<unknown>",
+                                info != nullptr,
+                                info ? info->IsSerializable() : false);
                             continue;
                         }
-
+                        
                         auto [it, inserted] = typeIndex.try_emplace(
                             *name, static_cast<uint32_t>(typeNames.size()));
 

@@ -35,7 +35,14 @@ namespace CE {
             *mRendererResourcesNameRegistry
         });
 
-        mACCS->world.RegisterComponent<CE::ACCS::Components::Transform>("Transform");
+        assert(mACCS->world.RegisterComponent<CE::ACCS::Components::Transform>("Transform"));
+
+const auto* info = mACCS->world.GetRegistry().Find("Transform");
+
+CE_LOG(LogLevel::Debug,
+    "[Bootstrap] Transform registered={}, serializable={}",
+    info != nullptr,
+    info ? info->IsSerializable() : false);
 
         mACCS->system_manager.RegisterSystem<ACCS::Systems::SpriteRenderer>(ACCS::FrameUpdateType::Render2D);
         mACCS->system_manager.RegisterSystem<ACCS::Systems::MeshRenderer>(ACCS::FrameUpdateType::Render3D);
