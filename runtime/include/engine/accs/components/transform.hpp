@@ -5,6 +5,7 @@
 #include "engine/accs/component.hpp"
 #include "engine/accs/serialization_context.hpp"
 #include "engine/rendering/renderer.hpp"
+#include "engine/common/tracelog.hpp"
 
 namespace CE::ACCS::Components {
     class Transform : public IComponent {
@@ -13,6 +14,30 @@ namespace CE::ACCS::Components {
             Renderer::Transform2D transform_2d{};
 
             bool Serialize(CECommon::FS::BinaryWriter& writer, const SaveContext&) const {
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Serialize: position=({}, {}, {})",
+                    transform_3d.position.x,
+                    transform_3d.position.y,
+                    transform_3d.position.z
+                );
+
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Serialize: rotation=({}, {}, {})",
+                    transform_3d.rotation.x,
+                    transform_3d.rotation.y,
+                    transform_3d.rotation.z
+                );
+
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Serialize: scale=({}, {}, {})",
+                    transform_3d.scale.x,
+                    transform_3d.scale.y,
+                    transform_3d.scale.z
+                );
+
                 return WriteVec3(writer, transform_3d.position) &&
                     WriteVec3(writer, transform_3d.rotation) &&
                     WriteVec3(writer, transform_3d.scale) &&
@@ -36,6 +61,31 @@ namespace CE::ACCS::Components {
 
                 transform_3d = transform3d;
                 transform_2d = transform2d;
+
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Deserialize: position=({}, {}, {})",
+                    transform3d.position.x,
+                    transform3d.position.y,
+                    transform3d.position.z
+                );
+
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Deserialize: rotation=({}, {}, {})",
+                    transform3d.rotation.x,
+                    transform3d.rotation.y,
+                    transform3d.rotation.z
+                );
+
+                CE_LOG(
+                    LogLevel::Debug,
+                    "Transform Deserialize: scale=({}, {}, {})",
+                    transform3d.scale.x,
+                    transform3d.scale.y,
+                    transform3d.scale.z
+                );
+        
                 return true;
             }
 

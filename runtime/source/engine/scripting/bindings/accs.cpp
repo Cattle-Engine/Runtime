@@ -962,10 +962,10 @@ namespace CE::Scripting::Bindings {
             RemoveComponentByID);
 
         ACCS_BIND(
-            "ref@ GetComponent(const ActorHandle &in, const string &in name)",
+            "ref GetComponent(const ActorHandle &in, const string &in name)",
             GetComponentObjectByName);
         ACCS_BIND(
-            "ref@ GetComponent(const ComponentID &in)",
+            "ref GetComponent(const ComponentID &in)",
             GetComponentObjectByID);
 
         ACCS_BIND(

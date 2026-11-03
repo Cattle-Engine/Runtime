@@ -88,6 +88,10 @@ namespace CE::ACCS {
 
             // Also used directly for script-defined components with a custom key.
             bool Add(ComponentTypeInfo info) {
+                CE_LOG(LogLevel::Debug,
+                    "[ComponentRegistry] Add this={}, name='{}'",
+                    static_cast<const void*>(this), info.name);
+
                 if (info.name.empty() || !info.key || !info.create) {
                     return false;
                 }
@@ -109,6 +113,9 @@ namespace CE::ACCS {
             }
 
             const ComponentTypeInfo* Find(const std::string& name) const {
+                CE_LOG(LogLevel::Debug,
+                    "[ComponentRegistry] Find this={}, query='{}', entries={}",
+                    static_cast<const void*>(this), name, mByName.size());
                 auto it = mByName.find(name);
 
                 CE_LOG(LogLevel::Debug,

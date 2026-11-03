@@ -69,6 +69,7 @@ add_custom_command(
             --output_header "${CE_DUMMY_HEADER}"
             --output_source "${CE_DUMMY_SOURCE}"
             --function_name RegisterDummyBindings
+            --use_cpp_types
     DEPENDS "${CE_DUMMY_GENERATOR}" ${CE_IDL_FILES}
     COMMENT "Generating dummy AngelScript bindings from *.idl.yaml"
     VERBATIM

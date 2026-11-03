@@ -23,6 +23,7 @@ ASTypes:
     Flags:
       - Value
       - AppClassCDAK
+      - AppClassAllFloats
 
     Behaviours:
       - Type: Construct
@@ -421,6 +422,7 @@ ASTypes:
     Flags:
       - Value
       - AppClassCDAK
+      - AppClassAllFloats
 
     Behaviours:
       - Type: Construct
@@ -637,6 +639,7 @@ ASTypes:
     Flags:
       - Value
       - AppClassCDAK
+      - AppClassAllFloats
 
     Behaviours:
       - Type: Construct
@@ -946,9 +949,13 @@ ASTypes:
 
   - Name: Transform3D
     CppType: CE::Renderer::Transform3D
-    Flags: 
+    # This is a contiguous aggregate of nine float values.  AutoGetFlags only
+    # reports it as an application class, which leaves AngelScript without the
+    # ABI classification needed when the value crosses the script/native boundary.
+    Flags:
       - Value
-      - AutoGetFlags
+      - AppClassCDAK
+      - AppClassAllFloats
 
     Behaviours:
       - Type: Constructor
@@ -985,9 +992,11 @@ ASTypes:
 
   - Name: Transform2D
     CppType: CE::Renderer::Transform2D
-    Flags: 
+    # Transform2D is likewise an all-float aggregate (five floats).
+    Flags:
       - Value
-      - AutoGetFlags
+      - AppClassCDAK
+      - AppClassAllFloats
 
     Behaviours:
       - Type: Constructor
