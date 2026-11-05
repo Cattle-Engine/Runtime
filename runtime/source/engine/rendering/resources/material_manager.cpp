@@ -194,4 +194,88 @@ namespace CE::Renderer::Resources {
         }
         return false;
     }
+
+    bool MaterialManager::GetMaterialColour(MaterialHandle handle, Colour& outColour) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outColour = it->second.Resource.tint;
+        return true;
+    }
+
+    bool MaterialManager::GetMaterialRoughness(MaterialHandle handle, float& outRoughness) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outRoughness = it->second.Resource.roughness;
+        return true;
+    }
+
+    bool MaterialManager::GetMaterialMetallic(MaterialHandle handle, float& outMetallic) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outMetallic = it->second.Resource.metallic;
+        return true;
+    }
+
+    uint64_t MaterialManager::GetAlbedoTextureID(MaterialHandle handle) const {
+        auto it = mMaterials.find(handle);
+        return it != mMaterials.end() ? it->second.AlbedoTex.GetHandleID() : 0;
+    }
+
+    uint64_t MaterialManager::GetMetallicRoughnessTextureID(MaterialHandle handle) const {
+        auto it = mMaterials.find(handle);
+        return it != mMaterials.end() ? it->second.MetallicRoughnessTex.GetHandleID() : 0;
+    }
+
+    uint64_t MaterialManager::GetNormalTextureID(MaterialHandle handle) const {
+        auto it = mMaterials.find(handle);
+        return it != mMaterials.end() ? it->second.NormalTex.GetHandleID() : 0;
+    }
+
+    uint64_t MaterialManager::GetEmissionTextureID(MaterialHandle handle) const {
+        auto it = mMaterials.find(handle);
+        return it != mMaterials.end() ? it->second.EmissionTex.GetHandleID() : 0;
+    }
+    
+    bool MaterialManager::GetEmissionColour(MaterialHandle handle, Colour& outColour) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outColour = it->second.Resource.emissionColour;
+        return true;
+    }
+
+    bool MaterialManager::GetEmissionStrength(MaterialHandle handle, float& outStrength) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outStrength = it->second.Resource.emissionStrength;
+        return true;
+    }
+
+    bool MaterialManager::GetTransparent(MaterialHandle handle, bool& outTransparent) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outTransparent = it->second.Resource.isTransparent;
+        return true;
+    }
+
+    bool MaterialManager::GetDoubleSided(MaterialHandle handle, bool& outDoubleSided) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outDoubleSided = it->second.Resource.isDoubleSided;
+        return true;
+    }
+
+    bool MaterialManager::GetShader(MaterialHandle handle, Shader*& outShader) const {
+        auto it = mMaterials.find(handle);
+        if (it == mMaterials.end()) return false;
+
+        outShader = it->second.Resource.shader;
+        return true;
+    }
 } // namespace CE::Renderer::Resources

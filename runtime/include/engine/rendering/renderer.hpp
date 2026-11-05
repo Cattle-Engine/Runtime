@@ -18,8 +18,8 @@ namespace CE::Renderer {
     class IRenderer;
 
     struct GPUDevice {
-        void* device;
-        RendererBackend backend;
+        void* device = nullptr;
+        RendererBackend backend = RendererBackend::None;
     };
 
     struct Texture;
@@ -125,8 +125,8 @@ namespace CE::Renderer {
         void* handle = nullptr;
         void* vertex_buffer = nullptr;
         void* index_buffer = nullptr;
-        uint32_t vertex_count;
-        uint32_t indice_count;
+        uint32_t vertex_count = 0;
+        uint32_t indice_count = 0;
     };
 
     struct TextureUploadBatch {
@@ -194,7 +194,7 @@ namespace CE::Renderer {
     enum class TextureWrap {
         Clamp,         // stretch edge pixels
         Repeat,        // tile the texture
-        MirroredRepeat // tile but mirrored each time
+        MirroredRepeat, // tile but mirrored each time
     };
 
     enum class TextureFlip : uint8_t { None = 0, Horizontal = 1 << 0, Vertical = 1 << 1 };
@@ -345,6 +345,7 @@ namespace CE::Renderer {
         virtual void SetShaderTexture(const char* name, Texture* texture, int slot) = 0;
 
         virtual GPUMesh* CreateGPUMesh(MeshData& mesh) = 0;
+        virtual MeshData ReadbackMeshData(GPUMesh* mesh) = 0;
         virtual void DestroyGPUMesh(GPUMesh* mesh) = 0;
         virtual void DrawMesh(GPUMesh* mesh, Material& material, const Transform3D& transform, bool error_tex) = 0;
         virtual void DrawMeshMat4(GPUMesh* mesh, Material& material, const glm::mat4& transform, bool error_tex) = 0;

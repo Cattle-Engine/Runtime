@@ -1,6 +1,6 @@
 # CE::ACCS
 
-Registration priority: `200`
+Registration priority: `10`
 
 ## ActorHandle
 C++ type: `CE::ACCS::ActorHandle`
@@ -48,6 +48,21 @@ Const method
 No description given
 
 
+## Transform
+C++ type: `CE::ACCS::Components::Transform`
+
+Flags: `Reference`, `NoCount`
+
+No description given
+
+### Properties
+#### transform_3d
+Type: `Transform3D`
+
+#### transform_2d
+Type: `Transform2D`
+
+
 ## CE::ACCS
 ## Enums
 ### FrameUpdateType
@@ -62,6 +77,17 @@ Values:
 - `Render2D`
 - `Render3D`
 - `ImGui`
+
+### LoadResult
+C++ type: `CE::ACCS::LoadResult`
+
+No description given
+
+Values:
+
+- `Ok`
+- `Partial`
+- `Failed`
 
 ## Interfaces
 ### IComponent
@@ -101,6 +127,111 @@ const ActorHandle &in
 
 No description given
 
+### GetActors
+Return type: `array<ActorHandle>@`
+
+No description given
+
+### SetActorName
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### GetActorName
+Return type: `string`
+
+Signature:
+```angelscript
+const ActorHandle &in
+```
+
+No description given
+
+### SetActorActive
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, bool
+```
+
+No description given
+
+### IsActorActive
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in
+```
+
+No description given
+
+### AddActorTag
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### RemoveActorTag
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### HasActorTag
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### GetActorTags
+Return type: `array<string>@`
+
+Signature:
+```angelscript
+const ActorHandle &in
+```
+
+No description given
+
+### RegisterComponent
+Return type: `bool`
+
+Signature:
+```angelscript
+const string &in name, IComponent@ component
+```
+
+No description given
+
+### AddComponent
+Return type: `ComponentID`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
 ### AddComponent
 Return type: `ComponentID`
 
@@ -111,12 +242,12 @@ const ActorHandle &in, IComponent@
 
 No description given
 
-### RemoveComponent
+### HasComponent
 Return type: `bool`
 
 Signature:
 ```angelscript
-const ComponentID &in
+const ActorHandle &in, const string &in
 ```
 
 No description given
@@ -131,8 +262,18 @@ const ComponentID &in
 
 No description given
 
-### GetComponent
-Return type: `IComponent@`
+### RemoveComponent
+Return type: `bool`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### RemoveComponent
+Return type: `bool`
 
 Signature:
 ```angelscript
@@ -141,8 +282,33 @@ const ComponentID &in
 
 No description given
 
-### GetActors
-Return type: `array<ActorHandle>@`
+### GetComponent
+Return type: `ref`
+
+Signature:
+```angelscript
+const ActorHandle &in, const string &in
+```
+
+No description given
+
+### GetComponent
+Return type: `ref`
+
+Signature:
+```angelscript
+const ComponentID &in
+```
+
+No description given
+
+### GetComponentName
+Return type: `string`
+
+Signature:
+```angelscript
+const ComponentID &in
+```
 
 No description given
 
@@ -156,22 +322,52 @@ const ActorHandle &in
 
 No description given
 
+### GetTransform
+Return type: `Transform@`
+
+Signature:
+```angelscript
+const ActorHandle &in
+```
+
+No description given
+
+### GetTransform
+Return type: `Transform@`
+
+Signature:
+```angelscript
+const ComponentID &in
+```
+
+No description given
+
+### SaveWorld
+Return type: `bool`
+
+Signature:
+```angelscript
+const string &in
+```
+
+No description given
+
+### LoadWorld
+Return type: `LoadResult`
+
+Signature:
+```angelscript
+const string &in
+```
+
+No description given
+
 ### RegisterSystem
 Return type: `void`
 
 Signature:
 ```angelscript
 FrameUpdateType, ISystem@
-```
-
-No description given
-
-### AddNativeComponent
-Return type: `ComponentID`
-
-Signature:
-```angelscript
-const ActorHandle &in, const string &in
 ```
 
 No description given

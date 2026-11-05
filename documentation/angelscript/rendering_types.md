@@ -5,7 +5,7 @@ Registration priority: `100`
 ## Vec4
 C++ type: `glm::vec4`
 
-Flags: `Value`, `AppClassCDAK`
+Flags: `Value`, `AppClassCDAK`, `AppClassAllFloats`
 
 No description given
 
@@ -441,7 +441,7 @@ No description given
 ## Vec2
 C++ type: `glm::vec2`
 
-Flags: `Value`, `AppClassCDAK`
+Flags: `Value`, `AppClassCDAK`, `AppClassAllFloats`
 
 No description given
 
@@ -677,7 +677,7 @@ No description given
 ## Vec3
 C++ type: `glm::vec3`
 
-Flags: `Value`, `AppClassCDAK`
+Flags: `Value`, `AppClassCDAK`, `AppClassAllFloats`
 
 No description given
 
@@ -1000,7 +1000,7 @@ No description given
 ## Transform3D
 C++ type: `CE::Renderer::Transform3D`
 
-Flags: `Value`, `AutoGetFlags`
+Flags: `Value`, `AppClassCDAK`, `AppClassAllFloats`
 
 No description given
 
@@ -1036,7 +1036,7 @@ No description given
 ## Transform2D
 C++ type: `CE::Renderer::Transform2D`
 
-Flags: `Value`, `AutoGetFlags`
+Flags: `Value`, `AppClassCDAK`, `AppClassAllFloats`
 
 No description given
 

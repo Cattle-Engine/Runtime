@@ -51,11 +51,11 @@ class Vec4 {
 
 class Colour {
     void f();
-    void f(uint8, uint8, uint8, uint8);
-    uint8 r;
-    uint8 g;
-    uint8 b;
-    uint8 a;
+    void f(float, float, float, float);
+    float r;
+    float g;
+    float b;
+    float a;
 };
 
 class Material {
@@ -180,6 +180,15 @@ class Transform3D {
     Vec3 scale;
 };
 
+class Transform2D {
+    void f();
+    void f();
+    Transform2D& opAssign(Transform2D& in other);
+    Vec2 position;
+    float rotation;
+    Vec2 scale;
+};
+
 class Mat4 {
     void f();
     void f(float);
@@ -213,6 +222,12 @@ enum FrameUpdateType {
     ImGui
 };
 
+enum LoadResult {
+    Ok,
+    Partial,
+    Failed
+};
+
 class ActorHandle {
     bool IsValid() const;
     uint index;
@@ -223,6 +238,11 @@ class ComponentID {
     bool IsValid() const;
     uint index;
     uint generation;
+};
+
+class Transform {
+    Transform3D transform_3d;
+    Transform2D transform_2d;
 };
 
 interface IComponent {
@@ -238,17 +258,53 @@ bool DestroyActor(const ActorHandle &in);
 
 bool IsActorAlive(const ActorHandle &in);
 
+array<ActorHandle>@ GetActors();
+
+bool SetActorName(const ActorHandle &in, const string &in);
+
+string GetActorName(const ActorHandle &in);
+
+bool SetActorActive(const ActorHandle &in, bool);
+
+bool IsActorActive(const ActorHandle &in);
+
+bool AddActorTag(const ActorHandle &in, const string &in);
+
+bool RemoveActorTag(const ActorHandle &in, const string &in);
+
+bool HasActorTag(const ActorHandle &in, const string &in);
+
+array<string>@ GetActorTags(const ActorHandle &in);
+
+bool RegisterComponent(const string &in name, IComponent@ component);
+
+ComponentID AddComponent(const ActorHandle &in, const string &in);
+
 ComponentID AddComponent(const ActorHandle &in, IComponent@);
 
-bool RemoveComponent(const ComponentID &in);
+bool HasComponent(const ActorHandle &in, const string &in);
 
 bool HasComponent(const ComponentID &in);
 
-IComponent@ GetComponent(const ComponentID &in);
+bool RemoveComponent(const ActorHandle &in, const string &in);
 
-array<ActorHandle>@ GetActors();
+bool RemoveComponent(const ComponentID &in);
+
+ref GetComponent(const ActorHandle &in, const string &in);
+
+ref GetComponent(const ComponentID &in);
+
+string GetComponentName(const ComponentID &in);
 
 array<ComponentID>@ GetComponents(const ActorHandle &in);
+
+Transform@ GetTransform(const ActorHandle &in);
+
+Transform@ GetTransform(const ComponentID &in);
+
+bool SaveWorld(const string &in);
+
+LoadResult LoadWorld(const string &in);
 
 void RegisterSystem(FrameUpdateType, ISystem@);
 }
@@ -419,9 +475,9 @@ bool SetMaterialEmissionTexture(const Material& in material, const Texture& in t
 }
 
 namespace CE::Graphics::Render2D {
-void DrawSprite(const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSprite(const Texture& in, float x, float y, float w, float h, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None, Vec2 scale = Vec2(1.0f, 1.0f));
 
-void DrawSprite(const Texture& in, float x, float y, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None);
+void DrawSprite(const Texture& in, float x, float y, const Colour& in tint, float rotation, TextureFlip flip = TextureFlip::None, Vec2 scale = Vec2(1.0f, 1.0f));
 
 void DrawSprite(const Texture& in, float x, float y, const Colour& in tint);
 

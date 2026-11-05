@@ -17,6 +17,8 @@ namespace CE::Renderer::Software {
 
     class Software_Renderer : public Renderer::IRenderer {
       public:
+        MeshData ReadbackMeshData([[maybe_unused]] GPUMesh* mesh) override { return {}; }
+
         Software_Renderer(Common::FS::VFS::VFS* vfs);
         ~Software_Renderer() override;
 

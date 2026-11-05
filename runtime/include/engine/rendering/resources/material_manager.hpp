@@ -43,6 +43,7 @@ namespace CE::Renderer::Resources {
 
         // Internally used
         Material* GetMaterial(MaterialHandle matt_handle);
+
         void DestroyMaterial(MaterialHandle matt_handle);
         void DestroyAllMaterials();
         // Debug helpers
@@ -66,6 +67,24 @@ namespace CE::Renderer::Resources {
 
         // if a shader handle id is zero, this will set the shader to none
         void SetShader(MaterialHandle handle,ShaderHandle shader);
+
+        // material property getters
+        bool GetMaterialColour(MaterialHandle handle, Colour& outColour) const;
+        bool GetMaterialRoughness(MaterialHandle handle, float& outRoughness) const;
+        bool GetMaterialMetallic(MaterialHandle handle, float& outMetallic) const;
+        
+        uint64_t GetAlbedoTextureID(MaterialHandle handle) const;
+        uint64_t GetMetallicRoughnessTextureID(MaterialHandle handle) const;
+        uint64_t GetNormalTextureID(MaterialHandle handle) const;
+        uint64_t GetEmissionTextureID(MaterialHandle handle) const;
+
+        bool GetEmissionColour(MaterialHandle handle, Colour& outColour) const;
+        bool GetEmissionStrength(MaterialHandle handle, float& outStrength) const;
+
+        bool GetTransparent(MaterialHandle handle, bool& outTransparent) const;
+        bool GetDoubleSided(MaterialHandle handle, bool& outDoubleSided) const;
+
+        bool GetShader(MaterialHandle handle, Shader*& outShader) const;
       private:
         struct MaterialEntry {
             Material Resource;

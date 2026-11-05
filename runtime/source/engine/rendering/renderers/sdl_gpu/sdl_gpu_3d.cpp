@@ -752,6 +752,151 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         return gpuMesh;
     }
 
+    MeshData SDL_GPU_Renderer::ReadbackMeshData(GPUMesh* mesh) {
+        MeshData result;
+
+        if (!mDevice || !mesh || !mesh->handle) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Invalid mesh readback request");
+            return result;
+        }
+
+        auto* mesh_data = static_cast<SDLGPUMeshData*>(mesh->handle);
+
+        const Uint32 vertex_size = mesh_data->vertexCount * sizeof(GPUVertex3D);
+        const Uint32 index_size = mesh_data->indexCount * sizeof(uint32_t);
+
+        // Create download transfer buffers.
+        SDL_GPUTransferBufferCreateInfo vertex_info{};
+        vertex_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD;
+        vertex_info.size = vertex_size;
+
+        SDL_GPUTransferBufferCreateInfo index_info{};
+        index_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD;
+        index_info.size = index_size;
+
+        SDL_GPUTransferBuffer* vertex_transfer = SDL_CreateGPUTransferBuffer(mDevice, &vertex_info);
+        SDL_GPUTransferBuffer* index_transfer = SDL_CreateGPUTransferBuffer(mDevice, &index_info);
+
+        if (!vertex_transfer || !index_transfer) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create readback transfer buffers");
+
+            if (vertex_transfer) SDL_ReleaseGPUTransferBuffer(mDevice, vertex_transfer);
+            if (index_transfer) SDL_ReleaseGPUTransferBuffer(mDevice, index_transfer);
+
+            return result;
+        }
+
+        // Acquire command buffer.
+        SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(mDevice);
+
+        if (!command_buffer) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to acquire command buffer");
+
+            SDL_ReleaseGPUTransferBuffer(mDevice, vertex_transfer);
+            SDL_ReleaseGPUTransferBuffer(mDevice, index_transfer);
+
+            return result;
+        }
+
+        // Copy GPU buffers into download transfer buffers.
+        SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer);
+
+        SDL_GPUBufferRegion vertex_region{
+            mesh_data->vertexBuffer,
+            0,
+            vertex_size,
+        };
+
+        SDL_GPUBufferRegion index_region{
+            mesh_data->indexBuffer,
+            0,
+            index_size,
+        };
+
+        SDL_GPUTransferBufferLocation vertex_location{vertex_transfer, 0};
+        SDL_GPUTransferBufferLocation index_location{index_transfer, 0};
+
+        SDL_DownloadFromGPUBuffer(copy_pass, &vertex_region, &vertex_location);
+        SDL_DownloadFromGPUBuffer(copy_pass, &index_region, &index_location);
+
+        SDL_EndGPUCopyPass(copy_pass);
+
+        // Submit and wait for completion.
+        SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(command_buffer);
+
+        if (!fence || !SDL_WaitForGPUFences(mDevice, true, &fence, 1)) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] GPU readback synchronization failed");
+
+            if (fence) SDL_ReleaseGPUFence(mDevice, fence);
+
+            SDL_ReleaseGPUTransferBuffer(mDevice, vertex_transfer);
+            SDL_ReleaseGPUTransferBuffer(mDevice, index_transfer);
+
+            return result;
+        }
+
+        SDL_ReleaseGPUFence(mDevice, fence);
+
+        // Map download buffers.
+        auto* vertices = static_cast<GPUVertex3D*>(
+            SDL_MapGPUTransferBuffer(mDevice, vertex_transfer, false)
+        );
+
+        auto* indices = static_cast<uint32_t*>(
+            SDL_MapGPUTransferBuffer(mDevice, index_transfer, false)
+        );
+
+        if (!vertices || !indices) {
+            CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to map readback transfer buffers");
+
+            if (vertices) SDL_UnmapGPUTransferBuffer(mDevice, vertex_transfer);
+            if (indices) SDL_UnmapGPUTransferBuffer(mDevice, index_transfer);
+
+            SDL_ReleaseGPUTransferBuffer(mDevice, vertex_transfer);
+            SDL_ReleaseGPUTransferBuffer(mDevice, index_transfer);
+
+            return result;
+        }
+
+        // Reconstruct vertices.
+        result.vertices.resize(mesh_data->vertexCount);
+
+        for (uint32_t i = 0; i < mesh_data->vertexCount; ++i) {
+            const GPUVertex3D& src = vertices[i];
+            Vertex3D& dst = result.vertices[i];
+
+            dst.position = src.position;
+            dst.normal = src.normal;
+
+            dst.colour.r = static_cast<float>((src.color >> 0) & 0xFF) / 255.0f;
+            dst.colour.g = static_cast<float>((src.color >> 8) & 0xFF) / 255.0f;
+            dst.colour.b = static_cast<float>((src.color >> 16) & 0xFF) / 255.0f;
+            dst.colour.a = static_cast<float>((src.color >> 24) & 0xFF) / 255.0f;
+
+            dst.uv = src.uv;
+            dst.tangent = src.tangent;
+            dst.tangentSign = src.tangentSign;
+        }
+
+        // Reconstruct indices.
+        result.indices.resize(mesh_data->indexCount);
+
+        SDL_memcpy(
+            result.indices.data(),
+            indices,
+            index_size
+        );
+
+        // Unmap and release transfer buffers.
+        SDL_UnmapGPUTransferBuffer(mDevice, vertex_transfer);
+        SDL_UnmapGPUTransferBuffer(mDevice, index_transfer);
+
+        SDL_ReleaseGPUTransferBuffer(mDevice, vertex_transfer);
+        SDL_ReleaseGPUTransferBuffer(mDevice, index_transfer);
+
+        return result;
+    }
+
     void SDL_GPU_Renderer::DestroyGPUMesh(GPUMesh* mesh) {
         if (!mesh) {
             return;

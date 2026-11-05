@@ -131,10 +131,16 @@ namespace CE::Renderer::Resources {
          * @param cache_key Used to optimize, if a texture is already loaded with the same cache key, it returns that
          * instead of creating an entirely new texture
          */
-        TextureHandle CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format,
-                                            int pitch = 0, TextureFilter filter = TextureFilter::Linear,
-                                            TextureWrap wrap = TextureWrap::Clamp, std::string cache_key = "",
-                                            TextureUploadBatch* batch = nullptr);
+        TextureHandle CreateTextureFromData(
+            int width, int height, 
+            const void* pixels, 
+            TextureFormat format,
+            int pitch = 0, 
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp, 
+            std::string cache_key = "",
+            TextureUploadBatch* batch = nullptr
+        );
 
         /**
          * @brief This marks a texture for deletion and doesn't allow you to get the texture anymore, a texture is only

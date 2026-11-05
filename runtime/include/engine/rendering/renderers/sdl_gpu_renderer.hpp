@@ -332,6 +332,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         void SetShaderTexture(const char* name, Texture* texture, int slot) override;
 
         GPUMesh* CreateGPUMesh(MeshData& mesh) override;
+        MeshData ReadbackMeshData(GPUMesh* mesh) override;
         void DestroyGPUMesh(GPUMesh* mesh) override;
         void DrawMesh(
             GPUMesh* mesh,

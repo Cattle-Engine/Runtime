@@ -799,12 +799,10 @@ namespace CE::Scripting::Bindings {
             return GetWorld(runtime).GetComponent<T>(actor);
         }
 
-        template <typename T, typename BindMembers>
+        template <typename T>
         bool RegisterNativeComponent(
-            asIScriptEngine& engine,
             Runtime& runtime,
-            const std::string& name,
-            BindMembers&& bindMembers) {
+            const std::string& name) {
             ACCS::World& world = GetWorld(runtime);
 
             const ACCS::ComponentTypeInfo* existing =
@@ -813,50 +811,20 @@ namespace CE::Scripting::Bindings {
             if (!existing) {
                 if (!world.RegisterComponent<T>(name)) {
                     CE_LOG(LogLevel::Error,
-                           "[ACCS] Failed to register native component '{}'",
-                           name);
+                        "[ACCS] Failed to register native component '{}'",
+                        name);
                     return false;
                 }
             } else if (existing->name != name) {
                 CE_LOG(LogLevel::Error,
-                       "[ACCS] Native component registered as '{}' in C++ but bound as '{}' in scripts",
-                       existing->name,
-                       name);
+                    "[ACCS] Native component registered as '{}' in C++ but bound as '{}'",
+                    existing->name,
+                    name);
                 return false;
             }
 
-            asITypeInfo* existing_type =
-                engine.GetTypeInfoByDecl(name.c_str());
-
-            if (!existing_type) {
-                CE_CHECK_AS(
-                    engine.RegisterObjectType(
-                        name.c_str(),
-                        0,
-                        asOBJ_REF | asOBJ_NOCOUNT));
-
-                if (!bindMembers(name.c_str())) {
-                    return false;
-                }
-            }
-
-            const std::string getter = "Get" + name;
-
-            CE_CHECK_AS(engine.RegisterGlobalFunction(
-                (name + "@ " + getter + "(const ActorHandle &in)").c_str(),
-                asFUNCTION(GetNativeByActor<T>),
-                asCALL_CDECL_OBJLAST,
-                &runtime));
-
-            CE_CHECK_AS(engine.RegisterGlobalFunction(
-                (name + "@ " + getter + "(const ComponentID &in)").c_str(),
-                asFUNCTION(GetNativeByID<T>),
-                asCALL_CDECL_OBJLAST,
-                &runtime));
-
             return true;
         }
-
         CE::Common::FS::VFS::VFS& GetVFS(Runtime& runtime) {
             return runtime.mVFS;
         }
@@ -985,27 +953,9 @@ namespace CE::Scripting::Bindings {
             "LoadResult LoadWorld(const string &in path)",
             LoadWorld);
 
-        return RegisterNativeComponent<ACCS::Components::Transform>(
-            mScriptEngine,
-            mRuntime,
-            "Transform",
-            [&](const char* name) {
-                CE_CHECK_AS(mScriptEngine.RegisterObjectProperty(
-                    name,
-                    "Transform3D transform_3d",
-                    asOFFSET(
-                        ACCS::Components::Transform,
-                        transform_3d)));
+        return RegisterNativeComponent<ACCS::Components::Transform>(mRuntime,"Transform");
 
-                CE_CHECK_AS(mScriptEngine.RegisterObjectProperty(
-                    name,
-                    "Transform2D transform_2d",
-                    asOFFSET(
-                        ACCS::Components::Transform,
-                        transform_2d)));
-
-                return true;
-            });
+        
     }
 
 #undef ACCS_BIND

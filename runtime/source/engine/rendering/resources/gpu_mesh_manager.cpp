@@ -1,4 +1,5 @@
 #include "engine/rendering/resources/gpu_mesh_manager.hpp"
+#include <optional>
 
 #include "engine/common/tracelog.hpp"
 
@@ -124,6 +125,16 @@ namespace CE::Renderer::Resources {
     }
 
     bool GPUMeshManager::HasMesh(MeshHandle handle) const {
-        return mGPUMeshes.find(handle) != mGPUMeshes.end();
+        return mGPUMeshes.contains(handle);
+    }
+
+    std::optional<MeshData> GPUMeshManager::ReadBackMeshData(MeshHandle handle) {
+        auto it = mGPUMeshes.find(handle);
+
+        if (it == mGPUMeshes.end()) {
+            return std::nullopt;
+        }
+
+        return mRenderer.ReadbackMeshData(it->second.Mesh);
     }
 } // namespace CE::Renderer::Resources

@@ -35,22 +35,8 @@ namespace CE {
             *mRendererResourcesNameRegistry
         });
 
-        assert(mACCS->world.RegisterComponent<CE::ACCS::Components::Transform>("Transform"));
-        const auto* info = mACCS->world.GetRegistry().Find(std::string("Transform"));
-
-        CE_LOG(LogLevel::Debug,
-            "[Bootstrap] Transform registered={}, serializable={}",
-            info != nullptr,
-            info ? info->IsSerializable() : false);
-
-        static_assert(CE::ACCS::detail::HasSerialization<
-            CE::ACCS::Components::Transform>::value);
-
-        assert(info != nullptr);
-        assert(info->create != nullptr);
-        assert(info->save != nullptr);
-        assert(info->load != nullptr);
-        assert(info->IsSerializable());
+        mACCS->world.RegisterComponent<CE::ACCS::Components::Transform>("Transform");
+        mACCS->world.RegisterComponent<CE::ACCS::Components::Sprite2D>("Sprite2D");
 
         mACCS->system_manager.RegisterSystem<ACCS::Systems::SpriteRenderer>(ACCS::FrameUpdateType::Render2D);
         mACCS->system_manager.RegisterSystem<ACCS::Systems::MeshRenderer>(ACCS::FrameUpdateType::Render3D);

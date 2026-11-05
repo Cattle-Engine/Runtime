@@ -5,7 +5,8 @@
 
 namespace CE::Renderer {
     class NullRenderer final : public IRenderer {
-    public:
+      public:
+        MeshData ReadbackMeshData([[maybe_unused]] GPUMesh* mesh) override { return {}; }
         void PreWinInit() override {
         }
 
