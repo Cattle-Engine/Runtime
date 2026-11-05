@@ -84,9 +84,6 @@ ASExternalFunctions:
   - {Name: GetComponentName, ReturnType: string, Signature: "const ComponentID &in"}
   - {Name: GetComponents, ReturnType: "array<ComponentID>@", Signature: "const ActorHandle &in"}
 
-  - {Name: GetTransform, ReturnType: "Transform@", Signature: "const ActorHandle &in"}
-  - {Name: GetTransform, ReturnType: "Transform@", Signature: "const ComponentID &in"}
-
   - {Name: SaveWorld, ReturnType: bool, Signature: "const string &in"}
   - {Name: LoadWorld, ReturnType: LoadResult, Signature: "const string &in"}
 

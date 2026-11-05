@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "ce_common/platforms.hpp"
+
 #if defined(__linux__)
 #include "engine/platforms/linux.hpp"
 #elif defined(_WIN32)
@@ -25,11 +27,11 @@ namespace CE::Platforms {
     }
 
     bool SupportsANSI() {
-        return Linux::SupportsANSI();
+        return CECommon::Platforms::SupportsANSI();
     }
 
     bool EnableANSI() {
-        return Linux::EnableANSI();
+        return CECommon::Platforms::EnableANSI();
     }
 
     void* AlignedAllocate(std::size_t size, std::size_t alignment) {
@@ -55,11 +57,11 @@ namespace CE::Platforms {
     }
 
     bool SupportsANSI() {
-        return Windows::SupportsANSI();
+        return CECommon::Platforms::SupportsANSI();
     }
 
     bool EnableANSI() {
-        return Windows::EnableANSI();
+        return CECommon::Platforms::EnableANSI();
     }
 
     void* AlignedAllocate(std::size_t size, std::size_t alignment) {

@@ -131,6 +131,20 @@ namespace CE {
             );
         }
 
-        CE::LogImpl(level, result, std::source_location::current());
+        asIScriptContext* ctx = asGetActiveContext();
+
+        int line = 0;
+        int column = 0;
+        const char* section = nullptr;
+        if (ctx) {
+            line = ctx->GetLineNumber(0, &column, &section);
+        }
+
+        /*
+        CE::LogImpl(
+            level,
+            "[Angelscript] " + result,
+            {section ? section : "<unknown>", line, column}
+        ); */
     }
 }

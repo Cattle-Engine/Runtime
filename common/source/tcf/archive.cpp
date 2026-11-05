@@ -10,7 +10,9 @@
 
 #include "ce_common/binary_reader.hpp"
 #include "ce_common/tcf.hpp"
-#include "ce_common/detail/tracelog.hpp"
+#include "ce_common/tracelog.hpp"
+
+
 
 #include <lz4.h>
 #include <zstd.h>

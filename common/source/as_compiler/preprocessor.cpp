@@ -1,5 +1,6 @@
 
-#include "ce_common/detail/tracelog.hpp"
+#include "ce_common/tracelog.hpp"
+
 #include "ce_common/as_compiler/preprocessor.hpp"
 
 #include <cctype>

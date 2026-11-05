@@ -2,17 +2,21 @@
 #include <format>
 #include <source_location>
 #include <string>
+#include <vector>
+#include <utility>
 
 namespace CECommon {
     enum class LogLevel {
+        Debug,
         Info,
         Warn,
-        Debug,
         Error, 
         Fatal,
     };
 
-    void SetDebugLogging(bool enable);
+    void SetLogLevel(LogLevel level);
+    const std::vector<std::pair<CECommon::LogLevel, std::string>>& GetLogs(); 
+    void ClearLogs();
 
     void LogImpl(CECommon::LogLevel level, const std::string& message, std::source_location loc);
 

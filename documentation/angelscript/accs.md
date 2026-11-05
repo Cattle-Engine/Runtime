@@ -322,26 +322,6 @@ const ActorHandle &in
 
 No description given
 
-### GetTransform
-Return type: `Transform@`
-
-Signature:
-```angelscript
-const ActorHandle &in
-```
-
-No description given
-
-### GetTransform
-Return type: `Transform@`
-
-Signature:
-```angelscript
-const ComponentID &in
-```
-
-No description given
-
 ### SaveWorld
 Return type: `bool`
 

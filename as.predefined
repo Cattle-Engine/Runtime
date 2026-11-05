@@ -298,10 +298,6 @@ string GetComponentName(const ComponentID &in);
 
 array<ComponentID>@ GetComponents(const ActorHandle &in);
 
-Transform@ GetTransform(const ActorHandle &in);
-
-Transform@ GetTransform(const ComponentID &in);
-
 bool SaveWorld(const string &in);
 
 LoadResult LoadWorld(const string &in);

@@ -11,7 +11,8 @@
 #include <optional>
 #include <unordered_set>
 
-#include "ce_common/detail/tracelog.hpp"
+#include "ce_common/tracelog.hpp"
+
 #include "ce_common/detail/hasher.hpp"
 #include "ce_common/as_compiler/parser.hpp"
 #include "ce_common/as_compiler/ast.hpp"
