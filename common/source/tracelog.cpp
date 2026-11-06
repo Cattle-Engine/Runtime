@@ -2,6 +2,7 @@
 #include "ce_common/platforms.hpp"
 
 #include <chrono>
+#include <fstream>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -95,7 +96,7 @@ namespace CECommon {
         if (pos != std::string_view::npos)
             file.remove_prefix(pos);
 
-        if (level == LogLevel::Debug)
+        if (gLogLevel == LogLevel::Debug)
             return std::format("[{}:{}] ", file, loc.line());
 
         return {};
@@ -148,15 +149,86 @@ namespace CECommon {
             log_prefix = " [" + gLoggingPrefix + "]";
         }
 
-        std::string formattedMessage =
-            "[" + GetTimestamp() + "] " + tag + " " +
+        std::string formatted_message =
+            "[" + GetTimestamp() + "] " + tag +
             log_prefix + " " + GetLocation(loc, level) + message;
 
-        gLogs.emplace_back(level, formattedMessage);
+        gLogs.emplace_back(level, formatted_message);
 
         if (colour)
             os << colour;
 
-        os << formattedMessage << reset << std::endl;
+        os << formatted_message << reset << std::endl;
+    }
+
+    void Log(LogLevel level, const std::string& message, const std::string& file, int line) {
+        if (static_cast<int>(level) < static_cast<int>(gLogLevel)) return;
+
+        std::ostream& os = std::cout;
+        Manip colour = nullptr;
+        std::string tag;
+
+        switch (level) {
+        case LogLevel::Info:
+            colour = blue;
+            tag = "[INFO]";
+            break;
+        case LogLevel::Warn:
+            colour = yellow;
+            tag = "[WARNING]";
+            break;
+        case LogLevel::Debug:
+            colour = blue;
+            tag = "[DEBUG]";
+            break;
+        case LogLevel::Error:
+            colour = red;
+            tag = "[ERROR]";
+            break;
+        case LogLevel::Fatal:
+            colour = bold_red;
+            tag = "[FATAL]";
+            break;
+        }
+        
+        std::string log_prefix;
+        if (!gLoggingPrefix.empty()) {
+            log_prefix = " [" + gLoggingPrefix + "]";
+        }
+
+        std::string formatted_message =
+            "[" + GetTimestamp() + "] " + tag +
+            log_prefix + " " + std::format("[{}:{}]", file, line) + message;
+
+        gLogs.emplace_back(level, formatted_message);
+
+        if (colour)
+            os << colour;
+
+        os << formatted_message << reset << std::endl;
+    }
+
+    bool DumpLogsToFile(const std::filesystem::path& path) {
+        try {
+            std::ofstream file(path, std::ios::out | std::ios::trunc);
+
+            if (!file.is_open())
+                return false;
+
+            for (const auto& [level, message] : gLogs)
+                file << message << '\n';
+
+            file.flush();
+
+            if (!file.good())
+                return false;
+
+            file.close();
+
+            return !file.fail();
+        }
+        catch (const std::filesystem::filesystem_error&) {
+            return false;
+        }
     }
 } // namespace CECommon

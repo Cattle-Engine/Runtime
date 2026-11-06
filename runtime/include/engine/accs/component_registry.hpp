@@ -113,20 +113,17 @@ namespace CE::ACCS {
             }
 
             const ComponentTypeInfo* Find(const std::string& name) const {
+                /*
+                Commented out for being too verbose
                 CE_LOG(LogLevel::Debug,
                     "[ComponentRegistry] Find this={}, query='{}', entries={}",
-                    static_cast<const void*>(this), name, mByName.size());
+                    static_cast<const void*>(this), name, mByName.size()); */
                 auto it = mByName.find(name);
 
+                /* same as the above
                 CE_LOG(LogLevel::Debug,
                     "[ComponentRegistry] Find result: query='{}', length={}, found={}, entries={}",
-                    name, name.size(), it != mByName.end(), mByName.size());
-
-                for (const auto& [key, value] : mByName) {
-                    CE_LOG(LogLevel::Debug,
-                        "[ComponentRegistry] Stored name='{}', length={}",
-                        key, key.size());
-                }
+                    name, name.size(), it != mByName.end(), mByName.size()); */
 
                 return it == mByName.end() ? nullptr : &it->second;
             }

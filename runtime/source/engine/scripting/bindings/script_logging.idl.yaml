@@ -1,0 +1,31 @@
+RegistrationPriority: 100
+ASNamespace: CE
+
+RequiredCppHeaders:
+  - "engine/scripting/bindings/script_logging.hpp"
+  - "engine/common/tracelog.hpp"
+  
+ASEnums:
+  - Name: LogLevel
+    CppType: CE::LogLevel
+    Values:
+      - Debug
+      - Info
+      - Warn
+      - Error
+      - Fatal
+
+ASFunctions:
+  - Name: Log
+    CppFunction: ScriptLog
+    ReturnType: void
+    Signature: "CE::LogLevel, const string &in, const ?&in ..."
+    CallingConvention: Generic
+    NoWrapper: true
+
+  - Name: Log
+    CppFunction: ScriptLog
+    ReturnType: void
+    Signature: "CE::LogLevel, const string &in"
+    CallingConvention: Generic
+    NoWrapper: true

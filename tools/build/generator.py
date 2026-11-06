@@ -81,6 +81,13 @@ def generate_symbol_name() -> str:
 def generate_comment(comment: str) -> str:
     return f"/* {comment} */"
 
+
+def native_ref(item, wrapped_expr: str, symbol: str) -> str:
+    if getattr(item, "no_wrapper", False):
+        return f"asFUNCTION({symbol})"
+    return wrapped_expr
+
+
 @dataclass
 class CodeWriter:
     _lines: list[str] = field(default_factory=list)

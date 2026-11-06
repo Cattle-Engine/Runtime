@@ -38,6 +38,9 @@ class ASBindableCallable:
     inline_body: str = ""
     generated_name: str = ""
     calling_convention: str = ""
+    # When true (Generic calling convention only), the callable is already an
+    # `void f(asIScriptGeneric*)` function and is NOT passed through WRAP_FN & co.
+    no_wrapper: bool = False
 
 
 @dataclass
@@ -174,6 +177,16 @@ def _maybe_get(data: dict[str, Any], *keys: str, default: Any = None) -> Any:
     return default
 
 
+def _no_wrapper(
+    data: dict[str, Any],
+    calling_convention: str,
+    type_default: bool = False,
+) -> bool:
+    if "NoWrapper" in data:
+        return bool(data["NoWrapper"])
+    return bool(type_default and calling_convention == "Generic")
+
+
 def parse_as_property(data: dict[str, Any]) -> ASProperty:
     return ASProperty(
         type=data["Type"],
@@ -189,17 +202,20 @@ def parse_as_constructor(data: dict[str, Any]) -> ASConstructor:
     )
 
 
-def parse_as_behaviour(data: dict[str, Any]) -> ASBehaviour:
+def parse_as_behaviour(data: dict[str, Any], type_no_wrapper: bool = False) -> ASBehaviour:
+    cc = data.get("CallingConvention", "CDecl")
     return ASBehaviour(
         type=data["Type"],
         cpp_function=data.get("CppFunction", ""),
         signature=data.get("Signature", ""),
         cpp_signature=data.get("CppSignature", ""),
         inline_body=data.get("Body", ""),
-        calling_convention=data.get("CallingConvention", "CDecl"),
+        calling_convention=cc,
+        no_wrapper=_no_wrapper(data, cc, type_no_wrapper),
     )
 
-def parse_as_method(data: dict[str, Any]) -> ASMethod:
+def parse_as_method(data: dict[str, Any], type_no_wrapper: bool = False) -> ASMethod:
+    cc = data.get("CallingConvention", "ThisCall")
     return ASMethod(
         name=data["Name"],
         return_type=data["ReturnType"],
@@ -209,11 +225,13 @@ def parse_as_method(data: dict[str, Any]) -> ASMethod:
         cpp_function=data.get("CppFunction", data.get("Signature", "")),
         inline_body=data.get("Body", ""),
         is_const=data.get("IsConst", False),
-        calling_convention=data.get("CallingConvention", "ThisCall"),
+        calling_convention=cc,
+        no_wrapper=_no_wrapper(data, cc, type_no_wrapper),
     )
 
 
-def parse_as_operator(data: dict[str, Any]) -> ASOperator:
+def parse_as_operator(data: dict[str, Any], type_no_wrapper: bool = False) -> ASOperator:
+    cc = data.get("CallingConvention", "CDeclObjFirst")
     return ASOperator(
         operator=data["Operator"],
         return_type=data["ReturnType"],
@@ -222,12 +240,14 @@ def parse_as_operator(data: dict[str, Any]) -> ASOperator:
         cpp_return_type=data.get("CppReturnType", data.get("ReturnType", "")),
         cpp_function=data.get("CppFunction", ""),
         inline_body=data.get("Body", ""),
-        calling_convention=data.get("CallingConvention", "CDeclObjFirst"),
+        calling_convention=cc,
         is_const=data.get("IsConst", True),
+        no_wrapper=_no_wrapper(data, cc, type_no_wrapper),
     )
 
 
 def parse_as_type(data: dict[str, Any], default_namespace: str = "") -> ASType:
+    type_nw = bool(data.get("NoWrapper", False))
     return ASType(
         name=data["Name"],
         cpp_type=data["CppType"],
@@ -236,9 +256,9 @@ def parse_as_type(data: dict[str, Any], default_namespace: str = "") -> ASType:
         flags=list(_maybe_get(data, "Flags", "ASFlags", default=[])),
         properties=[parse_as_property(x) for x in data.get("Properties", [])],
         constructors=[parse_as_constructor(x) for x in data.get("Constructors", [])],
-        behaviours=[parse_as_behaviour(x) for x in data.get("Behaviours", [])],
-        methods=[parse_as_method(x) for x in data.get("Methods", [])],
-        operators=[parse_as_operator(x) for x in data.get("Operators", [])],
+        behaviours=[parse_as_behaviour(x, type_nw) for x in data.get("Behaviours", [])],
+        methods=[parse_as_method(x, type_nw) for x in data.get("Methods", [])],
+        operators=[parse_as_operator(x, type_nw) for x in data.get("Operators", [])],
     )
 
 
@@ -262,6 +282,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                 inline_body=x.get("Body", ""),
                 generated_name=x.get("GeneratedName", ""),
                 calling_convention=x.get("CallingConvention", "CDecl"),
+                no_wrapper=bool(x.get("NoWrapper", False)),
             )
             for x in data.get("ASFunctions", [])
         ],
@@ -323,6 +344,7 @@ def parse_binding_file(data: dict[str, Any]) -> ASBindingFile:
                     "CallingConvention",
                     "ThisCallAsGlobal"
                 ),
+                no_wrapper=bool(x.get("NoWrapper", False)),
             )
             for x in data.get("ASClassFunctions", [])
         ],
@@ -341,6 +363,24 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 f"Generic {description} has more than 4 parameters; "
                 "the AngelScript autowrapper supports at most 4"
             )
+
+    def validate_generic(
+        description: str,
+        item: ASBindableCallable,
+        signature: str,
+    ) -> None:
+        """Generic-convention checks, including NoWrapper."""
+        if item.no_wrapper:
+            if item.calling_convention != "Generic":
+                errors.append(
+                    f"NoWrapper on {description} requires CallingConvention: Generic"
+                )
+            if not item.cpp_function and not item.inline_body:
+                errors.append(f"NoWrapper on {description} needs CppFunction or Body")
+            # Without the autowrapper there is no 4-argument limit.
+            return
+        if item.calling_convention == "Generic":
+            validate_generic_arity(description, signature)
 
     if not binding.namespace:
         errors.append("Missing ASNamespace")
@@ -398,15 +438,21 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Behaviour '{behaviour.type}' in '{as_type.name}' has unknown calling convention '{behaviour.calling_convention}'"
                 )
-            if behaviour.calling_convention == "Generic" and behaviour.type in {"Construct", "Constructor"} and not behaviour.inline_body and not behaviour.cpp_signature:
+            if (
+                behaviour.calling_convention == "Generic"
+                and behaviour.type in {"Construct", "Constructor"}
+                and not behaviour.no_wrapper
+                and not behaviour.inline_body
+                and not behaviour.cpp_signature
+            ):
                 errors.append(
                     f"Generic constructor in '{as_type.name}' requires CppSignature"
                 )
-            if behaviour.calling_convention == "Generic":
-                validate_generic_arity(
-                    f"behaviour '{behaviour.type}' in '{as_type.name}'",
-                    behaviour.signature,
-                )
+            validate_generic(
+                f"behaviour '{behaviour.type}' in '{as_type.name}'",
+                behaviour,
+                behaviour.signature,
+            )
 
         method_names: set[str] = set()
         for method in as_type.methods:
@@ -424,11 +470,12 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Method '{method.name}' in '{as_type.name}' has unknown calling convention '{method.calling_convention}'"
                 )
+            validate_generic(
+                f"method '{method.name}' in '{as_type.name}'",
+                method,
+                method.signature,
+            )
             if method.calling_convention == "Generic":
-                validate_generic_arity(
-                    f"method '{method.name}' in '{as_type.name}'",
-                    method.signature,
-                )
                 if not method.inline_body and method.cpp_function.startswith("asMETHOD("):
                     errors.append(
                         f"Generic method '{method.name}' in '{as_type.name}' "
@@ -453,11 +500,11 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 errors.append(
                     f"Operator '{operator.operator}' in '{as_type.name}' has unsupported calling convention '{operator.calling_convention}'"
                 )
-            if operator.calling_convention == "Generic":
-                validate_generic_arity(
-                    f"operator '{operator.operator}' in '{as_type.name}'",
-                    operator.signature,
-                )
+            validate_generic(
+                f"operator '{operator.operator}' in '{as_type.name}'",
+                operator,
+                operator.signature,
+            )
 
     function_names: set[str] = set()
     for function in binding.functions:
@@ -471,8 +518,7 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
             errors.append(
                 f"Function '{function.name}' has unknown calling convention '{function.calling_convention}'"
             )
-        if function.calling_convention == "Generic":
-            validate_generic_arity(f"function '{function.name}'", function.signature)
+        validate_generic(f"function '{function.name}'", function, function.signature)
         function_names.add(function.name)
 
     enum_names: set[str] = set()
@@ -539,11 +585,15 @@ def validate_binding_file(binding: ASBindingFile) -> list[str]:
                 f"ASClassFunction '{class_function.name}' has unknown "
                 f"calling convention '{class_function.calling_convention}'"
             )
-        if class_function.calling_convention == "Generic":
-            validate_generic_arity(
-                f"class function '{class_function.name}'",
-                class_function.signature,
+        if class_function.no_wrapper and not class_function.inline_body:
+            errors.append(
+                f"NoWrapper ASClassFunction '{class_function.name}' requires a Function/Body"
             )
+        validate_generic(
+            f"class function '{class_function.name}'",
+            class_function,
+            class_function.signature,
+        )
 
     return errors
 
@@ -708,6 +758,11 @@ def _sanitize_symbol_part(value: str) -> str:
 
     result = "".join(sanitized).strip("_")
     return result or "Symbol"
+
+
+def _generic_declaration(helper_name: str) -> str:
+    """Fixed signature of an inline body registered with NoWrapper."""
+    return f"static void {helper_name}(asIScriptGeneric* gen)"
 
 
 def _operator_helper_name(as_type: ASType, operator: ASOperator, index: int) -> str:
@@ -883,11 +938,14 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         gen.begin_block("namespace")
 
         for helper_name, as_function in inline_function_helpers:
-            return_type = _resolve_cpp_type(as_function.return_type, type_map)
-            declaration = (
-                f"static {return_type} {helper_name}"
-                f"({_cpp_parameter_list(as_function.cpp_signature or as_function.signature)})"
-            )
+            if as_function.no_wrapper:
+                declaration = _generic_declaration(helper_name)
+            else:
+                return_type = _resolve_cpp_type(as_function.return_type, type_map)
+                declaration = (
+                    f"static {return_type} {helper_name}"
+                    f"({_cpp_parameter_list(as_function.cpp_signature or as_function.signature)})"
+                )
             gen.begin_function(declaration)
             for line in as_function.inline_body.splitlines():
                 gen.write(_normalize_inline_body(line))
@@ -895,11 +953,14 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
             gen.write("")
 
         for helper_name, as_type, method in inline_method_helpers:
-            return_type = _resolve_cpp_type(method.return_type, type_map)
-            declaration = (
-                f"static {return_type} {helper_name}"
-                f"({_method_parameter_list(as_type, method, type_map)})"
-            )
+            if method.no_wrapper:
+                declaration = _generic_declaration(helper_name)
+            else:
+                return_type = _resolve_cpp_type(method.return_type, type_map)
+                declaration = (
+                    f"static {return_type} {helper_name}"
+                    f"({_method_parameter_list(as_type, method, type_map)})"
+                )
             gen.begin_function(declaration)
             for line in method.inline_body.splitlines():
                 gen.write(_normalize_inline_body(line))
@@ -907,11 +968,14 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
             gen.write("")
 
         for helper_name, as_type, operator in inline_operator_helpers:
-            return_type = _resolve_cpp_type(operator.return_type, type_map)
-            declaration = (
-                f"static {return_type} {helper_name}"
-                f"({_operator_parameter_list(as_type, operator, type_map)})"
-            )
+            if operator.no_wrapper:
+                declaration = _generic_declaration(helper_name)
+            else:
+                return_type = _resolve_cpp_type(operator.return_type, type_map)
+                declaration = (
+                    f"static {return_type} {helper_name}"
+                    f"({_operator_parameter_list(as_type, operator, type_map)})"
+                )
             gen.begin_function(declaration)
             for line in operator.inline_body.splitlines():
                 gen.write(_normalize_inline_body(line, operator_body=True))
@@ -919,14 +983,17 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
             gen.write("")
 
         for helper_name, as_type, behaviour in inline_behaviour_helpers:
-            return_type = _resolve_cpp_type(
-                as_binding_gen._behaviour_return_type(behaviour, as_type),
-                type_map,
-            )
-            declaration = (
-                f"static {return_type} {helper_name}"
-                f"({as_binding_gen._behaviour_parameter_list(as_type, behaviour)})"
-            )
+            if behaviour.no_wrapper:
+                declaration = _generic_declaration(helper_name)
+            else:
+                return_type = _resolve_cpp_type(
+                    as_binding_gen._behaviour_return_type(behaviour, as_type),
+                    type_map,
+                )
+                declaration = (
+                    f"static {return_type} {helper_name}"
+                    f"({as_binding_gen._behaviour_parameter_list(as_type, behaviour)})"
+                )
             gen.begin_function(declaration)
             for line in behaviour.inline_body.splitlines():
                 gen.write(_normalize_inline_body(line))
@@ -948,10 +1015,15 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
             type_map,
         )
 
-        declaration = (
-            f"{return_type} "
-            f"{CLASS_NAME}::{function_name}({params})"
-        )
+        if class_function.no_wrapper:
+            # Static member with the raw generic signature. `this` is available
+            # via gen->GetAuxiliary() (see the registration below).
+            declaration = f"void {CLASS_NAME}::{function_name}(asIScriptGeneric* gen)"
+        else:
+            declaration = (
+                f"{return_type} "
+                f"{CLASS_NAME}::{function_name}({params})"
+            )
 
         gen.begin_function(declaration)
 
@@ -1007,7 +1079,13 @@ def generate_cpp_source(binding: ASBindingFile, header_include: str) -> str:
         function_name = class_function.generated_name or class_function.name
         declaration = f"{class_function.return_type} {class_function.name}({_registration_signature(class_function.signature)})"
         gen.write(f'mScriptEngine.SetDefaultNamespace("{class_function.as_namespace}");')
-        if class_function.calling_convention == "Generic":
+        if class_function.no_wrapper:
+            gen.write(
+                f'if (mScriptEngine.RegisterGlobalFunction("{declaration}", '
+                f"asFUNCTION({CLASS_NAME}::{function_name}), asCALL_GENERIC, this) < 0) "
+                f"return false;"
+            )
+        elif class_function.calling_convention == "Generic":
             gen.write(
                 f'CE_REGISTER_GLOBAL_GENERIC(this, "{declaration}", '
                 f'{_generic_class_function_ref(class_function, function_name)});'
@@ -1098,9 +1176,12 @@ def generate_cpp_header(binding: ASBindingFile) -> str:
                 type_map,
             )
 
-            gen.write(
-                f"{return_type} {function_name}({params});"
-            )
+            if class_function.no_wrapper:
+                gen.write(f"static void {function_name}(asIScriptGeneric* gen);")
+            else:
+                gen.write(
+                    f"{return_type} {function_name}({params});"
+                )
 
         gen.dedent()
 

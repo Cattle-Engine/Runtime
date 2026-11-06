@@ -17,6 +17,7 @@
 
 #include "engine/common/misc/arguments.hpp"
 #include "engine/input/keyboard.hpp"
+#include "engine/ui/logs_window.hpp"
 #include "engine/input/mouse.hpp"
 #include "engine/input/text.hpp"
 #include "engine/input/input_binder.hpp"
@@ -99,6 +100,7 @@ namespace CE {
         std::unique_ptr<ACCS::ACCS> mACCS;
 
         std::unique_ptr<Common::Window> mWindow;
+        UI::LogWindow mLogsWindow;
         RendererBackend mRendererBackend = RendererBackend::None;
         bool mDebug = false;
         bool mShouldExit = false;

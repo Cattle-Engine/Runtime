@@ -575,7 +575,11 @@ int main(int argc, char* argv[]) {
         return 2;
     }
 
-    CECommon::SetLogLevel(CECommon::LogLevel::Debug);
+    if (options.Verbose) {
+        CECommon::SetLogLevel(CECommon::LogLevel::Debug);
+    } else {
+        CECommon::SetLogLevel(CECommon::LogLevel::Info);
+    }
 
     if (options.ShowHelp) {
         PrintUsage(std::cout);

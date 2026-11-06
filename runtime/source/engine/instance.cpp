@@ -178,7 +178,7 @@ namespace CE {
 
         mDebugWindow = std::make_unique<UI::DebugWindow>(
             *mRenderer, *mTextureManager, *mShaderManager, *mFontManager, *mGameInfo, *mSettingsManager,
-            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get(), mASDebuggerWindow.get());
+            mAudioManager.get(), *mKeyboardManger, *this, *mMouseManger, mAudioSystem.get(), mASDebuggerWindow.get(), mLogsWindow);
 
         mWindowFocus = true;
     }
@@ -290,6 +290,7 @@ namespace CE {
             if (mASDebuggerWindow) {
                 mASDebuggerWindow->DrawWindow();
             }
+            mLogsWindow.DrawWindow();
 
             if (!mScriptingManager->RunImGui()) {
                 ShowError(mScriptingManager->GetLastError());

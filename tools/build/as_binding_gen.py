@@ -108,13 +108,19 @@ def _type_flags(flags: Iterable[str], cpp_type: str) -> str:
 
 
 def _generic_function_ref(function_name: str, callable: idl.ASBindableCallable) -> str:
-    """Return the autowrapper expression for a free function."""
+    """Return the native-function expression for a free function (Generic).
+
+    With NoWrapper the symbol is already `void f(asIScriptGeneric*)`, so it is
+    passed to asFUNCTION() directly instead of through WRAP_FN.
+    """
     # A generated helper has a unique, unambiguous symbol. For an application
     # function CppSignature selects the explicit-signature variant, which is
     # also how overloaded functions are disambiguated.
     if callable.cpp_signature and not callable.generated_name:
-        return f"WRAP_FN_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
-    return f"WRAP_FN({function_name})"
+        wrapped = f"WRAP_FN_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
+    else:
+        wrapped = f"WRAP_FN({function_name})"
+    return generator.native_ref(callable, wrapped, function_name)
 
 
 def _generic_object_ref(
@@ -124,8 +130,10 @@ def _generic_object_ref(
 ) -> str:
     wrapper = "WRAP_OBJ_FIRST" if calling_convention == "CDeclObjFirst" else "WRAP_OBJ_LAST"
     if callable.cpp_signature and not callable.generated_name:
-        return f"{wrapper}_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
-    return f"{wrapper}({function_name})"
+        wrapped = f"{wrapper}_PR({function_name}, ({callable.cpp_signature}), {getattr(callable, 'cpp_return_type', '') or getattr(callable, 'return_type', 'void')})"
+    else:
+        wrapped = f"{wrapper}({function_name})"
+    return generator.native_ref(callable, wrapped, function_name)
 
 
 def _generic_method_ref(as_type: idl.ASType, method: idl.ASMethod) -> str:
@@ -135,11 +143,13 @@ def _generic_method_ref(as_type: idl.ASType, method: idl.ASMethod) -> str:
         )
     suffix = " const" if method.is_const else ""
     if method.cpp_signature:
-        return (
+        wrapped = (
             f"WRAP_MFN_PR({as_type.cpp_type}, {method.cpp_function}, "
             f"({method.cpp_signature}){suffix}, {method.cpp_return_type})"
         )
-    return f"WRAP_MFN({as_type.cpp_type}, {method.cpp_function})"
+    else:
+        wrapped = f"WRAP_MFN({as_type.cpp_type}, {method.cpp_function})"
+    return generator.native_ref(method, wrapped, method.cpp_function)
 
 
 def _sanitize_symbol_part(value: str) -> str:
@@ -307,7 +317,10 @@ def generate_as_type_binding(
         declaration = _behaviour_declaration(as_type, behaviour)
         function_name = behaviour.generated_name or behaviour.cpp_function
         if behaviour.calling_convention == "Generic":
-            if behaviour.type in {"Destruct", "Destructor"} and not behaviour.generated_name:
+            if behaviour.no_wrapper:
+                # Already `void f(asIScriptGeneric*)`: no WRAP_DES / WRAP_CON / WRAP_FN.
+                function_ref = f"asFUNCTION({function_name})"
+            elif behaviour.type in {"Destruct", "Destructor"} and not behaviour.generated_name:
                 function_ref = f"WRAP_DES({as_type.cpp_type})"
             elif behaviour.type in {"Construct", "Constructor"} and not behaviour.generated_name:
                 signature = behaviour.cpp_signature or behaviour.signature
@@ -486,6 +499,12 @@ def generate_as_class_function(
         gen: generator.CodeWriter
 ) -> None:
     declaration = f"{func.return_type} {func.name}({_registration_signature(func.signature)})"
+    if func.no_wrapper:
+        gen.write(
+            f'CE_CHECK_AS(mScriptEngine.RegisterGlobalFunction("{declaration}", '
+            f"asFUNCTION({idl.CLASS_NAME}::{func.name}), asCALL_GENERIC, this));"
+        )
+        return
     gen.write(
         f'CE_REGISTER_GLOBAL({idl.CLASS_NAME}, this, "{declaration}", {func.name});'
     )

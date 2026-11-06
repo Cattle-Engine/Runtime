@@ -20,6 +20,7 @@
 #include "engine/rendering/resources/shader_manager.hpp"
 #include "engine/settings.hpp"
 #include "engine/ui/angelscript_debugger_window.hpp"
+#include "engine/ui/logs_window.hpp"
 #include "engine/ui/utils.hpp"
 #include "engine/version.hpp"
 #include "engine/common/window.hpp"
@@ -64,10 +65,10 @@ namespace CE::UI {
                              Renderer::Resources::ShaderManager& shaderman, Assets::Fonts::FontManager& fontman,
                              GameInfo& gameinfo, Settings::SettingsManager& settings,
                              Audio::Resources::AudioManager* audioman, Input::Keyboard& keyboard,
-                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system, AngelscriptDebuggerWindow* as_debugger_win)
+                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system, AngelscriptDebuggerWindow* as_debugger_win, LogWindow& lgw)
         : mRenderer(renderer), mTextureManager(texman), mShaderManager(shaderman), mFontManager(fontman),
           mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mAudioSystem(audio_system), mKeyboard(keyboard),
-          mInstance(instance), mMouse(mouse), mAngelscriptDebuggerWindow(as_debugger_win),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()) {
+          mInstance(instance), mMouse(mouse), mAngelscriptDebuggerWindow(as_debugger_win),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()), mLogWindow(lgw) {
                 mAudioDevices = Core::Audio::AudioSystem::ListAudioDevices();
           }
 
@@ -156,6 +157,12 @@ namespace CE::UI {
 
         if (ImGui::Button("Open AS Debugger")) {
             mAngelscriptDebuggerWindow->OpenWindow();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Open log window")) {
+            mLogWindow.SetWindowOpen(true);
         }
 
         if (debugger_button_disabled) {

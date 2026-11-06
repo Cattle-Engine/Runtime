@@ -211,6 +211,18 @@ class Mat4 {
 };
 
 const Texture NoTexture;
+
+enum LogLevel {
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Fatal
+};
+
+void Log(CE::LogLevel, const string &in, const ?&in ...);
+
+void Log(CE::LogLevel, const string &in);
 }
 
 namespace CE::ACCS {

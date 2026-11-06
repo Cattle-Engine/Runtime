@@ -14,6 +14,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/settings.hpp"
 #include "engine/ui/angelscript_debugger_window.hpp"
+#include "engine/ui/logs_window.hpp"
 
 namespace CE::UI {
     class DebugWindow {
@@ -30,7 +31,8 @@ namespace CE::UI {
             CE::Instance& instance, 
             CE::Input::Mouse& mouse,
             CE::Core::Audio::AudioSystem* audio_system,
-            AngelscriptDebuggerWindow* scripting_debugger
+            AngelscriptDebuggerWindow* scripting_debugger,
+            LogWindow& log_window
         );
 
         void Draw();
@@ -60,6 +62,7 @@ namespace CE::UI {
         CE::Instance& mInstance;
         CE::Input::Mouse& mMouse;
         AngelscriptDebuggerWindow* mAngelscriptDebuggerWindow;
+        LogWindow& mLogWindow;
 
         struct SettingsTabState {
             std::array<char, 501> rendererBuffer{};

@@ -23,6 +23,7 @@
 - [rendering_general](rendering_general.md)
 - [rendering_resources](rendering_resources.md)
 - [rendering_types](rendering_types.md)
+- [script_logging](script_logging.md)
 - [settings_bindings](settings_bindings.md)
 - [tdf](tdf.md)
 - [vfs](vfs.md)

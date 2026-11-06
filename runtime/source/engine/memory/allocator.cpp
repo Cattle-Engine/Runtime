@@ -9,6 +9,9 @@
 #include <engine/memory/stats.hpp>
 #include <engine/platforms.hpp>
 
+#ifndef CE_PRIVATE
+    #define CE_PRIVATE __attribute__((visibility("hidden")))
+#endif
 namespace {
 
     constexpr std::uint64_t AllocationMagic = 0xCECAFEBABE123456ULL;
@@ -155,7 +158,7 @@ namespace CE::Memory {
     }
 
 } // namespace CE::Memory
-
+/*
 void* operator new(std::size_t size) {
     const auto total = sizeof(AllocationHeader) + size;
 
@@ -292,3 +295,4 @@ void operator delete(void* ptr, std::align_val_t alignment, const std::nothrow_t
 void operator delete[](void* ptr, std::align_val_t alignment, const std::nothrow_t&) noexcept {
     operator delete[](ptr, alignment);
 }
+    */

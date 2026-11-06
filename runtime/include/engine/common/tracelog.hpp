@@ -2,9 +2,11 @@
 
 #include "ce_common/tracelog.hpp"
 
-
 namespace CE {
-    using LogLevel = CECommon::LogLevel;
+    using CECommon::LogLevel;
     using CECommon::Log;
     using CECommon::LogImpl;
+    using CECommon::SetLogLevel;
+    using CECommon::GetLogs;
+    using CECommon::ClearLogs;
 }

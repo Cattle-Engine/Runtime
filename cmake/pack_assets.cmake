@@ -189,8 +189,6 @@ execute_process(
         -o "${script_output}"
         -I "${CE_ASSET_SOURCE_DIR}"
         ${script_debug_args}
-        -g
-        -O0
     RESULT_VARIABLE script_result
 )
 

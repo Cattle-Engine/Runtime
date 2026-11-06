@@ -2,83 +2,61 @@
 
 #include "engine/common/tracelog.hpp"
 
+#include "engine/scripting/bindings/script_logging.hpp"
+
 #include <format>
-#include <source_location>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
-namespace CE {
+namespace CE::Scripting::Bindings {
     static std::string FormatScriptArgument(
         asIScriptGeneric* gen,
         asUINT index
     ) {
-        const int type_Id = gen->GetArgTypeId(index);
+        const int type_id = gen->GetArgTypeId(index);
         const int string_type_id = gen->GetEngine()->GetTypeIdByDecl("string");
 
-        if (type_Id == string_type_id) {
+        if (type_id == string_type_id) {
             auto* value =
                 static_cast<std::string*>(gen->GetArgAddress(index));
 
             return *value;
         }
 
-        switch (type_Id) {
+        switch (type_id) {
             case asTYPEID_BOOL:
-                return std::format("{}", gen->GetArgByte(index) != 0);
+                return std::format("{}", *static_cast<bool*>(gen->GetArgAddress(index)));
 
             case asTYPEID_INT8:
-                return std::format(
-                    "{}",
-                    static_cast<int8_t>(gen->GetArgByte(index))
-                );
+                return std::format("{}", *static_cast<int8_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_INT16:
-                return std::format(
-                    "{}",
-                    static_cast<int16_t>(gen->GetArgWord(index))
-                );
+                return std::format("{}", *static_cast<int16_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_INT32:
-                return std::format(
-                    "{}",
-                    static_cast<int32_t>(gen->GetArgDWord(index))
-                );
+                return std::format("{}", *static_cast<int32_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_INT64:
-                return std::format(
-                    "{}",
-                    static_cast<int64_t>(gen->GetArgQWord(index))
-                );
+                return std::format("{}", *static_cast<int64_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_UINT8:
-                return std::format(
-                    "{}",
-                    static_cast<uint8_t>(gen->GetArgByte(index))
-                );
+                return std::format("{}", *static_cast<uint8_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_UINT16:
-                return std::format(
-                    "{}",
-                    static_cast<uint16_t>(gen->GetArgWord(index))
-                );
+                return std::format("{}", *static_cast<uint16_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_UINT32:
-                return std::format(
-                    "{}",
-                    static_cast<uint32_t>(gen->GetArgDWord(index))
-                );
+                return std::format("{}", *static_cast<uint32_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_UINT64:
-                return std::format(
-                    "{}",
-                    static_cast<uint64_t>(gen->GetArgQWord(index))
-                );
+                return std::format("{}", *static_cast<uint64_t*>(gen->GetArgAddress(index)));
 
             case asTYPEID_FLOAT:
-                return std::format("{}", gen->GetArgFloat(index));
+                return std::format("{}", *static_cast<float*>(gen->GetArgAddress(index)));
 
             case asTYPEID_DOUBLE:
-                return std::format("{}", gen->GetArgDouble(index));
+                return std::format("{}", *static_cast<double*>(gen->GetArgAddress(index)));
 
             default:
                 break;
@@ -87,7 +65,7 @@ namespace CE {
         asIScriptContext* ctx = asGetActiveContext();
 
         if (ctx) {
-            ctx->SetException("Not enough arguments for format string");
+            ctx->SetException("Not enough arguments for format string", false);
         }
 
         return "";
@@ -125,7 +103,7 @@ namespace CE {
             result += (*format)[i];
         }
 
-        if (argument != static_cast<asUINT>(gen->GetArgCount())) {
+        if (std::cmp_not_equal(argument ,gen->GetArgCount())) {
             throw std::runtime_error(
                 "Too many arguments for format string"
             );
@@ -140,11 +118,11 @@ namespace CE {
             line = ctx->GetLineNumber(0, &column, &section);
         }
 
-        /*
-        CE::LogImpl(
+        CE::Log(
             level,
             "[Angelscript] " + result,
-            {section ? section : "<unknown>", line, column}
-        ); */
+            section ? section : "<unknown>", 
+            line
+        );
     }
 }

@@ -21,6 +21,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigErrorRecovery = true;
+        io.ConfigErrorRecoveryEnableAssert = false;
+        io.ConfigErrorRecoveryEnableDebugLog = true;
+        io.ConfigErrorRecoveryEnableTooltip = true;
 
         ImGui::StyleColorsDark();
 
