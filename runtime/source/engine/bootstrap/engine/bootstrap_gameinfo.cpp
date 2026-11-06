@@ -102,11 +102,11 @@ namespace CE::Bootstrap::Engine {
         }
 
         if (window_mode >= 0 && window_mode <= 2) {
-            gameinfo.windowMode = static_cast<Common::Window::WindowMode>(window_mode);
+            gameinfo.windowMode = static_cast<Common::WindowMode>(window_mode);
         } else {
             CE_LOG(LogLevel::Error, "[Bootstrap] Window_Mode is out of bounds, using default (windowed)");
             CE_LOG(LogLevel::Debug, "0 = Fullscreen, 1 = Borderless, 2 = Windowed");
-            gameinfo.windowMode = Common::Window::WindowMode::Windowed;
+            gameinfo.windowMode = Common::WindowMode::Windowed;
         }
         return 0;
     }

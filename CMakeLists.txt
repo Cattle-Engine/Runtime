@@ -37,5 +37,6 @@ add_subdirectory(runtime)
 add_subdirectory(loader)
 add_subdirectory(tools/scriptc)
 add_subdirectory(tools/cebyc_dump)
+add_subdirectory(tools/project_builder)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/build_assets.cmake")

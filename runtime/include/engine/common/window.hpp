@@ -6,16 +6,12 @@
 
 #include "engine/common/core/game_state.hpp"
 #include "engine/common/fs/vfs.hpp"
+#include "engine/common/misc/window_mode.hpp"
 
 namespace CE::Common {
     class Window {
         public:
-            enum class WindowMode {
-                Fullscreen,
-                Borderless,
-                Windowed,
-                Count
-            };
+            using WindowMode = ::CE::Common::WindowMode;
 
             // size in pixels
             struct WindowSize {

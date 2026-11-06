@@ -7,7 +7,7 @@
 #define CE_DATA_FILE_NAME "data.tcf"
 #endif
 
-#include "engine/common/window.hpp"
+#include "./window_mode.hpp"
 
 namespace CE {
     struct GameInfo {
@@ -38,6 +38,6 @@ namespace CE {
         bool pauseRenderingWhenFocusLostInWindowedMode;
         bool pauseUpdateWhenFocusLost;
 
-        Common::Window::WindowMode windowMode;
+        Common::WindowMode windowMode;
     };
 } // namespace CE

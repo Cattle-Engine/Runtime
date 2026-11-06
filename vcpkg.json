@@ -56,6 +56,7 @@
 
     "sdl3-ttf",
     "assimp",
-    "xxhash"
+    "xxhash",
+    "yaml-cpp"
   ]
 }
