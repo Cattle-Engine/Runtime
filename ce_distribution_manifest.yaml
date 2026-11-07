@@ -9,5 +9,5 @@ tools:
   - name: glslc
     version: 2024.1
     platform: linux-x64
-    url: https://github.com/Cattle-Engine/Runtime/releases/download/tools/glslc-2024.1-linux-x64.tar.gz
+    url: https://github.com/KhronosGroup/glslang/releases/download/16.6.0/glslang-16.6.0-linux-x86_64-release.tar.gz
     executable: bin/glslc
