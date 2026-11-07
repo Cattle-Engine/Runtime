@@ -1,0 +1,13 @@
+manifest_version: 1
+
+releases:
+  - version: 0.1.0
+    platform: linux-x86_64
+    url: https://github.com/Cattle-Engine/Runtime/releases/download/toolchain-0.1.0/ce_toolchain-0.1.0-linux-x64.tar.gz#
+
+tools:
+  - name: glslc
+    version: 2024.1
+    platform: linux-x64
+    url: https://github.com/Cattle-Engine/Runtime/releases/download/tools/glslc-2024.1-linux-x64.tar.gz
+    executable: bin/glslc

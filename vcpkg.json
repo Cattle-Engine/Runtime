@@ -57,6 +57,8 @@
     "sdl3-ttf",
     "assimp",
     "xxhash",
-    "yaml-cpp"
+    "yaml-cpp",
+    "curl",
+    "libarchive"
   ]
 }
