@@ -331,7 +331,10 @@ bool ParseArguments(int argc, char* argv[], Options& options) {
 namespace {
 
 FS::path ExeDir() {
-    return FS::path(Platforms::GetExecutablePath());
+    FS::path p(Platforms::GetExecutablePath());
+    std::error_code ec;
+    if (FS::is_directory(p, ec)) return p;
+    return p.parent_path();
 }
 
 std::string CurrentPlatform() {
@@ -369,6 +372,14 @@ bool IsSafeVersion(const std::string& v) {
     return std::all_of(v.begin(), v.end(), [](unsigned char c) {
         return std::isalnum(c) || c == '.' || c == '-' || c == '_' || c == '+';
     });
+}
+
+bool IsSafeEntryPath(const FS::path& p) {
+    if (p.empty() || p.is_absolute() || p.has_root_name() || p.has_root_directory()) return false;
+    for (const auto& c : p) {
+        if (c == "..") return false;
+    }
+    return true;
 }
 
 std::vector<uint32_t> ParseVersion(const std::string& v) {
@@ -592,7 +603,6 @@ bool ExtractArchive(const FS::path& archive_path, const FS::path& dest) {
     const int flags = ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM |
                       ARCHIVE_EXTRACT_SECURE_NODOTDOT |
                       ARCHIVE_EXTRACT_SECURE_SYMLINKS |
-                      ARCHIVE_EXTRACT_SECURE_NOABSOLUTEPATHS;
     archive_write_disk_set_options(writer, flags);
     archive_write_disk_set_standard_lookup(writer);
 
@@ -627,6 +637,12 @@ bool ExtractArchive(const FS::path& archive_path, const FS::path& dest) {
 #endif
         if (!name) continue;
 
+        if (!IsSafeEntryPath(FS::path(name))) {
+            std::cerr << "ce_griller: refusing unsafe archive entry\n";
+            ok = false;
+            break;
+        }
+
         const FS::path full = dest / name;
 #ifdef _WIN32
         archive_entry_copy_pathname_w(entry, full.c_str());
@@ -635,9 +651,9 @@ bool ExtractArchive(const FS::path& archive_path, const FS::path& dest) {
 #endif
 
         if (const char* link = archive_entry_hardlink(entry)) {
+            if (!IsSafeEntryPath(FS::path(link))) { ok = false; break; }
             archive_entry_set_hardlink(entry, (dest / link).string().c_str());
         }
-
         r = archive_write_header(writer, entry);
         if (r < ARCHIVE_WARN) {
             std::cerr << "ce_griller: " << archive_error_string(writer) << "\n";
