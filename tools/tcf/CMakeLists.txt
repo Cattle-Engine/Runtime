@@ -9,6 +9,11 @@ add_executable(tcf
     ${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp
 )
 
+set_target_properties(tcf PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+)
+
 target_link_libraries(tcf PRIVATE
     ce_common
 )

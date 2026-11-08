@@ -73,6 +73,24 @@ namespace Platforms {
             return result;
         }
 
+        std::string ProfileSourceBeginMarker() {
+            return "# >>> Platforms PROFILE SOURCE BEGIN >>>";
+        }
+
+        std::string ProfileSourceEndMarker() {
+            return "# <<< Platforms PROFILE SOURCE END <<<";
+        }
+
+        std::string CreateProfileSourceBlock() {
+            std::string block;
+
+            block += ProfileSourceBeginMarker() + "\n";
+            block += "[ -f \"$HOME/.profile\" ] && . \"$HOME/.profile\"\n";
+            block += ProfileSourceEndMarker() + "\n";
+
+            return block;
+        }
+
         std::string BeginMarker(const std::string& directory) {
             return "# >>> Platforms PATH BEGIN: " + directory;
         }
@@ -195,6 +213,28 @@ namespace Platforms {
             }
 
             return success;
+        }
+
+        bool EnsureProfileSourced(const std::string& filename) {
+            std::string contents;
+
+            if (!ReadFile(filename, contents)) {
+                return false;
+            }
+
+            std::string begin = ProfileSourceBeginMarker();
+
+            if (contents.find(begin) != std::string::npos) {
+                return true;
+            }
+
+            if (!contents.empty() && contents.back() != '\n') {
+                contents += '\n';
+            }
+
+            contents += CreateProfileSourceBlock();
+
+            return WriteFileAtomically(filename, contents);
         }
 
         bool AddProfileEntry(const std::string& directory) {
@@ -334,6 +374,23 @@ namespace Platforms {
         }
 
         if (!AddProfileEntry(path)) {
+            return false;
+        }
+
+        const char* home = std::getenv("HOME");
+
+        if (!home || !*home) {
+            return false;
+        }
+
+        std::string bashrc = (fs::path(home) / ".bashrc").string();
+        std::string zshrc = (fs::path(home) / ".zshrc").string();
+
+        if (!EnsureProfileSourced(bashrc)) {
+            return false;
+        }
+
+        if (!EnsureProfileSourced(zshrc)) {
             return false;
         }
 
