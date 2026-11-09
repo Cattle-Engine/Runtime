@@ -171,10 +171,7 @@ namespace CE {
                                                  mScriptingManager->GetLastError()));
         }
 
-        #ifdef CE_DEBUG
-            mASDebuggerWindow = std::make_unique<UI::AngelscriptDebuggerWindow>(mScriptingManager->GetScriptDebugger(), *mScriptingManager, *mVFS);
-        #endif
-
+        mASDebuggerWindow = std::make_unique<UI::AngelscriptDebuggerWindow>(mScriptingManager->GetScriptDebugger(), *mScriptingManager, *mVFS);
 
         mDebugWindow = std::make_unique<UI::DebugWindow>(
             *mRenderer, *mTextureManager, *mShaderManager, *mFontManager, *mGameInfo, *mSettingsManager,

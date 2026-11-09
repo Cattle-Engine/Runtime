@@ -159,6 +159,8 @@ namespace CE::UI {
             mAngelscriptDebuggerWindow->OpenWindow();
         }
 
+        ImGui::EndDisabled();
+
         ImGui::SameLine();
 
         if (ImGui::Button("Open log window")) {
@@ -169,7 +171,6 @@ namespace CE::UI {
             ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Debugger is not available");
         }
 
-        ImGui::EndDisabled();
 
         Utils::SpaceSep();
 

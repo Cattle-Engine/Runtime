@@ -200,10 +200,8 @@ namespace CE::Scripting {
 
             mSectionInfos = bytecode.GetSections();
 
-            #ifdef CE_DEBUG
-                mScriptDebugger = std::make_shared<ScriptDebugger>(bytecode.GetDebugSymbols());
-                mScriptDebugger->SetEngine(mScriptEngine);
-            #endif
+            mScriptDebugger = std::make_shared<ScriptDebugger>(bytecode.GetDebugSymbols());
+            mScriptDebugger->SetEngine(mScriptEngine);
         }
 
         int r = 0;
