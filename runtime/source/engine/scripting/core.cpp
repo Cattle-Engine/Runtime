@@ -175,6 +175,11 @@ namespace CE::Scripting {
         std::string imgui_entrypoint;
 
         auto startup_file = mVFS.OpenFile(mGameInfo.startupFileName);
+
+        if (!startup_file) {
+            return Fail("Failed to open startup script: " + mGameInfo.startupFileName);
+        }
+
         if (startup_file->IsOpen()) {
             auto stream = Common::FS::VFS::IStream(std::move(startup_file));
             Impl::ByteCodeReader bytecode(stream);
