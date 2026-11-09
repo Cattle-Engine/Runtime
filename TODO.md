@@ -119,6 +119,9 @@ export int foo_func() {
 }
 ```
 
+- [ ] In ce_griller make it output a "licences" folder with the build
+- [ ] Make ce_griller use a SHA256 hash to verify a toolchain package
+
 - [ ] Make the animated textures thing be able to be used with materials
 - [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Bloom

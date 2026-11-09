@@ -43,7 +43,7 @@ constexpr uint32_t kSupportedProjectVersion = 1;
 
 constexpr const char* kReleaseManifestUrl = "https://raw.githubusercontent.com/Cattle-Engine/Runtime/refs/heads/main/ce_distribution_manifest.yaml";
 constexpr const char* kLocalManifestName = "toolchain_manifest.yaml";
-constexpr const char* kToolchainDirName = "toolchains";
+constexpr const char* kToolchainDirName = "cattle_engine_toolchains";
 constexpr const char* kProjectManifestName = "ce_project.yaml";
 constexpr const char* kLocalToolsManifestName = "tools_manifest.yaml";
 constexpr const char* kToolsDirName = "tools";
