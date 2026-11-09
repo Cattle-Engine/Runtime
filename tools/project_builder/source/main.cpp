@@ -109,6 +109,7 @@ struct CEBuildInfo {
     ShaderConfig shaders;
     FS::path build_output;
     std::string game_data_file_name;
+    std::string script_startup_file;   // source to compile, relative to script_dir
     std::string toolchain_needed;
     CE::GameInfo gameinfo;
 };
@@ -602,7 +603,7 @@ bool ExtractArchive(const FS::path& archive_path, const FS::path& dest) {
     archive* writer = archive_write_disk_new();
     const int flags = ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM |
                       ARCHIVE_EXTRACT_SECURE_NODOTDOT |
-                      ARCHIVE_EXTRACT_SECURE_SYMLINKS |
+                      ARCHIVE_EXTRACT_SECURE_SYMLINKS;
     archive_write_disk_set_options(writer, flags);
     archive_write_disk_set_standard_lookup(writer);
 
@@ -1426,6 +1427,7 @@ bool LoadProject(const FS::path& root, CEBuildInfo& info) {
         info.build_output = Optional<std::string>(m, "build_output", "build");
         info.game_data_file_name = Optional<std::string>(m, "game_data_file", "data.tcf");
         info.script_dir = Optional<std::string>(m, "script_dir", "scripts");
+        info.script_startup_file = Required<std::string>(m, "script_startup_file");
 
         info.shaders = ShaderConfig{};
         if (const YAML::Node sh = m["shaders"]) {
@@ -1465,6 +1467,13 @@ bool LoadProject(const FS::path& root, CEBuildInfo& info) {
         const FS::path data_name(info.game_data_file_name);
         if (data_name.empty() || data_name.filename() != data_name) {
             throw std::runtime_error("game_data_file must be a plain file name");
+        }
+
+        if (!IsSafeRelativePath(info.script_startup_file)) {
+            throw std::runtime_error("script_startup_file must be a relative path inside script_dir");
+        }
+        if (!IsSafeRelativePath(info.gameinfo.startupFileName)) {
+            throw std::runtime_error("startup_file must be a relative path");
         }
 
         return true;
@@ -1669,15 +1678,17 @@ bool CompileScripts(const FS::path& host_toolchain, const FS::path& project_root
     }
 
     const FS::path script_dir = project_root / info.script_dir;
-    const FS::path startup(info.gameinfo.startupFileName);
-    const FS::path input = startup.is_absolute() ? startup : script_dir / startup;
+    const FS::path input = script_dir / info.script_startup_file;
 
     if (!FS::exists(input)) {
-        std::cerr << "ce_griller: startup script does not exist: " << input.string() << "\n";
+        std::cerr << "ce_griller: startup script source does not exist: " << input.string() << "\n";
         return false;
     }
 
-    const FS::path output = staging / "code.bin";
+    // The compiled output is stored under the name given by gameinfo.startup_file.
+    const FS::path output = staging / info.gameinfo.startupFileName;
+    std::error_code ec;
+    FS::create_directories(output.parent_path(), ec);
 
     std::cout << "Compiling script: " << input.string() << (debug ? " (debug)" : "") << "\n";
 
@@ -1822,6 +1833,7 @@ bool CreateNewProject(const Options& options) {
         e << YAML::Key << "build_output" << YAML::Value << "build";
         e << YAML::Key << "game_data_file" << YAML::Value << "data.tcf";
         e << YAML::Key << "script_dir" << YAML::Value << "scripts";
+        e << YAML::Key << "script_startup_file" << YAML::Value << "main.as";
         e << YAML::Key << "assets" << YAML::Value << YAML::BeginSeq << "assets" << YAML::EndSeq;
         e << YAML::Key << "exclude" << YAML::Value << YAML::BeginSeq << ".DS_Store" << YAML::EndSeq;
         e << YAML::Key << "shaders" << YAML::Value << YAML::BeginMap;
