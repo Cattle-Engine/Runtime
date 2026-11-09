@@ -13,6 +13,12 @@ Licences for third party stuff can be found in [/thirdparty/README.md](thirdpart
 I have a discord server for CE
 https://discord.gg/A3WBrByzvm
 
+## Getting started
+As of now there is only a linux build of CE. 
+To install it use the below command to get CE griller.
+```curl -fsSL https://github.com/Cattle-Engine/Runtime/releases/download/toolchain-0.1.0/installer.sh | bash```
+After installation do "ce_griller -h" to see the help command
+
 ## Building
 Primary workflow:
 
