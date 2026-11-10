@@ -55,6 +55,7 @@ namespace CE {
 
         mSettingsManager = std::make_unique<CE::Settings::SettingsManager>(*mGameInfo, mInstanceID);
         mSettingsManager->SetInstance(*this);
+        mSettingsManager->ReloadSettings();
 
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating window & renderer", mInstanceID);
         int vis = Bootstrap_Video(gpudevice);

@@ -176,16 +176,38 @@ namespace CE::UI {
 
         if (ImGui::CollapsingHeader("Gameinfo")) {
             ImGui::Text("Game name: %s", mGameInfo.game_name.c_str());
-            ImGui::Text("Game package ID: %s", mGameInfo.game_package_id.c_str());
             ImGui::Text("Game version: %s", mGameInfo.game_version.c_str());
+            ImGui::Text("Game package ID: %s", mGameInfo.game_package_id.c_str());
+
+            ImGui::Separator();
             ImGui::Text("Window title: %s", mGameInfo.windowTitle.c_str());
             ImGui::Text("Window size: %i x %i", mGameInfo.windowWidth, mGameInfo.windowHeight);
+            ImGui::Text("Window mode: %s", WindowModeNames[static_cast<size_t>(mGameInfo.windowMode)]);
+            ImGui::Text("Resizable window: %s", mGameInfo.resizableWindow ? "Yes" : "No");
+            ImGui::Text("Window icon: %s", mGameInfo.windowIcon.c_str());
+
+            ImGui::Separator();
             ImGui::Text("VSync: %s", mGameInfo.enableVSync ? "Enabled" : "Disabled");
+            ImGui::Text("Max FPS: %i", mGameInfo.maxFPS);
+            ImGui::Text("Renderer: %s", mGameInfo.rendererName.c_str());
+
+            ImGui::Separator();
+            ImGui::Text("Startup file name: %s", mGameInfo.startupFileName.c_str());
+            ImGui::Text("Data file name: %s", mGameInfo.dataFileName.c_str());
+
+            ImGui::Separator();
+            ImGui::Text("Minimum window size: %i x %i", mGameInfo.minWindowWidth, mGameInfo.minWindowHeight);
+            ImGui::Text("Maximum window size: %i x %i", mGameInfo.maxWindowWidth, mGameInfo.maxWindowHeight);
+
+            ImGui::Separator();
             ImGui::Text(
-                "Window Mode: %s",
-                WindowModeNames[static_cast<size_t>(mGameInfo.windowMode)]
+                "Pause rendering when focus is lost (windowed): %s",
+                mGameInfo.pauseRenderingWhenFocusLostInWindowedMode ? "Yes" : "No"
             );
-            ImGui::Text("Resizable Window: %s", mGameInfo.resizableWindow ? "Yes" : "No");
+            ImGui::Text(
+                "Pause update when focus is lost: %s",
+                mGameInfo.pauseUpdateWhenFocusLost ? "Yes" : "No"
+            );
         }
 
         Utils::SpaceSep();

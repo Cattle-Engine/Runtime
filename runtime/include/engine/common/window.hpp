@@ -52,6 +52,8 @@ namespace CE::Common {
 
             bool SetWindowIcon(const std::string& path);
         private:
+            bool ApplyFullscreen(const SDL_DisplayMode* mode);
+
             SDL_Window* mWindow;
             Common::FS::VFS::VFS& mVFS; 
             Core::GameState::GameStateManager& mGameState;

@@ -1,7 +1,9 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
+#include <cstdint>
 #include <stdexcept>
+#include <vector>
 
 #include "engine/common/window.hpp"
 #include "engine/common/tracelog.hpp"
@@ -16,6 +18,7 @@ namespace CE::Common {
 
         mWindowedSize = size;
         mFullscreenSize = size;
+        mWindowMode = WindowMode::Windowed;
     }
 
     Window::~Window() {
@@ -29,15 +32,15 @@ namespace CE::Common {
     void Window::HideWindow(bool hidden) {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
 
-        if (window_flags & SDL_WINDOW_HIDDEN && hidden == true) {
+        if ((window_flags & SDL_WINDOW_HIDDEN) && hidden) {
             CE_LOG(LogLevel::Warn, "[Window] Window is already hidden. It cannot be hidden again!");
             return;
-        } else if (!(window_flags & SDL_WINDOW_HIDDEN) && hidden == false) {
-            CE_LOG(LogLevel::Warn, "[Window] Window is unhidden. It cannot be unhidden");
+        } else if (!(window_flags & SDL_WINDOW_HIDDEN) && !hidden) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is already visible. It cannot be unhidden");
             return;
         }
 
-        if (hidden == true) {
+        if (hidden) {
             SDL_HideWindow(mWindow);
         } else {
             SDL_ShowWindow(mWindow);
@@ -46,17 +49,17 @@ namespace CE::Common {
 
     bool Window::IsHidden() {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
-        return (window_flags & SDL_WINDOW_HIDDEN);
+        return (window_flags & SDL_WINDOW_HIDDEN) != 0;
     }
 
     void Window::MinimiseWindow(bool minimised) {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
 
-        if (window_flags & SDL_WINDOW_MINIMIZED && minimised == true) {
-            CE_LOG(LogLevel::Warn, "[Window] Window is already hidden. It cannot be hidden again");
+        if ((window_flags & SDL_WINDOW_MINIMIZED) && minimised) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is already minimised. It cannot be minimised again");
             return;
-        } else if (!(window_flags & SDL_WINDOW_MINIMIZED) && minimised == false) {
-            CE_LOG(LogLevel::Warn, "[Window] Window is already minimised. It cannot be minimsed again]");
+        } else if (!(window_flags & SDL_WINDOW_MINIMIZED) && !minimised) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is not minimised. It cannot be restored");
             return;
         }
 
@@ -69,22 +72,36 @@ namespace CE::Common {
 
     bool Window::IsMinimised() {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
-        return (window_flags & SDL_WINDOW_MINIMIZED);
+        return (window_flags & SDL_WINDOW_MINIMIZED) != 0;
     }
 
     bool Window::SetWindowSize(WindowSize window_size, WindowMode mode) {
-        if (!SDL_SetWindowSize(mWindow, window_size.w, window_size.h)) {
-            CE_LOG(LogLevel::Error, "[Window] Failed to set window size, {}", SDL_GetError());
+        if (mode == WindowMode::Borderless) {
+            CE_LOG(LogLevel::Error, "[Window] Borderless window does not have a configurable size");
             return false;
         }
 
+        // Always remember the size for the requested mode
         if (mode == WindowMode::Fullscreen) {
             mFullscreenSize = window_size;
-            mGameState.Emit("CE_WINDOW_SIZE_CHANGE_FULLSCREEN");
-        } else if (mode == WindowMode::Windowed){
+        } else {
             mWindowedSize = window_size;
-            mGameState.Emit("CE_WINDOW_SIZE_CHANGE_WINDOWED");
         }
+
+        // Only touch the real window if that is the mode we are currently in
+        if (mode == mWindowMode) {
+            if (mode == WindowMode::Fullscreen) {
+                // Exclusive fullscreen: re-pick the display mode instead of resizing
+                SetWindowMode(WindowMode::Fullscreen);
+            } else if (!SDL_SetWindowSize(mWindow, window_size.w, window_size.h)) {
+                CE_LOG(LogLevel::Error, "[Window] Failed to set window size, {}", SDL_GetError());
+                return false;
+            }
+        }
+
+        mGameState.Emit(mode == WindowMode::Fullscreen
+            ? "CE_WINDOW_SIZE_CHANGE_FULLSCREEN"
+            : "CE_WINDOW_SIZE_CHANGE_WINDOWED");
 
         return true;
     }
@@ -95,7 +112,16 @@ namespace CE::Common {
         } else if (mode == WindowMode::Fullscreen) {
             return mFullscreenSize;
         } else {
-            CE_LOG(LogLevel::Error, "[Window] Borderless window does not have any size");
+            // Borderless uses the desktop resolution of the display the window is on
+            const SDL_DisplayID display_id = SDL_GetDisplayForWindow(mWindow);
+            if (display_id != 0) {
+                const SDL_DisplayMode* desktop = SDL_GetDesktopDisplayMode(display_id);
+                if (desktop) {
+                    return {desktop->w, desktop->h};
+                }
+            }
+
+            CE_LOG(LogLevel::Error, "[Window] Failed to determine borderless window size: {}", SDL_GetError());
             return {0, 0};
         }
     }
@@ -116,11 +142,11 @@ namespace CE::Common {
     void Window::SetWindowResizable(bool resizable) {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
 
-        if (window_flags & SDL_WINDOW_RESIZABLE && resizable == true) {
+        if ((window_flags & SDL_WINDOW_RESIZABLE) && resizable) {
             CE_LOG(LogLevel::Warn, "[Window] Window is already resizable. It cannot be set to resizable again");
             return;
-        } else if (!(window_flags & SDL_WINDOW_RESIZABLE) && resizable == false) {
-            CE_LOG(LogLevel::Warn, "[Window] Window is already un-resizable. It cannot not be un-resizable again");
+        } else if (!(window_flags & SDL_WINDOW_RESIZABLE) && !resizable) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is already un-resizable. It cannot be un-resizable again");
             return;
         }
 
@@ -129,130 +155,96 @@ namespace CE::Common {
 
     bool Window::IsWindowResizable() {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
-        return (window_flags & SDL_WINDOW_RESIZABLE);
+        return (window_flags & SDL_WINDOW_RESIZABLE) != 0;
+    }
+
+    // mode == nullptr -> borderless / desktop fullscreen
+    // mode != nullptr -> exclusive fullscreen with that display mode
+    bool Window::ApplyFullscreen(const SDL_DisplayMode* mode) {
+        if (!SDL_SetWindowFullscreenMode(mWindow, mode)) {
+            CE_LOG(LogLevel::Error, "[Window] SDL_SetWindowFullscreenMode failed: {}", SDL_GetError());
+            return false;
+        }
+
+        if (!SDL_SetWindowFullscreen(mWindow, true)) {
+            CE_LOG(LogLevel::Error, "[Window] SDL_SetWindowFullscreen failed: {}", SDL_GetError());
+            return false;
+        }
+
+        // Fullscreen transitions are asynchronous on many platforms; wait for completion
+        if (!SDL_SyncWindow(mWindow)) {
+            CE_LOG(LogLevel::Warn, "[Window] Fullscreen transition did not finish in time: {}", SDL_GetError());
+        }
+
+        return true;
     }
 
     bool Window::SetWindowMode(WindowMode mode) {
         switch (mode) {
             case WindowMode::Fullscreen: {
-                const SDL_DisplayID display_id = SDL_GetDisplayForWindow(mWindow);
-                if (display_id == 0) {
-                    CE_LOG(LogLevel::Warn,
-                        "[Window] Failed to find display for window, using desktop fullscreen: {}",
-                        SDL_GetError());
-
-                    if (!SDL_SetWindowFullscreenMode(mWindow, nullptr) ||
-                        !SDL_SetWindowFullscreen(mWindow, true)) {
-                        CE_LOG(LogLevel::Error,
-                            "[Window] Failed to enter desktop fullscreen: {}",
-                            SDL_GetError());
-                    }
-
-                    return false;
-                }
-
-                const SDL_DisplayMode* desktop_displaymode =
-                    SDL_GetDesktopDisplayMode(display_id);
-
-
-                const float refresh_rate =
-                    desktop_displaymode != nullptr
-                        ? desktop_displaymode->refresh_rate
-                        : 0.0f;
-
                 SDL_DisplayMode fullscreen_mode = {};
+                const SDL_DisplayMode* chosen = nullptr;
 
-                const bool found_mode =
-                    SDL_GetClosestFullscreenDisplayMode(
-                        display_id,
-                        mFullscreenSize.w,
-                        mFullscreenSize.h,
-                        refresh_rate,
-                        false,
-                        &fullscreen_mode);
+                const SDL_DisplayID display_id = SDL_GetDisplayForWindow(mWindow);
+                if (display_id != 0) {
+                    const SDL_DisplayMode* desktop_displaymode = SDL_GetDesktopDisplayMode(display_id);
+                    const float refresh_rate = desktop_displaymode ? desktop_displaymode->refresh_rate : 0.0f;
 
-                if (!found_mode) {
-                    CE_LOG(LogLevel::Warn,
-                        "[Window] No matching exclusive fullscreen mode for {}x{}, "
-                        "using desktop fullscreen: {}",
-                        mFullscreenSize.w,
-                        mFullscreenSize.h,
-                        SDL_GetError());
-
-                    if (!SDL_SetWindowFullscreenMode(mWindow, nullptr) ||
-                        !SDL_SetWindowFullscreen(mWindow, true)) {
-                        CE_LOG(LogLevel::Error,
-                            "[Window] Failed to enter desktop fullscreen: {}",
+                    if (SDL_GetClosestFullscreenDisplayMode(
+                            display_id,
+                            mFullscreenSize.w,
+                            mFullscreenSize.h,
+                            refresh_rate,
+                            false,
+                            &fullscreen_mode)) {
+                        chosen = &fullscreen_mode;
+                    } else {
+                        CE_LOG(LogLevel::Warn,
+                            "[Window] No matching exclusive fullscreen mode for {}x{}: {}",
+                            mFullscreenSize.w,
+                            mFullscreenSize.h,
                             SDL_GetError());
                     }
-
-                    return false;
-                }
-
-                if (!SDL_SetWindowFullscreenMode(mWindow, &fullscreen_mode)) {
+                } else {
                     CE_LOG(LogLevel::Warn,
-                        "[Window] Failed to set fullscreen mode {}x{} @ {} Hz, "
-                        "using desktop fullscreen: {}",
+                        "[Window] Failed to find display for window: {}",
+                        SDL_GetError());
+                }
+
+                if (chosen && ApplyFullscreen(chosen)) {
+                    CE_LOG(LogLevel::Info,
+                        "[Window] Fullscreen mode set to {}x{} @ {} Hz",
                         fullscreen_mode.w,
                         fullscreen_mode.h,
-                        fullscreen_mode.refresh_rate,
-                        SDL_GetError());
+                        fullscreen_mode.refresh_rate);
 
-                    if (!SDL_SetWindowFullscreenMode(mWindow, nullptr) ||
-                        !SDL_SetWindowFullscreen(mWindow, true)) {
-                        CE_LOG(LogLevel::Error,
-                            "[Window] Failed to enter desktop fullscreen: {}",
-                            SDL_GetError());
-                    }
-
-                    return false;
+                    mWindowMode = WindowMode::Fullscreen;
+                    mGameState.Emit("CE_WINDOW_MODE_CHANGED_FULLSCREEN");
+                    return true;
                 }
 
-                if (!SDL_SetWindowFullscreen(mWindow, true)) {
-                    CE_LOG(LogLevel::Error,
-                        "[Window] Failed to enter fullscreen after selecting "
-                        "{}x{} @ {} Hz: {}",
-                        fullscreen_mode.w,
-                        fullscreen_mode.h,
-                        fullscreen_mode.refresh_rate,
-                        SDL_GetError());
+                // Fallback to desktop fullscreen, and keep the tracked state honest
+                CE_LOG(LogLevel::Warn, "[Window] Falling back to desktop (borderless) fullscreen");
 
+                if (!ApplyFullscreen(nullptr)) {
                     return false;
                 }
-
-                CE_LOG(LogLevel::Info,
-                    "[Window] Fullscreen mode set to {}x{} @ {} Hz",
-                    fullscreen_mode.w,
-                    fullscreen_mode.h,
-                    fullscreen_mode.refresh_rate);
-
-                mWindowMode = WindowMode::Fullscreen;
-                mGameState.Emit("CE_WINDOW_MODE_CHANGED_FULLSCREEN");
-                break;
-            }
-
-            case WindowMode::Borderless: {
-                // nullptr means desktop/borderless fullscreen
-                if (!SDL_SetWindowFullscreenMode(mWindow, nullptr)) {
-                    CE_LOG(LogLevel::Error,
-                        "[Window] Failed to set borderless fullscreen mode: {}",
-                        SDL_GetError());
-                    return false;
-                }
-
-                if (!SDL_SetWindowFullscreen(mWindow, true)) {
-                    CE_LOG(LogLevel::Error,
-                        "[Window] Failed to enter borderless fullscreen: {}",
-                        SDL_GetError());
-                    return false;
-                }
-
-                CE_LOG(LogLevel::Info,
-                    "[Window] Borderless fullscreen mode enabled");
 
                 mWindowMode = WindowMode::Borderless;
                 mGameState.Emit("CE_WINDOW_MODE_CHANGED_BORDERLESS");
-                break;
+                return false; // the requested mode was not honoured
+            }
+
+            case WindowMode::Borderless: {
+                if (!ApplyFullscreen(nullptr)) {
+                    return false;
+                }
+
+                CE_LOG(LogLevel::Info, "[Window] Borderless fullscreen mode enabled");
+
+                mWindowMode = WindowMode::Borderless;
+                mGameState.Emit("CE_WINDOW_MODE_CHANGED_BORDERLESS");
+                return true;
             }
 
             case WindowMode::Windowed: {
@@ -260,20 +252,26 @@ namespace CE::Common {
                     CE_LOG(LogLevel::Error,
                         "[Window] Failed to leave fullscreen mode: {}",
                         SDL_GetError());
-                    return false;   
+                    return false;
                 }
 
-                SetWindowSize(mWindowedSize, WindowMode::Windowed);
+                // Wait for the transition before resizing, otherwise the size gets ignored/overwritten
+                SDL_SyncWindow(mWindow);
 
-                CE_LOG(LogLevel::Info,
-                    "[Window] Windowed mode enabled");
+                if (!SDL_SetWindowSize(mWindow, mWindowedSize.w, mWindowedSize.h)) {
+                    CE_LOG(LogLevel::Warn, "[Window] Failed to restore windowed size: {}", SDL_GetError());
+                }
+                SDL_SyncWindow(mWindow);
+
+                CE_LOG(LogLevel::Info, "[Window] Windowed mode enabled");
 
                 mWindowMode = WindowMode::Windowed;
                 mGameState.Emit("CE_WINDOW_MODE_CHANGED_WINDOWED");
-                break;
+                return true;
             }
         }
-        return true;
+
+        return false;
     }
 
     Window::WindowMode Window::GetWindowMode() {
