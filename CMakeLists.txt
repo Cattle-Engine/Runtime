@@ -40,3 +40,4 @@ add_subdirectory(tools/cebyc_dump)
 add_subdirectory(tools/project_builder)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/build_assets.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/package_release.cmake")

@@ -30,5 +30,5 @@ void main() {
     vec3 mapped = ACESFilm(exposed);
     vec3 srgb = LinearToSRGB(mapped);
 
-    outColor = vec4(srgb, hdr.a);
+    outColor = vec4(srgb, 1.0);
 }
