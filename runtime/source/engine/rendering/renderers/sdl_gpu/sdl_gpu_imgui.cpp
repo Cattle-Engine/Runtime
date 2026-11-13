@@ -3,6 +3,7 @@
 #include "engine/common/sdl_events.hpp"
 #include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
 #include "engine/assets/default_font.hpp"
+#include "engine/common/tracelog.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
@@ -25,12 +26,22 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         io.ConfigErrorRecoveryEnableAssert = false;
         io.ConfigErrorRecoveryEnableDebugLog = true;
         io.ConfigErrorRecoveryEnableTooltip = true;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   
+
+        // TODO: Enable this when SDL_GPU has support for this io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();
         style.ScaleAllSizes(scale);
         style.FontScaleDpi = scale;
+
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            style.WindowRounding = 0.0f;                 // OS windows have square corners
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;    // avoid transparent platform windows
+        }
 
         io.Fonts->Clear();
 
@@ -45,6 +56,12 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         );
 
         ImGui_ImplSDL3_InitForSDLGPU(window);
+
+        CE_LOG(LogLevel::Debug, "Platform viewport support: {}",
+            (io.BackendFlags & ImGuiBackendFlags_PlatformHasViewports) != 0);
+
+        CE_LOG(LogLevel::Debug, "Renderer viewport support: {}",
+            (io.BackendFlags & ImGuiBackendFlags_RendererHasViewports) != 0);
 
         ImGui_ImplSDLGPU3_InitInfo info{};
         info.Device = device;
@@ -65,10 +82,10 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         auto indices = CE::SDL_Events::GetWindowEventIndices(static_cast<int>(mWindowID));
 
-        for (size_t i : indices) {
-            const SDL_Event& e = CE::SDL_Events::gEvents[i];
+        for (const SDL_Event& e : CE::SDL_Events::gEvents) {
             ImGui_ImplSDL3_ProcessEvent(&e);
         }
+
         ImGui_ImplSDL3_NewFrame();
         ImGui_ImplSDLGPU3_NewFrame();
         ImGui::NewFrame();
@@ -81,18 +98,25 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         ImGui::Render();
         ImDrawData* draw_data = ImGui::GetDrawData();
         mPendingImGuiDrawData = (draw_data && draw_data->TotalVtxCount > 0) ? draw_data : nullptr;
+
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
     }
 
-    void SDL_GPU_Renderer::ImGuiShutdown() {
+    void SDL_GPU_Renderer::ImGuiShutdown(SDL_GPUDevice* device) {
         ImGuiContext* prev_context = ImGui::GetCurrentContext();
         ImGui::SetCurrentContext(mImguicontext);
 
+        SDL_WaitForGPUIdle(device);
+        ImGui::DestroyPlatformWindows();
         ImGui_ImplSDLGPU3_Shutdown();
         ImGui_ImplSDL3_Shutdown();
         ImGui::DestroyContext(mImguicontext);
+
         mImguicontext = nullptr;
         mPendingImGuiDrawData = nullptr;
-
-        ImGui::SetCurrentContext(prev_context);
+        ImGui::SetCurrentContext(prev_context == mImguicontext ? nullptr : prev_context);
     }
 } // namespace CE::Renderer::SDL_GPU_Renderer

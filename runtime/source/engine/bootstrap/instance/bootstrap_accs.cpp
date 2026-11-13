@@ -14,7 +14,7 @@ namespace CE {
             *this,
             *mGameInfo,
             *mVFS,
-            mGameStateManager,
+            *mGameStateManager,
             *mSettingsManager,
             *mRenderer,
             *mTextureManager,

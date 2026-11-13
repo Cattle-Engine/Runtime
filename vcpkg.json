@@ -49,7 +49,8 @@
       "features": [
         "sdl3-binding",
         "sdl3-renderer-binding",
-        "sdlgpu3-binding"
+        "sdlgpu3-binding",
+        "docking-experimental"
       ]
     
     },

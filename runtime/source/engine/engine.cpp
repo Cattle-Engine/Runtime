@@ -4,6 +4,7 @@
 #include <format>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_video.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include "engine/bootstrap/engine.hpp"
@@ -13,6 +14,7 @@
 #include "engine/rendering/renderer.hpp"
 #include "engine/settings.hpp"
 #include "engine/version.hpp"
+#include "ce_common/tracelog.hpp"
 namespace FS = std::filesystem;
 
 namespace CE {
@@ -43,10 +45,10 @@ namespace CE {
 
         const int count = SDL_GetNumVideoDrivers();
 
-        CE_LOG(LogLevel::Info, "Available SDL video drivers: {}", count);
+        CE_LOG(LogLevel::Debug, "Available SDL video drivers: {}", count);
 
         for (int i = 0; i < count; ++i) {
-            CE_LOG(LogLevel::Info, "SDL video driver [{}]: {}", i, SDL_GetVideoDriver(i));
+            CE_LOG(LogLevel::Debug, "SDL video driver [{}]: {}", i, SDL_GetVideoDriver(i));
         }
 
         if (msettings.Settings.rendererName != "None") {
@@ -55,6 +57,12 @@ namespace CE {
                 throw std::runtime_error("[Engine] SDL_Init(SDL_INIT_VIDEO) failed");
             }
         }
+
+
+        const char* video_driver_name = SDL_GetCurrentVideoDriver();
+
+        CE_LOG(LogLevel::Debug, "Current SDL video driver {}", video_driver_name ? : "nullptr");
+
         CE_LOG(LogLevel::Info, "[Engine] Creating GPU handle");
 
         mGPUHandle = Renderer::CreateGPUDevice(
@@ -82,11 +90,11 @@ namespace CE {
         std::string file2use;
         CE_LOG(LogLevel::Info, "[Engine] Attempting to make instance");
         if (datafilename) {
-            CE_LOG(LogLevel::Info, "[Engine] Data file wasn't empty");
+            CE_LOG(LogLevel::Debug, "[Engine] Data file path was provided");
             file2use = *datafilename;
         } else {
             file2use = mDataFileName;
-            CE_LOG(LogLevel::Info, "[Engine] Data file was empty");
+            CE_LOG(LogLevel::Debug, "[Engine] No data file path provided");
         }
 
         try {
@@ -97,7 +105,7 @@ namespace CE {
             return false;
         }
 
-        CE_LOG(LogLevel::Info, "[Engine] Created instance with ID of: {}", GLOBALINSTANCESCOUNTER);
+        CE_LOG(LogLevel::Info, "[Engine] Created instance with ID of: {}", gGlobalInstanceCounter);
         return true;
     }
 

@@ -34,17 +34,20 @@
 #include "engine/ui/angelscript_debugger_window.hpp"
 
 // A global to get all instances
-inline uint64_t GLOBALINSTANCESCOUNTER;
+inline uint64_t gGlobalInstanceCounter;
 
 namespace CE {
     class Instance {
       public:
+        // internally calls the protected member: InitInstanceBase
         Instance(
           const char* data_file_path, 
           bool debugmode, 
           Renderer::GPUDeviceHandle& gpudevice,
           EngineArguements args
         );
+
+        virtual ~Instance();
 
         int Update();
         bool ShouldExit();
@@ -59,18 +62,7 @@ namespace CE {
         Core::EventBus& GetEventBus();
         Core::GameState::GameStateManager& GetGameStateManager();
         ACCS::ACCS& GetACCS();
-        ~Instance();
-
-      private:
-        void ApplySettingsReload();
-
-        // Only to be called at startup!
-        int Bootstrap_RendererResourceManagers(); // NOLINT
-        int Bootstrap_InputManagers(); // NOLINT
-        int Bootstrap_AssetImportersAndManagers(); // NOLINT
-        int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device); // NOLINT
-        int Bootstrap_ACCS(); // NOLINT
-
+      protected:
         std::unique_ptr<Common::FS::VFS::VFS> mVFS;
         std::unique_ptr<GameInfo> mGameInfo;
         std::unique_ptr<Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
@@ -101,27 +93,60 @@ namespace CE {
 
         std::unique_ptr<Common::Window> mWindow;
         UI::LogWindow mLogsWindow;
-        RendererBackend mRendererBackend = RendererBackend::None;
         bool mDebug = false;
         bool mShouldExit = false;
         bool mWindowFocus = true;
         bool mShouldRender = true;
-        bool mPendingSettingsReload = false;
         float mDeltaTime = 0.0f;
         float mFrameTime = 0.0f;
-        Uint64 mLastFrameCounter = 0;
-        Uint64 mPerformanceFrequency = 0;
-
-        // The id for the instance
-        int mInstanceID;
-        // The id for the window in the instance, provided by SDL
-        int mInstanceWindowID;
 
         Core::EventBus mEventBus;
-        Core::GameState::GameStateManager mGameStateManager;
+        std::unique_ptr<Core::GameState::GameStateManager> mGameStateManager;
         std::unique_ptr<UI::DebugWindow> mDebugWindow;
         std::unique_ptr<UI::AngelscriptDebuggerWindow> mASDebuggerWindow;
         EngineArguements mProgramArguments;
+
+        // can throw std::runtime for general faliure, or std::logic_error if you try to call this function twice
+        void Initialise(
+          const char* data_file_path, 
+          bool debugmode, 
+          Renderer::GPUDeviceHandle& gpudevice,
+          EngineArguements args
+        );
+
+        void RequestExit() {
+            mShouldExit = true;
+        }
+
+        void SetRenderingEnabled(bool enabled) {
+            mShouldRender = enabled;
+        }
+
+        bool IsRenderingEnabled() const {
+            return mShouldRender;
+        }
+
+      private:
+          void ApplySettingsReload();
+
+          // Only to be called at startup!
+          int Bootstrap_RendererResourceManagers(); // NOLINT
+          int Bootstrap_InputManagers(); // NOLINT
+          int Bootstrap_AssetImportersAndManagers(); // NOLINT
+          int Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device); // NOLINT
+          int Bootstrap_ACCS(); // NOLINT
+
+          Uint64 mLastFrameCounter = 0;
+          Uint64 mPerformanceFrequency = 0;
+
+          bool mWasBaseInitDone = false;
+
+          // The id for the instance
+          int mInstanceID;
+          // The id for the window in the instance, provided by SDL
+          int mInstanceWindowID;
+          bool mPendingSettingsReload = false;
+          RendererBackend mRendererBackend = RendererBackend::None;
     };
 
     using InstanceHandle = std::unique_ptr<Instance>;

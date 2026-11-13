@@ -11,7 +11,7 @@
 
 namespace CE::Bootstrap {
     int Init_GameData(std::unique_ptr<Common::FS::VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
-        CE_LOG(LogLevel::Info, "[Bootstrap] Game-data path name: {}", datafilename);
+        CE_LOG(LogLevel::Debug, "[Bootstrap] Game-data path name: {}", datafilename);
         vfs->AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, datafilename);
 
         /*
@@ -117,7 +117,7 @@ namespace CE::Bootstrap {
             gameinfo->windowMode = Common::Window::WindowMode::Windowed;
         }
 
-        CE_LOG(LogLevel::Info, "[Bootstrap] Game name: {}", gameinfo->game_name);
+        CE_LOG(LogLevel::Info, "[Bootstrap] Game package ID: {}", gameinfo->game_package_id);
         CE_LOG(LogLevel::Info, "[Bootstrap] Base game version: {}", gameinfo->game_version);
         return 0;
     }

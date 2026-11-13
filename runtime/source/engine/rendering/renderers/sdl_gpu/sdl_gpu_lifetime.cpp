@@ -397,7 +397,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         }
 
         ProcessDeferredDeletions(true);
-        ImGuiShutdown();
+        ImGuiShutdown(mDevice);
 
         return 0;
     }

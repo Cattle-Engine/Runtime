@@ -405,7 +405,7 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
         ImGuiContext* mImguicontext;
         ImDrawData* mPendingImGuiDrawData = nullptr;
         void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
-        void ImGuiShutdown();
+        void ImGuiShutdown(SDL_GPUDevice* device);
 
         SDL_GPUDevice* mDevice = nullptr;
         SDL_WindowID mWindowID;

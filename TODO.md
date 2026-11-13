@@ -121,9 +121,15 @@ export int foo_func() {
 
 - [ ] In ce_griller make it output a "licences" folder with the build
 - [ ] Make ce_griller use a SHA256 hash to verify a toolchain package
+- [ ] When stopping all audio, add the ability to specify what catergories you want to stop. Also allow registeration of custom catergories as strings
+- [ ] Make an ACCS system/component that sets volume, you can set just 1 audio handle to change the volume of, or a whole catergory
+- [ ] Move shit out of scripts/ and into tools/
+- [ ] Make an editor
+    - [ ] Make a basic ACCS viewer
+    - [ ] Angelscript script maker
+    - [ ] Intergration with ce_griller >:)
 
 - [ ] Make the animated textures thing be able to be used with materials
-- [ ] When stopping all audio, add the ability to specify what type you want to stop. Also allow registeration of custom types as strings
 - [ ] Bloom
 - [ ] Make glass materials actually work
 - [ ] Multiple light support

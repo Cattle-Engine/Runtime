@@ -10,6 +10,8 @@
 
 #include "engine/accs/system.hpp"
 #include "engine/bootstrap/instance.hpp"
+#include "engine/common/core/game_state.hpp"
+#include "engine/common/misc/arguments.hpp"
 #include "engine/common/misc/error_box.hpp"
 #include "engine/common/fs/os_fs/directory_file_provider.hpp"
 #include "engine/common/sdl_events.hpp"
@@ -23,15 +25,40 @@
 #include "engine/ui/debug_window.hpp"
 
 namespace CE {
-    Instance::Instance(const char* data_file_path, bool debugmode, Renderer::GPUDeviceHandle& gpudevice,
-                       EngineArguements args)
-        : mGameStateManager(mEventBus) {
+    Instance::Instance(
+        const char* data_file_path, 
+        bool debugmode, 
+        Renderer::GPUDeviceHandle& gpudevice,
+        EngineArguements args
+    ) {
+        Initialise(
+            data_file_path,
+            debugmode,
+            gpudevice,
+            args
+        ); 
+    }
+
+    void Instance::Initialise(
+        const char* data_file_path, 
+        bool debugmode, 
+        Renderer::GPUDeviceHandle& gpudevice,
+        EngineArguements args
+    ) {
+        if (mWasBaseInitDone) {
+            throw std::logic_error(
+                "You cannot init twice!"
+            );
+        }
+
         mProgramArguments = args;
-        GLOBALINSTANCESCOUNTER++;
-        mInstanceID = GLOBALINSTANCESCOUNTER;
+        gGlobalInstanceCounter++;
+        mInstanceID = gGlobalInstanceCounter;
         mDebug = debugmode;
         mPerformanceFrequency = SDL_GetPerformanceFrequency();
         mLastFrameCounter = SDL_GetPerformanceCounter();
+
+        mGameStateManager = std::make_unique<Core::GameState::GameStateManager>(mEventBus);
 
         mVFS = std::make_unique<CE::Common::FS::VFS::VFS>();
         mGameInfo = std::make_unique<CE::GameInfo>();
@@ -155,7 +182,7 @@ namespace CE {
             mProgramArguments.OutputDebugASInfo,
             mProgramArguments.OutputDebugASInfoPath, 
             *mWindow,
-            mGameStateManager,
+            *mGameStateManager,
             mAudioManager.get(),
             mAudioSystem.get()
         );
@@ -200,7 +227,7 @@ namespace CE {
         for (size_t i : indices) {
             const SDL_Event& e = CE::SDL_Events::gEvents[i];
 
-            switch (e.type) {
+            switch (e.type) { // NOLINT
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                 mShouldExit = true;
                 break;
@@ -214,12 +241,12 @@ namespace CE {
                     // and on windows the swapchain texture returns nullptr renderering is paused
                     if (window_mode == Common::Window::WindowMode::Fullscreen) {
                         mShouldRender = false;
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
                     } else if (window_mode == Common::Window::WindowMode::Borderless) {
                         mShouldRender = false;
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_BORDERLESS");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_BORDERLESS");
                     } else {
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
                     }
 
                     if (mGameInfo->pauseUpdateWhenFocusLost) {
@@ -235,11 +262,11 @@ namespace CE {
                     }
                     mShouldRender = true;
                     if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
                     } else if (window_mode == Common::Window::WindowMode::Borderless) {
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
                     } else {
-                        mGameStateManager.Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
+                        mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
                     }
                     break;
                 }
@@ -259,7 +286,7 @@ namespace CE {
 
         mRenderer->SetClearColour(255, 255, 255, 255);
         mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Logic, mACCS->world);
-        mGameStateManager.Emit("Update");
+        mGameStateManager->Emit("Update");
         if (mShouldRender) {
             int bfr = mRenderer->BeginFrame(mWindow->GetWindow());
             if (bfr != 0) {
@@ -267,12 +294,12 @@ namespace CE {
             }
             mRenderer->BeginMode3D();
             mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Render3D, mACCS->world);
-            mGameStateManager.Emit("Draw3D");
+            mGameStateManager->Emit("Draw3D");
             mRenderer->EndMode3D();
 
             mRenderer->BeginMode2D();
             mACCS->system_manager.Update(GetDeltaTime(), ACCS::FrameUpdateType::Render2D, mACCS->world);
-            mGameStateManager.Emit("Draw2D");
+            mGameStateManager->Emit("Draw2D");
             if (!mScriptingManager->RunUpdate()) {
                 ShowError(mScriptingManager->GetLastError());
                 CE_LOG(LogLevel::Error, "[Instance {}] AngelScript update failed, shutting down instance", mInstanceID);
@@ -297,7 +324,7 @@ namespace CE {
                 return 1;
             }
 
-            mGameStateManager.Emit("DrawImgui");
+            mGameStateManager->Emit("DrawImgui");
 
             mRenderer->ImGuiEndFrame(mWindow->GetWindow());
 
@@ -335,11 +362,11 @@ namespace CE {
     }
 
     void Instance::SetGameState(const std::string& state) {
-        mGameStateManager.ChangeState(state);
+        mGameStateManager->ChangeState(state);
     }
 
     const std::string& Instance::GetGameState() const {
-        return mGameStateManager.GetState();
+        return mGameStateManager->GetState();
     }
 
     CE::Core::EventBus& Instance::GetEventBus() {
@@ -347,7 +374,7 @@ namespace CE {
     }
 
     CE::Core::GameState::GameStateManager& Instance::GetGameStateManager() {
-        return mGameStateManager;
+        return *mGameStateManager;
     }
 
     ACCS::ACCS& Instance::GetACCS() {
@@ -391,7 +418,7 @@ namespace CE {
             mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
         }
 
-        mGameStateManager.Emit("CE_SETTINGS_RELOAD");
+        mGameStateManager->Emit("CE_SETTINGS_RELOAD");
     }
 
     void Instance::Exit() {
@@ -399,7 +426,7 @@ namespace CE {
     }
 
     Instance::~Instance() {
-        GLOBALINSTANCESCOUNTER--;
+        gGlobalInstanceCounter--;
         mScriptingManager.reset();
         mAudioManager.reset();
         mAudioSystem.reset();
@@ -411,7 +438,10 @@ namespace CE {
         mGPUMeshManager.reset();
         mMaterialManager.reset();
         mTextureManager.reset();
-        mRenderer->Shutdown(mWindow->GetWindow());
+
+        if (mRenderer && mWindow) {
+            mRenderer->Shutdown(mWindow->GetWindow());
+        }
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
     }
 } // namespace CE
