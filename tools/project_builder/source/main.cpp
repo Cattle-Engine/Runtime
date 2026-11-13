@@ -13,6 +13,7 @@
 #include <string_view>
 #include <system_error>
 #include <vector>
+#include <yaml-cpp/emittermanip.h>
 
 #ifdef _WIN32
   #ifndef WIN32_LEAN_AND_MEAN
@@ -1332,10 +1333,10 @@ CE::GameInfo ParseGameInfo(const YAML::Node& n) {
     g.windowIcon = Optional<std::string>(n, "window_icon", "");
     g.pauseRenderingWhenFocusLostInWindowedMode = Optional<bool>(n, "no_render_on_focus_lost", false);
     g.pauseUpdateWhenFocusLost = Optional<bool>(n, "no_update_on_focus_lost", false);
-    g.minWindowWidth = Optional<int>(n, "min_window_width", 0);
-    g.minWindowHeight = Optional<int>(n, "min_window_height", 0);
-    g.maxWindowWidth = Optional<int>(n, "max_window_width", 0);
-    g.maxWindowHeight = Optional<int>(n, "max_window_height", 0);
+    g.minWindowWidth = Required<int>(n, "min_window_width");
+    g.minWindowHeight = Required<int>(n, "min_window_height");
+    g.maxWindowWidth = Required<int>(n, "max_window_width");
+    g.maxWindowHeight = Required<int>(n, "max_window_height");
 
     return g;
 }
@@ -1858,6 +1859,8 @@ bool CreateNewProject(const Options& options) {
         e << YAML::Key << "no_update_on_focus_lost" << YAML::Value << true;
         e << YAML::Key << "min_window_width" << YAML::Value << 640;
         e << YAML::Key << "min_window_height" << YAML::Value << 360;
+        e << YAML::Key << "max_window_width" << YAML::Value << 1920;
+        e << YAML::Key << "max_window_height" << YAML::Value << 1080;
         e << YAML::EndMap << YAML::EndMap;
 
         std::ofstream f(root / kProjectManifestName, std::ios::trunc);
