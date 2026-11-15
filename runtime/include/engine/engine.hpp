@@ -6,7 +6,7 @@
 
 #include "engine/common/misc/arguments.hpp"
 #include "engine/common/misc/gameinfo.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/game_instance.hpp"
 #include "engine/rendering/renderer.hpp"
 
 namespace CE {

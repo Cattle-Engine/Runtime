@@ -1,9 +1,9 @@
 #include <memory>
 
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 
 namespace CE {
-    int Instance::Bootstrap_RendererResourceManagers() {
+    int BaseInstance::Bootstrap_RendererResourceManagers() {
         mTextureManager = std::make_unique<CE::Renderer::Resources::TextureManager>(*mVFS, *mRenderer);
         mFontManager = std::make_unique<CE::Assets::Fonts::FontManager>(*mRenderer, *mVFS, mInstanceID);
 

@@ -8,7 +8,7 @@
 #include "engine/common/window.hpp"
 
 namespace CE {
-    class Instance;
+    class BaseInstance;
 }
 
 namespace CE::Settings {
@@ -28,7 +28,7 @@ namespace CE::Settings {
     class SettingsManager {
       public:
         SettingsManager(const GameInfo& gameinfo, uint64_t instance_id);
-        void SetInstance(Instance& instance);
+        void SetInstance(BaseInstance& instance);
         SettingsInfo Settings;
 
         bool ReloadSettings();
@@ -48,7 +48,7 @@ namespace CE::Settings {
 
       private:
         bool Internal_ReloadSettings();
-        CE::Instance* mInstance = nullptr;
+        CE::BaseInstance* mInstance = nullptr;
         CE::Ini::IniFile mIniFile;
         CE::Ini::ParseError mParseError;
         CE::Ini::Options mOptions;

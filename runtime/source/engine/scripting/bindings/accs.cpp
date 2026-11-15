@@ -23,7 +23,7 @@
 #include "engine/accs/accs.hpp"
 #include "engine/accs/serialization_context.hpp"
 #include "engine/common/tracelog.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/game_instance.hpp"
 #include "engine/scripting/bindings/binding_macros.hpp"
 
 namespace CE::Scripting::Bindings {

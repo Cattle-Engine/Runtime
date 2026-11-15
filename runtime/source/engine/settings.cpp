@@ -7,7 +7,7 @@
 #include "engine/common/fs/ini.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 #include "engine/platforms.hpp"
 
 namespace CE::Settings {
@@ -18,7 +18,7 @@ namespace CE::Settings {
         Internal_ReloadSettings();
     }
 
-    void SettingsManager::SetInstance(CE::Instance& instance) {
+    void SettingsManager::SetInstance(CE::BaseInstance& instance) {
         mInstance = &instance;
     }
 

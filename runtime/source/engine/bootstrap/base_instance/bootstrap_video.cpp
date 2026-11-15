@@ -16,13 +16,13 @@ namespace CE {
         mRenderer->PreWinInit();
 
         std::string window_title;
-        if (mGameInfo->windowTitle.empty()) { // If a window title was not provided use the game name
-            window_title = mGameInfo->game_name;
+        if (GetGameInfo().windowTitle.empty()) { // If a window title was not provided use the game name
+            window_title = GetGameInfo().game_name;
         } else {
-            window_title = mGameInfo->windowTitle;
+            window_title = GetGameInfo().windowTitle;
         }
-        
-        auto settings = mSettingsManager->Settings;
+
+        auto settings = GetSettingsManager().Settings;
 
         CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
         CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth,
@@ -33,7 +33,7 @@ namespace CE {
         SDL_WindowFlags windowFlags = 0;
         if (mRendererBackend == RendererBackend::OpenGL)
             windowFlags |= SDL_WINDOW_OPENGL;
-        if (mGameInfo->resizableWindow)
+        if (GetGameInfo().resizableWindow)
             windowFlags |= SDL_WINDOW_RESIZABLE;
 
         try {

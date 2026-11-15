@@ -9,6 +9,7 @@
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fs/os_fs/directory_file_provider.hpp"
+#include "engine/common/fs/tcf/tcf_file_provider.hpp"
 #include "engine/common/sdl_events.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
@@ -16,17 +17,13 @@
 #include "engine/settings.hpp"
 
 namespace CE {
-    // NOTE: this used to be visible through instance.hpp. Define it in exactly one .cpp
-    // (here is fine) and make sure nothing else defines it.
-    extern int gGlobalInstanceCounter;
+    // Shared across all instances. The engine instance header exports the actual definition.
+    extern uint64_t gGlobalInstanceCounter;
 
     BaseInstance::~BaseInstance() {
         if (mInstanceID != 0) {
             gGlobalInstanceCounter--;
         }
-
-        // Anything that holds GPU/audio resources must go before the renderer shuts down.
-        // Derived destructors have already run, so scripting etc. is already gone.
         mACCS.reset();
         mAudioManager.reset();
         mAudioSystem.reset();
@@ -49,7 +46,15 @@ namespace CE {
     }
 
     int BaseInstance::MountData(const std::string& path) {
-        return Bootstrap::Init_GameData(mVFS, path.c_str(), mDebug);
+        CE_LOG(LogLevel::Debug, "[Bootstrap] Game-data path name: {}", path);
+        mVFS->AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, path);
+
+        /*
+        if (debugmode) {
+            vfs->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 10, "assets/");
+        }
+        */
+        return 0;
     }
 
     void BaseInstance::InitialiseBase(
@@ -71,7 +76,6 @@ namespace CE {
 
         mGameStateManager = std::make_unique<Core::GameState::GameStateManager>(mEventBus);
         mVFS = std::make_unique<Common::FS::VFS::VFS>();
-        mGameInfo = std::make_unique<GameInfo>();
 
         CE_LOG(LogLevel::Info, "[Instance {}] Setting up game data", mInstanceID);
         int gds_return = MountData(data_path);
@@ -80,21 +84,7 @@ namespace CE {
                 std::format("[Instance {}] Gamedata mount returned with code {}", mInstanceID, gds_return));
         }
 
-        CE_LOG(LogLevel::Info, "[Instance {}] Creating game info", mInstanceID);
-        int gis_return = Bootstrap::Init_GameInfo(mVFS, mGameInfo, mDebug);
-        if (gis_return != 0) {
-            throw std::runtime_error(
-                std::format("[Instance {}] Failed to get gameinfo with code: {}", mInstanceID, gis_return));
-        }
-
-        mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>(
-            "/config", 100, Platforms::GetConfigPath(mGameInfo->game_package_id));
-        mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>(
-            "/saves", 100, Platforms::GetSavePath(mGameInfo->game_package_id));
-
-        mSettingsManager = std::make_unique<Settings::SettingsManager>(*mGameInfo, mInstanceID);
-        mSettingsManager->SetInstance(*this);
-        mSettingsManager->ReloadSettings();
+        PrepareRuntimeData();
 
         CE_LOG(LogLevel::Info, "[Instance {}] Creating window & renderer", mInstanceID);
         int vis = Bootstrap_Video(gpu_device);
@@ -102,10 +92,10 @@ namespace CE {
             throw std::runtime_error(std::format("[Instance {}] Video setup returned with: {}", mInstanceID, vis));
         }
 
-        mRenderer->SetVSync(mSettingsManager->Settings.enableVSync);
+        mRenderer->SetVSync(GetSettingsManager().Settings.enableVSync);
         mInstanceWindowID = SDL_GetWindowID(mWindow->GetWindow());
-        if (!mGameInfo->windowIcon.empty()) {
-            mWindow->SetWindowIcon(mGameInfo->windowIcon);
+        if (!GetGameInfo().windowIcon.empty()) {
+            mWindow->SetWindowIcon(GetGameInfo().windowIcon);
         }
 
         CE_LOG(LogLevel::Info, "[Instance {}] Creating renderer resource managers", mInstanceID);
@@ -217,8 +207,8 @@ namespace CE {
         mFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
                      static_cast<float>(mPerformanceFrequency) * 1000.0f;
 
-        if (mSettingsManager->Settings.maxFPS > 0) {
-            const float target_frame_time_ms = 1000.0f / static_cast<float>(mSettingsManager->Settings.maxFPS);
+        if (GetSettingsManager().Settings.maxFPS > 0) {
+            const float target_frame_time_ms = 1000.0f / static_cast<float>(GetSettingsManager().Settings.maxFPS);
 
             if (mFrameTime < target_frame_time_ms) {
                 SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - mFrameTime) * 1000000.0f));
@@ -253,80 +243,4 @@ namespace CE {
         return mGameStateManager->GetState();
     }
 
-    void BaseInstance::HandleWindowEvents() {
-        auto indices = SDL_Events::GetWindowEventIndices(mInstanceWindowID);
-
-        for (size_t i : indices) {
-            const SDL_Event& e = SDL_Events::gEvents[i];
-
-            switch (e.type) { // NOLINT
-            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                mShouldExit = true;
-                break;
-
-            case SDL_EVENT_WINDOW_FOCUS_LOST: {
-                const auto window_mode = mWindow->GetWindowMode();
-                if (mGameInfo->pauseRenderingWhenFocusLostInWindowedMode &&
-                    window_mode != Common::Window::WindowMode::Fullscreen &&
-                    window_mode != Common::Window::WindowMode::Borderless) {
-                    mShouldRender = false;
-                }
-
-                // Rendering an unfocused fullscreen/borderless window is wasteful, and on
-                // Windows the swapchain texture can come back nullptr, so pause rendering.
-                if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                    mShouldRender = false;
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_FULLSCREEN");
-                } else if (window_mode == Common::Window::WindowMode::Borderless) {
-                    mShouldRender = false;
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_BORDERLESS");
-                } else {
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_LOST_WINDOWED");
-                }
-
-                if (mGameInfo->pauseUpdateWhenFocusLost) {
-                    mWindowFocus = false;
-                }
-                break;
-            }
-
-            case SDL_EVENT_WINDOW_FOCUS_GAINED: {
-                const auto window_mode = mWindow->GetWindowMode();
-                if (mGameInfo->pauseUpdateWhenFocusLost) {
-                    mWindowFocus = true;
-                }
-                mShouldRender = true;
-                if (window_mode == Common::Window::WindowMode::Fullscreen) {
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_FULLSCREEN");
-                } else if (window_mode == Common::Window::WindowMode::Borderless) {
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_BORDERLESS");
-                } else {
-                    mGameStateManager->Emit("CE_WINDOW_FOCUS_GAINED_WINDOWED");
-                }
-                break;
-            }
-            }
-        }
-    }
-
-    void BaseInstance::ApplySettingsReload() {
-        const int targetW = std::max(1, mSettingsManager->Settings.windowWidth);
-        const int targetH = std::max(1, mSettingsManager->Settings.windowHeight);
-
-        mWindow->SetWindowSize({targetW, targetH}, mSettingsManager->Settings.windowMode);
-
-        if (mSettingsManager->Settings.windowMode != mWindow->GetWindowMode()) {
-            mWindow->SetWindowMode(mSettingsManager->Settings.windowMode);
-        }
-
-        mRenderer->SetVSync(mSettingsManager->Settings.enableVSync);
-
-        if (mAudioManager) {
-            mAudioManager->SetMasterVolume(mSettingsManager->Settings.masterVolume);
-            mAudioManager->SetMusicVolume(mSettingsManager->Settings.musicVolume);
-            mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
-        }
-
-        mGameStateManager->Emit("CE_SETTINGS_RELOAD");
-    }
 } // namespace CE

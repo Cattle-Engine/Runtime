@@ -1,11 +1,11 @@
 #include <memory>
 #include "engine/input/input_binder.hpp"
 #include "engine/input/text.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 #include "engine/common/tracelog.hpp"
 
 namespace CE {
-    int Instance::Bootstrap_InputManagers() {
+    int BaseInstance::Bootstrap_InputManagers() {
         CE_LOG(CE::LogLevel::Info, "[Instance {}] Creating input managers", mInstanceID);
         
         mKeyboardManger = std::make_unique<CE::Input::Keyboard>(mInstanceWindowID);

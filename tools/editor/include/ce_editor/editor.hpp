@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/instance.hpp"
+#include "engine/instance/game_instance.hpp"
 
 namespace CE::Editor {
     class EditorInstance : Instance {

@@ -26,7 +26,7 @@ namespace CE::Scripting {
 
 // Forward declare a hella lot of stuff to help compile times
 namespace CE {
-    class Instance;
+    class GameInstance;
     struct GameInfo;
 
     namespace VFS {
@@ -102,7 +102,7 @@ namespace CE::Scripting {
             Common::FS::VFS::VFS& vfs, 
             GameInfo& game_info, 
             Settings::SettingsManager& settings_manager, 
-            Instance& instance,
+            GameInstance& instance,
             Renderer::IRenderer& renderer, 
             Renderer::Resources::ModelRenderer& model_renderer,
             Renderer::Resources::TextureManager& texture_manager,
@@ -175,7 +175,7 @@ namespace CE::Scripting {
         Common::FS::VFS::VFS& mVFS;
         GameInfo& mGameInfo;
         Settings::SettingsManager& mSettingsManager;
-        Instance& mInstance;
+        GameInstance& mInstance;
         Core::GameState::GameStateManager& mGameStateManager;
         Renderer::IRenderer& mRenderer;
         Renderer::Resources::ModelRenderer& mModelRenderer;

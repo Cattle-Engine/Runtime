@@ -12,10 +12,10 @@ namespace CE {
     int BaseInstance::Bootstrap_ACCS() {
         mACCS = std::make_unique<ACCS::ACCS>(ACCS::Dependencies{
             *this,
-            *mGameInfo,
+            GetGameInfo(),
             *mVFS,
             *mGameStateManager,
-            *mSettingsManager,
+            GetSettingsManager(),
             *mRenderer,
             *mTextureManager,
             *mShaderManager,

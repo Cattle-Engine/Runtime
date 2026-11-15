@@ -13,7 +13,7 @@
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/input/keyboard.hpp"
 #include "engine/input/mouse.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 #include "engine/memory/allocator.hpp"
 #include "engine/memory/stats.hpp"
 #include "engine/rendering/renderer.hpp"
@@ -65,7 +65,7 @@ namespace CE::UI {
                              Renderer::Resources::ShaderManager& shaderman, Assets::Fonts::FontManager& fontman,
                              GameInfo& gameinfo, Settings::SettingsManager& settings,
                              Audio::Resources::AudioManager* audioman, Input::Keyboard& keyboard,
-                             Instance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system, AngelscriptDebuggerWindow* as_debugger_win, LogWindow& lgw)
+                             BaseInstance& instance, Input::Mouse& mouse, Core::Audio::AudioSystem* audio_system, AngelscriptDebuggerWindow* as_debugger_win, LogWindow& lgw)
         : mRenderer(renderer), mTextureManager(texman), mShaderManager(shaderman), mFontManager(fontman),
           mGameInfo(gameinfo), mSettings(settings), mAudioManager(audioman), mAudioSystem(audio_system), mKeyboard(keyboard),
           mInstance(instance), mMouse(mouse), mAngelscriptDebuggerWindow(as_debugger_win),mMemoryTrackingEnabled(Memory::IsTrackingEnabled()), mLogWindow(lgw) {

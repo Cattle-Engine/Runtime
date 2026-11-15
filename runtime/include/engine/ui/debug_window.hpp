@@ -16,19 +16,23 @@
 #include "engine/ui/angelscript_debugger_window.hpp"
 #include "engine/ui/logs_window.hpp"
 
+namespace CE {
+    class BaseInstance;
+}
+
 namespace CE::UI {
     class DebugWindow {
       public:
         DebugWindow(
-            CE::Renderer::IRenderer& renderer, 
+            CE::Renderer::IRenderer& renderer,
             CE::Renderer::Resources::TextureManager& texman,
-            CE::Renderer::Resources::ShaderManager& shaderman, 
+            CE::Renderer::Resources::ShaderManager& shaderman,
             CE::Assets::Fonts::FontManager& fontman,
-            CE::GameInfo& gameinfo, 
+            CE::GameInfo& gameinfo,
             CE::Settings::SettingsManager& settings,
-            CE::Audio::Resources::AudioManager* audioman, 
+            CE::Audio::Resources::AudioManager* audioman,
             CE::Input::Keyboard& keyboard,
-            CE::Instance& instance, 
+            CE::BaseInstance& instance,
             CE::Input::Mouse& mouse,
             CE::Core::Audio::AudioSystem* audio_system,
             AngelscriptDebuggerWindow* scripting_debugger,
@@ -59,7 +63,7 @@ namespace CE::UI {
         CE::Audio::Resources::AudioManager* mAudioManager;
         CE::Core::Audio::AudioSystem* mAudioSystem = nullptr;
         CE::Input::Keyboard& mKeyboard;
-        CE::Instance& mInstance;
+        CE::BaseInstance& mInstance;
         CE::Input::Mouse& mMouse;
         AngelscriptDebuggerWindow* mAngelscriptDebuggerWindow;
         LogWindow& mLogWindow;

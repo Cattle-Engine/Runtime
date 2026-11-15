@@ -10,18 +10,6 @@
 #include "engine/common/window.hpp"
 
 namespace CE::Bootstrap {
-    int Init_GameData(std::unique_ptr<Common::FS::VFS::VFS>& vfs, const char* datafilename, bool debugmode) {
-        CE_LOG(LogLevel::Debug, "[Bootstrap] Game-data path name: {}", datafilename);
-        vfs->AddMountPoint<Common::FS::TCF::TCFFileProvider>("/", 0, datafilename);
-
-        /*
-        if (debugmode) {
-            vfs->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 10, "assets/");
-        }
-        */
-        return 0;
-    }
-
     int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, [[maybe_unused]] bool debugmode) {
         auto file = vfs->OpenFile("/Gameinfo.txt");
         if (!file) {

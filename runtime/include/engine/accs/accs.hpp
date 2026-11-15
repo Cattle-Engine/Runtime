@@ -5,7 +5,7 @@
 
 // Forward declare a hella lot of stuff to help compile times
 namespace CE {
-    class Instance;
+    class BaseInstance;
     struct GameInfo;
 
     namespace Common::FS::VFS {
@@ -72,7 +72,7 @@ namespace CE {
 
 namespace CE::ACCS {
     struct Dependencies {
-        CE::Instance& instance;
+        CE::BaseInstance& instance;
         CE::GameInfo& game_info;
 
         Common::FS::VFS::VFS& vfs;
@@ -103,7 +103,7 @@ namespace CE::ACCS {
         CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry;
 
         Dependencies(
-            CE::Instance& instance,
+            CE::BaseInstance& instance,
             CE::GameInfo& game_info,
             Common::FS::VFS::VFS& vfs,
             CE::Core::GameState::GameStateManager& game_state_manager,

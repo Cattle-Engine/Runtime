@@ -23,7 +23,7 @@ namespace CE {
             CE_LOG(LogLevel::Info, "[Instance {}] Creating audio system", mInstanceID);
 
             SDL_AudioDeviceID audio_device_id =
-                Core::Audio::AudioSystem::GetAudioDeviceID(mSettingsManager->Settings.audioDeviceName);
+                Core::Audio::AudioSystem::GetAudioDeviceID(GetSettingsManager().Settings.audioDeviceName);
             mAudioSystem = std::make_unique<Core::Audio::AudioSystem>(
                 *mVFS,
                 mInstanceID,
@@ -31,9 +31,9 @@ namespace CE {
                 Core::Audio::AudioSystem::IsAudioDeviceStereo(audio_device_id));
 
             mAudioManager = std::make_unique<Audio::Resources::AudioManager>(*mAudioSystem, *mVFS, mInstanceID);
-            mAudioManager->SetMasterVolume(mSettingsManager->Settings.masterVolume);
-            mAudioManager->SetMusicVolume(mSettingsManager->Settings.musicVolume);
-            mAudioManager->SetSFXVolume(mSettingsManager->Settings.sfxVolume);
+            mAudioManager->SetMasterVolume(GetSettingsManager().Settings.masterVolume);
+            mAudioManager->SetMusicVolume(GetSettingsManager().Settings.musicVolume);
+            mAudioManager->SetSFXVolume(GetSettingsManager().Settings.sfxVolume);
         } catch (const std::exception& e) {
             CE_LOG(LogLevel::Error, "[Instance {}] Audio system failed to initialize: {}", mInstanceID, e.what());
             mAudioManager.reset();

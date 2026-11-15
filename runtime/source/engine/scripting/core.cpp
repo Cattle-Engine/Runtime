@@ -40,7 +40,7 @@ namespace CE::Scripting {
         Common::FS::VFS::VFS& vfs, 
         GameInfo& game_info, 
         Settings::SettingsManager& settings_manager, 
-        Instance& instance,
+        GameInstance& instance,
         Renderer::IRenderer& renderer,
         Renderer::Resources::ModelRenderer& model_renderer, 
         Renderer::Resources::TextureManager& texture_manager,

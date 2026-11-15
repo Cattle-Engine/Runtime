@@ -30,6 +30,7 @@
 #include "engine/rendering/resources/texture_manager.hpp"
 #include "engine/scripting/angelscript.hpp"
 #include "engine/common/window.hpp"
+#include "engine/settings.hpp"
 #include "engine/accs/accs.hpp"
 
 namespace CE {
@@ -66,6 +67,10 @@ namespace CE {
                 const std::string& data_path
             );
 
+            virtual GameInfo& GetGameInfo() = 0;
+            virtual Settings::SettingsManager& GetSettingsManager() = 0;
+            virtual void PrepareRuntimeData() {}
+
             // hooks
             // mount the root of the VFS
             virtual int MountData(const std::string& path);
@@ -83,9 +88,7 @@ namespace CE {
             bool IsRenderingEnabled() const { return mShouldRender; }
 
             std::unique_ptr<Common::FS::VFS::VFS> mVFS;
-            std::unique_ptr<GameInfo> mGameInfo;
             std::unique_ptr<Common::Containers::RendererResourcesNameRegistry> mRendererResourcesNameRegistry;
-            std::unique_ptr<Settings::SettingsManager> mSettingsManager;
             std::unique_ptr<Renderer::IRenderer> mRenderer;
             std::unique_ptr<Input::Keyboard> mKeyboardManger;
             std::unique_ptr<Input::Mouse> mMouseManger;
@@ -115,9 +118,10 @@ namespace CE {
             Core::EventBus mEventBus;
             std::unique_ptr<Core::GameState::GameStateManager> mGameStateManager;
             EngineArguements mProgramArguments;
+        protected:
+            virtual void ApplySettingsReload() {}
+            virtual void HandleWindowEvents() {}
         private:
-            void ApplySettingsReload();
-            void HandleWindowEvents();
             int Bootstrap_RendererResourceManagers();
             int Bootstrap_InputManagers();
             int Bootstrap_AssetImportersAndManagers();
@@ -129,8 +133,10 @@ namespace CE {
             Uint64 mPerformanceFrequency = 0;
             bool mWasBaseInitDone = false;
             bool mAudioSubsystemInited = false;
+        protected:
             int mInstanceID = 0;
             int mInstanceWindowID = 0;
+        private:
             bool mPendingSettingsReload = false;
             RendererBackend mRendererBackend = RendererBackend::None;
     };
