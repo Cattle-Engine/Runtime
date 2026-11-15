@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <SDL3/SDL.h>
 
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 #include "engine/common/window.hpp"
 
 #include "engine/common/misc/error_box.hpp"
@@ -11,7 +11,7 @@
 #include "engine/rendering/renderer.hpp"
 
 namespace CE {
-    int Instance::Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device) {
+    int BaseInstance::Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device) {
         mRenderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpu_device->backend, mVFS.get()));
         mRenderer->PreWinInit();
 

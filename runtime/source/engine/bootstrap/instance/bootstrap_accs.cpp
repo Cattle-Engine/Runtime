@@ -4,12 +4,12 @@
 #include "engine/accs/components/transform.hpp"
 #include "engine/accs/system.hpp"
 #include "engine/accs/systems/mesh_renderer.hpp"
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 
 #include "engine/accs/systems/sprite_renderer.hpp"
 
 namespace CE {
-    int Instance::Bootstrap_ACCS() {
+    int BaseInstance::Bootstrap_ACCS() {
         mACCS = std::make_unique<ACCS::ACCS>(ACCS::Dependencies{
             *this,
             *mGameInfo,

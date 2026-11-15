@@ -1,7 +1,7 @@
-#include "engine/instance.hpp"
+#include "engine/instance/base_instance.hpp"
 
 namespace CE {
-    int Instance::Bootstrap_AssetImportersAndManagers() {
+    int BaseInstance::Bootstrap_AssetImportersAndManagers() {
         m3DModelImporter = std::make_unique<Assets::Model3DImporter::ModelImporter>(
             *mVFS, *mGPUMeshManager, *mMaterialManager, *mTextureManager, *mRenderer);
         return 0;
