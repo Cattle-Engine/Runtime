@@ -6,7 +6,6 @@
 #include "engine/common/window.hpp"
 
 #include "engine/common/misc/error_box.hpp"
-#include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/tracelog.hpp"
 #include "engine/rendering/renderer.hpp"
 
@@ -15,35 +14,31 @@ namespace CE {
         mRenderer = std::unique_ptr<CE::Renderer::IRenderer>(CE::Renderer::CreateRenderer(gpu_device->backend, mVFS.get()));
         mRenderer->PreWinInit();
 
-        std::string window_title;
-        if (GetGameInfo().windowTitle.empty()) { // If a window title was not provided use the game name
-            window_title = GetGameInfo().game_name;
-        } else {
-            window_title = GetGameInfo().windowTitle;
-        }
-
-        auto settings = GetSettingsManager().Settings;
-
-        CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", window_title);
-        CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", settings.windowWidth,
-               settings.windowHeight);
-        CE_LOG(CE::LogLevel::Info, "[Window] Window renderer: {}", settings.rendererName);
-        CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", settings.maxFPS);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window title: {}", mConf.window_title);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window size: {} width, {} height", mConf.window_width,
+               mConf.window_height);
+        CE_LOG(CE::LogLevel::Info, "[Window] Window renderer: {}", mConf.renderer_name);
+        CE_LOG(CE::LogLevel::Info, "[Window] Max fps: {}", mConf.max_fps);
 
         SDL_WindowFlags windowFlags = 0;
         if (mRendererBackend == RendererBackend::OpenGL)
             windowFlags |= SDL_WINDOW_OPENGL;
-        if (GetGameInfo().resizableWindow)
+        if (mConf.window_resizable)
             windowFlags |= SDL_WINDOW_RESIZABLE;
 
         try {
-            mWindow = std::make_unique<Common::Window>(*mGameStateManager,*mVFS, window_title, Common::Window::WindowSize{settings.windowWidth, settings.windowHeight}, windowFlags);                                                                                                                                                                                      
+            mWindow = std::make_unique<Common::Window>(
+                *mGameStateManager,
+                *mVFS,
+                mConf.window_title,
+                Common::Window::WindowSize{mConf.window_width, mConf.window_height},
+                windowFlags);
         } catch (const std::runtime_error& e) {
             ShowError("Failed to create game window :{");
             return 3;
         }
 
-        if (settings.windowMode == Common::Window::WindowMode::Fullscreen) {
+        if (mConf.window_mode == Common::Window::WindowMode::Fullscreen) {
             if (!mWindow->SetWindowMode(Common::Window::WindowMode::Fullscreen)) {
                 mWindow->HideWindow(true);
                 ShowError("Failed to set game window to fullscreen");
@@ -61,4 +56,4 @@ namespace CE {
         }
         return 0;
     }
-} // namespace CE::Bootstrap
+} // namespace CE

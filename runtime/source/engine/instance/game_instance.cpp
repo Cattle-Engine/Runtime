@@ -1,6 +1,8 @@
 #include "engine/instance/game_instance.hpp"
 
+#include <algorithm>
 #include <format>
+#include <stdexcept>
 
 #include "engine/bootstrap/instance.hpp"
 #include "engine/common/fs/os_fs/directory_file_provider.hpp"
@@ -28,7 +30,28 @@ namespace CE {
         return *mSettingsManager;
     }
 
-    void GameInstance::PrepareRuntimeData() {
+
+    InstanceRuntimeConf GameInstance::BuildRuntimeConf() {
+        const auto& settings = GetSettingsManager().Settings;
+        const auto& info = GetGameInfo();
+
+        InstanceRuntimeConf conf;
+        conf.vsync = settings.enableVSync;
+        conf.max_fps = settings.maxFPS;
+
+        // If a window title was not provided use the game name
+        conf.window_title = info.windowTitle.empty() ? info.game_name : info.windowTitle;
+        conf.window_icon_path = info.windowIcon;
+        conf.window_width = settings.windowWidth;
+        conf.window_height = settings.windowHeight;
+        conf.window_mode = settings.windowMode;
+        conf.window_resizable = info.resizableWindow;
+
+        conf.renderer_name = settings.rendererName;
+        return conf;
+    }
+
+    InstanceRuntimeConf GameInstance::PrepareRuntimeData() {
         mGameInfo = std::make_unique<GameInfo>();
 
         CE_LOG(LogLevel::Info, "[Instance {}] Creating game info", mInstanceID);
@@ -44,8 +67,15 @@ namespace CE {
             "/saves", 100, Platforms::GetSavePath(GetGameInfo().game_package_id));
 
         mSettingsManager = std::make_unique<Settings::SettingsManager>(GetGameInfo(), mInstanceID);
-        mSettingsManager->SetInstance(*this);
+
+        // Initial load happens before the callback is registered so the first frame
+        // doesn't redundantly apply a "reload" for settings we just loaded.
         mSettingsManager->ReloadSettings();
+        mSettingsManager->OnReload([this]() {
+            this->ReloadSettings();
+        });
+
+        return BuildRuntimeConf();
     }
 
     void GameInstance::HandleWindowEvents() {
@@ -103,21 +133,24 @@ namespace CE {
     }
 
     void GameInstance::ApplySettingsReload() {
-        const int targetW = std::max(1, GetSettingsManager().Settings.windowWidth);
-        const int targetH = std::max(1, GetSettingsManager().Settings.windowHeight);
+        const auto& settings = GetSettingsManager().Settings;
 
-        mWindow->SetWindowSize({targetW, targetH}, GetSettingsManager().Settings.windowMode);
+        const int targetW = std::max(1, settings.windowWidth);
+        const int targetH = std::max(1, settings.windowHeight);
 
-        if (GetSettingsManager().Settings.windowMode != mWindow->GetWindowMode()) {
-            mWindow->SetWindowMode(GetSettingsManager().Settings.windowMode);
+        mWindow->SetWindowSize({targetW, targetH}, settings.windowMode);
+
+        if (settings.windowMode != mWindow->GetWindowMode()) {
+            mWindow->SetWindowMode(settings.windowMode);
         }
 
-        mRenderer->SetVSync(GetSettingsManager().Settings.enableVSync);
+        // vsync + FPS cap are applied by the base
+        SetRuntimeConf(BuildRuntimeConf());
 
         if (mAudioManager) {
-            mAudioManager->SetMasterVolume(GetSettingsManager().Settings.masterVolume);
-            mAudioManager->SetMusicVolume(GetSettingsManager().Settings.musicVolume);
-            mAudioManager->SetSFXVolume(GetSettingsManager().Settings.sfxVolume);
+            mAudioManager->SetMasterVolume(settings.masterVolume);
+            mAudioManager->SetMusicVolume(settings.musicVolume);
+            mAudioManager->SetSFXVolume(settings.sfxVolume);
         }
 
         mGameStateManager->Emit("CE_SETTINGS_RELOAD");

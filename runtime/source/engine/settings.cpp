@@ -18,15 +18,15 @@ namespace CE::Settings {
         Internal_ReloadSettings();
     }
 
-    void SettingsManager::SetInstance(CE::BaseInstance& instance) {
-        mInstance = &instance;
+    void SettingsManager::OnReload(std::function<void()> callback){
+        mOnReloadedCallback = std::move(callback);
     }
 
     bool SettingsManager::ReloadSettings() {
         CE_LOG(LogLevel::Debug, "[Settings Manager {}] To change renderer you need to reload engine!", mInstanceID);
         bool reloaded = Internal_ReloadSettings();
-        if (mInstance != nullptr) {
-            mInstance->ReloadSettings();
+        if (reloaded && mOnReloadedCallback) {
+            mOnReloadedCallback();
         }
         return reloaded;
     }

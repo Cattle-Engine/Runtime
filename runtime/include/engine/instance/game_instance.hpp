@@ -6,10 +6,9 @@
 
 #include "engine/instance/base_instance.hpp"
 #include "engine/scripting/angelscript.hpp"
+#include "engine/settings.hpp"
 #include "engine/ui/debug_window.hpp"
 #include "engine/ui/angelscript_debugger_window.hpp"
-
-inline uint64_t gGlobalInstanceCounter = 0;
 
 namespace CE {
     class GameInstance final : public BaseInstance {
@@ -23,10 +22,11 @@ namespace CE {
 
         ~GameInstance() override;
 
-      protected:
         GameInfo& GetGameInfo() override;
         Settings::SettingsManager& GetSettingsManager() override;
-        void PrepareRuntimeData() override;
+
+      protected:
+        InstanceRuntimeConf PrepareRuntimeData() override;
 
         void OnInitialise() override;
         void HandleWindowEvents() override;
@@ -36,6 +36,8 @@ namespace CE {
         bool OnImGui() override;
 
       private:
+        InstanceRuntimeConf BuildRuntimeConf();
+
         std::unique_ptr<GameInfo> mGameInfo;
         std::unique_ptr<Settings::SettingsManager> mSettingsManager;
         std::unique_ptr<Scripting::Runtime> mScriptingManager;

@@ -14,11 +14,28 @@
 #include "engine/common/tracelog.hpp"
 #include "engine/common/window.hpp"
 #include "engine/platforms.hpp"
-#include "engine/settings.hpp"
 
 namespace CE {
-    // Shared across all instances. The engine instance header exports the actual definition.
-    extern uint64_t gGlobalInstanceCounter;
+    uint64_t gGlobalInstanceCounter = 0;
+
+    Uint64 FrameLimiter::Throttle(Uint64 frame_start_counter, Uint64 performance_frequency) const {
+        Uint64 frame_end_counter = SDL_GetPerformanceCounter();
+
+        if (mMaxFPS <= 0) {
+            return frame_end_counter;
+        }
+
+        const float target_frame_time_ms = 1000.0f / static_cast<float>(mMaxFPS);
+        const float elapsed_ms = static_cast<float>(frame_end_counter - frame_start_counter) /
+                                 static_cast<float>(performance_frequency) * 1000.0f;
+
+        if (elapsed_ms < target_frame_time_ms) {
+            SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - elapsed_ms) * 1000000.0f));
+            frame_end_counter = SDL_GetPerformanceCounter();
+        }
+
+        return frame_end_counter;
+    }
 
     BaseInstance::~BaseInstance() {
         if (mInstanceID != 0) {
@@ -57,6 +74,17 @@ namespace CE {
         return 0;
     }
 
+    void BaseInstance::SetRuntimeConf(const InstanceRuntimeConf& conf) {
+        mConf = conf;
+        mFrameLimiter.SetMaxFPS(mConf.max_fps);
+
+        // The renderer doesn't exist yet during the first call (from InitialiseBase).
+        // In that case vsync is applied right after video bootstrap instead.
+        if (mRenderer) {
+            mRenderer->SetVSync(mConf.vsync);
+        }
+    }
+
     void BaseInstance::InitialiseBase(
         bool debug_mode,
         Renderer::GPUDeviceHandle& gpu_device,
@@ -84,7 +112,7 @@ namespace CE {
                 std::format("[Instance {}] Gamedata mount returned with code {}", mInstanceID, gds_return));
         }
 
-        PrepareRuntimeData();
+        SetRuntimeConf(PrepareRuntimeData());
 
         CE_LOG(LogLevel::Info, "[Instance {}] Creating window & renderer", mInstanceID);
         int vis = Bootstrap_Video(gpu_device);
@@ -92,10 +120,10 @@ namespace CE {
             throw std::runtime_error(std::format("[Instance {}] Video setup returned with: {}", mInstanceID, vis));
         }
 
-        mRenderer->SetVSync(GetSettingsManager().Settings.enableVSync);
+        mRenderer->SetVSync(mConf.vsync);
         mInstanceWindowID = SDL_GetWindowID(mWindow->GetWindow());
-        if (!GetGameInfo().windowIcon.empty()) {
-            mWindow->SetWindowIcon(GetGameInfo().windowIcon);
+        if (!mConf.window_icon_path.empty()) {
+            mWindow->SetWindowIcon(mConf.window_icon_path);
         }
 
         CE_LOG(LogLevel::Info, "[Instance {}] Creating renderer resource managers", mInstanceID);
@@ -203,21 +231,10 @@ namespace CE {
             mFontManager->Update();
         }
 
-        Uint64 frame_end_counter = SDL_GetPerformanceCounter();
+        const Uint64 frame_end_counter = mFrameLimiter.Throttle(frame_start_counter, mPerformanceFrequency);
+
         mFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
                      static_cast<float>(mPerformanceFrequency) * 1000.0f;
-
-        if (GetSettingsManager().Settings.maxFPS > 0) {
-            const float target_frame_time_ms = 1000.0f / static_cast<float>(GetSettingsManager().Settings.maxFPS);
-
-            if (mFrameTime < target_frame_time_ms) {
-                SDL_DelayPrecise(static_cast<Uint64>((target_frame_time_ms - mFrameTime) * 1000000.0f));
-
-                frame_end_counter = SDL_GetPerformanceCounter();
-                mFrameTime = static_cast<float>(frame_end_counter - frame_start_counter) /
-                             static_cast<float>(mPerformanceFrequency) * 1000.0f;
-            }
-        }
 
         mDeltaTime = static_cast<float>(frame_end_counter - mLastFrameCounter) /
                      static_cast<float>(mPerformanceFrequency);

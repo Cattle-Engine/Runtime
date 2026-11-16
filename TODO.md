@@ -118,14 +118,16 @@ export int foo_func() {
 
 }
 ```
-
+- [ ] In MouseManager make a way to set the cursor type is, also make it so you can set a custom cursor
 - [ ] In ce_griller make it output a "licences" folder with the build
 - [ ] Make ce_griller use a SHA256 hash to verify a toolchain package
 - [ ] When stopping all audio, add the ability to specify what catergories you want to stop. Also allow registeration of custom catergories as strings
-- [ ] Make an ACCS system/component that sets volume, you can set just 1 audio handle to change the volume of, or a whole catergory
+- [ ] Make an ACCS system/component that lowers the volume, the further the camera is away from it, seperate component for 3D/2D
+- [ ] Billboarding ACCS system/component for 3D space
 - [ ] Move shit out of scripts/ and into tools/
 - [ ] Make an editor
     - [ ] Make a basic ACCS viewer
+    - [ ] Bottom bar thing like in VSCode that you can pull up from the bottom
     - [ ] Angelscript script maker
     - [ ] Intergration with ce_griller >:)
 

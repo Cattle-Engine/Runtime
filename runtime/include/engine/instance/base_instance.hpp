@@ -34,6 +34,41 @@
 #include "engine/accs/accs.hpp"
 
 namespace CE {
+    extern uint64_t gGlobalInstanceCounter;
+
+    // Plain values the base instance needs from whatever higher-level layer
+    // (GameInfo, Settings, ...) the derived class owns. The base never sees
+    // those types, only this struct.
+    struct InstanceRuntimeConf {
+        bool vsync = false;
+        int max_fps = 60;
+
+        // window
+        std::string window_title;      // already resolved (falls back to game name)
+        std::string window_icon_path;
+        int window_width = 1280;
+        int window_height = 720;
+        Common::Window::WindowMode window_mode{};
+        bool window_resizable = false;
+
+        // informational (logging only)
+        std::string renderer_name;
+    };
+
+    // Sleeps out the remainder of a frame so we hit a target FPS.
+    class FrameLimiter {
+        public:
+            void SetMaxFPS(int fps) { mMaxFPS = fps; }
+            int GetMaxFPS() const { return mMaxFPS; }
+
+            // Blocks if the frame finished early. Returns the performance counter
+            // value at the end of the (possibly delayed) frame.
+            Uint64 Throttle(Uint64 frame_start_counter, Uint64 performance_frequency) const;
+
+        private:
+            int mMaxFPS = 0; // <= 0 means unlimited
+    };
+
     class BaseInstance {
         public:
             virtual ~BaseInstance();
@@ -54,6 +89,8 @@ namespace CE {
             void SetGameState(const std::string& state);
             const std::string& GetGameState() const;
             Core::EventBus& GetEventBus() { return mEventBus; }
+            virtual GameInfo& GetGameInfo() = 0;
+            virtual Settings::SettingsManager& GetSettingsManager() = 0;
             Core::GameState::GameStateManager& GetGameStateManager() { return *mGameStateManager; }
             ACCS::ACCS& GetACCS() { return *mACCS; }
 
@@ -67,12 +104,18 @@ namespace CE {
                 const std::string& data_path
             );
 
-            virtual GameInfo& GetGameInfo() = 0;
-            virtual Settings::SettingsManager& GetSettingsManager() = 0;
-            virtual void PrepareRuntimeData() {}
+            // Called after the VFS root is mounted and before the window/renderer exist.
+            // Derived classes load whatever they need (game info, settings, extra mounts)
+            // and return the values the base needs.
+            virtual InstanceRuntimeConf PrepareRuntimeData() = 0;
+
+            // Pushes a new config into the base (vsync, FPS cap). Safe to call at any time
+            // after PrepareRuntimeData; derived classes call this from ApplySettingsReload.
+            void SetRuntimeConf(const InstanceRuntimeConf& conf);
+            const InstanceRuntimeConf& GetRuntimeConf() const { return mConf; }
 
             // hooks
-            // mount the root of the VFS
+            // mount the root of the VFS, defaults to a tcf archive mount
             virtual int MountData(const std::string& path);
             // called at the end of BaseInitialise; all base systems exist at this point
             virtual void OnInitialise() {}
@@ -118,7 +161,9 @@ namespace CE {
             Core::EventBus mEventBus;
             std::unique_ptr<Core::GameState::GameStateManager> mGameStateManager;
             EngineArguements mProgramArguments;
-        protected:
+            int mInstanceID = 0;
+            int mInstanceWindowID = 0;
+
             virtual void ApplySettingsReload() {}
             virtual void HandleWindowEvents() {}
         private:
@@ -133,12 +178,9 @@ namespace CE {
             Uint64 mPerformanceFrequency = 0;
             bool mWasBaseInitDone = false;
             bool mAudioSubsystemInited = false;
-        protected:
-            int mInstanceID = 0;
-            int mInstanceWindowID = 0;
-        private:
             bool mPendingSettingsReload = false;
             RendererBackend mRendererBackend = RendererBackend::None;
+            InstanceRuntimeConf mConf;
+            FrameLimiter mFrameLimiter;
     };
 }
-

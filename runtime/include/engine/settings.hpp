@@ -6,6 +6,7 @@
 #include "engine/common/fs/ini.hpp"
 #include "engine/common/misc/gameinfo.hpp"
 #include "engine/common/window.hpp"
+#include <functional>
 
 namespace CE {
     class BaseInstance;
@@ -28,7 +29,7 @@ namespace CE::Settings {
     class SettingsManager {
       public:
         SettingsManager(const GameInfo& gameinfo, uint64_t instance_id);
-        void SetInstance(BaseInstance& instance);
+        void OnReload(std::function<void()> callback);
         SettingsInfo Settings;
 
         bool ReloadSettings();
@@ -48,7 +49,6 @@ namespace CE::Settings {
 
       private:
         bool Internal_ReloadSettings();
-        CE::BaseInstance* mInstance = nullptr;
         CE::Ini::IniFile mIniFile;
         CE::Ini::ParseError mParseError;
         CE::Ini::Options mOptions;
@@ -56,5 +56,6 @@ namespace CE::Settings {
         std::string mGamePackageID;
         GameInfo mGameInfo;
         uint64_t mInstanceID = 0;
+        std::function<void()> mOnReloadedCallback;
     };
 } // namespace CE::Settings
