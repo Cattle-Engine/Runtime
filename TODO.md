@@ -118,6 +118,7 @@ export int foo_func() {
 
 }
 ```
+- [ ] Look at AnimatedTexture manager and move it to the new tdf implimentation
 - [ ] In MouseManager make a way to set the cursor type is, also make it so you can set a custom cursor
 - [ ] In ce_griller make it output a "licences" folder with the build
 - [ ] Make ce_griller use a SHA256 hash to verify a toolchain package

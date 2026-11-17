@@ -1,7 +1,9 @@
 #include "engine/input/input_binder.hpp"
 
-#include "engine/common/fs/tdf.hpp"
+#include "ce_common/tdf.hpp"
+#include "engine/common/fs/file_provider.hpp"
 #include "engine/common/tracelog.hpp"
+#include "engine/common/fs/ifile_stream.hpp"
 
 namespace CE::Input::Bindings {
     const std::vector<Binding>& BindingManager::GetBinding(const std::string& name) {
@@ -32,53 +34,90 @@ namespace CE::Input::Bindings {
     void BindingManager::LoadBindings(const std::string& path) {
         mBindings.clear();
 
-        CE::TDF::File file;
-        file.load(mVFS, path);
+        auto file = mVFS.OpenFile(path);
+        if (!file) {
+            CE_LOG(LogLevel::Error, "[BindingManager] Failed to load bindings from path {}", path);
+            return;
+        }
 
-        for (const auto& [key, value] : file.entries) {
+        try {
+            Common::FS::VFS::IOStream stream(std::move(file));
+            CE::TDF tdf = CE::TDF::Read(stream);
 
-            if (value.type != CE::TDF::Type::ArrString) {
-                continue;
+            if (tdf.Type() != CE::TDF::Type::Object) {
+                CE_LOG(LogLevel::Error, "[BindingManager] Invalid bindings file: root must be an Object");
+                return;
             }
 
-            std::vector<std::string> raw = CE::TDF::File::readStringArray(value);
-            std::vector<Binding> bindings;
-            bindings.reserve(raw.size());
+            const auto& object = tdf.Get<CE::TDF::Object>();
 
-            for (const auto& str : raw) {
-
-                auto pos = str.find(':');
-                if (pos == std::string::npos) {
+            for (const auto& [key, value] : object) {
+                if (value.Type() != CE::TDF::Type::Array)
                     continue;
+
+                const auto& array = value.Get<CE::TDF::Array>();
+
+                std::vector<Binding> bindings;
+                bindings.reserve(array.size());
+
+                for (const auto& entry : array) {
+                    if (entry.Type() != CE::TDF::Type::String)
+                        continue;
+
+                    const std::string& str = entry.Get<std::string>();
+
+                    const auto pos = str.find(':');
+                    if (pos == std::string::npos)
+                        continue;
+
+                    const std::string type = str.substr(0, pos);
+
+                    try {
+                        const int code = std::stoi(str.substr(pos + 1));
+
+                        if (type == "Keyboard") {
+                            bindings.emplace_back(static_cast<KeyboardKeys>(code));
+                        } else if (type == "Mouse") {
+                            bindings.emplace_back(static_cast<MouseButtons>(code));
+                        }
+                    } catch (const std::exception&) {
+                        CE_LOG(LogLevel::Warn, "[BindingManager] Invalid binding: {}", str);
+                    }
                 }
 
-                std::string type = str.substr(0, pos);
-                int code = std::stoi(str.substr(pos + 1));
-
-                if (type == "Keyboard") {
-                    bindings.emplace_back(static_cast<KeyboardKeys>(code));
-                } else if (type == "Mouse") {
-                    bindings.emplace_back(static_cast<MouseButtons>(code));
-                }
+                mBindings[key] = std::move(bindings);
             }
-            mBindings[key] = std::move(bindings);
+        } catch (const std::exception& e) {
+            CE_LOG(LogLevel::Error, "[BindingManager] Failed to parse bindings: {}", e.what());
         }
     }
 
+
     void BindingManager::FlushBindings(const std::string& path) {
-        CE::TDF::File file;
+        CE::TDF tdf;
 
         for (const auto& [name, bindings] : mBindings) {
-            std::vector<std::string> encoded;
-            encoded.reserve(bindings.size());
-            for (const auto& b : bindings) {
-                encoded.push_back(Binding2String(b));
+            CE::TDF array;
+
+            for (const auto& binding : bindings) {
+                array.PushBack(Binding2String(binding));
             }
 
-            file.set(name, CE::TDF::File::makeStringArray(encoded));
+            tdf[name] = std::move(array);
         }
 
-        file.save(mVFS, path, 1);
+        auto file = mVFS.OpenFile(path, Common::FS::VFS::OpenFlags::Write);
+        if (!file) {
+            CE_LOG(LogLevel::Error, "[BindingManager] Failed to save bindings to path {}", path);
+            return;
+        }
+
+        try {
+            Common::FS::VFS::IOStream stream(std::move(file));
+            tdf.Write(stream);
+        } catch (const std::exception& e) {
+            CE_LOG(LogLevel::Error, "[BindingManager] Failed to write bindings: {}", e.what());
+        }
     }
 
     void BindingManager::AddBinding(const std::string& name, Binding binding) {
