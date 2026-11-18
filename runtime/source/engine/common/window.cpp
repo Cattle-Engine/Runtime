@@ -70,6 +70,33 @@ namespace CE::Common {
         }
     }
 
+    void Window::MaximiseWindow(bool maximised) {
+        SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
+
+        if ((window_flags & SDL_WINDOW_MAXIMIZED) && maximised) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is already maximised. It cannot be maximised again");
+            return;
+        } else if (!(window_flags & SDL_WINDOW_MAXIMIZED) && !maximised) {
+            CE_LOG(LogLevel::Warn, "[Window] Window is not maximised. It cannot be restored");
+            return;
+        }
+
+        if (maximised) {
+            if (!SDL_MaximizeWindow(mWindow)) {
+                CE_LOG(LogLevel::Error, "[Window] Failed to maximise window: {}", SDL_GetError());
+            }
+        } else {
+            if (!SDL_RestoreWindow(mWindow)) {
+                CE_LOG(LogLevel::Error, "[Window] Failed to restore window: {}", SDL_GetError());
+            }
+        }
+    }
+
+    bool Window::IsMaxmimised() {
+        SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
+        return (window_flags & SDL_WINDOW_MAXIMIZED) != 0;
+    }
+
     bool Window::IsMinimised() {
         SDL_WindowFlags window_flags = SDL_GetWindowFlags(mWindow);
         return (window_flags & SDL_WINDOW_MINIMIZED) != 0;

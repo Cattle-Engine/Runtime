@@ -122,19 +122,13 @@ else()
     endif()
 endif()
 
-find_program(
-    CE_GLSLC
-    NAMES glslc glslc.exe
-    HINTS
-        "$ENV{VULKAN_SDK}/Bin"
-        "$ENV{VULKAN_SDK}/bin"
-)
-
-if(NOT CE_GLSLC)
+if(NOT TARGET ce_shaderc)
     message(FATAL_ERROR
-        "Could not find glslc. Install the Vulkan SDK or add glslc to PATH."
+        "The ce_shaderc target does not exist. Add tools/shaderc before build_assets.cmake."
     )
 endif()
+
+set(CE_SHADERC_EXECUTABLE "$<TARGET_FILE:ce_shaderc>")
 
 file(
     GLOB_RECURSE CE_SHADER_SOURCES
@@ -142,6 +136,7 @@ file(
     LIST_DIRECTORIES FALSE
     "${CE_SHADER_SOURCE_DIR}/*.vert"
     "${CE_SHADER_SOURCE_DIR}/*.frag"
+    "${CE_SHADER_SOURCE_DIR}/*.comp"
 )
 
 set(CE_SHADER_SPV_FILES "")
@@ -171,11 +166,13 @@ foreach(shader_source IN LISTS CE_SHADER_SOURCES)
             "${shader_output_dir}"
 
         COMMAND
-            "${CE_GLSLC}"
+            "${CE_SHADERC_EXECUTABLE}"
             "${shader_source}"
-            -o "${shader_output}"
+            --formats spv
+            --output-dir "${shader_output_dir}"
 
         DEPENDS
+            ce_shaderc
             "${shader_source}"
 
         COMMENT
@@ -290,4 +287,4 @@ add_custom_target(
 
 message(STATUS "TCF archive: ${CE_ASSET_ARCHIVE}")
 message(STATUS "Asset path config: ${CE_ASSET_PATH_CONFIG}")
-message(STATUS "Shader compiler: ${CE_GLSLC}")
+message(STATUS "Shader compiler: ce_shaderc")

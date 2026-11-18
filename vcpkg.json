@@ -60,6 +60,7 @@
     "xxhash",
     "yaml-cpp",
     "curl",
-    "libarchive"
+    "libarchive",
+    "sdl3-shadercross"
   ]
 }

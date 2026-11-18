@@ -3,6 +3,7 @@
 
 #include "ce_runtime/instance/base_instance.hpp"
 #include "ce_runtime/common/fs/os_fs/directory_file_provider.hpp"
+#include "ce_runtime/platforms.hpp"
 
 namespace CE::Editor {
     InstanceRuntimeConf EditorInstance::PrepareRuntimeData()  {
@@ -13,7 +14,7 @@ namespace CE::Editor {
             .window_icon_path = Constants::kWindowIconPath,
             .window_width = Constants::kDefaultWindowWidth,
             .window_height = Constants::kDefaultWindowHeight,
-            .window_mode = Constants::kDefaultWindowMode,
+            .window_mode = Constants::kWindowMode,
             .window_resizable = Constants::kWindowResizable,
             .renderer_name = "<unavaible>",
         };
@@ -21,6 +22,7 @@ namespace CE::Editor {
 
     int EditorInstance::MountData(const std::string& path) {
         mRootMountPointID = mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 100, path);
+        mConfigMountPointID = mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/config", 100, Platforms::GetConfigPath("org.cattle_engine.editor"));
         return 0;
     }
 } 

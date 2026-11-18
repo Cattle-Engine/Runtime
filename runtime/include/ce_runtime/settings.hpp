@@ -1,12 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
+#include <optional>
 #include <string>
 
 #include "ce_runtime/common/fs/ini.hpp"
 #include "ce_runtime/common/misc/gameinfo.hpp"
 #include "ce_runtime/common/window.hpp"
-#include <functional>
 
 namespace CE {
     class BaseInstance;
@@ -28,9 +29,18 @@ namespace CE::Settings {
 
     class SettingsManager {
       public:
-        SettingsManager(const GameInfo& gameinfo, uint64_t instance_id);
+        SettingsManager(
+            std::string package_id,
+            uint64_t instance_id = 0,
+            std::optional<GameInfo> gameinfo = std::nullopt
+        );
+
+        SettingsManager(const GameInfo& gameinfo, uint64_t instance_id) : SettingsManager(gameinfo.game_package_id, instance_id, gameinfo) {}
+
         void OnReload(std::function<void()> callback);
         SettingsInfo Settings;
+
+        bool HasGameInfo() const { return mGameInfo.has_value(); }
 
         bool ReloadSettings();
         int Custom_GetInteger(std::string key, std::string section, int fallback);
@@ -54,7 +64,7 @@ namespace CE::Settings {
         CE::Ini::Options mOptions;
         std::string mPrevRendererName;
         std::string mGamePackageID;
-        GameInfo mGameInfo;
+        std::optional<GameInfo> mGameInfo;
         uint64_t mInstanceID = 0;
         std::function<void()> mOnReloadedCallback;
     };

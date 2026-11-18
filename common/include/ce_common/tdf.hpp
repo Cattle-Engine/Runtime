@@ -3,12 +3,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <initializer_list>
 #include <iosfwd>
+#include <iterator>
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -173,6 +176,102 @@ namespace CE {
         }
         friend bool operator!=(const TDF& a, const TDF& b) {
             return !(a == b);
+        }
+
+        using ObjectIterator = Object::iterator;
+        using ConstObjectIterator = Object::const_iterator;
+        using ArrayIterator = Array::iterator;
+        using ConstArrayIterator = Array::const_iterator;
+
+        template <bool Const> class IteratorT {
+            using ObjIt = std::conditional_t<Const, ConstObjectIterator, ObjectIterator>;
+            using ArrIt = std::conditional_t<Const, ConstArrayIterator, ArrayIterator>;
+
+          public:
+            using iterator_category = std::forward_iterator_tag;
+            using value_type = TDF;
+            using difference_type = std::ptrdiff_t;
+            using pointer = std::conditional_t<Const, const TDF*, TDF*>;
+            using reference = std::conditional_t<Const, const TDF&, TDF&>;
+
+            IteratorT() = default;
+            explicit IteratorT(ObjIt it) : mIt(std::in_place_index<0>, it) {}
+            explicit IteratorT(ArrIt it) : mIt(std::in_place_index<1>, it) {}
+
+            // iterator -> const_iterator
+            template <bool C = Const, class = std::enable_if_t<C>>
+            IteratorT(const IteratorT<false>& o) {
+                if (o.mIt.index() == 0)
+                    mIt.template emplace<0>(std::get<0>(o.mIt));
+                else
+                    mIt.template emplace<1>(std::get<1>(o.mIt));
+            }
+
+            reference operator*() const {
+                if (mIt.index() == 0)
+                    return std::get<0>(mIt)->second;
+                return *std::get<1>(mIt);
+            }
+            pointer operator->() const {
+                return &**this;
+            }
+
+            std::string_view Key() const {
+                if (mIt.index() == 0)
+                    return std::get<0>(mIt)->first;
+                return {};
+            }
+
+            IteratorT& operator++() {
+                if (mIt.index() == 0)
+                    ++std::get<0>(mIt);
+                else
+                    ++std::get<1>(mIt);
+                return *this;
+            }
+            IteratorT operator++(int) {
+                IteratorT tmp = *this;
+                ++*this;
+                return tmp;
+            }
+
+            friend bool operator==(const IteratorT& a, const IteratorT& b) {
+                return a.mIt == b.mIt;
+            }
+            friend bool operator!=(const IteratorT& a, const IteratorT& b) {
+                return !(a == b);
+            }
+
+          private:
+            friend class IteratorT<!Const>;
+            std::variant<ObjIt, ArrIt> mIt;
+        };
+
+        using Iterator = IteratorT<false>;
+        using ConstIterator = IteratorT<true>;
+
+        Iterator begin() {
+            if (IsObject()) return Iterator(Get<Object>().begin());
+            if (IsArray()) return Iterator(Get<Array>().begin());
+            throw Error("Cannot iterate over non-container TDF");
+        }
+
+        Iterator end() {
+            if (IsObject()) return Iterator(Get<Object>().end());
+            if (IsArray()) return Iterator(Get<Array>().end());
+            throw Error("Cannot iterate over non-container TDF");
+        }
+
+        ConstIterator begin() const {
+            if (IsObject()) return ConstIterator(Get<Object>().begin());
+            if (IsArray()) return ConstIterator(Get<Array>().begin());
+            throw Error("Cannot iterate over non-container TDF");
+        }
+
+        ConstIterator end() const {
+            if (IsObject()) return ConstIterator(Get<Object>().end());
+            if (IsArray()) return ConstIterator(Get<Array>().end());
+            throw Error("Cannot iterate over non-container TDF");
         }
 
       private:

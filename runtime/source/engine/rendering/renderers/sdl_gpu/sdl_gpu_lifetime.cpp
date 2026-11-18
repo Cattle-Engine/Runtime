@@ -327,6 +327,8 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         mRenderTexture = detail::RTexture(mDevice, render_texture);
 
         ImGuiInit(window, mDevice);
+
+        mInited = true;
         return 0;
     }
 
@@ -372,32 +374,34 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         CE_LOG(LogLevel::Info, "[Renderer {}] Destroying white texture at {}", static_cast<void*>(this),
                static_cast<void*>(mWhiteTex));
-        if (mWhiteTex) {
+        if (mWhiteTex != nullptr) {
             SDL_ReleaseGPUTexture(mDevice, mWhiteTex);
             mWhiteTex = nullptr;
         }
 
-        if (mDefaultNormalTex) {
+        if (mDefaultNormalTex !=nullptr) {
             SDL_ReleaseGPUTexture(mDevice, mDefaultNormalTex);
             mDefaultNormalTex = nullptr;
         }
-        if (mNormalSampler) {
+        if (mNormalSampler !=nullptr) {
             SDL_ReleaseGPUSampler(mDevice, mNormalSampler);
             mNormalSampler = nullptr;
         }
 
-        if (mErrorSampler) {
+        if (mErrorSampler !=nullptr) {
             SDL_ReleaseGPUSampler(mDevice, mErrorSampler);
             mErrorSampler = nullptr;
         }
 
-        if (mErrorTex) {
+        if (mErrorTex !=nullptr) {
             SDL_ReleaseGPUTexture(mDevice, mErrorTex);
             mErrorTex = nullptr;
         }
 
         ProcessDeferredDeletions(true);
-        ImGuiShutdown(mDevice);
+        if (mInited) {
+            ImGuiShutdown(mDevice);
+        }
 
         return 0;
     }

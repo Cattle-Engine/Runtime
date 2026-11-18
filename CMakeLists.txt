@@ -33,6 +33,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(common)
 add_subdirectory(tools/tcf)
+add_subdirectory(tools/shaderc)
 add_subdirectory(runtime)
 add_subdirectory(loader)
 add_subdirectory(tools/scriptc)

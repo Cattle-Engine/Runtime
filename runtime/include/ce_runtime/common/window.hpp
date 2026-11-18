@@ -32,6 +32,9 @@ namespace CE::Common {
             void MinimiseWindow(bool minimised);
             bool IsMinimised();
 
+            void MaximiseWindow(bool maximised);
+            bool IsMaxmimised();
+
             /*
                 On fullscreen we use a user defined resolution, the same for windowed.
                 On borderless window it will ALWAYS be desktop resloution, the same for window resolution.

@@ -73,11 +73,9 @@ namespace CE {
 namespace CE::ACCS {
     struct Dependencies {
         CE::BaseInstance& instance;
-        CE::GameInfo& game_info;
 
         Common::FS::VFS::VFS& vfs;
         CE::Core::GameState::GameStateManager& game_state_manager;
-        CE::Settings::SettingsManager& settings_manager;
 
         CE::Renderer::IRenderer& renderer;
 
@@ -104,10 +102,8 @@ namespace CE::ACCS {
 
         Dependencies(
             CE::BaseInstance& instance,
-            CE::GameInfo& game_info,
             Common::FS::VFS::VFS& vfs,
             CE::Core::GameState::GameStateManager& game_state_manager,
-            CE::Settings::SettingsManager& settings_manager,
             CE::Renderer::IRenderer& renderer,
             CE::Renderer::Resources::TextureManager& texture_manager,
             CE::Renderer::Resources::ShaderManager& shader_manager,
@@ -127,10 +123,8 @@ namespace CE::ACCS {
             CE::Common::Containers::RendererResourcesNameRegistry& renderer_resources_name_registry
         )
             : instance(instance),
-              game_info(game_info),
               vfs(vfs),
               game_state_manager(game_state_manager),
-              settings_manager(settings_manager),
               renderer(renderer),
               texture_manager(texture_manager),
               shader_manager(shader_manager),
