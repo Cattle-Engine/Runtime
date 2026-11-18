@@ -21,5 +21,6 @@ namespace CE::Editor {
 
     int EditorInstance::MountData(const std::string& path) {
         mRootMountPointID = mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>("/", 100, path);
+        return 0;
     }
 } 
