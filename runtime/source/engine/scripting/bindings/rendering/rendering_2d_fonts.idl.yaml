@@ -1,5 +1,5 @@
 RequiredCppHeaders:
-  - "engine/assets/fonts.hpp"
+  - "ce_runtime/assets/fonts.hpp"
 
 ASNamespace: CE::Graphics::Render2D::Text
 

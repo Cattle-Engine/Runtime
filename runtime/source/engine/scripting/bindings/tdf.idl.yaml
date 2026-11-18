@@ -8,8 +8,8 @@ Documentation: |
   a default value when given a value of the wrong type.
 
 RequiredCppHeaders:
-  - "engine/common/fs/tdf.hpp"
-  - "engine/scripting/bindings/tdf_bindings.hpp"
+  - "ce_runtime/common/fs/tdf.hpp"
+  - "ce_runtime/scripting/bindings/tdf_bindings.hpp"
 
 ASEnums:
   - Name: Type

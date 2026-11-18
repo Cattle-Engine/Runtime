@@ -1,14 +1,14 @@
-#include "engine/settings.hpp"
+#include "ce_runtime/settings.hpp"
 
 #include <algorithm>
 #include <filesystem>
 #include <format>
 
-#include "engine/common/fs/ini.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/window.hpp"
-#include "engine/instance/base_instance.hpp"
-#include "engine/platforms.hpp"
+#include "ce_runtime/common/fs/ini.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/common/window.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/platforms.hpp"
 
 namespace CE::Settings {
     SettingsManager::SettingsManager(const GameInfo& gameinfo, uint64_t instance_id) {

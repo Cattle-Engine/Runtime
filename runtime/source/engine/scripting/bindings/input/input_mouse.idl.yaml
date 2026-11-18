@@ -1,7 +1,7 @@
 RegistrationPriority: 100
 
 RequiredCppHeaders:
-  - "engine/input/mouse.hpp"
+  - "ce_runtime/input/mouse.hpp"
 
 ASNamespace: CE::Input::Mouse
 

@@ -1,4 +1,4 @@
-#include "engine/scripting/angelscript.hpp"
+#include "ce_runtime/scripting/angelscript.hpp"
 
 namespace CE::Scripting::Utils {
     std::string LoadScript(Common::FS::VFS::VFS& vfs, const char* path) {

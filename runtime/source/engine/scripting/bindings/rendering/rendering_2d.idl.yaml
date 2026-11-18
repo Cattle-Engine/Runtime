@@ -2,8 +2,8 @@
 RegistrationPriority: 80
 
 RequiredCppHeaders:
-  - "engine/rendering/resources/texture_manager.hpp"
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/rendering/resources/texture_manager.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
 
 ASNamespace: CE::Graphics::Render2D
 

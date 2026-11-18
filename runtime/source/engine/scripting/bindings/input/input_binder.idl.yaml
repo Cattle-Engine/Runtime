@@ -1,9 +1,9 @@
 ASNamespace: CE::Input::Bindings
 
 RequiredCppHeaders:
-  - "engine/input/input_binder.hpp"
-  - "engine/input/keyboard.hpp"
-  - "engine/input/mouse.hpp"
+  - "ce_runtime/input/input_binder.hpp"
+  - "ce_runtime/input/keyboard.hpp"
+  - "ce_runtime/input/mouse.hpp"
 
 RegistrationPriority: 90
 

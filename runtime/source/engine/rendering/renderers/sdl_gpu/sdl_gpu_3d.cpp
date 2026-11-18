@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <utility>
 
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>

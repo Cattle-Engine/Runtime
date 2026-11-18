@@ -2,10 +2,10 @@ RegistrationPriority: 90
 ASNamespace: CE::Graphics::Render3D
 
 RequiredCppHeaders: 
-  - "engine/scripting/bindings/as_cubemap.hpp"
-  - "engine/scripting/bindings/stl_vector_binder.hpp"
-  - "engine/rendering/resources/model_renderer.hpp"
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/scripting/bindings/as_cubemap.hpp"
+  - "ce_runtime/scripting/bindings/stl_vector_binder.hpp"
+  - "ce_runtime/rendering/resources/model_renderer.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
   - <utility>
 
 ASEnums:

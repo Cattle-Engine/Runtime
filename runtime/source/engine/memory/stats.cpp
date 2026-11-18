@@ -1,4 +1,4 @@
-#include "engine/memory/stats.hpp"
+#include "ce_runtime/memory/stats.hpp"
 
 namespace CE::Memory {
     Stats& GetStats() {

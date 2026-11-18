@@ -1,5 +1,5 @@
 #include <utility>
-#include "engine/common/core/game_state.hpp"
+#include "ce_runtime/common/core/game_state.hpp"
 
 namespace CE::Core::GameState {
     GameStateManager::GameStateManager(EventBus& eventbus) : mEventBus(eventbus) {}

@@ -7,8 +7,8 @@ Documentation: |
   and resolve through the mounts configured by the engine. File handles are scoped.
 
 RequiredCppHeaders:
-  - "engine/common/fs/vfs.hpp"
-  - "engine/scripting/bindings/vfs/as_ifile.hpp"
+  - "ce_runtime/common/fs/vfs.hpp"
+  - "ce_runtime/scripting/bindings/vfs/as_ifile.hpp"
 
 ASEnums:
   - Name: SeekOrigin

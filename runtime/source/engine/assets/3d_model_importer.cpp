@@ -1,4 +1,4 @@
-#include "engine/assets/3d_model_importer.hpp"
+#include "ce_runtime/assets/3d_model_importer.hpp"
 
 #include <filesystem>
 #include <string>
@@ -7,11 +7,11 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/assets/assimp_vfs_io.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/utils/scoped_timer.hpp"
-#include "engine/rendering/resources/material_manager.hpp"
-#include "engine/rendering/resources/texture_manager.hpp"
+#include "ce_runtime/assets/assimp_vfs_io.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/common/utils/scoped_timer.hpp"
+#include "ce_runtime/rendering/resources/material_manager.hpp"
+#include "ce_runtime/rendering/resources/texture_manager.hpp"
 
 #include <SDL3_image/SDL_image.h>
 #include <assimp/Importer.hpp>

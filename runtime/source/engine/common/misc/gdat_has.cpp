@@ -1,7 +1,7 @@
 #include <string>
 
-#include "engine/common/fs/ini.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/fs/ini.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Common {
     bool GData_Has(std::string text) {

@@ -1,10 +1,10 @@
-#include "engine/assets/animated_textures.hpp"
+#include "ce_runtime/assets/animated_textures.hpp"
 
 #include <algorithm>
 #include <memory>
 
-#include "engine/common/fs/tdf.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/fs/tdf.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Assets::Animations {
     AnimatedTextureManager::AnimatedTextureManager(Common::FS::VFS::VFS& vfs, Renderer::IRenderer& renderer, int instance_id)

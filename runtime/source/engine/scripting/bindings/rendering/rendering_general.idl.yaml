@@ -2,7 +2,7 @@ RegistrationPriority: 99
 ASNamespace: CE::Graphics
 
 RequiredCppHeaders:
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
 
 ASClassFunctions:
   - Name: SetClearColour

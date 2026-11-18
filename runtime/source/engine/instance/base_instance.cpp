@@ -1,4 +1,4 @@
-#include "engine/instance/base_instance.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
 
 #include <algorithm>
 #include <format>
@@ -7,13 +7,13 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/fs/os_fs/directory_file_provider.hpp"
-#include "engine/common/fs/tcf/tcf_file_provider.hpp"
-#include "engine/common/sdl_events.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/window.hpp"
-#include "engine/platforms.hpp"
+#include "ce_runtime/bootstrap/instance.hpp"
+#include "ce_runtime/common/fs/os_fs/directory_file_provider.hpp"
+#include "ce_runtime/common/fs/tcf/tcf_file_provider.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/common/window.hpp"
+#include "ce_runtime/platforms.hpp"
 
 namespace CE {
     uint64_t gGlobalInstanceCounter = 0;

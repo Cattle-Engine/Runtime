@@ -1,6 +1,6 @@
 ASNamespace: CE::Input::Keyboard
 RequiredCppHeaders:
-  - "engine/input/keyboard.hpp"
+  - "ce_runtime/input/keyboard.hpp"
 
 RegistrationPriority: 100
 

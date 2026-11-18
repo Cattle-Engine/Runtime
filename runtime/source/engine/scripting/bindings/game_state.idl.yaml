@@ -2,7 +2,7 @@ ASNamespace: CE::GameState
 RegistrationPriority: 100
 
 RequiredCppHeaders:
-  - "engine/common/core/game_state.hpp"
+  - "ce_runtime/common/core/game_state.hpp"
   - <string>
 
 Documentation: |

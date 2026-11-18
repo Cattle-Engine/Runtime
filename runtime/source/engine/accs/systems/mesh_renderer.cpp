@@ -1,8 +1,8 @@
-#include "engine/accs/accs.hpp"
-#include "engine/accs/components/3d_rendering.hpp"
-#include "engine/accs/systems/mesh_renderer.hpp"
-#include "engine/accs/components/transform.hpp"
-#include "engine/accs/system.hpp"
+#include "ce_runtime/accs/accs.hpp"
+#include "ce_runtime/accs/components/3d_rendering.hpp"
+#include "ce_runtime/accs/systems/mesh_renderer.hpp"
+#include "ce_runtime/accs/components/transform.hpp"
+#include "ce_runtime/accs/system.hpp"
 
 namespace CE::ACCS::Systems {
     void MeshRenderer::Update(float dt, FrameUpdateType type, World& world, ACCS& accs) {

@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <sstream>
 
-#include "engine/ui/utils.hpp"
-#include "engine/ui/angelscript_debugger_window.hpp"
+#include "ce_runtime/ui/utils.hpp"
+#include "ce_runtime/ui/angelscript_debugger_window.hpp"
 
 namespace CE::UI {
     namespace {

@@ -1,6 +1,6 @@
-#include "engine/assets/assimp_vfs_io.hpp"
+#include "ce_runtime/assets/assimp_vfs_io.hpp"
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Assets {
     VFSIOStream::VFSIOStream(std::unique_ptr<CE::Common::FS::VFS::IFile> file) : mFile(std::move(file)) {}

@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
-#include "engine/ui/logs_window.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/ui/logs_window.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 #include <string>
 #include <vector>

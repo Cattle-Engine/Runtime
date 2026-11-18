@@ -1,8 +1,8 @@
 #include <angelscript.h>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
-#include "engine/scripting/bindings/script_logging.hpp"
+#include "ce_runtime/scripting/bindings/script_logging.hpp"
 
 #include <format>
 #include <stdexcept>

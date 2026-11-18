@@ -1,10 +1,10 @@
 
-#include "engine/scripting/bindings/accs.hpp"
+#include "ce_runtime/scripting/bindings/accs.hpp"
 
-#include "engine/accs/components/2d_rendering.hpp"
-#include "engine/accs/components/3d_rendering.hpp"
-#include "engine/accs/components/transform.hpp"
-#include "engine/accs/world_file.hpp"
+#include "ce_runtime/accs/components/2d_rendering.hpp"
+#include "ce_runtime/accs/components/3d_rendering.hpp"
+#include "ce_runtime/accs/components/transform.hpp"
+#include "ce_runtime/accs/world_file.hpp"
 
 #include <cstdint>
 #include <exception>
@@ -20,11 +20,11 @@
 #include <scriptarray/scriptarray.h>
 #include <scripthandle/scripthandle.h>
 
-#include "engine/accs/accs.hpp"
-#include "engine/accs/serialization_context.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/instance/game_instance.hpp"
-#include "engine/scripting/bindings/binding_macros.hpp"
+#include "ce_runtime/accs/accs.hpp"
+#include "ce_runtime/accs/serialization_context.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/instance/game_instance.hpp"
+#include "ce_runtime/scripting/bindings/binding_macros.hpp"
 
 namespace CE::Scripting::Bindings {
     namespace {

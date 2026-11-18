@@ -1,5 +1,5 @@
-#include "engine/accs/world.hpp"
-#include "engine/accs/actor.hpp"
+#include "ce_runtime/accs/world.hpp"
+#include "ce_runtime/accs/actor.hpp"
 
 namespace CE::ACCS {
     ActorHandle World::CreateActor() {

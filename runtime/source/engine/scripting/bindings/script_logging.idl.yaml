@@ -2,8 +2,8 @@ RegistrationPriority: 100
 ASNamespace: CE
 
 RequiredCppHeaders:
-  - "engine/scripting/bindings/script_logging.hpp"
-  - "engine/common/tracelog.hpp"
+  - "ce_runtime/scripting/bindings/script_logging.hpp"
+  - "ce_runtime/common/tracelog.hpp"
   
 ASEnums:
   - Name: LogLevel

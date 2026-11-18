@@ -1,8 +1,8 @@
-#include "engine/rendering/resources/material_manager.hpp"
+#include "ce_runtime/rendering/resources/material_manager.hpp"
 
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderer.hpp"
-#include "engine/rendering/resources/shader_manager.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+#include "ce_runtime/rendering/resources/shader_manager.hpp"
 
 namespace CE::Renderer::Resources {
     MaterialManager::MaterialManager(TextureManager& texture_manager, IRenderer& renderer, ShaderManager& shader_manager)

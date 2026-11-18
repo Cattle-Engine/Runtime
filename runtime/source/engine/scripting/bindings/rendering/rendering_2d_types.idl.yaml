@@ -2,7 +2,7 @@ RegistrationPriority: 89
 
 ASNamespace: CE::Graphics::Render2D
 RequiredCppHeaders:
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
 
 ASTypes:
   - Name: Camera2D

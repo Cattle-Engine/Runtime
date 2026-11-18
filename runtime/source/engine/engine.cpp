@@ -1,4 +1,4 @@
-#include "engine/engine.hpp"
+#include "ce_runtime/engine.hpp"
 
 #include <filesystem>
 #include <format>
@@ -7,13 +7,13 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include "engine/bootstrap/engine.hpp"
-#include "engine/common/misc/renderer_name_2_string.hpp"
-#include "engine/common/sdl_events.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderer.hpp"
-#include "engine/settings.hpp"
-#include "engine/version.hpp"
+#include "ce_runtime/bootstrap/engine.hpp"
+#include "ce_runtime/common/misc/renderer_name_2_string.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+#include "ce_runtime/settings.hpp"
+#include "ce_runtime/version.hpp"
 #include "ce_common/tracelog.hpp"
 namespace FS = std::filesystem;
 

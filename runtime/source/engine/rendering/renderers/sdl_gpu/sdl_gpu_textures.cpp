@@ -1,9 +1,9 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_image/SDL_image.h>
 
-#include "engine/rendering/renderer.hpp"
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     namespace {

@@ -1,5 +1,5 @@
-#include "engine/scripting/bindings/input/keyboard_enum_registerer.hpp"
-#include "engine/input/keyboard.hpp"
+#include "ce_runtime/scripting/bindings/input/keyboard_enum_registerer.hpp"
+#include "ce_runtime/input/keyboard.hpp"
 
 namespace CE::Scripting::Bindings{
     bool RegisterKeyboardEnum(asIScriptEngine* engine) {

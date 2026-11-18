@@ -1,5 +1,5 @@
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     void SDL_GPU_Renderer::SetClearColour(float r, float g, float b, float a) {

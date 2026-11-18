@@ -1,8 +1,8 @@
 #include <format>
 #include <algorithm>
 
-#include "engine/scripting/angelscript.hpp"
-#include "engine/common/core/game_state.hpp"
+#include "ce_runtime/scripting/angelscript.hpp"
+#include "ce_runtime/common/core/game_state.hpp"
 
 namespace CE::Scripting {
     void Runtime::UnsubscribeStateEvent(int id) {

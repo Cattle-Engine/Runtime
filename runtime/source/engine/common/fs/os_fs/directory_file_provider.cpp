@@ -1,4 +1,4 @@
-#include "engine/common/fs/os_fs/directory_file_provider.hpp"
+#include "ce_runtime/common/fs/os_fs/directory_file_provider.hpp"
 
 #include <complex>
 #include <filesystem>
@@ -6,8 +6,8 @@
 #include <memory>
 #include <system_error>
 
-#include "engine/common/fs/file_provider.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/fs/file_provider.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Common::FS::OSFS {
     namespace {

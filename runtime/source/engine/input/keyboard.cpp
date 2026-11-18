@@ -1,6 +1,6 @@
-#include "engine/input/keyboard.hpp"
+#include "ce_runtime/input/keyboard.hpp"
 
-#include "engine/common/sdl_events.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
 
 namespace CE::Input {
     Keyboard::Keyboard(int windowID) {

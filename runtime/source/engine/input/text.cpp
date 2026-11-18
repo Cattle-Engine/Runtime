@@ -1,9 +1,9 @@
-#include "engine/input/text.hpp"
+#include "ce_runtime/input/text.hpp"
 #include <string>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_keyboard.h>
-#include "engine/common/sdl_events.hpp"
-#include "engine/common/window.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/common/window.hpp"
 
 namespace CE::Input {
     TextInput::TextInput(int window_id, Common::Window& window) : mWindow(window) {

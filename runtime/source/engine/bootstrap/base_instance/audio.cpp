@@ -1,9 +1,9 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
-#include "engine/instance/base_instance.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/settings.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/settings.hpp"
 
 namespace CE {
     int BaseInstance::Bootstrap_Audio() {

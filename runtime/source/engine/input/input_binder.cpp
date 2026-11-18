@@ -1,9 +1,9 @@
-#include "engine/input/input_binder.hpp"
+#include "ce_runtime/input/input_binder.hpp"
 
 #include "ce_common/tdf.hpp"
-#include "engine/common/fs/file_provider.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/fs/ifile_stream.hpp"
+#include "ce_runtime/common/fs/file_provider.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/common/fs/ifile_stream.hpp"
 
 namespace CE::Input::Bindings {
     const std::vector<Binding>& BindingManager::GetBinding(const std::string& name) {

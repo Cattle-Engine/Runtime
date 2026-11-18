@@ -4,11 +4,11 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/common/misc/arguments.hpp"
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/engine.hpp"
-#include "engine/memory/allocator.hpp"
+#include "ce_runtime/common/misc/arguments.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/engine.hpp"
+#include "ce_runtime/memory/allocator.hpp"
 
 int main(int argc, char* argv[]) {
     // get the executable base path to combine with the data file name (data.tcf)

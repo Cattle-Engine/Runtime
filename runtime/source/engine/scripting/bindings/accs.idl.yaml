@@ -2,11 +2,11 @@ RegistrationPriority: 10
 ASNamespace: CE::ACCS
 
 RequiredCppHeaders:
-  - "engine/accs/actor.hpp"
-  - "engine/accs/component.hpp"
-  - "engine/accs/system.hpp"
-  - "engine/accs/serialization.hpp"
-  - "engine/accs/components/transform.hpp"
+  - "ce_runtime/accs/actor.hpp"
+  - "ce_runtime/accs/component.hpp"
+  - "ce_runtime/accs/system.hpp"
+  - "ce_runtime/accs/serialization.hpp"
+  - "ce_runtime/accs/components/transform.hpp"
 
 ASEnums:
   - Name: FrameUpdateType

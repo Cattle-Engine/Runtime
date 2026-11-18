@@ -2,7 +2,7 @@ RegistrationPriority: 100
 ASNamespace: CE::Window
 
 RequiredCppHeaders: 
-  - "engine/common/window.hpp"
+  - "ce_runtime/common/window.hpp"
 
 ASEnums:
   - Name: WindowMode

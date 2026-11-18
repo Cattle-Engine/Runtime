@@ -56,8 +56,8 @@ def render_registry(bindings_dir: Path) -> str:
 #include <string_view>
 #include <angelscript.h>
 
-#include "engine/scripting/bindings/script_binding_class.hpp"
-#include "engine/scripting/angelscript.hpp"
+#include "ce_runtime/scripting/bindings/script_binding_class.hpp"
+#include "ce_runtime/scripting/angelscript.hpp"
 
 {include_lines}
 namespace CE::Scripting::Bindings {{

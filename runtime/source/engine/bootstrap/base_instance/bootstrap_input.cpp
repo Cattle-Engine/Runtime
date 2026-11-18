@@ -1,8 +1,8 @@
 #include <memory>
-#include "engine/input/input_binder.hpp"
-#include "engine/input/text.hpp"
-#include "engine/instance/base_instance.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/input/input_binder.hpp"
+#include "ce_runtime/input/text.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE {
     int BaseInstance::Bootstrap_InputManagers() {

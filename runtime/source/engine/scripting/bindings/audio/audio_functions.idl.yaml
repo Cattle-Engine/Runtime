@@ -1,8 +1,8 @@
 RegistrationPriority: 90
 
 RequiredCppHeaders:
-  - "engine/audio/audio.hpp"
-  - "engine/audio/audio_resource_manager.hpp"
+  - "ce_runtime/audio/audio.hpp"
+  - "ce_runtime/audio/audio_resource_manager.hpp"
   - <cstdint>
   - <string>
 

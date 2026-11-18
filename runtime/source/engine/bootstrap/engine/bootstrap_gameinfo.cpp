@@ -1,13 +1,13 @@
 #include <string>
 #include <algorithm>
 
-#include "engine/bootstrap/engine.hpp"
-#include "engine/common/fs/ini.hpp"
-#include "engine/common/fs/vfs.hpp"
-#include "engine/common/fs/tcf/tcf_file_provider.hpp"
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/common/misc/gdat_has.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/bootstrap/engine.hpp"
+#include "ce_runtime/common/fs/ini.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/common/fs/tcf/tcf_file_provider.hpp"
+#include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/common/misc/gdat_has.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Bootstrap::Engine {
     int GetGameInfo(GameInfo& gameinfo, std::string& gdata_name, [[maybe_unused]] bool debug) {

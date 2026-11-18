@@ -1,13 +1,13 @@
 #include <string>
 
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/fs/ini.hpp"
-#include "engine/common/fs/os_fs/directory_file_provider.hpp"
-#include "engine/common/fs/tcf/tcf_file_provider.hpp"
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/misc/gdat_has.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/common/window.hpp"
+#include "ce_runtime/bootstrap/instance.hpp"
+#include "ce_runtime/common/fs/ini.hpp"
+#include "ce_runtime/common/fs/os_fs/directory_file_provider.hpp"
+#include "ce_runtime/common/fs/tcf/tcf_file_provider.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/misc/gdat_has.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/common/window.hpp"
 
 namespace CE::Bootstrap {
     int Init_GameInfo(std::unique_ptr<Common::FS::VFS::VFS>& vfs, std::unique_ptr<GameInfo>& gameinfo, [[maybe_unused]] bool debugmode) {

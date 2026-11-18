@@ -1,9 +1,9 @@
 #include <SDL3/SDL.h>
 
-#include "engine/common/sdl_events.hpp"
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
-#include "engine/assets/default_font.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/assets/default_font.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"

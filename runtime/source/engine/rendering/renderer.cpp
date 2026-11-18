@@ -1,9 +1,9 @@
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
-#include "engine/common/fs/vfs.hpp"
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
-#include "engine/rendering/renderers/software_renderer.hpp"
-#include "engine/rendering/renderers/null_renderer.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/rendering/renderers/software_renderer.hpp"
+#include "ce_runtime/rendering/renderers/null_renderer.hpp"
 
 #include "memory"
 

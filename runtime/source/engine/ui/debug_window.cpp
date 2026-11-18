@@ -1,4 +1,4 @@
-#include "engine/ui/debug_window.hpp"
+#include "ce_runtime/ui/debug_window.hpp"
 
 #include <cinttypes>
 #include <cstring>
@@ -7,23 +7,23 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/assets/fonts.hpp"
-#include "engine/audio/audio.hpp"
-#include "engine/audio/audio_resource_manager.hpp"
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/input/keyboard.hpp"
-#include "engine/input/mouse.hpp"
-#include "engine/instance/base_instance.hpp"
-#include "engine/memory/allocator.hpp"
-#include "engine/memory/stats.hpp"
-#include "engine/rendering/renderer.hpp"
-#include "engine/rendering/resources/shader_manager.hpp"
-#include "engine/settings.hpp"
-#include "engine/ui/angelscript_debugger_window.hpp"
-#include "engine/ui/logs_window.hpp"
-#include "engine/ui/utils.hpp"
-#include "engine/version.hpp"
-#include "engine/common/window.hpp"
+#include "ce_runtime/assets/fonts.hpp"
+#include "ce_runtime/audio/audio.hpp"
+#include "ce_runtime/audio/audio_resource_manager.hpp"
+#include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/input/keyboard.hpp"
+#include "ce_runtime/input/mouse.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/memory/allocator.hpp"
+#include "ce_runtime/memory/stats.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+#include "ce_runtime/rendering/resources/shader_manager.hpp"
+#include "ce_runtime/settings.hpp"
+#include "ce_runtime/ui/angelscript_debugger_window.hpp"
+#include "ce_runtime/ui/logs_window.hpp"
+#include "ce_runtime/ui/utils.hpp"
+#include "ce_runtime/version.hpp"
+#include "ce_runtime/common/window.hpp"
 
 #include "imgui.h"
 #include "imgui_stdlib.h"

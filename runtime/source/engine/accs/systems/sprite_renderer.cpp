@@ -1,11 +1,11 @@
 #include <algorithm>
 
-#include "engine/accs/systems/sprite_renderer.hpp"
-#include "engine/accs/components/2d_rendering.hpp"
-#include "engine/accs/components/transform.hpp"
-#include "engine/accs/system.hpp"
-#include "engine/accs/accs.hpp"
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/accs/systems/sprite_renderer.hpp"
+#include "ce_runtime/accs/components/2d_rendering.hpp"
+#include "ce_runtime/accs/components/transform.hpp"
+#include "ce_runtime/accs/system.hpp"
+#include "ce_runtime/accs/accs.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
 namespace CE::ACCS::Systems {
     void SpriteRenderer::Update([[maybe_unused]] float dt, FrameUpdateType type, World& world, ACCS& accs) {

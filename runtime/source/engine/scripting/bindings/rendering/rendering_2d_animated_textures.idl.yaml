@@ -1,7 +1,7 @@
 ASNamespace: CE::Graphics::Render2D::AnimatedTextures
 
 RequiredCppHeaders:
-  - "engine/assets/animated_textures.hpp"
+  - "ce_runtime/assets/animated_textures.hpp"
 
 ASTypes:
   - Name: AnimationInstance

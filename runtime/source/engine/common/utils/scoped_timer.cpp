@@ -1,6 +1,6 @@
-#include "engine/common/utils/scoped_timer.hpp"
+#include "ce_runtime/common/utils/scoped_timer.hpp"
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Utils {
     ScopedTimer::ScopedTimer(std::string label) {

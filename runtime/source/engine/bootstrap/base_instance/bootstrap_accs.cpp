@@ -1,12 +1,12 @@
 #include <memory>
-#include "engine/accs/component.hpp"
-#include "engine/accs/components/2d_rendering.hpp"
-#include "engine/accs/components/transform.hpp"
-#include "engine/accs/system.hpp"
-#include "engine/accs/systems/mesh_renderer.hpp"
-#include "engine/instance/base_instance.hpp"
+#include "ce_runtime/accs/component.hpp"
+#include "ce_runtime/accs/components/2d_rendering.hpp"
+#include "ce_runtime/accs/components/transform.hpp"
+#include "ce_runtime/accs/system.hpp"
+#include "ce_runtime/accs/systems/mesh_renderer.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
 
-#include "engine/accs/systems/sprite_renderer.hpp"
+#include "ce_runtime/accs/systems/sprite_renderer.hpp"
 
 namespace CE {
     int BaseInstance::Bootstrap_ACCS() {

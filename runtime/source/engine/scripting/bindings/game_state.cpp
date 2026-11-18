@@ -1,4 +1,4 @@
-#include "engine/scripting/bindings/game_state.hpp"
+#include "ce_runtime/scripting/bindings/game_state.hpp"
 
 namespace CE::Scripting::Bindings {
     int RegisterSubscribeEventFuncDef(asIScriptEngine& script_engine) {

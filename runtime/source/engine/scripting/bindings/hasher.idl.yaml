@@ -7,7 +7,7 @@ Documentation: |
   strings; Finalize returns the hash accumulated so far.
 
 RequiredCppHeaders:
-  - "engine/common/utils/hasher.hpp"
+  - "ce_runtime/common/utils/hasher.hpp"
 
 ASTypes:
   - Name: StreamingHasher

@@ -1,7 +1,7 @@
 ASNamespace: CE::Settings
 
 RequiredCppHeaders:
-  - "engine/settings.hpp"
+  - "ce_runtime/settings.hpp"
 
 ASTypes:
   - Name: SettingsInfo

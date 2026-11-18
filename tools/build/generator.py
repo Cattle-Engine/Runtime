@@ -2,8 +2,8 @@ import random
 from typing import Final
 from dataclasses import dataclass, field
 
-ANGELSCRIPT_CLASS_INCLUDE: Final = "engine/scripting/bindings/script_binding_class.hpp"
-ANGELSCRIPT_MACRO_INCUDE: Final = "engine/scripting/bindings/binding_macros.hpp"
+ANGELSCRIPT_CLASS_INCLUDE: Final = "ce_runtime/scripting/bindings/script_binding_class.hpp"
+ANGELSCRIPT_MACRO_INCUDE: Final = "ce_runtime/scripting/bindings/binding_macros.hpp"
 ANGELSCRIPT_MACRO_INCLUDE: Final = ANGELSCRIPT_MACRO_INCUDE
 
 FLAG_MAP = {

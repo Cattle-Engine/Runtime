@@ -2,7 +2,7 @@ RegistrationPriority: 100
 ASNamespace: CE::Performance
 
 RequiredCppHeaders:
-  - "engine/instance.hpp"
+  - "ce_runtime/instance.hpp"
 
 ASClassFunctions:
   - Name: GetFPS

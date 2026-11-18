@@ -1,4 +1,4 @@
-#include "engine/assets/fonts.hpp"
+#include "ce_runtime/assets/fonts.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -10,10 +10,10 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include "engine/assets/default_font.hpp"
-#include "engine/common/fs/vfs.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/assets/default_font.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
 namespace CE::Assets::Fonts {
     namespace {

@@ -2,18 +2,18 @@
 #include <memory>
 #include <string>
 
-#include "engine/audio/audio.hpp"
-#include "engine/common/core/game_state.hpp"
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/input/input_binder.hpp"
-#include "engine/input/text.hpp"
-#include "engine/scripting/angelscript.hpp"
-#include "engine/scripting/debugger.hpp"
+#include "ce_runtime/audio/audio.hpp"
+#include "ce_runtime/common/core/game_state.hpp"
+#include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/input/input_binder.hpp"
+#include "ce_runtime/input/text.hpp"
+#include "ce_runtime/scripting/angelscript.hpp"
+#include "ce_runtime/scripting/debugger.hpp"
 #include "ce_common/as_compiler/modules.hpp"
 #include "ce_common/as_compiler/bytecode.hpp"
-#include "engine/scripting/bindings/bindings_list.hpp"
-#include "engine/common/fs/ifile_stream.hpp"
+#include "ce_runtime/scripting/bindings/bindings_list.hpp"
+#include "ce_runtime/common/fs/ifile_stream.hpp"
 
 #include <angelscript.h>
 #include <scriptarray/scriptarray.h>

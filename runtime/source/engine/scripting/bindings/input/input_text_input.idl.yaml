@@ -2,7 +2,7 @@ RegistrationPriority: 100
 ASNamespace: CE::Input::Text
 
 RequiredCppHeaders:
-  - "engine/input/text.hpp"
+  - "ce_runtime/input/text.hpp"
 
 ASClassFunctions:
   - Name: Begin

@@ -27,7 +27,7 @@ add_executable(ce_griller
 )
 
 target_include_directories(ce_griller PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../runtime/include/engine/common/misc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../runtime/include/ce_runtime/common/misc
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 

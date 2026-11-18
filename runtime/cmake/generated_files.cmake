@@ -56,13 +56,13 @@ configure_file(
     @ONLY
 )
 
-set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/engine/compilers/gcc/enum_to_string_impl.inl")
+set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/ce_runtime/compilers/gcc/enum_to_string_impl.inl")
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/engine/compilers/gcc/enum_to_string_impl.inl")
+    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/ce_runtime/compilers/gcc/enum_to_string_impl.inl")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/engine/compilers/clang/enum_to_string_impl.inl")
+    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/ce_runtime/compilers/clang/enum_to_string_impl.inl")
 elseif(MSVC)
-    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/engine/compilers/msvc/enum_to_string_impl.inl")
+    set(CE_COMPILER_ENUM_SOURCE "${CE_RUNTIME_ROOT}/include/ce_runtime/compilers/msvc/enum_to_string_impl.inl")
 endif()
 
 add_custom_command(

@@ -1,12 +1,12 @@
-#include "engine/rendering/renderers/software_renderer.hpp"
+#include "ce_runtime/rendering/renderers/software_renderer.hpp"
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <vector>
 
-#include "engine/common/sdl_events.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"

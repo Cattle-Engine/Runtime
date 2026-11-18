@@ -1,9 +1,9 @@
-#include "engine/audio/audio_resource_manager.hpp"
+#include "ce_runtime/audio/audio_resource_manager.hpp"
 
 #include <algorithm>
 #include <utility>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Audio::Resources {
     AudioManager::AudioManager(Core::Audio::AudioSystem& audio_system, Common::FS::VFS::VFS& vfs, int instance_id)

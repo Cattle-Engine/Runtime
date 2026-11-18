@@ -1,7 +1,7 @@
-#include "engine/common/misc/renderer_name_2_string.hpp"
+#include "ce_runtime/common/misc/renderer_name_2_string.hpp"
 
-#include "engine/common/misc/gameinfo.hpp"
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
 namespace CE::Common {
     void RendererName2String(const std::string renderername, RendererBackend& backend) {

@@ -1,7 +1,7 @@
 ASNamespace: CE
 
 RequiredCppHeaders: 
-  - "engine/instance.hpp"
+  - "ce_runtime/instance.hpp"
 
 ASClassFunctions:
   - Name: Quit

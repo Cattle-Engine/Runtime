@@ -1,4 +1,4 @@
-#include "engine/common/fs/vfs.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Common::FS::VFS {
     std::string VFS::NormalisePath(const std::string& path) {

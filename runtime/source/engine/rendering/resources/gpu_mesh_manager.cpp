@@ -1,7 +1,7 @@
-#include "engine/rendering/resources/gpu_mesh_manager.hpp"
+#include "ce_runtime/rendering/resources/gpu_mesh_manager.hpp"
 #include <optional>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Renderer::Resources {
     GPUMeshManager::GPUMeshManager(IRenderer& renderer, MaterialManager& mat_manager)

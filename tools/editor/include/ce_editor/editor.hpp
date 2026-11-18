@@ -1,15 +1,22 @@
 #pragma once
 
-#include "engine/instance/game_instance.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
 
 namespace CE::Editor {
-    class EditorInstance : Instance {
+    class EditorInstance : public ::CE::BaseInstance {
         public:
             EditorInstance(
                 const char* data_file_path,
                 bool debugmode,
                 Renderer::GPUDeviceHandle& gpudevice,
                 EngineArguements args
-            ) : Instance(data_file_path, debugmode, gpudevice, args) {}
+            ) {
+                this->InitialiseBase(
+                    debugmode,
+                    gpudevice,
+                    args,
+                    std::string("")
+                );
+            }
     };
 }

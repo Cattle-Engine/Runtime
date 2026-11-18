@@ -1,5 +1,5 @@
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderers/software_renderer.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderers/software_renderer.hpp"
 
 namespace CE::Renderer::Software {
     void Software_Renderer::LogAbout3D() {

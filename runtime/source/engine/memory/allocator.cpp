@@ -5,9 +5,9 @@
 #include <new>
 #include <unordered_map>
 
-#include <engine/memory/allocator.hpp>
-#include <engine/memory/stats.hpp>
-#include <engine/platforms.hpp>
+#include <ce_runtime/memory/allocator.hpp>
+#include <ce_runtime/memory/stats.hpp>
+#include <ce_runtime/platforms.hpp>
 
 #ifndef CE_PRIVATE
     #define CE_PRIVATE __attribute__((visibility("hidden")))

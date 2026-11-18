@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "engine/common/window.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/window.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Common {
     Window::Window(Core::GameState::GameStateManager& game_state, Common::FS::VFS::VFS& vfs, const std::string& window_title, WindowSize size, SDL_WindowFlags flags): mVFS(vfs), mGameState(game_state) {

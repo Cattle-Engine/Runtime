@@ -3,14 +3,14 @@
 
 #include <angelscript.h>
 
-#include "engine/common/tracelog.hpp"
-#include "engine/scripting/bindings/input/keyboard_enum_registerer.hpp"
-#include "engine/scripting/bindings/bindings_list.hpp"
-#include "engine/scripting/bindings/script_binding_class.hpp"
-#include "engine/scripting/bindings/stl_vector_binder.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/scripting/bindings/input/keyboard_enum_registerer.hpp"
+#include "ce_runtime/scripting/bindings/bindings_list.hpp"
+#include "ce_runtime/scripting/bindings/script_binding_class.hpp"
+#include "ce_runtime/scripting/bindings/stl_vector_binder.hpp"
 #include <bindings/binding_registry.hpp>
-#include "engine/scripting/bindings/game_state.hpp"
-#include "engine/scripting/bindings/accs.hpp"
+#include "ce_runtime/scripting/bindings/game_state.hpp"
+#include "ce_runtime/scripting/bindings/accs.hpp"
 
 namespace CE::Scripting::Bindings {
     class ScriptBindings::Impl {

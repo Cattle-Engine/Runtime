@@ -1,0 +1,501 @@
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_gpu.h>
+
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+
+#include <glm/glm.hpp>
+
+struct ImGuiContext;
+struct ImDrawData;
+
+namespace CE::Renderer::SDL_GPU_Renderer {
+    namespace detail {
+        template<typename T, void (*Release)(SDL_GPUDevice*, T*)>
+        class Handle {
+        public:
+            Handle() = default;
+
+            explicit Handle(SDL_GPUDevice* device, T* handle)
+                : mDevice(device), mHandle(handle) {}
+
+            ~Handle() {
+                Reset();
+            }
+
+            Handle(const Handle&) = delete;
+            Handle& operator=(const Handle&) = delete;
+
+            Handle(Handle&& other) noexcept
+                : mDevice(other.mDevice), mHandle(other.mHandle) {
+                other.mDevice = nullptr;
+                other.mHandle = nullptr;
+            }
+
+            Handle& operator=(Handle&& other) noexcept {
+                if (this != &other) {
+                    Reset();
+
+                    mDevice = other.mDevice;
+                    mHandle = other.mHandle;
+
+                    other.mDevice = nullptr;
+                    other.mHandle = nullptr;
+                }
+
+                return *this;
+            }
+
+            T* Get() const {
+                return mHandle;
+            }
+
+            bool IsValid() const {
+                return mHandle != nullptr;
+            }
+
+            void Reset() {
+                if (mDevice && mHandle) {
+                    Release(mDevice, mHandle);
+                }
+
+                mDevice = nullptr;
+                mHandle = nullptr;
+            }
+
+        private:
+            SDL_GPUDevice* mDevice = nullptr;
+            T* mHandle = nullptr;
+        };
+
+        using RTexture = Handle<SDL_GPUTexture, SDL_ReleaseGPUTexture>;
+    }
+
+    GPUDeviceHandle CreateGPUDevice(RendererBackend backend, bool debugvideo);
+    void DestroyGPUDevice(GPUDeviceHandle device);
+
+    struct SDLGPUTexData {
+        SDL_GPUTexture* gpuTex = nullptr;
+        SDL_GPUSampler* sampler = nullptr;
+        SDL_GPUSampler* repeatSampler = nullptr;
+    };
+
+    struct SDL_GPU_Renderer_Shader {
+        enum class PipelineMode { Mode2D, Mode3D };
+
+        SDL_GPUShader* VertexShader = nullptr;
+        SDL_GPUShader* FragmentShader = nullptr;
+        SDL_GPUGraphicsPipeline* Pipeline = nullptr;
+        bool UsesDefaultVertex = true;
+        bool UsesDefaultFragment = true;
+        bool Dirty = true;
+        std::string VertexPath;
+        std::string FragmentPath;
+        glm::mat4 OverrideMVP{1.0f};
+        bool HasOverrideMVP = false;
+        glm::mat4 ModelMatrix{1.0f};
+        glm::mat4 CustomMat4{1.0f};
+        glm::vec4 Tint{1.0f, 1.0f, 1.0f, 1.0f};
+        glm::vec4 Resolution{0.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec4 Misc{0.0f, 0.0f, 0.0f, 0.0f};
+        std::array<glm::vec4, 8> CustomVec4{};
+        std::array<glm::ivec4, 4> CustomInt4{};
+        Uint32 FragmentSamplerCount = 1;
+        std::vector<Texture*> BoundTextures;
+        PipelineMode Mode = PipelineMode::Mode2D;
+    };
+
+    // Fragment push data shared by 2D and 3D shader programs. Keep this field
+    // order in sync with FragmentShaderUserData uniform blocks in GLSL.
+    struct FragmentShaderUserData {
+        glm::vec4 tint{1.0f};
+        glm::vec4 resolution{0.0f};
+        glm::vec4 misc{0.0f};
+        glm::vec4 customVec4[8]{};
+        glm::ivec4 customInt4[4]{};
+
+        glm::vec4 sunDirectionEnabled{0.0f, -1.0f, 0.0f, 1.0f};
+        glm::vec4 sunColourIntensity{1.0f};
+        glm::vec4 ambientColourIntensity{1.0f, 1.0f, 1.0f, 0.2f};
+        glm::vec4 materialTint{1.0f};
+        glm::vec4 materialProps{1.0f, 0.0f, 32.0f, 0.0f};
+        glm::vec4 emissionColourStrength{0.0f};
+        glm::vec4 cameraPositionShininess{0.0f, 0.0f, 0.0f, 32.0f};
+        glm::vec4 normalExists{0.0f};
+    };
+
+    struct DeferredDeleteEntry {
+        SDLGPUTexData* data;
+        int framesUntilDelete;
+
+        bool operator==(const DeferredDeleteEntry& other) const {
+            return data == other.data;
+        }
+    };
+
+    struct TexVertexBatch {
+        SDLGPUTexData* texture = nullptr;
+        SDL_GPUSampler* sampler = nullptr;
+        SDL_GPU_Renderer_Shader* shader = nullptr;
+
+        uint32_t vertOffset = 0;
+        uint32_t vertCount = 0;
+
+        uint32_t idxOffset = 0;
+        uint32_t idxCount = 0;
+    };
+
+    struct PrimitiveBatch {
+        SDL_GPU_Renderer_Shader* shader = nullptr;
+        uint32_t idxOffset = 0;
+        uint32_t idxCount = 0;
+    };
+
+#pragma pack(push, 1)
+    struct GPUVertex3D {
+        glm::vec3 position{0.0f};
+        glm::vec3 normal{0.0f, 1.0f, 0.0f};
+        uint32_t color = 0xFFFFFFFF;
+        glm::vec2 uv{0.0f};
+        glm::vec3 tangent{0.0f};
+        float tangentSign = 1.0f;
+    };
+#pragma pack(pop)
+static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 bytes!");
+
+    struct SDLGPUMeshData {
+        SDL_GPUBuffer* vertexBuffer = nullptr;
+        SDL_GPUBuffer* indexBuffer = nullptr;
+        uint32_t vertexCount = 0;
+        uint32_t indexCount = 0;
+    };
+
+    struct SDLTextureUploadBatchData {
+        SDL_GPUCommandBuffer* cmd = nullptr;
+        std::vector<SDL_GPUTransferBuffer*> pendingTBs;
+    };
+
+    struct MeshDrawCommand {
+        SDLGPUMeshData* mesh = nullptr;
+        SDLGPUTexData* texture = nullptr;
+        SDLGPUTexData* normaltex = nullptr;
+        SDLGPUTexData* mrtex = nullptr; // Metallic roughness tex
+        SDL_GPUSampler* sampler = nullptr;
+        SDL_GPU_Renderer_Shader* shader = nullptr;
+        glm::mat4 model{1.0f};
+        glm::mat4 normalMatrix{1.0f};
+        glm::vec4 tint{1.0f};
+        glm::vec4 materialProps{1.0f, 0.0f, 0.0f, 0.0f};
+        bool isTransparent = false;
+        bool isDoubleSided = false;
+        float distanceToCamera = 0.0f;
+        // emission stuff
+        SDLGPUTexData* emissiontex = nullptr;
+        glm::vec4 emissionColour{0.0f};
+        float emissionStrength = 1.0f;
+    };
+
+    class SDL_GPU_Renderer : public Renderer::IRenderer {
+      public:
+        SDL_GPU_Renderer(RendererBackend backend, CE::Common::FS::VFS::VFS* vfs);
+
+        void PreWinInit() override;
+
+        int Init(SDL_Window* window, bool debug, GPUDeviceHandle gdevice) override;
+        int Shutdown(SDL_Window* window) override;
+
+        void ChangeCameraPos2D(float X, float Y, float zoom) override;
+
+        void DrawRect(
+            float x, float y, 
+            float w, float h, 
+            Colour colour,
+            float rotation
+        ) override;
+
+        void DrawTriangle(
+            float x0, float y0, 
+            float x1, float y1, 
+            float x2, float y2, 
+            Colour colour,
+            float rotation
+        ) override;
+
+        void DrawCircle(
+            float cx, float cy, 
+            float radius, int segments, 
+            Colour colour
+        ) override;
+
+        void DrawLine(
+            float x1, float y1, 
+            float x2, float y2, 
+            float thickness, 
+            Colour colour
+        ) override;
+
+        void SetClearColour(float r, float g, float b, float a) override;
+
+        Texture* LoadTex(const char* path) override;
+        Texture* CreateTextureFromData(
+            int width, int height, 
+            const void* pixels, 
+            TextureFormat format, 
+            int pitch = 0,
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp,
+            TextureUploadBatch* batch = nullptr
+        ) override;
+
+        void DrawSprite(
+            Texture* texture, 
+            float x, float y, 
+            float w, float h, 
+            Colour colour, 
+            float rotation,
+            TextureFlip flip = TextureFlip::None,
+            glm::vec2 scale = glm::vec2{1.0f, 1.0f}
+        ) override;
+
+        void DrawSpriteUV(
+            Texture* tex, 
+            float x, float y, 
+            float w, float h, 
+            float u0, float v0, 
+            float u1, float v1,
+            Colour colour, 
+            float rotation, 
+            TextureFlip flip = TextureFlip::None
+        ) override;
+
+        void UnloadTex(Texture* texture) override;
+
+        void DrawRectLines(
+            float x, float y, 
+            float w, float h, 
+            float thickness, 
+            Colour colour
+        ) override;
+
+        void DrawCircleLines(
+            float cx, float cy, 
+            float radius, int segments, 
+            float thickness, 
+            Colour colour
+        ) override;
+
+        int BeginFrame(SDL_Window* window) override;
+        int EndFrame(SDL_Window* window) override;
+
+        Texture* GetErrorTexture() override;
+        Texture* GetWhiteTexture() override;
+        void* GetNativeTextureHandle(Texture* texture) override;
+
+        int Debug_GetVertCount() override;
+        int Debug_GetIndexCount() override;
+        int Debug_GetTexIndexCount() override;
+        int Debug_GetTexVertCount() override;
+        Camera2D* GetCamera() override;
+
+        void SetVSync(bool setting) override;
+
+        void ImGuiStartFrame() override;
+        void ImGuiEndFrame(SDL_Window* window) override;
+
+        Shader* CreateShaderProgram() override;
+        Shader* LoadShader(const char* path, int fragmentSamplerCount = 4) override;
+        bool LoadShaderStage(Shader* shaderProgram, const char* path, ShaderStage stage, int samplerCount = 1) override;
+        bool UseDefaultShaderStage(Shader* shaderProgram, ShaderStage stage) override;
+        bool CompileShaderProgram(Shader* shaderProgram) override;
+        void UnloadShader(Shader* shader) override;
+
+        void BindShader(Shader* shader) override;
+        void UnbindShader() override;
+
+        void SetShaderFloat(const char* name, float value) override;
+        void SetShaderVec2(const char* name, float x, float y) override;
+        void SetShaderVec3(const char* name, float x, float y, float z) override;
+        void SetShaderVec4(const char* name, float x, float y, float z, float w) override;
+
+        void SetShaderMat4(const char* name, const float* mat4) override;
+        void SetShaderInt(const char* name, int value) override;
+        void SetShaderTexture(const char* name, Texture* texture, int slot) override;
+
+        GPUMesh* CreateGPUMesh(MeshData& mesh) override;
+        MeshData ReadbackMeshData(GPUMesh* mesh) override;
+        void DestroyGPUMesh(GPUMesh* mesh) override;
+        void DrawMesh(
+            GPUMesh* mesh,
+            Material& material, 
+            const Transform3D& transform,
+            [[maybe_unused]] bool error_tex
+        ) override;
+
+        void DrawMeshMat4(
+            GPUMesh* mesh, 
+            Material& material, 
+            const glm::mat4& transform,
+            [[maybe_unused]] bool error_tex
+        ) override;
+
+        void ChangeCameraPos3D(const Transform3D& transform) override;
+        void SetCamera3D(const Camera3D& camera) override;
+        void BeginMode3D() override;
+        void EndMode3D() override;
+        void BeginMode2D() override;
+        void EndMode2D() override;
+
+        void ProcessDeferredDeletions(bool force = false);
+
+        TextureUploadBatch* BeginBatchTextureUpload() override;
+        void EndBatchTextureUpload(TextureUploadBatch* batch) override;
+
+        static constexpr size_t kMaxVertices = 10000;
+        static constexpr size_t kMaxIndices = 15000;
+      private:
+        SDL_GPUGraphicsPipeline* CreateGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
+                                                        SDL_GPUShader* fragmentShader) const;
+        int CreateDefaultPipeline(SDL_Window* window);
+        void DestroyDefaultPipeline();
+        int CreateUpscalePipeline(SDL_Window* window);
+        void DestroyUpscalePipeline();
+        void BindActivePipeline();
+        void PushActiveShaderUniforms();
+        void BindShaderSamplers(SDL_GPUTexture* drawTexture, SDL_GPUSampler* drawSampler);
+        int CreateDefault3DPipeline(SDL_Window* window);
+        void DestroyDefault3DPipeline();
+        SDL_GPUGraphicsPipeline* Create3DGraphicsPipeline(SDL_Window* window, SDL_GPUShader* vertexShader,
+                                                          SDL_GPUShader* fragmentShader, bool isSkybox = false,
+                                                          bool isTransparent = false, bool isDoubleSided = false) const;
+        bool EnsureDepthTexture(SDL_Window* window);
+        bool EnsureSkyboxMesh();
+        bool EnsureSkyboxCubemap(const CubeMap& skybox);
+        void DestroySkyboxCubemap();
+        void DestroySkyboxMesh();
+        static glm::mat4 BuildTransformMatrix(const Transform3D& transform);
+        glm::mat4 BuildViewProjectionMatrix(const Camera3D& camera, float aspectRatio) const;
+        void DrawSkybox(
+            SDL_GPURenderPass* renderPass, 
+            const Camera3D& camera, 
+            float aspectRatio, 
+            int width,
+            int height
+        );
+        
+        void DrawQueuedMeshes();
+        static SDL_GPU_Renderer_Shader* GetShaderProgram(Shader* shaderProgram);
+        SDL_GPUShader* GetStageShader(const SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage) const;
+        bool LoadShaderStageIntoProgram(SDL_GPU_Renderer_Shader* shaderProgram, const char* path, ShaderStage stage,
+                                        Uint32 samplerCount);
+        void ReleaseProgramStage(SDL_GPU_Renderer_Shader* shaderProgram, ShaderStage stage);
+        static bool ShaderPathSuggests3D(const std::string& shaderPath);
+        static std::string GetShaderBaseName(const char* path);
+        static bool ParseIndexedUniformName(const char* name, const char* prefix, size_t maxCount, size_t& indexOut);
+
+        ImGuiContext* mImguicontext;
+        ImDrawData* mPendingImGuiDrawData = nullptr;
+        void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
+        void ImGuiShutdown(SDL_GPUDevice* device);
+
+        SDL_GPUDevice* mDevice = nullptr;
+        SDL_WindowID mWindowID;
+        SDL_GPUCommandBuffer* mCommandBuffer = nullptr;
+        SDL_GPURenderPass* mRenderPass = nullptr;
+        SDL_GPUTexture* mSwapchainTexture = nullptr;
+        SDL_GPUBuffer* mVertexBuffer = nullptr;
+        SDL_GPUGraphicsPipeline* mPipeline = nullptr;
+        SDL_GPUShader* mDefaultVertexShader = nullptr;
+        SDL_GPUShader* mDefaultFragmentShader = nullptr;
+        SDL_GPUGraphicsPipeline* mUpscalePipeline = nullptr;
+        SDL_GPUShader* mUpscaleVertexShader = nullptr;
+        SDL_GPUShader* mUpscaleFragmentShader = nullptr;
+        Camera2D mCamera2D;
+        SDL_GPUBuffer* mIndexBuffer = nullptr;
+        SDL_GPUTransferBuffer* mTransferVerts = nullptr;
+        SDL_GPUTransferBuffer* mTransferIdx = nullptr;
+        CE::Renderer::Vertex* mMappedVerts = nullptr;
+        uint16_t* mMappedIndices = nullptr;
+        uint32_t mVertCount = 0;
+        uint32_t mIndexCount = 0;
+        SDL_FColor mClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        SDL_GPUTexture* mWhiteTex = nullptr;
+        SDL_GPUSampler* mWhiteSampler = nullptr;
+        SDL_GPUTexture* mDefaultNormalTex = nullptr;
+        SDL_GPUSampler* mNormalSampler = nullptr;
+        CE::Renderer::Vertex* mMappedTexVerts = nullptr;
+        uint16_t* mMappedTexIndices = nullptr;
+        uint32_t mTexIndexCount = 0;
+        SDL_GPUBuffer* mTexVertexBuffer = nullptr;
+        SDL_GPUBuffer* mTexIndexBuffer = nullptr;
+        SDL_GPUTransferBuffer* mTransferTexVerts = nullptr;
+        SDL_GPUTransferBuffer* mTransferTexIdx = nullptr;
+        std::vector<PrimitiveBatch> mPrimitiveBatches;
+        std::vector<TexVertexBatch> mTexBatches;
+        uint32_t mTexVertCount = 0;
+        SDL_GPU_Renderer_Shader* mCurrentPrimitiveShader = nullptr;
+        SDLGPUTexData* mCurrentTex = nullptr;
+        SDL_GPUSampler* mCurrentTexSampler = nullptr;
+        glm::mat4 mMVP{};
+        SDL_GPUTexture* mErrorTex = nullptr;
+        SDL_GPUSampler* mErrorSampler = nullptr;
+        RendererBackend mBackend;
+        bool mFrameActive = false;
+        bool mWarnedOutsideFrame = false;
+        bool m3DModeActive = false;
+        bool m2DModeActive = false;
+        CE::Common::FS::VFS::VFS* mVFS;
+
+        std::vector<DeferredDeleteEntry> mDeferredDeletes;
+        std::vector<MeshDrawCommand> mMeshCommands;
+
+        SDL_GPU_Renderer_Shader* mCurrentShader = nullptr;
+        SDL_GPUGraphicsPipeline* m3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mTransparent3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mDoubleSided3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mTransparentDoubleSided3DPipeline = nullptr;
+        SDL_GPUGraphicsPipeline* mSkyboxPipeline = nullptr;
+        SDL_GPUShader* mDefault3DVertexShader = nullptr;
+        SDL_GPUShader* mDefault3DFragmentShader = nullptr;
+        SDL_GPUShader* mSkyboxFragmentShader = nullptr;
+        SDLGPUMeshData* mSkyboxMesh = nullptr;
+        SDL_GPUTexture* mSkyboxCubeTexture = nullptr;
+        SDL_GPUSampler* mSkyboxCubeSampler = nullptr;
+        std::array<SDL_GPUTexture*, 6> mSkyboxFaceHandles{};
+        int mSkyboxCubeSize = 0;
+        SDL_GPUTexture* mDepthTexture = nullptr;
+        SDL_GPUTextureFormat mDepthFormat = SDL_GPU_TEXTUREFORMAT_INVALID;
+        int mDepthTextureWidth = 0;
+        int mDepthTextureHeight = 0;
+        Transform3D mCamera3DTransform{glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f)};
+
+        detail::RTexture mRenderTexture;
+
+        bool mSupportsHDR = false;
+        SDL_GPUTextureFormat mRenderTextureFormat;
+    };
+} // namespace CE::Renderer::SDL_GPU_Renderer
+
+namespace CE::Renderer::SDL_GPU_Renderer::Utils {
+    SDL_GPUShader* LoadShader(SDL_GPUDevice* device, const std::string& shaderfilename, Uint32 samplercount,
+                              Uint32 uniformbuffercount, Uint32 storagebuffercount, Uint32 storagetexturecount,
+                              CE::Common::FS::VFS::VFS* vfs, const std::string& basePath = "/shaders/");
+    glm::mat4 GetView(const Camera2D& cam);
+    glm::mat4 GetProjection(float width, float height);
+    glm::mat4 GetCameraMatrix(const Camera2D& cam, float w, float h);
+} // namespace CE::Renderer::SDL_GPU_Renderer::Utils
+
+namespace CE::Renderer::SDL_GPU_Renderer::ImGuiImpl {
+    void ImGuiInit(SDL_Window* window, SDL_GPUDevice* device);
+    void ImGuiNewFrame();
+    void Shutdown();
+} // namespace CE::Renderer::SDL_GPU_Renderer::ImGuiImpl

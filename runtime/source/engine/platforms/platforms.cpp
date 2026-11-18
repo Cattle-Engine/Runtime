@@ -1,13 +1,13 @@
-#include "engine/platforms.hpp"
+#include "ce_runtime/platforms.hpp"
 
 #include <string>
 
 #include "ce_common/platforms.hpp"
 
 #if defined(__linux__)
-#include "engine/platforms/linux.hpp"
+#include "ce_runtime/platforms/linux.hpp"
 #elif defined(_WIN32)
-#include "engine/platforms/windows.hpp"
+#include "ce_runtime/platforms/windows.hpp"
 #else
 #error "Unsupported platform"
 #endif

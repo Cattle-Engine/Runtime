@@ -1,9 +1,9 @@
-#include "engine/rendering/resources/shader_manager.hpp"
+#include "ce_runtime/rendering/resources/shader_manager.hpp"
 
 #include <algorithm>
 #include <utility>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace {
     constexpr const char kDefaultVertexPath[] = "__ce_shader_manager_default_vertex";

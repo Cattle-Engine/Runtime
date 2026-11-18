@@ -1,8 +1,8 @@
-#include "engine/rendering/resources/texture_manager.hpp"
+#include "ce_runtime/rendering/resources/texture_manager.hpp"
 
 #include <format>
 
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace {
     constexpr const char kGeneratedTexturePathName[] = "__ce_internal_texture_generated_path";

@@ -1,8 +1,8 @@
 #include <utility>
 
-#include "engine/scripting/bindings/as_cubemap.hpp"
-#include "engine/common/utils/enum_to_string.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/scripting/bindings/as_cubemap.hpp"
+#include "ce_runtime/common/utils/enum_to_string.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Scripting::Bindings { 
     CE::Renderer::Resources::TextureManager* ASCubemap::sDefaultTextureManager = nullptr;

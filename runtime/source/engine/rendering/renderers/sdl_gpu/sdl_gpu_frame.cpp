@@ -1,8 +1,8 @@
 
 #include "imgui_impl_sdlgpu3.h"
 
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Renderer::SDL_GPU_Renderer {
     int SDL_GPU_Renderer::BeginFrame(SDL_Window* window) {

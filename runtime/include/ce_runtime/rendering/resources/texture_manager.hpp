@@ -1,0 +1,185 @@
+#pragma once
+
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
+
+namespace CE::Renderer::Resources {
+    class TextureManager; // Forward declaration
+
+    struct TextureHandleState {
+        Texture* texture = nullptr;
+
+        explicit TextureHandleState(Texture* texture) : texture(texture) {}
+    };
+
+    struct TextureHandle {
+        TextureHandle() = default;
+        TextureHandle(uint64_t init_id) : id(init_id) {}
+
+        uint64_t id = 0;
+
+        // Returns nullptr if unloaded
+        Texture* GetTexture() const {
+            if (mTexture) {
+                return mTexture->texture;
+            } else {
+                return nullptr;
+            }
+        }
+
+        int GetTextureWidth() const {
+            if (mTexture) {
+                return mTexture->texture->width;
+            }
+            return 0;
+        }
+        
+        int GetTextureHeight() const {
+            if (mTexture) {
+                return mTexture->texture->height;
+            }
+            return 0;
+        }
+
+        constexpr explicit operator bool() const {
+            return id != 0 && mTexture && mTexture->texture != nullptr;
+        }
+
+        constexpr bool operator==(const TextureHandle& other) const {
+            return id == other.id;
+        }
+
+      private:
+        // THIS IS NON-OWNING and should ONLY be used for renderer calls that REQUIRE Texture*
+        std::shared_ptr<TextureHandleState> mTexture;
+        friend class TextureManager;
+    };
+
+    struct TextureHandleHash {
+        std::size_t operator()(const TextureHandle& handle) const {
+            return std::hash<uint64_t>{}(handle.id);
+        }
+    };
+
+    inline const TextureHandle kInvalidHandle = {};
+
+    class TextureRef {
+      public:
+        TextureRef() = default;
+
+        TextureRef(TextureManager* mgr, TextureHandle handle, Texture* tex);
+
+        ~TextureRef();
+        void Reset();
+        Texture* Get() const {
+            return mTexture;
+        }
+
+        bool IsValid() const {
+            return mTexture != nullptr;
+        }
+
+        uint64_t GetHandleID() const {
+            return mHandle.id;
+        }
+
+        TextureRef(const TextureRef&) = delete;
+        TextureRef& operator=(const TextureRef&) = delete;
+
+        TextureRef(TextureRef&& other) noexcept;
+        TextureRef& operator=(TextureRef&& other) noexcept;
+
+      private:
+        TextureManager* mManager = nullptr;
+        TextureHandle mHandle{};
+        Texture* mTexture = nullptr;
+    };
+
+    class TextureManager {
+      public:
+        TextureManager(Common::FS::VFS::VFS& vfs, IRenderer& renderer);
+        ~TextureManager();
+        // Internal use for other systems only!
+        TextureRef Acquire(TextureHandle handle);
+        // For 1 time use only!
+        [[deprecated("Please use GetTexture inside TextureHandle")]] Texture* GetTexture(TextureHandle handle);
+
+        // Used to decrease RefCount in TextureEntry
+        void Return(TextureHandle handle);
+
+        /**
+         * @brief Loads a texture from the VFS and returns a TextureHandle
+         * @param path The path to the texture
+         */
+        TextureHandle Load(std::string path);
+
+        /**
+         * @brief Upload raw pixels to the GPU and get a texture
+         * @param width The width of the texture
+         * @param height The height of the texture
+         * @param pixels Raw pixel data
+         * @param pitch How many bytes between one row and another
+         * @param filter There is: Nearest and Linear, Nearest keeps pixels sharp, Linear blurs them a tiny bit
+         * @param wrap There is: Clamp, Repeat and Mirror, Clamp stretchs edge pixels, Repeat tiles the texture,
+         * MirroredRepeat tiles but mirrors each time
+         * @param cache_key Used to optimize, if a texture is already loaded with the same cache key, it returns that
+         * instead of creating an entirely new texture
+         */
+        TextureHandle CreateTextureFromData(
+            int width, int height, 
+            const void* pixels, 
+            TextureFormat format,
+            int pitch = 0, 
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp, 
+            std::string cache_key = "",
+            TextureUploadBatch* batch = nullptr
+        );
+
+        /**
+         * @brief This marks a texture for deletion and doesn't allow you to get the texture anymore, a texture is only
+         * deleted when its RefCount is 0
+         */
+        void Unload(TextureHandle handle);
+        void UnloadAll();
+
+        /**
+         * @brief Find if a path has been cached
+         */
+        bool IsPathCached(std::string path);
+        std::string GetTexturePath(TextureHandle handle) const;
+
+        size_t GetLoadedTextureCount() const;
+        size_t GetValidTextureCount() const;
+        size_t GetErrorTextureCount() const;
+        size_t GetPendingUnloadCount() const;
+
+        // Called at end of the frame
+        void UnloadPendingDeletions();
+
+      private:
+        struct TextureEntry {
+            std::shared_ptr<TextureHandleState> State;
+            Texture* Resource;
+            uint32_t RefCount;
+            std::string Path;
+            bool IsError;
+            bool IsPendingUnload;
+        };
+
+        TextureEntry* GetTextureEntry(TextureHandle handle);
+
+        IRenderer& mRenderer;
+        Common::FS::VFS::VFS& mVFS;
+        uint64_t mNextHandleID = 0;
+        std::unordered_map<TextureHandle, TextureEntry, TextureHandleHash> mTextureCache;
+        std::unordered_map<std::string, TextureHandle> mPathCache;
+        std::vector<TextureHandle> mPendingUnload;
+    };
+} // namespace CE::Renderer::Resources

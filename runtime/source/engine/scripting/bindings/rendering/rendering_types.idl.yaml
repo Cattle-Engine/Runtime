@@ -7,12 +7,12 @@ RequiredCppHeaders:
   - <glm/gtx/string_cast.hpp>
   - <string>
   - <cstdint>
-  - "engine/rendering/resources/texture_manager.hpp"
-  - "engine/rendering/resources/material_manager.hpp"
-  - "engine/rendering/resources/shader_manager.hpp"
-  - "engine/rendering/resources/gpu_mesh_manager.hpp"
-  - "engine/scripting/bindings/stl_vector_binder.hpp"
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/rendering/resources/texture_manager.hpp"
+  - "ce_runtime/rendering/resources/material_manager.hpp"
+  - "ce_runtime/rendering/resources/shader_manager.hpp"
+  - "ce_runtime/rendering/resources/gpu_mesh_manager.hpp"
+  - "ce_runtime/scripting/bindings/stl_vector_binder.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
 
 ASNamespace: CE
 

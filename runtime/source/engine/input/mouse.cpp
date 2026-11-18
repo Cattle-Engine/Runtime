@@ -1,8 +1,8 @@
-#include "engine/input/mouse.hpp"
+#include "ce_runtime/input/mouse.hpp"
 
 #include <algorithm>
 
-#include "engine/common/sdl_events.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
 
 namespace CE::Input {
 

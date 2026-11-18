@@ -1,7 +1,7 @@
-#include "engine/rendering/resources/model_renderer.hpp"
+#include "ce_runtime/rendering/resources/model_renderer.hpp"
 
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/common/transform3d_to_matrix.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/common/transform3d_to_matrix.hpp"
 
 namespace CE::Renderer::Resources {
     ModelRenderer::ModelRenderer(MaterialManager& mat_manager, GPUMeshManager& gpu_mesh_man, IRenderer& renderer)

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
-# Matches include/engine/common/fs/tdf.hpp
+# Matches include/ce_runtime/common/fs/tdf.hpp
 MAGIC = b"TDF"
 VERSION_OBJECT = 0x11
 DEFAULT_ROOT_KEY = "Value"

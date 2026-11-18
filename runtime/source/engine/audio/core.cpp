@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <SDL3/SDL_audio.h>
 
-#include "engine/audio/audio.hpp"
-#include "engine/common/tracelog.hpp"
+#include "ce_runtime/audio/audio.hpp"
+#include "ce_runtime/common/tracelog.hpp"
 
 namespace CE::Core::Audio {
     namespace {

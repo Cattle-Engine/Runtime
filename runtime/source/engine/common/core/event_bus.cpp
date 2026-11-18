@@ -1,4 +1,4 @@
-#include "engine/common/core/event_bus.hpp"
+#include "ce_runtime/common/core/event_bus.hpp"
 
 namespace CE::Core {
     bool EventBus::StateKey::operator==(const StateKey& other) const {

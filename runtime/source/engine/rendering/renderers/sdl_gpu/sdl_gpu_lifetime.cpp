@@ -1,12 +1,12 @@
-#include "engine/rendering/renderers/sdl_gpu_renderer.hpp"
+#include "ce_runtime/rendering/renderers/sdl_gpu_renderer.hpp"
 
 #include <cassert>
 #include <SDL3/SDL.h>
 
-#include "engine/common/fs/vfs.hpp"
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
 #include <SDL3_image/SDL_image.h>
 

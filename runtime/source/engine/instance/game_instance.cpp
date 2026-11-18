@@ -1,16 +1,16 @@
-#include "engine/instance/game_instance.hpp"
+#include "ce_runtime/instance/game_instance.hpp"
 
 #include <algorithm>
 #include <format>
 #include <stdexcept>
 
-#include "engine/bootstrap/instance.hpp"
-#include "engine/common/fs/os_fs/directory_file_provider.hpp"
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/sdl_events.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/platforms.hpp"
-#include "engine/scripting/bindings/as_cubemap.hpp"
+#include "ce_runtime/bootstrap/instance.hpp"
+#include "ce_runtime/common/fs/os_fs/directory_file_provider.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/sdl_events.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/platforms.hpp"
+#include "ce_runtime/scripting/bindings/as_cubemap.hpp"
 
 namespace CE {
     GameInstance::GameInstance(

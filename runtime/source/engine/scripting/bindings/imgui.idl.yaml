@@ -8,7 +8,7 @@ Documentation: |
   You can also use the event that runs every frame "DrawImgui"
 
 RequiredCppHeaders:
-  - "engine/scripting/bindings/imgui_bindings.hpp"
+  - "ce_runtime/scripting/bindings/imgui_bindings.hpp"
 
 ASFunctions:
   - Name: Begin

@@ -1,8 +1,8 @@
 ASNamespace: CE::Graphics::Render3D::Primitives
 
 RequiredCppHeaders:
-  - "engine/rendering/common/primitives_3d.hpp"
-  - "engine/rendering/renderer.hpp"
+  - "ce_runtime/rendering/common/primitives_3d.hpp"
+  - "ce_runtime/rendering/renderer.hpp"
   - "glm/glm.hpp"
 
 ASFunctions:

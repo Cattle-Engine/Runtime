@@ -2,12 +2,12 @@
 #include <stdexcept>
 #include <SDL3/SDL.h>
 
-#include "engine/instance/base_instance.hpp"
-#include "engine/common/window.hpp"
+#include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/common/window.hpp"
 
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/rendering/renderer.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 
 namespace CE {
     int BaseInstance::Bootstrap_Video(CE::Renderer::GPUDeviceHandle gpu_device) {

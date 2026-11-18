@@ -1,4 +1,4 @@
-#include "engine/scripting/debugger.hpp"
+#include "ce_runtime/scripting/debugger.hpp"
 
 #include <algorithm>
 #include <sstream>

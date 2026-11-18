@@ -85,15 +85,15 @@ function(configure_ce_runtime target)
     target_include_directories(${target}
         PUBLIC
             "${CE_RUNTIME_ROOT}/include/public"
+            "${ANGELSCRIPT_ADDON_INCLUDE_DIR}"
         PRIVATE
             "${CE_GENERATED_BINDINGS_DIR}"
             "${CE_RUNTIME_ROOT}/include"
             "${CE_RUNTIME_ROOT}/include/third_party"
             "${CE_RUNTIME_ROOT}/include/third_party/imgui"
-            "${ANGELSCRIPT_ADDON_INCLUDE_DIR}"
             "${CE_GENERATED_DIR}"
     )
-
+    
     target_compile_definitions(${target} PRIVATE
         CE_BUILDING_LIBRARY
         ENGINE_BUILT_ON_OS="${CE_HOST_OS}"
@@ -103,19 +103,20 @@ function(configure_ce_runtime target)
         $<$<CONFIG:Debug>:CE_DEBUG>
     )
 
-    target_link_libraries(${target} PRIVATE
+target_link_libraries(${target}
+    PUBLIC
         ce_common
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_ttf::SDL3_ttf
         SDL3_mixer::SDL3_mixer
-        assimp::assimp
         glm::glm
         zstd::libzstd
         lz4::lz4
         xxHash::xxhash
         imgui::imgui
         ${ANGELSCRIPT_LINK_TARGET}
+        assimp::assimp
     )
 endfunction()
 

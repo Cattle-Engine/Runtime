@@ -2,9 +2,9 @@
 #include <format>
 #include <string>
 
-#include "engine/common/misc/error_box.hpp"
-#include "engine/common/tracelog.hpp"
-#include "engine/platforms/windows.hpp"
+#include "ce_runtime/common/misc/error_box.hpp"
+#include "ce_runtime/common/tracelog.hpp"
+#include "ce_runtime/platforms/windows.hpp"
 
 namespace CE::Platforms::Windows {
     std::string GetCachePath(const char* game_name) {

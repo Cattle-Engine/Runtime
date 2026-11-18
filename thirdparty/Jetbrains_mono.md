@@ -1,5 +1,5 @@
 Notes:
-    It's turned into C++ header with xxd, this header can be found in [include/engine/assets/default_font.hpp](../include/engine/assets/default_font.hpp)
+    It's turned into C++ header with xxd, this header can be found in [include/ce_runtime/assets/default_font.hpp](../include/ce_runtime/assets/default_font.hpp)
 ```
 Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
 

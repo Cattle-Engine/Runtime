@@ -1,9 +1,9 @@
 RegistrationPriority: 89
 
 RequiredCppHeaders:
-  - "engine/scripting/bindings/as_cubemap.hpp"
-  - "engine/rendering/resources/model_renderer.hpp"
-  - "engine/assets/3d_model_importer.hpp"
+  - "ce_runtime/scripting/bindings/as_cubemap.hpp"
+  - "ce_runtime/rendering/resources/model_renderer.hpp"
+  - "ce_runtime/assets/3d_model_importer.hpp"
 
 ASNamespace: CE::Graphics::Render3D
 
