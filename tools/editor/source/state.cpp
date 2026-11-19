@@ -34,6 +34,12 @@ namespace CE::Editor {
             out["window"]["win_height"] = mInstance.mWindow->GetWindowSize(Common::WindowMode::Windowed).h;
             out["window"]["win_maximised"] = mInstance.mWindow->IsMaxmimised();
 
+            TDF recent_projects = TDF::MakeArray();
+            for (const auto& project : mInstance.mRecentProjects) {
+                recent_projects.PushBack(project);
+            }
+            out["last_open_projs"] = std::move(recent_projects);
+
             out.Write(stream);
         } catch (const std::exception& e) {
             return Error {
@@ -80,6 +86,14 @@ namespace CE::Editor {
                 );
             }
 
+            auto recent_projects = in.Value<TDF::Array>(
+                "last_open_projs",
+                TDF::Array{}
+            );
+
+            for (size_t i = 0; i < std::min(recent_projects.size(), mInstance.mRecentProjects.size()); ++i) {
+                mInstance.mRecentProjects[i] = recent_projects[i].Get<std::string>();
+            }
             mInstance.mWindow->SetWindowSize(win_size, Common::WindowMode::Windowed);
             mInstance.mWindow->MaximiseWindow(window_maximised);
         } catch (const TDF::Error& e) {

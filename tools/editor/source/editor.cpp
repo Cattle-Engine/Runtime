@@ -1,5 +1,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_messagebox.h>
+#include <algorithm>
+#include <imgui.h>
 
 #include "ce_editor/constants.hpp"
 #include "ce_editor/editor.hpp"
@@ -75,5 +77,50 @@ namespace CE::Editor {
             );       
         }
         CE_LOG(LogLevel::Debug, "[EditorInstance] Saved editor state");
+    }
+
+    bool EditorInstance::OnImGui() {
+        mUILayout.Draw();
+
+        for (const auto& win : mUIWindows) {
+            win->Draw();
+        }
+
+        mMainToolBar.Draw();
+
+        return true;
+    }
+
+    Status EditorInstance::LoadProject(fs::path path) {
+        auto it = std::find(mRecentProjects.begin(), mRecentProjects.end(), path);
+
+        if (it != mRecentProjects.end()) {
+            std::move_backward(mRecentProjects.begin(), it, it + 1);
+        } else {
+            std::move_backward(mRecentProjects.begin(), mRecentProjects.end() - 1, mRecentProjects.end());
+        }
+
+        mRecentProjects[0] = path;
+
+        mCurrentProjectPath = std::move(path);
+        mProjectLoaded = true;
+
+    
+        return {};
+    }
+
+    Result<fs::path> EditorInstance::GetProjectPath() const {
+        if (!mProjectLoaded) {
+            return Error {
+                .message = "No project loaded",
+                .context = "EditorInstance::GetProjectPath()",
+            };
+        }
+
+        return mCurrentProjectPath;
+    }
+
+    bool EditorInstance::ProjectLoaded() const {
+        return mProjectLoaded;
     }
 }
