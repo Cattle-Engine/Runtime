@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "ce_runtime/common/fs/vfs.hpp"
 #include "ce_common/result.hpp"
 
@@ -16,6 +18,8 @@ namespace CE::Editor {
             // reads the state from disk, does not modify the instance state if it fails to get state from disk
             Status RestoreState();
         private:
+            static constexpr std::string_view kEditorDataPath = "/config/editor_state.dat";
+
             EditorInstance& mInstance;
             Common::FS::VFS::VFS& mVFS;
     };

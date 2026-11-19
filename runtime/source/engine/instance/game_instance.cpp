@@ -128,6 +128,11 @@ namespace CE {
                 }
                 break;
             }
+
+            case SDL_EVENT_WINDOW_RESIZED: {
+                mWindow->OnWindowResized();
+                break;
+            }
             }
         }
     }

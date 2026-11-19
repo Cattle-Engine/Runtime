@@ -25,6 +25,8 @@ namespace CE::Editor {
                     std::string(std::string(SDL_GetBasePath()) + "/editor_data")
                 );
             }
+
+            ~EditorInstance();
         protected:
             GameInfo& GetGameInfo() override {
                 static GameInfo info{};
@@ -41,9 +43,12 @@ namespace CE::Editor {
                 ImGui::End();
                 return true;
             }
+            
+            void OnInitialise() override;
 
             InstanceRuntimeConf PrepareRuntimeData()  override;
             int MountData(const std::string& path) override;
+            void HandleWindowEvents() override;
         private:
             friend class State;
             Common::FS::VFS::MountPoint::MountID mRootMountPointID{0};

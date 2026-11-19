@@ -54,6 +54,9 @@ namespace CE::Common {
             bool IsWindowResizable();
 
             bool SetWindowIcon(const std::string& path);
+
+            // if the window is resizable, the stored interal window size is wrong, we call this on SDL_EVENT_WINDOW_RESIZED
+            void OnWindowResized();
         private:
             bool ApplyFullscreen(const SDL_DisplayMode* mode);
 

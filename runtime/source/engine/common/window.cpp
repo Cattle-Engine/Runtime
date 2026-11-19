@@ -347,4 +347,17 @@ namespace CE::Common {
         SDL_DestroySurface(converted);
         return true;
     }
+
+    void Window::OnWindowResized() {
+        if (mWindowMode != WindowMode::Windowed) {
+            return;
+        }
+
+        int width = 0;
+        int height = 0;
+
+        SDL_GetWindowSize(mWindow, &width, &height);
+
+        mWindowedSize = {width, height};
+    }
 }
