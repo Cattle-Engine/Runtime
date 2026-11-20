@@ -13,6 +13,20 @@ file(GLOB_RECURSE CE_EDITOR_SOURCES CONFIGURE_DEPENDS
 
 add_executable(ce_editor ${CE_EDITOR_SOURCES})
 
+if(WIN32)
+    enable_language(RC)
+
+    target_sources(ce_editor PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/editor.rc"
+    )
+
+    set_source_files_properties(
+        "${CMAKE_CURRENT_SOURCE_DIR}/resources/editor.rc"
+        PROPERTIES
+        OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/editor.ico"
+    )
+endif()
+
 if(CE_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(ce_editor PRIVATE
         -fsanitize=address,undefined
@@ -51,6 +65,25 @@ endif()
 set(CE_EDITOR_RUNTIME_SHADER_SOURCE_DIR "${CMAKE_SOURCE_DIR}/runtime/shaders")
 set(CE_EDITOR_DATA_DIR "${CE_BIN_DIR}/$<CONFIG>/editor_data")
 set(CE_EDITOR_SHADER_OUTPUT_DIR "${CE_EDITOR_DATA_DIR}/shaders/Compiled/SPIRV")
+set(CE_EDITOR_ASSETS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+
+add_custom_target(ce_editor_assets
+    COMMAND "${CMAKE_COMMAND}"
+        "-DEDITOR_DATA_DIR=${CE_EDITOR_DATA_DIR}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/clean_editor_assets.cmake"
+
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+        "${CE_EDITOR_DATA_DIR}"
+
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${CE_EDITOR_ASSETS_SOURCE_DIR}"
+        "${CE_EDITOR_DATA_DIR}"
+
+    COMMENT "Synchronising editor assets"
+    VERBATIM
+)
+
+add_dependencies(ce_editor ce_editor_assets)
 
 file(GLOB_RECURSE CE_EDITOR_RUNTIME_SHADER_SOURCES CONFIGURE_DEPENDS
     LIST_DIRECTORIES FALSE

@@ -104,8 +104,6 @@ namespace CE::Editor {
 
         mCurrentProjectPath = std::move(path);
         mProjectLoaded = true;
-
-    
         return {};
     }
 

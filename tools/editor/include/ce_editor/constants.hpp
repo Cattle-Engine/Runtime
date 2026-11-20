@@ -4,7 +4,7 @@
 
 namespace CE::Editor::Constants {
     constexpr const char* kWindowTitle = "CE Editor";
-    constexpr const char* kWindowIconPath = "/textures/window_icon.png";
+    constexpr const char* kWindowIconPath = "/textures/window_icon.ico";
     constexpr int kDefaultWindowHeight = 900;
     constexpr int kDefaultWindowWidth = 1600;
     constexpr Common::WindowMode kWindowMode = Common::WindowMode::Windowed;

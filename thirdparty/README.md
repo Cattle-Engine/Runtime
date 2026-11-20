@@ -17,3 +17,5 @@
 [XXHash](XXHash.md) Used for generating the mangled symbol names in the angelscript compiler frontend. (Will probably use for plugin id's too)
 
 [GLM](GLM.md) Used for most renderer stuff (a lot when it comes to 3D)
+
+[CE Editor Icon](ce_editor_icon.md) The icon for the CE editor
