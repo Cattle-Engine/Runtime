@@ -18,6 +18,7 @@
 #include "ce_editor/ui/proj_fs_browser_win.hpp"
 #include "ce_editor/ui/toolbar.hpp"
 #include "ce_editor/ui/i_window.hpp"
+#include "ce_editor/project.hpp"
 
 namespace CE::Editor {
     namespace fs = std::filesystem;
@@ -41,16 +42,15 @@ namespace CE::Editor {
                     args,
                     std::string(std::string(SDL_GetBasePath()) + "/editor_data")
                 );
+
+                mMainToolBar.Initialise(*mRenderer, *mTextureManager);
             }
 
             ~EditorInstance();
 
-            std::array<std::string, kMaxRecentProjects>& GetRecentProjects() {
-                return mRecentProjects;
-            }
-
-            Status LoadProject(fs::path path);
-            Result<fs::path> GetProjectPath() const;
+            std::array<std::string, kMaxRecentProjects>& GetRecentProjects() { return mRecentProjects; }
+            [[nodiscard]] Status LoadProject(fs::path path);
+            [[nodiscard]] Result<Project&> GetProject();
             bool ProjectLoaded() const;
 
             std::vector<std::unique_ptr<UI::IWindow>>& GetUIWindows() { return mUIWindows; }
@@ -72,7 +72,6 @@ namespace CE::Editor {
             int MountData(const std::string& path) override;
             void HandleWindowEvents() override;
         private:
-
             friend class State;
 
             Common::FS::VFS::MountPoint::MountID mRootMountPointID{0};
@@ -83,10 +82,8 @@ namespace CE::Editor {
             UI::UILayout mUILayout;
 
             std::vector<std::unique_ptr<UI::IWindow>> mUIWindows;
-
+            std::unique_ptr<Project> mProject;
             std::array<std::string, kMaxRecentProjects> mRecentProjects;
-
-            fs::path mCurrentProjectPath;
             bool mProjectLoaded = false;
     };
 }

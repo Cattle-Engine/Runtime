@@ -11,6 +11,8 @@ file(GLOB_RECURSE CE_EDITOR_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp"
 )
 
+find_package(yaml-cpp CONFIG REQUIRED)
+
 add_executable(ce_editor ${CE_EDITOR_SOURCES})
 
 if(WIN32)
@@ -45,6 +47,7 @@ target_include_directories(ce_editor PRIVATE
 target_link_libraries(ce_editor PRIVATE
     ce_common
     ce_runtime_shared
+    yaml-cpp::yaml-cpp
 )
 
 set_target_properties(ce_editor PROPERTIES

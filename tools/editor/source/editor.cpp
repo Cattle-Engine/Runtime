@@ -1,6 +1,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_messagebox.h>
 #include <algorithm>
+#include <exception>
 #include <imgui.h>
 
 #include "ce_editor/constants.hpp"
@@ -102,20 +103,26 @@ namespace CE::Editor {
 
         mRecentProjects[0] = path;
 
-        mCurrentProjectPath = std::move(path);
+        try {
+            mProject = std::make_unique<Project>(std::move(path));
+        } catch (const std::exception& e) {
+            return Error {
+                .message = e.what(),
+                .context = "EditorInstance::LoadProject",
+            };
+        }
+
         mProjectLoaded = true;
         return {};
     }
 
-    Result<fs::path> EditorInstance::GetProjectPath() const {
-        if (!mProjectLoaded) {
-            return Error {
-                .message = "No project loaded",
-                .context = "EditorInstance::GetProjectPath()",
-            };
-        }
+    Result<Project&> EditorInstance::GetProject() {
+        if (!mProject) return Error {
+            .message = "No project loaded",
+            .context = "EditorInstance::GetProject()",  
+        };
 
-        return mCurrentProjectPath;
+        return *mProject;
     }
 
     bool EditorInstance::ProjectLoaded() const {

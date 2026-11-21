@@ -2,19 +2,24 @@
 
 #include <filesystem>
 
-#include "ce_common/result.hpp"
-
 #include "ce_editor/undoredo_system.hpp"
+#include "ce_runtime/common/misc/gameinfo.hpp"
 
 namespace CE::Editor {
     namespace fs = std::filesystem;
 
     class Project {
         public:
-            Result<fs::path> GetProjectPath() const;
+            // throws std::runtime error if it fails to get the ce_project.yaml etc
+            Project(fs::path proj_path);
+
+            fs::path GetProjectPath() const;
+            UndoRedoSystem& GetUndoRedoSys() const;
+        private:
+            static constexpr const char* kProjectManifestName = "ce_project.yaml";
 
             UndoRedoSystem mUndoRedo;
-        private:
-            fs::path mProjectPath;
+            const fs::path mProjectPath;
+            GameInfo mGameInfo;
     };
 }

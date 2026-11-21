@@ -118,10 +118,10 @@ namespace CE::Editor::UI {
             return;
         }
 
-        auto path_result = mEditorInstance.GetProjectPath();
-        if (!path_result) return;
+        auto project = mEditorInstance.GetProject();
+        if (!project) return;
 
-        const auto& project_path = *path_result;
+        const auto& project_path = project->GetProjectPath();
 
         if (!mInitialized || mRoot.path != project_path) {
             SetRoot(project_path);
