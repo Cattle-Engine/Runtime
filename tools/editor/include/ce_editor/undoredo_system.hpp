@@ -3,11 +3,12 @@
 #include <type_traits>
 #include <memory>
 #include <deque>
-#include <stack>
 
 namespace CE::Editor {
     class ICommand {
         public:
+            virtual ~ICommand() = default;
+
             virtual void Execute() = 0;
             virtual void Undo() = 0;
     };
