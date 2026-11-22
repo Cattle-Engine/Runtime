@@ -11,7 +11,7 @@
 namespace CE {
     // Result<T>: value types
     template<typename T>
-    class Result {
+    class [[nodiscard("Result must not be discarded!")]] Result {
         static_assert(!std::is_reference_v<T>,
             "Reference results are handled by the Result<T&> specialization");
 
@@ -90,7 +90,7 @@ namespace CE {
 
     // Result<T&>: reference results
     template<typename T>
-    class Result<T&> {
+    class [[nodiscard("Result must not be discarded!")]] Result<T&> {
         public:
             Result(T& value)
                 : mData(std::ref(value)) {}
@@ -141,7 +141,7 @@ namespace CE {
 
     // Result<void>
     template<>
-    class Result<void> {
+    class [[nodiscard("Result must not be discarded!")]] Result<void> {
         public:
             Result() noexcept
                 : mData(std::monostate{}) {}
