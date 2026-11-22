@@ -77,7 +77,10 @@ namespace CE::Common::FS::VFS {
         bool IsDir(const std::string_view path);
         bool IsFile(const std::string_view path);
         bool DeleteDir(const std::string_view path);
-        bool MoveDir(const std::string path);
+        bool MoveDir(
+            std::string_view old_path,
+            std::string_view new_path
+        );
 
       private:
         struct ResolvedPath {
@@ -87,6 +90,7 @@ namespace CE::Common::FS::VFS {
 
         static std::string NormalisePath(const std::string& v_path);
         static std::string ResolveVirtualPath(const std::string& path);
+        ResolvedPath ResolvePathForDirectory(std::string_view path);
         /*
             Resolve's a path like this:
             1. Most specific mount path

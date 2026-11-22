@@ -19,6 +19,7 @@
 #include "ce_editor/ui/toolbar.hpp"
 #include "ce_editor/ui/i_window.hpp"
 #include "ce_editor/project.hpp"
+#include "ce_editor/ui/theme_manager.hpp"
 
 namespace CE::Editor {
     namespace fs = std::filesystem;
@@ -35,15 +36,27 @@ namespace CE::Editor {
                 mUIWindows.push_back(
                     std::make_unique<UI::ProjectFSBrowser>(*this)
                 );
-
                 this->InitialiseBase(
                     debugmode,
                     gpudevice,
                     args,
                     std::string(std::string(SDL_GetBasePath()) + "/editor_data")
                 );
-
+                mThemeManager = std::make_unique<UI::ThemeManager>(*mRenderer, *mVFS, "org.cattle_engine.editor_themes.system_default");
+                
                 mMainToolBar.Initialise(*mRenderer, *mTextureManager);
+
+                State state(*mVFS, *this);
+
+                Status status = state.RestoreState();
+                if (!status) {
+                    SDL_ShowSimpleMessageBox(
+                        SDL_MESSAGEBOX_WARNING,
+                        "CE Editor - Warning", 
+                        std::string("Failed to restore editor state: " + status.GetError().message).c_str(), 
+                        mWindow->GetWindow()
+                    );
+                }
             }
 
             ~EditorInstance();
@@ -82,6 +95,7 @@ namespace CE::Editor {
             UI::UILayout mUILayout;
 
             std::vector<std::unique_ptr<UI::IWindow>> mUIWindows;
+            std::unique_ptr<UI::ThemeManager> mThemeManager;
             std::unique_ptr<Project> mProject;
             std::array<std::string, kMaxRecentProjects> mRecentProjects;
             bool mProjectLoaded = false;

@@ -1,3 +1,4 @@
+
 #include "ce_runtime/common/fs/vfs.hpp"
 
 #include <algorithm>
@@ -81,12 +82,10 @@ namespace CE::Common::FS::VFS {
         for (auto& mount : mMountPoints) {
             const std::string& mount_path = mount.mount_point;
 
-            // Check prefix.
             if (normalised_path.rfind(mount_path, 0) != 0) {
                 continue;
             }
 
-            // Check path boundary.
             if (mount_path != "/" &&
                 normalised_path.length() != mount_path.length() &&
                 normalised_path[mount_path.length()] != '/') {
@@ -105,14 +104,10 @@ namespace CE::Common::FS::VFS {
                 }
             }
 
-            // Only existing files are candidates for reads.
             if (!mount.file_provider->FileExists(relative_path)) {
                 continue;
             }
 
-            // Most specific mount wins.
-            // For equal specificity, higher priority wins.
-            // For equal priority, newest mount wins.
             if (!best_mount ||
                 mount_path.length() > best_mount->mount_point.length() ||
                 (mount_path.length() == best_mount->mount_point.length() &&
@@ -166,6 +161,61 @@ namespace CE::Common::FS::VFS {
                 if (relative_path.empty()) {
                     relative_path = "/";
                 }
+            }
+
+            if (!best_mount ||
+                mount_path.length() > best_mount->mount_point.length() ||
+                (mount_path.length() == best_mount->mount_point.length() &&
+                 mount.priority >= best_mount->priority)) {
+                best_mount = &mount;
+                best_relative_path = std::move(relative_path);
+            }
+        }
+
+        if (!best_mount) {
+            return {};
+        }
+
+        return {
+            .provider = best_mount->file_provider.get(),
+            .relative_path = std::move(best_relative_path)
+        };
+    }
+
+    VFS::ResolvedPath VFS::ResolvePathForDirectory(std::string_view path) {
+        const std::string normalised_path =
+            ResolveVirtualPath(NormalisePath(std::string(path)));
+
+        MountPoint* best_mount = nullptr;
+        std::string best_relative_path;
+
+        for (auto& mount : mMountPoints) {
+            const std::string& mount_path = mount.mount_point;
+
+            if (normalised_path.rfind(mount_path, 0) != 0) {
+                continue;
+            }
+
+            if (mount_path != "/" &&
+                normalised_path.length() != mount_path.length() &&
+                normalised_path[mount_path.length()] != '/') {
+                continue;
+            }
+
+            std::string relative_path;
+
+            if (mount_path == "/") {
+                relative_path = normalised_path;
+            } else {
+                relative_path = normalised_path.substr(mount_path.length());
+
+                if (relative_path.empty()) {
+                    relative_path = "/";
+                }
+            }
+
+            if (!mount.file_provider->DirExists(relative_path)) {
+                continue;
             }
 
             if (!best_mount ||
@@ -258,9 +308,9 @@ namespace CE::Common::FS::VFS {
         OpenFlags flags
     ) {
         const bool wants_write =
-            (flags & OpenFlags::Write) != OpenFlags::None ||
-            (flags & OpenFlags::Create) != OpenFlags::None ||
-            (flags & OpenFlags::Append) != OpenFlags::None;
+            HasFlag(flags, OpenFlags::Write) ||
+            HasFlag(flags, OpenFlags::Create) ||
+            HasFlag(flags, OpenFlags::Append);
 
         const ResolvedPath resolved = wants_write
             ? ResolvePathForWrite(path)
@@ -280,19 +330,85 @@ namespace CE::Common::FS::VFS {
         );
     }
 
-    bool VFS::DeleteFile(const std::string_view path) {
-        const ResolvedPath resolved = ResolvePathForWrite(path);
-        return resolved.provider && resolved.provider->DeleteFile(resolved.relative_path);
-    }
+    bool VFS::DeleteFile(std::string_view path) {
+        const ResolvedPath resolved = ResolvePath(path);
 
-    bool VFS::MoveFile(const std::string_view old_path, const std::string_view new_path) {
-        const ResolvedPath old_resolved = ResolvePath(old_path);
-        const ResolvedPath new_resolved = ResolvePathForWrite(new_path);
-
-        if (!old_resolved.provider || !new_resolved.provider || old_resolved.provider != new_resolved.provider) {
+        if (!resolved.provider || resolved.provider->IsReadOnly()) {
             return false;
         }
 
-        return old_resolved.provider->MoveFile(old_resolved.relative_path, new_resolved.relative_path);
+        return resolved.provider->DeleteFile(resolved.relative_path);
     }
-} // namespace CE::Common::FS::VFS
+
+    bool VFS::MoveFile(
+        std::string_view old_path,
+        std::string_view new_path
+    ) {
+        const ResolvedPath old_resolved = ResolvePath(old_path);
+        const ResolvedPath new_resolved = ResolvePathForWrite(new_path);
+
+        if (!old_resolved.provider ||
+            !new_resolved.provider ||
+            old_resolved.provider != new_resolved.provider ||
+            old_resolved.provider->IsReadOnly()) {
+            return false;
+        }
+
+        return old_resolved.provider->MoveFile(
+            old_resolved.relative_path,
+            new_resolved.relative_path
+        );
+    }
+
+    bool VFS::DirExists(std::string_view path) {
+        return ResolvePathForDirectory(path).provider != nullptr;
+    }
+
+    std::vector<DirectoryContent> VFS::ListDirectory(std::string_view path) {
+        const ResolvedPath resolved = ResolvePathForDirectory(path);
+
+        if (!resolved.provider) {
+            return {};
+        }
+
+        return resolved.provider->ListDirectory(resolved.relative_path);
+    }
+
+    bool VFS::IsDir(std::string_view path) {
+        return DirExists(path);
+    }
+
+    bool VFS::IsFile(std::string_view path) {
+        return FileExists(path);
+    }
+
+    bool VFS::DeleteDir(std::string_view path) {
+        const ResolvedPath resolved = ResolvePathForDirectory(path);
+
+        if (!resolved.provider || resolved.provider->IsReadOnly()) {
+            return false;
+        }
+
+        return resolved.provider->DeleteDir(resolved.relative_path);
+    }
+
+    bool VFS::MoveDir(
+        std::string_view old_path,
+        std::string_view new_path
+    ) {
+        const ResolvedPath old_resolved = ResolvePathForDirectory(old_path);
+        const ResolvedPath new_resolved = ResolvePathForWrite(new_path);
+
+        if (!old_resolved.provider ||
+            !new_resolved.provider ||
+            old_resolved.provider != new_resolved.provider ||
+            old_resolved.provider->IsReadOnly()) {
+            return false;
+        }
+
+        return old_resolved.provider->MoveDir(
+            old_resolved.relative_path,
+            new_resolved.relative_path
+        );
+    }
+}

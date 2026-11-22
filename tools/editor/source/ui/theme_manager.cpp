@@ -14,6 +14,7 @@
 #include "ce_runtime/common/tracelog.hpp"
 #include "ce_editor/ui/theme_manager.hpp"
 #include "ce_runtime/common/fs/file_provider.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
 #include "ce_common/tracelog.hpp"
 
 namespace CE::Editor::UI {

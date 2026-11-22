@@ -34,6 +34,8 @@ namespace CE::Editor {
             out["window"]["win_height"] = mInstance.mWindow->GetWindowSize(Common::WindowMode::Windowed).h;
             out["window"]["win_maximised"] = mInstance.mWindow->IsMaxmimised();
 
+            out["theme_internal_name"] = mInstance.mThemeManager->GetCurrentTheme().internal_name;
+
             TDF recent_projects = TDF::MakeArray();
             for (const auto& project : mInstance.mRecentProjects) {
                 recent_projects.PushBack(project);
@@ -85,6 +87,9 @@ namespace CE::Editor {
                     "win_maximised", false
                 );
             }
+
+            auto theme_name = in.Value<std::string>("theme_internal_name", "org.cattle_engine.editor_themes.system_default");
+            mInstance.mThemeManager->SetTheme("org.cattle_engine.editor_themes.system_default", true);
 
             auto recent_projects = in.Value<TDF::Array>(
                 "last_open_projs",

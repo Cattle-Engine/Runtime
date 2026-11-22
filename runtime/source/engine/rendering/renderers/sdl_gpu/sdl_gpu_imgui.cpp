@@ -74,7 +74,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         mWindowID = SDL_GetWindowID(window);
 
-        ImGui::SetCurrentContext(prev_context);
+        // ImGui::SetCurrentContext(prev_context);
     }
 
     void SDL_GPU_Renderer::ImGuiStartFrame() {

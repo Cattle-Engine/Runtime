@@ -52,17 +52,6 @@ namespace CE::Editor {
     }
 
     void EditorInstance::OnInitialise() {
-        State state(*mVFS, *this);
-
-        Status status = state.RestoreState();
-        if (!status) {
-            SDL_ShowSimpleMessageBox(
-                SDL_MESSAGEBOX_WARNING,
-                "CE Editor - Warning", 
-                std::string("Failed to restore editor state: " + status.GetError().message).c_str(), 
-                mWindow->GetWindow()
-            );
-        }
     }
 
     EditorInstance::~EditorInstance() {
