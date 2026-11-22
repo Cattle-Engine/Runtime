@@ -1,0 +1,116 @@
+theme:
+  internal_name: org.cattle_engine.editor_themes.dracula
+  name: Dracula
+  version:
+    major: 1
+    minor: 0
+    patch: 0
+
+  icons:
+    undo: /textures/undo_icon.png
+    redo: /textures/redo_icon.png
+
+  style:
+    alpha: 1.0
+    disabled_alpha: 0.5
+
+    window_padding: [10, 10]
+    window_rounding: 6
+    window_border_size: 1
+    window_min_size: [32, 32]
+    window_title_align: [0.0, 0.5]
+    window_menu_button_position: left
+
+    child_rounding: 4
+    child_border_size: 1
+    popup_rounding: 6
+    popup_border_size: 1
+
+    frame_padding: [8, 4]
+    frame_rounding: 4
+    frame_border_size: 0
+
+    item_spacing: [8, 6]
+    item_inner_spacing: [6, 4]
+    cell_padding: [6, 4]
+    indent_spacing: 20
+    columns_min_spacing: 6
+
+    scrollbar_size: 14
+    scrollbar_rounding: 8
+
+    grab_min_size: 12
+    grab_rounding: 4
+
+    tab_rounding: 4
+    tab_border_size: 0
+    tab_bar_border_size: 1
+
+    button_text_align: [0.5, 0.5]
+    selectable_text_align: [0.0, 0.0]
+    color_button_position: right
+    separator_text_border_size: 2
+
+  colors:
+    Text:                      [0.973, 0.973, 0.949, 1.00]
+    TextDisabled:              [0.384, 0.447, 0.643, 1.00]
+    WindowBg:                  [0.157, 0.165, 0.212, 1.00]
+    ChildBg:                   [0.157, 0.165, 0.212, 0.00]
+    PopupBg:                   [0.129, 0.133, 0.173, 0.98]
+    Border:                    [0.098, 0.102, 0.129, 1.00]
+    BorderShadow:              [0.000, 0.000, 0.000, 0.00]
+    FrameBg:                   [0.267, 0.278, 0.353, 0.55]
+    FrameBgHovered:            [0.267, 0.278, 0.353, 0.85]
+    FrameBgActive:             [0.384, 0.447, 0.643, 0.70]
+    TitleBg:                   [0.098, 0.102, 0.129, 1.00]
+    TitleBgActive:             [0.129, 0.133, 0.173, 1.00]
+    TitleBgCollapsed:          [0.098, 0.102, 0.129, 0.75]
+    MenuBarBg:                 [0.129, 0.133, 0.173, 1.00]
+    ScrollbarBg:               [0.098, 0.102, 0.129, 0.55]
+    ScrollbarGrab:             [0.267, 0.278, 0.353, 1.00]
+    ScrollbarGrabHovered:      [0.384, 0.447, 0.643, 1.00]
+    ScrollbarGrabActive:       [0.741, 0.576, 0.976, 1.00]
+    CheckMark:                 [0.314, 0.980, 0.482, 1.00]
+    SliderGrab:                [0.741, 0.576, 0.976, 1.00]
+    SliderGrabActive:          [1.000, 0.475, 0.776, 1.00]
+    Button:                    [0.267, 0.278, 0.353, 1.00]
+    ButtonHovered:             [0.384, 0.447, 0.643, 1.00]
+    ButtonActive:              [0.741, 0.576, 0.976, 0.80]
+    Header:                    [0.741, 0.576, 0.976, 0.30]
+    HeaderHovered:             [0.741, 0.576, 0.976, 0.50]
+    HeaderActive:              [0.741, 0.576, 0.976, 0.70]
+    Separator:                 [0.267, 0.278, 0.353, 1.00]
+    SeparatorHovered:          [0.741, 0.576, 0.976, 0.78]
+    SeparatorActive:           [1.000, 0.475, 0.776, 1.00]
+    ResizeGrip:                [0.741, 0.576, 0.976, 0.25]
+    ResizeGripHovered:         [0.741, 0.576, 0.976, 0.67]
+    ResizeGripActive:          [1.000, 0.475, 0.776, 0.95]
+    InputTextCursor:           [0.973, 0.973, 0.949, 1.00]
+    TabHovered:                [0.741, 0.576, 0.976, 0.70]
+    Tab:                       [0.129, 0.133, 0.173, 1.00]
+    TabSelected:               [0.267, 0.278, 0.353, 1.00]
+    TabSelectedOverline:       [1.000, 0.475, 0.776, 1.00]
+    TabDimmed:                 [0.098, 0.102, 0.129, 1.00]
+    TabDimmedSelected:         [0.157, 0.165, 0.212, 1.00]
+    TabDimmedSelectedOverline: [0.384, 0.447, 0.643, 1.00]
+    DockingPreview:            [0.741, 0.576, 0.976, 0.50]
+    DockingEmptyBg:            [0.098, 0.102, 0.129, 1.00]
+    PlotLines:                 [0.545, 0.914, 0.992, 1.00]
+    PlotLinesHovered:          [1.000, 0.475, 0.776, 1.00]
+    PlotHistogram:             [1.000, 0.722, 0.424, 1.00]
+    PlotHistogramHovered:      [0.945, 0.980, 0.549, 1.00]
+    TableHeaderBg:             [0.129, 0.133, 0.173, 1.00]
+    TableBorderStrong:         [0.267, 0.278, 0.353, 1.00]
+    TableBorderLight:          [0.267, 0.278, 0.353, 0.50]
+    TableRowBg:                [0.000, 0.000, 0.000, 0.00]
+    TableRowBgAlt:             [0.973, 0.973, 0.949, 0.04]
+    TextLink:                  [0.545, 0.914, 0.992, 1.00]
+    TextSelectedBg:            [0.741, 0.576, 0.976, 0.35]
+    TreeLines:                 [0.384, 0.447, 0.643, 1.00]
+    DragDropTarget:            [0.945, 0.980, 0.549, 0.90]
+    DragDropTargetBg:          [0.945, 0.980, 0.549, 0.10]
+    UnsavedMarker:             [1.000, 0.722, 0.424, 1.00]
+    NavCursor:                 [0.545, 0.914, 0.992, 1.00]
+    NavWindowingHighlight:     [0.973, 0.973, 0.949, 0.70]
+    NavWindowingDimBg:         [0.000, 0.000, 0.000, 0.20]
+    ModalWindowDimBg:          [0.000, 0.000, 0.000, 0.50]

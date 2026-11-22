@@ -34,6 +34,7 @@ namespace CE::Editor::UI {
     
     class ThemeManager {
         public:
+            // can throw std::runtime_error if it fails to reload the theme cache or apply a theme 
             ThemeManager(
                 Renderer::IRenderer& renderer, 
                 Common::FS::VFS::VFS& vfs, 
@@ -48,7 +49,7 @@ namespace CE::Editor::UI {
 
                 @param no_wait_until_end_frame Set to true only if ImGui::BeginFrame() was not called before calling this
             */
-            Status LoadTheme(const std::string& internal_name, bool no_wait_until_end_frame = false);
+            Status SetTheme(const std::string& internal_name, bool no_wait_until_end_frame = false);
             // finds themes inside /config/user_themes
             Status ReloadThemeCache();
             const std::vector<Theme>& GetThemes();
@@ -59,10 +60,14 @@ namespace CE::Editor::UI {
 
             // called at the end of the frame 
             void ApplyTheme();
+            bool WantsThemeApply() const;
         private:
+            bool mNeedThemeApply = false;
+
             Renderer::IRenderer& mRenderer;
             Common::FS::VFS::VFS& mVFS;
             std::vector<Theme> mListedThemes;
             std::array<Renderer::Texture*, static_cast<size_t>(Icon::Count)> mIcons{};
+            Theme mCurrentTheme;
     };
 }
