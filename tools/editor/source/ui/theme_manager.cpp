@@ -15,6 +15,7 @@
 #include "ce_editor/ui/theme_manager.hpp"
 #include "ce_runtime/common/fs/file_provider.hpp"
 #include "ce_runtime/common/fs/vfs.hpp"
+#include "ce_runtime/rendering/renderer.hpp"
 #include "ce_common/tracelog.hpp"
 
 namespace CE::Editor::UI {
@@ -512,7 +513,7 @@ namespace CE::Editor::UI {
                 continue;
             }
 
-            mIcons[i] = mRenderer.LoadTex(path.c_str());
+            mIcons[i] = mRenderer.LoadTex(path.c_str(), Renderer::TextureFilter::Nearest);
             if (!mIcons[i]) {
                 CE_LOG(LogLevel::Warn, "[ThemeManager] Renderer failed to create texture for '{}'.", path);
             }

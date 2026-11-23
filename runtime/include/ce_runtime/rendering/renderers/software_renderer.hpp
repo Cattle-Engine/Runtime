@@ -35,7 +35,8 @@ namespace CE::Renderer::Software {
         void DrawLine(float x1, float y1, float x2, float y2, float thickness, Colour colour) override;
         void SetClearColour(float r, float g, float b, float a) override;
 
-        Texture* LoadTex(const char* path) override;
+        Texture* LoadTex(const char* path,             TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp) override;
         Texture* CreateTextureFromData(int width, int height, const void* pixels, TextureFormat format, int pitch = 0,
                                        TextureFilter filter = TextureFilter::Linear,
                                        TextureWrap wrap = TextureWrap::Clamp,

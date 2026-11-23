@@ -52,7 +52,8 @@ namespace CE::Renderer {
             (void)a;
         }
 
-        Texture* LoadTex(const char* path) override {
+        Texture* LoadTex(const char* path,            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp) override {
             (void)path;
             return nullptr;
         }

@@ -246,7 +246,12 @@ static_assert(sizeof(GPUVertex3D) == 52, "GPUVertex3D stride must be exactly 52 
 
         void SetClearColour(float r, float g, float b, float a) override;
 
-        Texture* LoadTex(const char* path) override;
+        Texture* LoadTex(
+            const char* path,     
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp
+        ) override;
+        
         Texture* CreateTextureFromData(
             int width, int height, 
             const void* pixels, 

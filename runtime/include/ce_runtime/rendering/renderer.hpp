@@ -240,7 +240,11 @@ namespace CE::Renderer {
 
         virtual void SetClearColour(float r, float g, float b, float a) = 0;
         
-        virtual Texture* LoadTex(const char* path) = 0;
+        virtual Texture* LoadTex(
+            const char* path,
+            TextureFilter filter = TextureFilter::Linear,
+            TextureWrap wrap = TextureWrap::Clamp
+        ) = 0;
         virtual Texture* CreateTextureFromData(
             int width, int height, 
             const void* pixels, 

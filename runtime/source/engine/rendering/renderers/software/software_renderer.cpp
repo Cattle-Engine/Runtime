@@ -298,7 +298,7 @@ namespace CE::Renderer::Software {
         return texture;
     }
 
-    Texture* Software_Renderer::LoadTex(const char* path) {
+    Texture* Software_Renderer::LoadTex(const char* path, TextureFilter filter, TextureWrap wrap) {
         if (mRenderer == nullptr || path == nullptr || mVFS == nullptr) {
             return GetErrorTexture();
         }

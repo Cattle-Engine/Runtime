@@ -23,9 +23,35 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             sampInfo.max_lod = 0.0f;
             return SDL_CreateGPUSampler(device, &sampInfo);
         }
+
+        SDL_GPUFilter ToSDLFilter(TextureFilter filter) {
+            switch (filter) {
+                case TextureFilter::Nearest:
+                    return SDL_GPU_FILTER_NEAREST;
+                case TextureFilter::Linear:
+                default:
+                    return SDL_GPU_FILTER_LINEAR;
+            }
+        }
+
+        SDL_GPUSamplerAddressMode ToSDLWrap(TextureWrap wrap) {
+            switch (wrap) {
+                case TextureWrap::Repeat:
+                    return SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                case TextureWrap::MirroredRepeat:
+                    return SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                case TextureWrap::Clamp:
+                default:
+                    return SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            }
+        }
     }
 
-    Texture* SDL_GPU_Renderer::LoadTex(const char* path) {
+    Texture* SDL_GPU_Renderer::LoadTex(
+        const char* path, 
+        TextureFilter filter,
+        TextureWrap wrap
+    ) {
         CE::Common::FS::VFS::VFS& vfs = *mVFS;
 
         uint64_t sz = 0;
@@ -40,13 +66,13 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             return nullptr;
         }
 
-        std::vector<uint8_t> fileBytes((size_t)sz);
-        if (!vf->Read(fileBytes.data(), fileBytes.size())) {
+        std::vector<uint8_t> file_bytes((size_t)sz);
+        if (!vf->Read(file_bytes.data(), file_bytes.size())) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] VFS could not read '{}'", path);
             return nullptr;
         }
 
-        SDL_IOStream* mem = SDL_IOFromConstMem(fileBytes.data(), fileBytes.size());
+        SDL_IOStream* mem = SDL_IOFromConstMem(file_bytes.data(), file_bytes.size());
         if (!mem) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_IOFromConstMem failed: {}", SDL_GetError());
             return nullptr;
@@ -67,31 +93,31 @@ namespace CE::Renderer::SDL_GPU_Renderer {
 
         int w = converted->w;
         int h = converted->h;
-        size_t dataSize = static_cast<size_t>(w * h * 4);
+        auto data_size = static_cast<size_t>(w * h * 4);
 
-        SDL_GPUTextureCreateInfo texInfo{};
-        texInfo.type = SDL_GPU_TEXTURETYPE_2D;
-        texInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-        texInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-        texInfo.width = (Uint32)w;
-        texInfo.height = (Uint32)h;
-        texInfo.layer_count_or_depth = 1;
-        texInfo.num_levels = 1;
+        SDL_GPUTextureCreateInfo tex_info{};
+        tex_info.type = SDL_GPU_TEXTURETYPE_2D;
+        tex_info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        tex_info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        tex_info.width = (Uint32)w;
+        tex_info.height = (Uint32)h;
+        tex_info.layer_count_or_depth = 1;
+        tex_info.num_levels = 1;
 
-        SDL_GPUTexture* gpuTex = SDL_CreateGPUTexture(mDevice, &texInfo);
-        if (!gpuTex) {
+        SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(mDevice, &tex_info);
+        if (!gpu_tex) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(converted);
             return nullptr;
         }
 
-        SDL_GPUTransferBufferCreateInfo tbInfo{};
-        tbInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-        tbInfo.size = (Uint32)dataSize;
+        SDL_GPUTransferBufferCreateInfo tb_info{};
+        tb_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        tb_info.size = (Uint32)data_size;
 
-        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(mDevice, &tbInfo);
+        SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(mDevice, &tb_info);
         void* mapped = SDL_MapGPUTransferBuffer(mDevice, tb, false);
-        SDL_memcpy(mapped, converted->pixels, dataSize);
+        SDL_memcpy(mapped, converted->pixels, data_size);
         SDL_UnmapGPUTransferBuffer(mDevice, tb);
         SDL_DestroySurface(converted);
 
@@ -105,7 +131,7 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         src.rows_per_layer = (Uint32)h;
 
         SDL_GPUTextureRegion dst{};
-        dst.texture = gpuTex;
+        dst.texture = gpu_tex;
         dst.w = (Uint32)w;
         dst.h = (Uint32)h;
         dst.d = 1;
@@ -116,9 +142,19 @@ namespace CE::Renderer::SDL_GPU_Renderer {
         SDL_ReleaseGPUTransferBuffer(mDevice, tb);
 
         SDLGPUTexData* data = new SDLGPUTexData();
-        data->gpuTex = gpuTex;
-        data->sampler = CreateSampler(mDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
-        data->repeatSampler = CreateSampler(mDevice, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+        data->gpuTex = gpu_tex;
+        data->sampler = CreateSampler(
+            mDevice,
+            ToSDLFilter(filter),
+            ToSDLWrap(wrap)
+        );
+
+        data->repeatSampler = CreateSampler(
+            mDevice,
+            ToSDLFilter(filter),
+            SDL_GPU_SAMPLERADDRESSMODE_REPEAT
+        );
+
         if (!data->sampler || !data->repeatSampler) {
             if (data->sampler) {
                 SDL_ReleaseGPUSampler(mDevice, data->sampler);
@@ -126,13 +162,15 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             if (data->repeatSampler) {
                 SDL_ReleaseGPUSampler(mDevice, data->repeatSampler);
             }
-            SDL_ReleaseGPUTexture(mDevice, gpuTex);
+
+            SDL_ReleaseGPUTexture(mDevice, gpu_tex);
             delete data;
+
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] Failed to create texture samplers: {}", SDL_GetError());
             return nullptr;
         }
 
-        Texture* tex = new Texture();
+        auto* tex = new Texture();
         tex->handle = data;
         tex->width = w;
         tex->height = h;
@@ -323,25 +361,20 @@ namespace CE::Renderer::SDL_GPU_Renderer {
             SDL_ReleaseGPUTransferBuffer(mDevice, tb);
         }
 
-        const SDL_GPUFilter gpuFilter =
-            (filter == TextureFilter::Nearest) ? SDL_GPU_FILTER_NEAREST : SDL_GPU_FILTER_LINEAR;
-        SDL_GPUSamplerAddressMode addressMode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        switch (wrap) {
-        case TextureWrap::Clamp:
-            addressMode = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-            break;
-        case TextureWrap::Repeat:
-            addressMode = SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-            break;
-        case TextureWrap::MirroredRepeat:
-            addressMode = SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-            break;
-        }
-
         SDLGPUTexData* data = new SDLGPUTexData();
         data->gpuTex = gpuTex;
-        data->sampler = CreateSampler(mDevice, gpuFilter, addressMode);
-        data->repeatSampler = CreateSampler(mDevice, gpuFilter, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+        
+        data->sampler = CreateSampler(
+            mDevice,
+            ToSDLFilter(filter),
+            SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE
+        );
+
+        data->repeatSampler = CreateSampler(
+            mDevice,
+            ToSDLFilter(filter),
+            SDL_GPU_SAMPLERADDRESSMODE_REPEAT
+        );
 
         if (!data->sampler || !data->repeatSampler) {
             CE_LOG(LogLevel::Error, "[SDL_GPU Renderer] SDL_CreateGPUSampler failed: {}", SDL_GetError());
