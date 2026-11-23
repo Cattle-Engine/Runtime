@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <SDL3/SDL_dialog.h>
+#include <SDL3/SDL_messagebox.h>
 #include "imgui.h"
 
 #include "ce_editor/editor.hpp"
@@ -12,7 +13,15 @@ namespace CE::Editor::UI {
 
             auto instance = static_cast<EditorInstance*>(userdata);
 
-            instance->LoadProject(filelist[0]);
+            auto result = instance->LoadProject(filelist[0]);
+            if (!result) {
+                SDL_ShowSimpleMessageBox(
+                    SDL_MESSAGEBOX_ERROR,
+                    "CE Editor - Error", 
+                    result.GetError().message.c_str(), 
+                    nullptr
+                );
+            }
         }
     }
 
@@ -61,7 +70,8 @@ namespace CE::Editor::UI {
             }
 
             if (ImGui::BeginMenu("Edit")) {
-                ImGui::MenuItem("Undo");
+
+
                 ImGui::EndMenu();
             }
 
@@ -75,6 +85,35 @@ namespace CE::Editor::UI {
                 ImGui::EndMenu();
             }
 
+            // Push buttons to the right
+            const float buttonSize = ImGui::GetFrameHeight();
+            const float spacing = ImGui::GetStyle().ItemSpacing.x;
+            const float totalWidth = (buttonSize * 2.0f) + spacing;
+
+            ImGui::SameLine(ImGui::GetWindowWidth() - totalWidth - spacing);
+
+            // Undo
+            if (ImGui::ImageButton(
+                "##Undo",
+                static_cast<ImTextureRef>(
+                    mInstance.GetThemeManager().GetNativeIconTexture(Icon::Undo)
+                ),
+                ImVec2(18.0f, 18.0f)
+            )) {
+                // Redo action
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::ImageButton(
+                "##Redo",
+                static_cast<ImTextureRef>(
+                    mInstance.GetThemeManager().GetNativeIconTexture(Icon::Redo)
+                ),
+                ImVec2(18.0f, 18.0f)
+            )) {
+                // Redo action
+            }
             ImGui::EndMainMenuBar();
         }
     }

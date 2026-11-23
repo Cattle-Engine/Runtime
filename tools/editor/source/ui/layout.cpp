@@ -44,7 +44,8 @@ namespace CE::Editor::UI {
     }
 
     void UILayout::InitialiseDefaultLayout() {
-        ImGui::DockBuilderRemoveNode(mDockspaceID);
+        if (ImGui::DockBuilderGetNode(mDockspaceID) != nullptr)
+            return;
 
         ImGui::DockBuilderAddNode(
             mDockspaceID,
@@ -70,8 +71,6 @@ namespace CE::Editor::UI {
         ImGui::DockBuilderDockWindow("Project Browser", left);
 
         ImGui::DockBuilderFinish(mDockspaceID);
-
-        mInitialized = true;
     }
 
     void UILayout::Reset() {

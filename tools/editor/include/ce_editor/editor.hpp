@@ -43,8 +43,6 @@ namespace CE::Editor {
                     std::string(std::string(SDL_GetBasePath()) + "/editor_data")
                 );
                 mThemeManager = std::make_unique<UI::ThemeManager>(*mRenderer, *mVFS, "org.cattle_engine.editor_themes.system_default");
-                
-                mMainToolBar.Initialise(*mRenderer, *mTextureManager);
 
                 State state(*mVFS, *this);
 
@@ -65,6 +63,8 @@ namespace CE::Editor {
             [[nodiscard]] Status LoadProject(fs::path path);
             [[nodiscard]] Result<Project&> GetProject();
             bool ProjectLoaded() const;
+
+            UI::ThemeManager& GetThemeManager() { return *mThemeManager; }
 
             std::vector<std::unique_ptr<UI::IWindow>>& GetUIWindows() { return mUIWindows; }
         protected:
