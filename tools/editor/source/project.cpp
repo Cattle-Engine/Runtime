@@ -112,7 +112,7 @@ namespace CE::Editor {
         const fs::path manifest_path = mProjectPath / kProjectManifestName;
         if (!fs::exists(manifest_path) || !fs::is_regular_file(manifest_path)) {
             throw std::runtime_error(
-                "Project manifest: '" + manifest_path.string()  + "' does not exist, or is a regular file"
+                "Project manifest: '" + manifest_path.string()  + "' does not exist, or is not regular file"
             );
         }
         

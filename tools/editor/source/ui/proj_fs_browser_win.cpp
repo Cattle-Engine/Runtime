@@ -133,8 +133,11 @@ namespace CE::Editor::UI {
                 Refresh();
 
             ImGui::Separator();
+            
+            LoadDirectory(mRoot);
 
-            DrawNode(mRoot);
+            for (auto& child : mRoot.children)
+                DrawNode(child);
         }
 
         mWindowOpen = open;
