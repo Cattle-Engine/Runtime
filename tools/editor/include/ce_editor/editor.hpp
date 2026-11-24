@@ -10,6 +10,7 @@
 
 #include "ce_runtime/common/fs/vfs.hpp"
 #include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/common/window.hpp"
 #include "ce_runtime/instance/base_instance.hpp"
 #include "ce_runtime/settings.hpp"
 
@@ -65,7 +66,7 @@ namespace CE::Editor {
             bool ProjectLoaded() const;
 
             UI::ThemeManager& GetThemeManager() { return *mThemeManager; }
-
+            Common::Window& GetWindow() { return *mWindow; }
             std::vector<std::unique_ptr<UI::IWindow>>& GetUIWindows() { return mUIWindows; }
         protected:
             GameInfo& GetGameInfo() override {

@@ -3,12 +3,13 @@
 #include <SDL3/SDL_messagebox.h>
 #include "imgui.h"
 
+#include "ce_common/tracelog.hpp"
 #include "ce_editor/editor.hpp"
 #include "ce_editor/ui/toolbar.hpp"
 
 namespace CE::Editor::UI {
     namespace {
-        void ExportLogsCallback(void* userdata, const char* const* filelist, int filter) {
+        void LoadProjectCallback(void* userdata, const char* const* filelist, int filter) {
             if (!filelist || !filelist[0]) return;
 
             auto instance = static_cast<EditorInstance*>(userdata);
@@ -19,7 +20,7 @@ namespace CE::Editor::UI {
                     SDL_MESSAGEBOX_ERROR,
                     "CE Editor - Error", 
                     result.GetError().message.c_str(), 
-                    nullptr
+                    instance->GetWindow().GetWindow()
                 );
             }
         }
@@ -30,7 +31,7 @@ namespace CE::Editor::UI {
             if (ImGui::BeginMenu("File")) {
                 if(ImGui::MenuItem("Load Project")) {
                     SDL_ShowOpenFolderDialog(
-                        ExportLogsCallback, 
+                        LoadProjectCallback, 
                         static_cast<void*>(&mInstance), 
                         nullptr, 
                         nullptr,
@@ -54,7 +55,15 @@ namespace CE::Editor::UI {
                         for (const auto& file : mInstance.GetRecentProjects()) {
                             if (file.empty()) continue;
                             if (ImGui::MenuItem(file.c_str())) {
-                                mInstance.LoadProject(file);
+                                auto result = mInstance.LoadProject(file);
+                                if (!result) {
+                                    SDL_ShowSimpleMessageBox(
+                                        SDL_MESSAGEBOX_ERROR, 
+                                        "CE Editor - Error", 
+                                        result.GetError().message.c_str(), 
+                                        mInstance.GetWindow().GetWindow()
+                                    );
+                                }
                             }
                         }
                     }
@@ -86,11 +95,13 @@ namespace CE::Editor::UI {
             }
 
             // Push buttons to the right
-            const float buttonSize = ImGui::GetFrameHeight();
+            const float button_size = ImGui::GetFrameHeight();
             const float spacing = ImGui::GetStyle().ItemSpacing.x;
-            const float totalWidth = (buttonSize * 2.0f) + spacing;
+            const float total_width = (button_size * 2.0f) + spacing;
 
-            ImGui::SameLine(ImGui::GetWindowWidth() - totalWidth - spacing);
+            ImGui::SameLine(ImGui::GetWindowWidth() - total_width - spacing);
+
+            auto project = mInstance.GetProject();
 
             // Undo
             if (ImGui::ImageButton(
@@ -100,7 +111,11 @@ namespace CE::Editor::UI {
                 ),
                 ImVec2(18.0f, 18.0f)
             )) {
-                // Redo action
+                if (!project) {
+                    CE_LOG(CECommon::LogLevel::Warn, "[MainViewPortToolbar] Could not undo as no project is loaded!");
+                } else {
+                    project->GetUndoRedoSys().Undo();
+                }
             }
 
             ImGui::SameLine();
@@ -112,7 +127,11 @@ namespace CE::Editor::UI {
                 ),
                 ImVec2(18.0f, 18.0f)
             )) {
-                // Redo action
+                if (!project) {
+                    CE_LOG(CECommon::LogLevel::Warn, "[MainViewPortToolbar] Could not redo as no project is loaded!");
+                } else {
+                    project->GetUndoRedoSys().Redo();
+                }
             }
             ImGui::EndMainMenuBar();
         }

@@ -18,7 +18,7 @@ namespace CE::Editor {
         private:
             static constexpr const char* kProjectManifestName = "ce_project.yaml";
 
-            UndoRedoSystem mUndoRedo;
+            mutable UndoRedoSystem mUndoRedo;
             const fs::path mProjectPath;
             GameInfo mGameInfo;
     };

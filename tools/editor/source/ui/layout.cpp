@@ -11,7 +11,7 @@ namespace CE::Editor::UI {
         ImGui::SetNextWindowSize(viewport->WorkSize);
         ImGui::SetNextWindowViewport(viewport->ID);
 
-        constexpr ImGuiWindowFlags flags =
+        constexpr ImGuiWindowFlags kFlags =
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoCollapse |
             ImGuiWindowFlags_NoResize |
@@ -25,7 +25,7 @@ namespace CE::Editor::UI {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
-        ImGui::Begin("EditorDockspaceHost", nullptr, flags);
+        ImGui::Begin("EditorDockspaceHost", nullptr, kFlags);
 
         ImGui::PopStyleVar(3);
 

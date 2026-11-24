@@ -1,3 +1,4 @@
+#include "ce_editor/undoredo_system.hpp"
 #include <yaml-cpp/emittermanip.h>
 #include "yaml-cpp/yaml.h"
 
@@ -109,9 +110,9 @@ namespace CE::Editor {
     
     Project::Project(fs::path proj_path) : mProjectPath(proj_path) {
         const fs::path manifest_path = mProjectPath / kProjectManifestName;
-        if (!fs::exists(manifest_path) || fs::is_regular_file(manifest_path)) {
+        if (!fs::exists(manifest_path) || !fs::is_regular_file(manifest_path)) {
             throw std::runtime_error(
-                "Project path: " + mProjectPath.string()  + "does not exist, or is a regular file"
+                "Project manifest: '" + manifest_path.string()  + "' does not exist, or is a regular file"
             );
         }
         
@@ -127,4 +128,6 @@ namespace CE::Editor {
     fs::path Project::GetProjectPath() const {
         return mProjectPath;
     }
+
+    UndoRedoSystem& Project::GetUndoRedoSys() const { return mUndoRedo; }
 }

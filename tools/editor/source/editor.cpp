@@ -82,7 +82,7 @@ namespace CE::Editor {
     }
 
     Status EditorInstance::LoadProject(fs::path path) {
-        auto it = std::find(mRecentProjects.begin(), mRecentProjects.end(), path);
+        auto *it = std::find(mRecentProjects.begin(), mRecentProjects.end(), path);
 
         if (it != mRecentProjects.end()) {
             std::move_backward(mRecentProjects.begin(), it, it + 1);
@@ -95,6 +95,8 @@ namespace CE::Editor {
         try {
             mProject = std::make_unique<Project>(std::move(path));
         } catch (const std::exception& e) {
+            mProjectLoaded = false;
+            if (mProject) mProject.reset();
             return Error {
                 .message = e.what(),
                 .context = "EditorInstance::LoadProject",
