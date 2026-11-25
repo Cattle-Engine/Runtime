@@ -7,6 +7,7 @@
 #include "ce_editor/constants.hpp"
 #include "ce_editor/editor.hpp"
 #include "ce_editor/state.hpp"
+#include "ce_editor/ui/proj_fs_browser_win.hpp"
 
 #include "ce_common/tracelog.hpp"
 
@@ -37,12 +38,12 @@ namespace CE::Editor {
     }
 
     void EditorInstance::HandleWindowEvents() {
-        auto indices = SDL_Events::GetWindowEventIndices(SDL_GetWindowID(mWindow->GetWindow()));
+        auto indices = SDL_Events::GetWindowEventIndices(SDL_GetWindowID(mWindow->GetWindow())); // NOLINT
 
         for (size_t i : indices) {
             const SDL_Event& e = SDL_Events::gEvents[i];
 
-            switch (e.type) {
+            switch (e.type) { // NOLINT
                 case SDL_EVENT_WINDOW_RESIZED: {
                     mWindow->OnWindowResized();
                     break;
@@ -51,7 +52,41 @@ namespace CE::Editor {
         }
     }
 
-    void EditorInstance::OnInitialise() {
+    /*
+        void EditorInstance::OnInitialise() {
+        }
+    */
+
+    EditorInstance::EditorInstance(
+        bool debugmode,
+        Renderer::GPUDeviceHandle& gpudevice,
+        EngineArguements args
+    ) : mMainToolBar(*this), mUILayout() {
+        mUIWindows.push_back(
+            std::make_unique<UI::ProjectFSBrowser>(*this)
+        );
+        this->InitialiseBase(
+            debugmode,
+            gpudevice,
+            args,
+            std::string(std::string(SDL_GetBasePath()) + "/editor_data")
+        );
+        mThemeManager = std::make_unique<UI::ThemeManager>(*mRenderer, *mVFS, "org.cattle_engine.editor_themes.system_default");
+
+        CE_LOG(CECommon::LogLevel::Debug, "[EditorInstance] Creating asset editor manager and editor factories");
+        
+
+        State state(*mVFS, *this);
+
+        Status status = state.RestoreState();
+        if (!status) {
+            SDL_ShowSimpleMessageBox(
+                SDL_MESSAGEBOX_WARNING,
+                "CE Editor - Warning", 
+                std::string("Failed to restore editor state: " + status.GetError().message).c_str(), 
+                mWindow->GetWindow()
+            );
+        }
     }
 
     EditorInstance::~EditorInstance() {

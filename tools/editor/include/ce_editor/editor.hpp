@@ -16,11 +16,11 @@
 
 #include "ce_editor/state.hpp"
 #include "ce_editor/ui/layout.hpp"
-#include "ce_editor/ui/proj_fs_browser_win.hpp"
 #include "ce_editor/ui/toolbar.hpp"
 #include "ce_editor/ui/i_window.hpp"
 #include "ce_editor/project.hpp"
 #include "ce_editor/ui/theme_manager.hpp"
+#include "ce_editor/assets/asset_providers.hpp"
 
 namespace CE::Editor {
     namespace fs = std::filesystem;
@@ -33,30 +33,7 @@ namespace CE::Editor {
                 bool debugmode,
                 Renderer::GPUDeviceHandle& gpudevice,
                 EngineArguements args
-            ) : mMainToolBar(*this), mUILayout() {
-                mUIWindows.push_back(
-                    std::make_unique<UI::ProjectFSBrowser>(*this)
-                );
-                this->InitialiseBase(
-                    debugmode,
-                    gpudevice,
-                    args,
-                    std::string(std::string(SDL_GetBasePath()) + "/editor_data")
-                );
-                mThemeManager = std::make_unique<UI::ThemeManager>(*mRenderer, *mVFS, "org.cattle_engine.editor_themes.system_default");
-
-                State state(*mVFS, *this);
-
-                Status status = state.RestoreState();
-                if (!status) {
-                    SDL_ShowSimpleMessageBox(
-                        SDL_MESSAGEBOX_WARNING,
-                        "CE Editor - Warning", 
-                        std::string("Failed to restore editor state: " + status.GetError().message).c_str(), 
-                        mWindow->GetWindow()
-                    );
-                }
-            }
+            );
 
             ~EditorInstance();
 
@@ -80,7 +57,7 @@ namespace CE::Editor {
 
             bool OnImGui() override;
             
-            void OnInitialise() override;
+            // void OnInitialise() override;
 
             InstanceRuntimeConf PrepareRuntimeData()  override;
             int MountData(const std::string& path) override;
@@ -92,13 +69,16 @@ namespace CE::Editor {
             Common::FS::VFS::MountPoint::MountID mConfigMountPointID{0};
 
             Settings::SettingsManager mSettings = Settings::SettingsManager("org.cattle_engine.editor");
+            std::unique_ptr<Assets::AssetEditorManager> mAssetEditorManger;
+
+            // ui stuff
+            std::vector<std::unique_ptr<UI::IWindow>> mUIWindows;
+            std::unique_ptr<UI::ThemeManager> mThemeManager;
             UI::MainViewPortToolBar mMainToolBar;
             UI::UILayout mUILayout;
 
-            std::vector<std::unique_ptr<UI::IWindow>> mUIWindows;
-            std::unique_ptr<UI::ThemeManager> mThemeManager;
-            std::unique_ptr<Project> mProject;
             std::array<std::string, kMaxRecentProjects> mRecentProjects;
             bool mProjectLoaded = false;
+            std::unique_ptr<Project> mProject;
     };
 }
