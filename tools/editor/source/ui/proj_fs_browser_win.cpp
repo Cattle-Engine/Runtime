@@ -2,6 +2,7 @@
 #include "ce_editor/ui/proj_fs_browser_win.hpp"
 
 #include <imgui.h>
+#include <imgui_stdlib.h>
 
 #include <algorithm>
 
@@ -69,6 +70,40 @@ namespace CE::Editor::UI {
                 ImGuiTreeNodeFlags_SpanAvailWidth
             );
 
+        if (ImGui::BeginPopupContextItem("DirectoryContextMenu", ImGuiMouseButton_Right)) {
+            auto& vfs = mEditorInstance.GetVFS();
+
+            if (ImGui::MenuItem("Refresh")) {
+                node.is_loaded = false;
+                node.children.clear();
+            }
+
+            if (ImGui::MenuItem("Create Directory")) {
+                mCreateDirectoryParent = node.vfs_path;
+                mNewDirectoryName.clear();
+                mCreateDirectoryPopup = true;
+            }
+
+            if (ImGui::MenuItem("Delete")) {
+                if (node.is_directory) {
+                    vfs.DeleteDir(node.vfs_path);
+                } else {
+                    vfs.DeleteFile(node.vfs_path);
+                }
+
+                Refresh();
+            }
+
+            if (!node.is_directory) {
+                if (ImGui::MenuItem("Open")) {
+                    mEditorInstance.GetAssetEditorManager().Open(node.vfs_path);
+                }
+            }
+   
+
+            ImGui::EndPopup();
+        }
+
             if (open) {
                 LoadDirectory(node);
 
@@ -85,6 +120,22 @@ namespace CE::Editor::UI {
                 ImGuiTreeNodeFlags_NoTreePushOnOpen |
                 ImGuiTreeNodeFlags_SpanAvailWidth
             );
+
+            if (ImGui::BeginPopupContextItem("FileContextMenu")) {
+                if (ImGui::MenuItem("Open")) {
+                    // TODO: Open file
+                }
+
+                if (ImGui::MenuItem("Rename")) {
+                    // TODO: Rename file
+                }
+
+                if (ImGui::MenuItem("Delete")) {
+                    // TODO: Delete file
+                }
+
+                ImGui::EndPopup();
+            }
         }
 
         ImGui::PopID();
@@ -129,6 +180,40 @@ namespace CE::Editor::UI {
 
             for (auto& child : mRoot.children)
                 DrawNode(child);
+        }
+
+        if (mCreateDirectoryPopup) {
+            ImGui::OpenPopup("Create Directory");
+            mCreateDirectoryPopup = false;
+        }
+
+        if (ImGui::BeginPopupModal("Create Directory", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::InputText("Directory Name", &mNewDirectoryName);
+
+            if (ImGui::Button("Create", ImVec2(120, 0))) {
+                if (!mNewDirectoryName.empty()) {
+                    std::string path = mCreateDirectoryParent;
+
+                    if (!path.empty() && path.back() != '/')
+                        path += '/';
+
+                    path += mNewDirectoryName;
+
+                    auto& vfs = mEditorInstance.GetVFS();
+                    vfs.CreateDir(path);
+
+                    Refresh();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
         }
 
         mWindowOpen = open;

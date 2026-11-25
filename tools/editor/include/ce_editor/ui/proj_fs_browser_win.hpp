@@ -31,6 +31,10 @@ namespace CE::Editor::UI {
         bool mInitialized = false;
         std::string mCurrentProjectRoot; // tracks which project root we're showing
 
+        bool mCreateDirectoryPopup = false;
+        std::string mNewDirectoryName;
+        std::string mCreateDirectoryParent;
+
         void SetRoot(std::string_view vfs_root);
         void Refresh();
 

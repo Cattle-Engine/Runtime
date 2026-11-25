@@ -7,6 +7,7 @@
 #include "ce_editor/constants.hpp"
 #include "ce_editor/editor.hpp"
 #include "ce_editor/state.hpp"
+#include "ce_editor/assets/editors/image_viewer.hpp"
 #include "ce_editor/ui/proj_fs_browser_win.hpp"
 
 #include "ce_common/tracelog.hpp"
@@ -75,6 +76,7 @@ namespace CE::Editor {
 
         CE_LOG(CECommon::LogLevel::Debug, "[EditorInstance] Creating asset editor manager and editor factories");
         mAssetEditorManger = std::make_unique<Assets::AssetEditorManager>(*this, *mVFS, "/mime/libmagic_mime.mgc");
+        mAssetEditorManger->Register<Assets::ImageViewer>("image/*");
 
         State state(*mVFS, *this);
 

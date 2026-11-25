@@ -57,6 +57,7 @@ namespace CE::Common::FS::OSFS {
         bool IsReadOnly() const override;
         std::string GetProviderName() const override;
 
+        fs::path GetBasePath() { return mBasePath; }
       private:
         std::filesystem::path mBasePath;
     };

@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <optional>
 #include <vector>
 #include <type_traits>
 
@@ -69,18 +70,28 @@ namespace CE::Common::FS::VFS {
         std::unique_ptr<IFile> OpenFile(std::string_view path, OpenFlags flags = OpenFlags::Read);
 
         // These can return false if it failed or its a read only mount
-        bool DeleteFile(const std::string_view path);
-        bool MoveFile(const std::string_view old_path, const std::string_view new_path);
+        bool DirExists(std::string_view path);
+        std::vector<DirectoryContent> ListDirectory(std::string_view path);
+        bool CreateDir(std::string_view path);
+        bool DeleteDir(std::string_view path);
 
-        bool DirExists(const std::string_view path);
-        std::vector<DirectoryContent> ListDirectory(const std::string_view path);
-        bool IsDir(const std::string_view path);
-        bool IsFile(const std::string_view path);
-        bool DeleteDir(const std::string_view path);
-        bool MoveDir(
-            std::string_view old_path,
-            std::string_view new_path
-        );
+        // Move operations
+        bool MoveFile(std::string_view old_path, std::string_view new_path);
+        bool MoveDir(std::string_view old_path, std::string_view new_path);
+
+        // File metadata
+        bool GetFileModifiedTimestamp(std::string_view path, int64_t& timestamp);
+        bool GetDirModifiedTimestamp(std::string_view path, int64_t& timestamp);
+
+        // Provider information
+        bool IsReadOnly(std::string_view path);
+
+        // Convenience file operations
+        std::optional<std::string> ReadToString(std::string_view path);
+        bool WriteFromString(std::string_view path, std::string_view contents);
+        bool IsDir(std::string_view path);
+        bool IsFile(std::string_view path);
+        bool DeleteFile(std::string_view path);
 
       private:
         struct ResolvedPath {

@@ -12,6 +12,7 @@
 #include "ce_runtime/common/misc/gameinfo.hpp"
 #include "ce_runtime/common/window.hpp"
 #include "ce_runtime/instance/base_instance.hpp"
+#include "ce_runtime/rendering/resources/texture_manager.hpp"
 #include "ce_runtime/settings.hpp"
 
 #include "ce_editor/state.hpp"
@@ -46,6 +47,8 @@ namespace CE::Editor {
             UI::ThemeManager& GetThemeManager() { return *mThemeManager; }
             Common::Window& GetWindow() { return *mWindow; }
             std::vector<std::unique_ptr<UI::IWindow>>& GetUIWindows() { return mUIWindows; }
+            Renderer::Resources::TextureManager& GetTextureManager() { return *mTextureManager; }
+            Assets::AssetEditorManager& GetAssetEditorManager() { return *mAssetEditorManger; }
 
             // Returns the VFS. Useful for windows/systems that need to do VFS operations.
             Common::FS::VFS::VFS& GetVFS() { return *mVFS; }

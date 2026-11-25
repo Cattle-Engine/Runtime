@@ -411,4 +411,54 @@ namespace CE::Common::FS::VFS {
             new_resolved.relative_path
         );
     }
+
+    bool VFS::CreateDir(std::string_view path) {
+        const ResolvedPath resolved = ResolvePathForWrite(path);
+
+        if (!resolved.provider) {
+            return false;
+        }
+
+        return resolved.provider->CreateDir(resolved.relative_path);
+    }
+
+    bool VFS::GetFileModifiedTimestamp(
+        std::string_view path,
+        int64_t& timestamp
+    ) {
+        auto file = OpenFile(path, OpenFlags::Read);
+
+        if (!file) {
+            return false;
+        }
+
+        timestamp = file->GetDateModified();
+        return true;
+    }
+
+    bool VFS::GetDirModifiedTimestamp(
+        std::string_view path,
+        int64_t& timestamp
+    ) {
+        const ResolvedPath resolved = ResolvePathForDirectory(path);
+
+        if (!resolved.provider) {
+            return false;
+        }
+
+        return resolved.provider->GetDirModifiedTimestamp(
+            resolved.relative_path,
+            timestamp
+        );
+    }
+
+    bool VFS::IsReadOnly(std::string_view path) {
+        const ResolvedPath resolved = ResolvePath(path);
+
+        if (!resolved.provider) {
+            return true;
+        }
+
+        return resolved.provider->IsReadOnly();
+    }
 }
