@@ -20,7 +20,7 @@
 #include "ce_editor/ui/i_window.hpp"
 #include "ce_editor/project.hpp"
 #include "ce_editor/ui/theme_manager.hpp"
-#include "ce_editor/assets/asset_providers.hpp"
+#include "ce_editor/assets/asset_editor_manager.hpp"
 
 namespace CE::Editor {
     namespace fs = std::filesystem;
@@ -38,6 +38,7 @@ namespace CE::Editor {
             ~EditorInstance();
 
             std::array<std::string, kMaxRecentProjects>& GetRecentProjects() { return mRecentProjects; }
+            // path: real OS filesystem path to the project directory
             [[nodiscard]] Status LoadProject(fs::path path);
             [[nodiscard]] Result<Project&> GetProject();
             bool ProjectLoaded() const;
@@ -45,6 +46,9 @@ namespace CE::Editor {
             UI::ThemeManager& GetThemeManager() { return *mThemeManager; }
             Common::Window& GetWindow() { return *mWindow; }
             std::vector<std::unique_ptr<UI::IWindow>>& GetUIWindows() { return mUIWindows; }
+
+            // Returns the VFS. Useful for windows/systems that need to do VFS operations.
+            Common::FS::VFS::VFS& GetVFS() { return *mVFS; }
         protected:
             GameInfo& GetGameInfo() override {
                 static GameInfo info{};
@@ -65,8 +69,14 @@ namespace CE::Editor {
         private:
             friend class State;
 
+            // VFS mount point for the editor's own data (/, priority 100)
             Common::FS::VFS::MountPoint::MountID mRootMountPointID{0};
+            // VFS mount point for user config (/config, priority 100)
             Common::FS::VFS::MountPoint::MountID mConfigMountPointID{0};
+            // VFS mount point for the loaded project (/project, priority 50).
+            // Reset to 0 when no project is loaded.
+            Common::FS::VFS::MountPoint::MountID mProjectMountPointID{0};
+            bool mProjectMounted = false;
 
             Settings::SettingsManager mSettings = Settings::SettingsManager("org.cattle_engine.editor");
             std::unique_ptr<Assets::AssetEditorManager> mAssetEditorManger;

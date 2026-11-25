@@ -74,7 +74,7 @@ namespace CE::Editor {
         mThemeManager = std::make_unique<UI::ThemeManager>(*mRenderer, *mVFS, "org.cattle_engine.editor_themes.system_default");
 
         CE_LOG(CECommon::LogLevel::Debug, "[EditorInstance] Creating asset editor manager and editor factories");
-        
+        mAssetEditorManger = std::make_unique<Assets::AssetEditorManager>(*this, *mVFS, "/mime/libmagic_mime.mgc");
 
         State state(*mVFS, *this);
 
@@ -127,9 +127,24 @@ namespace CE::Editor {
 
         mRecentProjects[0] = path;
 
+        // Unmount any previously-loaded project
+        if (mProjectMounted) {
+            mVFS->Unmount(mProjectMountPointID);
+            mProjectMounted = false;
+        }
+
+        // Mount the project directory at /project
+        mProjectMountPointID = mVFS->AddMountPoint<Common::FS::OSFS::DirectoryFileProvider>(
+            "/project", 50, path
+        );
+        mProjectMounted = true;
+
         try {
-            mProject = std::make_unique<Project>(std::move(path));
+            mProject = std::make_unique<Project>(*mVFS, "/project");
         } catch (const std::exception& e) {
+            // Unmount on failure
+            mVFS->Unmount(mProjectMountPointID);
+            mProjectMounted = false;
             mProjectLoaded = false;
             if (mProject) mProject.reset();
             return Error {

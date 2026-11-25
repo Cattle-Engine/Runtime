@@ -3,9 +3,9 @@
 #include "yaml-cpp/yaml.h"
 
 #include "ce_runtime/common/misc/gameinfo.hpp"
+#include "ce_runtime/common/fs/ifile_stream.hpp"
 #include "ce_editor/project.hpp"
 #include <exception>
-#include <filesystem>
 #include <stdexcept>
 
 namespace CE::Editor {
@@ -108,25 +108,51 @@ namespace CE::Editor {
         }
     }
     
-    Project::Project(fs::path proj_path) : mProjectPath(proj_path) {
-        const fs::path manifest_path = mProjectPath / kProjectManifestName;
-        if (!fs::exists(manifest_path) || !fs::is_regular_file(manifest_path)) {
+    Project::Project(Common::FS::VFS::VFS& vfs, std::string_view vfs_project_root)
+        : mProjectVFSRoot(vfs_project_root) {
+
+        // Build the VFS path to the manifest: "<root>/ce_project.yaml"
+        std::string manifest_vfs_path = mProjectVFSRoot;
+        if (!manifest_vfs_path.empty() && manifest_vfs_path.back() != '/') {
+            manifest_vfs_path += '/';
+        }
+        manifest_vfs_path += kProjectManifestName;
+
+        if (!vfs.FileExists(manifest_vfs_path)) {
             throw std::runtime_error(
-                "Project manifest: '" + manifest_path.string()  + "' does not exist, or is not regular file"
+                "Project manifest '" + manifest_vfs_path + "' does not exist in the VFS"
             );
         }
-        
-        const YAML::Node m = YAML::LoadFile(manifest_path);
+
+        auto file = vfs.OpenFile(manifest_vfs_path);
+        if (!file || !file->IsOpen()) {
+            throw std::runtime_error(
+                "Failed to open project manifest '" + manifest_vfs_path + "' via VFS"
+            );
+        }
+
+        const auto content = file->ReadToString();
+        if (!content) {
+            throw std::runtime_error(
+                "Failed to read project manifest '" + manifest_vfs_path + "'"
+            );
+        }
+
+        const YAML::Node m = YAML::Load(*content);
         const YAML::Node gi = m["gameinfo"];
-        if (!gi || !gi.IsMap()) throw std::runtime_error("Missing 'gameinfo' section in: " + manifest_path.string());
+        if (!gi || !gi.IsMap()) {
+            throw std::runtime_error("Missing 'gameinfo' section in: " + manifest_vfs_path);
+        }
 
         mGameInfo = ParseGameInfo(gi);
         std::string gi_error = ValidateGameInfo(mGameInfo);
-        if (!gi_error.empty()) throw std::runtime_error("Gameinfo validation error: " + gi_error);
+        if (!gi_error.empty()) {
+            throw std::runtime_error("Gameinfo validation error: " + gi_error);
+        }
     }
 
-    fs::path Project::GetProjectPath() const {
-        return mProjectPath;
+    std::string Project::GetProjectVFSRoot() const {
+        return mProjectVFSRoot;
     }
 
     UndoRedoSystem& Project::GetUndoRedoSys() const { return mUndoRedo; }

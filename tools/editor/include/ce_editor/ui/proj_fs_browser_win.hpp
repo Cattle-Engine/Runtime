@@ -1,13 +1,12 @@
 #pragma once
 
 #include "ce_editor/ui/i_window.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
 
-#include <filesystem>
+#include <string>
 #include <vector>
 
 namespace CE::Editor::UI {
-    namespace fs = std::filesystem;
-
     class ProjectFSBrowser : public IWindow {
     public:
         using IWindow::IWindow;
@@ -20,7 +19,8 @@ namespace CE::Editor::UI {
 
     private:
         struct FSNode {
-            fs::path path;
+            std::string vfs_path; // VFS virtual path (e.g. "/project/textures")
+            std::string name;     // display name (basename)
             bool is_directory = false;
             bool is_loaded = false;
 
@@ -29,8 +29,9 @@ namespace CE::Editor::UI {
 
         FSNode mRoot;
         bool mInitialized = false;
+        std::string mCurrentProjectRoot; // tracks which project root we're showing
 
-        void SetRoot(const fs::path& path);
+        void SetRoot(std::string_view vfs_root);
         void Refresh();
 
         void LoadDirectory(FSNode& node);

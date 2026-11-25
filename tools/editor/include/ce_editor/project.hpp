@@ -1,25 +1,26 @@
 #pragma once
 
-#include <filesystem>
+#include <string>
 
 #include "ce_editor/undoredo_system.hpp"
+#include "ce_runtime/common/fs/vfs.hpp"
 #include "ce_runtime/common/misc/gameinfo.hpp"
 
 namespace CE::Editor {
-    namespace fs = std::filesystem;
-
     class Project {
         public:
-            // throws std::runtime error if it fails to get the ce_project.yaml etc
-            Project(fs::path proj_path);
+            // VFS virtual path of the project root mount (e.g. "/project").
+            // Throws std::runtime_error if the manifest cannot be read/parsed.
+            Project(Common::FS::VFS::VFS& vfs, std::string_view vfs_project_root);
 
-            fs::path GetProjectPath() const;
+            // Returns the VFS virtual path of the project root (e.g. "/project").
+            std::string GetProjectVFSRoot() const;
             UndoRedoSystem& GetUndoRedoSys() const;
         private:
             static constexpr const char* kProjectManifestName = "ce_project.yaml";
 
             mutable UndoRedoSystem mUndoRedo;
-            const fs::path mProjectPath;
+            const std::string mProjectVFSRoot;
             GameInfo mGameInfo;
     };
 }

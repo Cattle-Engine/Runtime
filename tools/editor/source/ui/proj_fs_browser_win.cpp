@@ -4,12 +4,12 @@
 #include <imgui.h>
 
 #include <algorithm>
-#include <system_error>
 
 namespace CE::Editor::UI {
-    void ProjectFSBrowser::SetRoot(const fs::path& path) {
+    void ProjectFSBrowser::SetRoot(std::string_view vfs_root) {
         mRoot = FSNode{};
-        mRoot.path = path;
+        mRoot.vfs_path = std::string(vfs_root);
+        mRoot.name = vfs_root.empty() ? "/" : std::string(vfs_root.substr(vfs_root.rfind('/') + 1));
         mRoot.is_directory = true;
 
         LoadDirectory(mRoot);
@@ -28,27 +28,19 @@ namespace CE::Editor::UI {
 
         node.children.clear();
 
-        std::error_code ec;
+        auto& vfs = mEditorInstance.GetVFS();
+        const auto entries = vfs.ListDirectory(node.vfs_path);
 
-        fs::directory_iterator it(
-            node.path,
-            fs::directory_options::skip_permission_denied,
-            ec
-        );
-
-        if (ec) {
-            node.is_loaded = true;
-            return;
-        }
-
-        for (const auto& entry : it) {
+        for (const auto& entry : entries) {
             FSNode child;
-
-            child.path = entry.path();
-            child.is_directory = entry.is_directory(ec);
-
-            if (ec)
-                ec.clear();
+            // Build child VFS path: parent_path + "/" + name
+            child.vfs_path = node.vfs_path;
+            if (!child.vfs_path.empty() && child.vfs_path.back() != '/') {
+                child.vfs_path += '/';
+            }
+            child.vfs_path += entry.name;
+            child.name = entry.name;
+            child.is_directory = (entry.type == Common::FS::VFS::DirectoryContent::Type::Directory);
 
             node.children.push_back(std::move(child));
         }
@@ -60,8 +52,7 @@ namespace CE::Editor::UI {
                 if (a.is_directory != b.is_directory)
                     return a.is_directory > b.is_directory;
 
-                return a.path.filename().string() <
-                       b.path.filename().string();
+                return a.name < b.name;
             }
         );
 
@@ -69,13 +60,11 @@ namespace CE::Editor::UI {
     }
 
     void ProjectFSBrowser::DrawNode(FSNode& node) {
-        const std::string name = node.path.filename().string();
-
-        ImGui::PushID(node.path.string().c_str());
+        ImGui::PushID(node.vfs_path.c_str());
 
         if (node.is_directory) {
             const bool open = ImGui::TreeNodeEx(
-                name.c_str(),
+                node.name.c_str(),
                 ImGuiTreeNodeFlags_OpenOnArrow |
                 ImGuiTreeNodeFlags_SpanAvailWidth
             );
@@ -91,7 +80,7 @@ namespace CE::Editor::UI {
         }
         else {
             ImGui::TreeNodeEx(
-                name.c_str(),
+                node.name.c_str(),
                 ImGuiTreeNodeFlags_Leaf |
                 ImGuiTreeNodeFlags_NoTreePushOnOpen |
                 ImGuiTreeNodeFlags_SpanAvailWidth
@@ -109,6 +98,7 @@ namespace CE::Editor::UI {
         if (!mEditorInstance.ProjectLoaded()) {
             mInitialized = false;
             mRoot = FSNode{};
+            mCurrentProjectRoot.clear();
 
             if (ImGui::Begin(GetWindowName().c_str(), &open))
                 ImGui::TextDisabled("No project loaded");
@@ -121,10 +111,11 @@ namespace CE::Editor::UI {
         auto project = mEditorInstance.GetProject();
         if (!project) return;
 
-        const auto& project_path = project->GetProjectPath();
+        const std::string project_root = project->GetProjectVFSRoot();
 
-        if (!mInitialized || mRoot.path != project_path) {
-            SetRoot(project_path);
+        if (!mInitialized || mCurrentProjectRoot != project_root) {
+            SetRoot(project_root);
+            mCurrentProjectRoot = project_root;
             mInitialized = true;
         }
 
