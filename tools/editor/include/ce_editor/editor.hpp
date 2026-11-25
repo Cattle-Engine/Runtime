@@ -57,7 +57,7 @@ namespace CE::Editor {
 
             bool OnImGui() override;
             
-            void OnInitialise() override;
+            // void OnInitialise() override;
 
             InstanceRuntimeConf PrepareRuntimeData()  override;
             int MountData(const std::string& path) override;

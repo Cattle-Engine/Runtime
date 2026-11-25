@@ -12,6 +12,7 @@ file(GLOB_RECURSE CE_EDITOR_SOURCES CONFIGURE_DEPENDS
 )
 
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(unofficial-libmagic CONFIG REQUIRED)
 
 add_executable(ce_editor ${CE_EDITOR_SOURCES})
 
@@ -48,6 +49,7 @@ target_link_libraries(ce_editor PRIVATE
     ce_common
     ce_runtime_shared
     yaml-cpp::yaml-cpp
+    unofficial::libmagic::libmagic
 )
 
 set_target_properties(ce_editor PROPERTIES
