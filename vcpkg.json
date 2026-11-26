@@ -4,35 +4,48 @@
   "dependencies": [
     {
       "name": "angelscript",
-      "features": ["addons"]
+      "features": [
+        "addons"
+      ]
     },
-
     "glm",
     "zstd",
     "lz4",
     {
       "name": "sdl3",
-      "features": ["vulkan"],
+      "features": [
+        "vulkan"
+      ],
       "platform": "windows"
     },
-
     {
       "name": "sdl3",
-      "features": ["vulkan", "x11", "wayland", "ibus", "dbus", "alsa"],
+      "features": [
+        "vulkan",
+        "x11",
+        "wayland",
+        "ibus",
+        "dbus",
+        "alsa"
+      ],
       "platform": "linux"
     },
-
     {
       "name": "sdl3",
-      "features": ["vulkan"],
+      "features": [
+        "vulkan"
+      ],
       "platform": "osx"
     },
-
     {
       "name": "sdl3-image",
-      "features": ["jpeg", "png", "tiff", "webp"]
+      "features": [
+        "jpeg",
+        "png",
+        "tiff",
+        "webp"
+      ]
     },
-
     {
       "name": "sdl3-mixer",
       "features": [
@@ -44,17 +57,15 @@
         "wavpack"
       ]
     },
-    
-    { "name": "imgui",
+    {
+      "name": "imgui",
       "features": [
         "sdl3-binding",
         "sdl3-renderer-binding",
         "sdlgpu3-binding",
         "docking-experimental"
       ]
-    
     },
-
     "sdl3-ttf",
     "assimp",
     "xxhash",
@@ -63,5 +74,16 @@
     "libarchive",
     "sdl3-shadercross",
     "libmagic"
-  ]
+  ],
+  "overrides": [
+    {
+        "name": "angelscript",
+        "version": "2.38.0"
+    },
+    {
+      "name": "libmagic",
+      "version": "5.48#0"
+    }
+  ],
+  "builtin-baseline": "e6d62cc9ce8f8d9687df14521118f2ec3c10ee6a"
 }
