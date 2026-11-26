@@ -4,6 +4,7 @@
 
 #include "ce_common/tdf.hpp"
 #include "ce_common/tracelog.hpp"
+#include <imgui.h>
 
 #include "ce_runtime/common/fs/file_provider.hpp"
 #include "ce_runtime/common/fs/ifile_stream.hpp"
@@ -33,8 +34,12 @@ namespace CE::Editor {
             out["window"]["win_width"] = mInstance.mWindow->GetWindowSize(Common::WindowMode::Windowed).w;
             out["window"]["win_height"] = mInstance.mWindow->GetWindowSize(Common::WindowMode::Windowed).h;
             out["window"]["win_maximised"] = mInstance.mWindow->IsMaxmimised();
-
             out["theme_internal_name"] = mInstance.mThemeManager->GetCurrentTheme().internal_name;
+
+            size_t size = 0;
+            const char* data = ImGui::SaveIniSettingsToMemory(&size);
+            std::string config(data, size);
+            out["imgui_config"] = config;
 
             TDF recent_projects = TDF::MakeArray();
             for (const auto& project : mInstance.mRecentProjects) {
@@ -87,6 +92,9 @@ namespace CE::Editor {
                     "win_maximised", false
                 );
             }
+
+            std::string imgui_config = in.Value<std::string>("theme_internal_name", "");
+            if (!imgui_config.empty()) ImGui::LoadIniSettingsFromMemory(imgui_config.c_str());
 
             auto theme_name = in.Value<std::string>("theme_internal_name", "org.cattle_engine.editor_themes.system_default");
             mInstance.mThemeManager->SetTheme("org.cattle_engine.editor_themes.system_default", true);

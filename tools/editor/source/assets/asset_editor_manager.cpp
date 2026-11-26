@@ -176,43 +176,91 @@ namespace CE::Editor::Assets {
         return mime_type.has_value() &&
         FindFactory(*mime_type) != nullptr;
     }
-    
+
     IAssetEditor* AssetEditorManager::Open(std::string_view vfs_path) {
+        CE_LOG(
+            CECommon::LogLevel::Info,
+            "[AssetEditorManager] Opening asset: '{}'",
+            vfs_path
+        );
+
         std::string key(vfs_path);
-        
+
         auto it = mOpenEditors.find(key);
-        
+
         if (it != mOpenEditors.end()) {
+            CE_LOG(
+                CECommon::LogLevel::Debug,
+                "[AssetEditorManager] Asset already open: '{}'",
+                vfs_path
+            );
+
             return it->second.get();
         }
-        
+
         const auto mime_type = DetectMimeType(vfs_path);
-        
+
         if (!mime_type) {
+            CE_LOG(
+                CECommon::LogLevel::Error,
+                "[AssetEditorManager] Failed to detect MIME type for '{}'",
+                vfs_path
+            );
+
             return nullptr;
         }
-        
+
+        CE_LOG(
+            CECommon::LogLevel::Debug,
+            "[AssetEditorManager] Detected MIME type: '{}'",
+            *mime_type
+        );
+
         const auto* factory = FindFactory(*mime_type);
-        
+
         if (!factory) {
+            CE_LOG(
+                CECommon::LogLevel::Error,
+                "[AssetEditorManager] No editor factory registered for MIME type '{}'",
+                *mime_type
+            );
+
             return nullptr;
         }
-        
+
+        CE_LOG(
+            CECommon::LogLevel::Debug,
+            "[AssetEditorManager] Found editor factory for '{}'",
+            *mime_type
+        );
+
         auto editor = (*factory)();
-        
+
         if (!editor) {
+            CE_LOG(
+                CECommon::LogLevel::Error,
+                "[AssetEditorManager] Editor factory returned nullptr for '{}'",
+                *mime_type
+            );
+
             return nullptr;
         }
-        
+
         editor->Open(vfs_path);
-        
+
         auto* ptr = editor.get();
-        
+
         mOpenEditors.emplace(
             std::move(key),
             std::move(editor)
         );
-        
+
+        CE_LOG(
+            CECommon::LogLevel::Info,
+            "[AssetEditorManager] Successfully opened asset: '{}'",
+            vfs_path
+        );
+
         return ptr;
     }
     

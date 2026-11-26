@@ -113,6 +113,20 @@ namespace CE::Editor {
             win->Draw();
         }
 
+        auto& editors = mAssetEditorManger->GetOpenEditors();
+
+        for (auto it = editors.begin(); it != editors.end();) {
+            auto& editor = it->second;
+
+            editor->Draw();
+
+            if (!editor->IsWindowOpen()) {
+                it = editors.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
         mMainToolBar.Draw();
 
         return true;

@@ -22,6 +22,7 @@ namespace CE::Editor::Assets {
             std::string mImagePath;
             float mZoom = 1.0f;
             ImVec2 mPan = ImVec2(0.0f, 0.0f);
+            bool mShouldResizeToImage = false;
             bool mFitToWindow = true;
     };
 }

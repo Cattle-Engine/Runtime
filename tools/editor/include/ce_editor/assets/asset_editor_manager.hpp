@@ -73,6 +73,8 @@ namespace CE::Editor::Assets {
             bool IsOpen(std::string_view vfs_path) const;
             
             bool AddMagicDatabase(std::string_view vfs_path);
+
+            std::unordered_map<std::string, std::unique_ptr<IAssetEditor>>& GetOpenEditors() { return mOpenEditors; }
         private:
             struct ProviderEntry {
                 std::string pattern;

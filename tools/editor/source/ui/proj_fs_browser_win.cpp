@@ -1,3 +1,5 @@
+
+#include "ce_common/tracelog.hpp"
 #include "ce_editor/editor.hpp"
 #include "ce_editor/ui/proj_fs_browser_win.hpp"
 
@@ -34,11 +36,12 @@ namespace CE::Editor::UI {
 
         for (const auto& entry : entries) {
             FSNode child;
-            // Build child VFS path: parent_path + "/" + name
+
             child.vfs_path = node.vfs_path;
-            if (!child.vfs_path.empty() && child.vfs_path.back() != '/') {
+
+            if (!child.vfs_path.empty() && child.vfs_path.back() != '/')
                 child.vfs_path += '/';
-            }
+
             child.vfs_path += entry.name;
             child.name = entry.name;
             child.is_directory = (entry.type == Common::FS::VFS::DirectoryContent::Type::Directory);
@@ -67,42 +70,31 @@ namespace CE::Editor::UI {
             const bool open = ImGui::TreeNodeEx(
                 node.name.c_str(),
                 ImGuiTreeNodeFlags_OpenOnArrow |
+                ImGuiTreeNodeFlags_OpenOnDoubleClick |
                 ImGuiTreeNodeFlags_SpanAvailWidth
             );
 
-        if (ImGui::BeginPopupContextItem("DirectoryContextMenu", ImGuiMouseButton_Right)) {
-            auto& vfs = mEditorInstance.GetVFS();
-
-            if (ImGui::MenuItem("Refresh")) {
-                node.is_loaded = false;
-                node.children.clear();
-            }
-
-            if (ImGui::MenuItem("Create Directory")) {
-                mCreateDirectoryParent = node.vfs_path;
-                mNewDirectoryName.clear();
-                mCreateDirectoryPopup = true;
-            }
-
-            if (ImGui::MenuItem("Delete")) {
-                if (node.is_directory) {
-                    vfs.DeleteDir(node.vfs_path);
-                } else {
-                    vfs.DeleteFile(node.vfs_path);
+            if (ImGui::BeginPopupContextItem("DirectoryContextMenu")) {
+                if (ImGui::MenuItem("Refresh")) {
+                    mPendingOperation = PendingOperation::Refresh;
                 }
 
-                Refresh();
-            }
-
-            if (!node.is_directory) {
-                if (ImGui::MenuItem("Open")) {
-                    mEditorInstance.GetAssetEditorManager().Open(node.vfs_path);
+                if (ImGui::MenuItem("Create Directory")) {
+                    mCreateDirectoryParent = node.vfs_path;
+                    mNewDirectoryName.clear();
+                    mCreateDirectoryPopup = true;
                 }
-            }
-   
 
-            ImGui::EndPopup();
-        }
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Delete")) {
+                    mPendingOperation = PendingOperation::Delete;
+                    mPendingPath = node.vfs_path;
+                    mPendingIsDirectory = true;
+                }
+
+                ImGui::EndPopup();
+            }
 
             if (open) {
                 LoadDirectory(node);
@@ -121,17 +113,38 @@ namespace CE::Editor::UI {
                 ImGuiTreeNodeFlags_SpanAvailWidth
             );
 
+            if (ImGui::IsItemHovered() &&
+                ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                if (!mEditorInstance.GetAssetEditorManager().Open(node.vfs_path)) {
+                    CE_LOG(
+                        CECommon::LogLevel::Error,
+                        "[ProjectFSBrowser] Failed to open asset, {}",
+                        node.vfs_path
+                    );
+                }
+            }
+
             if (ImGui::BeginPopupContextItem("FileContextMenu")) {
                 if (ImGui::MenuItem("Open")) {
-                    // TODO: Open file
+                    if (!mEditorInstance.GetAssetEditorManager().Open(node.vfs_path)) {
+                        CE_LOG(
+                            CECommon::LogLevel::Error,
+                            "[ProjectFSBrowser] Failed to open asset, {}",
+                            node.vfs_path
+                        );
+                    }
                 }
 
-                if (ImGui::MenuItem("Rename")) {
-                    // TODO: Rename file
+                if (ImGui::MenuItem("Copy Path")) {
+                    ImGui::SetClipboardText(node.vfs_path.c_str());
                 }
+
+                ImGui::Separator();
 
                 if (ImGui::MenuItem("Delete")) {
-                    // TODO: Delete file
+                    mPendingOperation = PendingOperation::Delete;
+                    mPendingPath = node.vfs_path;
+                    mPendingIsDirectory = false;
                 }
 
                 ImGui::EndPopup();
@@ -146,6 +159,7 @@ namespace CE::Editor::UI {
             return;
 
         bool open = mWindowOpen;
+
         if (!mEditorInstance.ProjectLoaded()) {
             mInitialized = false;
             mRoot = FSNode{};
@@ -160,7 +174,15 @@ namespace CE::Editor::UI {
         }
 
         auto project = mEditorInstance.GetProject();
-        if (!project) return;
+
+        if (!project) {
+            if (ImGui::Begin(GetWindowName().c_str(), &open))
+                ImGui::TextDisabled("No project available");
+
+            mWindowOpen = open;
+            ImGui::End();
+            return;
+        }
 
         const std::string project_root = project->GetProjectVFSRoot();
 
@@ -172,22 +194,71 @@ namespace CE::Editor::UI {
 
         if (ImGui::Begin(GetWindowName().c_str(), &open)) {
             if (ImGui::Button("Refresh"))
-                Refresh();
+                mPendingOperation = PendingOperation::Refresh;
 
             ImGui::Separator();
-            
+
             LoadDirectory(mRoot);
 
             for (auto& child : mRoot.children)
                 DrawNode(child);
+
+            if (ImGui::BeginPopupContextWindow(
+                "BackgroundContextMenu",
+                ImGuiPopupFlags_MouseButtonRight |
+                ImGuiPopupFlags_NoOpenOverItems
+            )) {
+                if (ImGui::MenuItem("Create Directory")) {
+                    mCreateDirectoryParent = mRoot.vfs_path;
+                    mNewDirectoryName.clear();
+                    mCreateDirectoryPopup = true;
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Refresh"))
+                    mPendingOperation = PendingOperation::Refresh;
+
+                ImGui::EndPopup();
+            }
         }
+
+        // Process pending filesystem operations after recursive traversal.
+        switch (mPendingOperation) {
+            case PendingOperation::Refresh:
+                Refresh();
+                break;
+
+            case PendingOperation::Delete: {
+                auto& vfs = mEditorInstance.GetVFS();
+
+                if (mPendingIsDirectory)
+                    vfs.DeleteDir(mPendingPath);
+                else
+                    vfs.DeleteFile(mPendingPath);
+
+                Refresh();
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        mPendingOperation = PendingOperation::None;
+        mPendingPath.clear();
+        mPendingIsDirectory = false;
 
         if (mCreateDirectoryPopup) {
             ImGui::OpenPopup("Create Directory");
             mCreateDirectoryPopup = false;
         }
 
-        if (ImGui::BeginPopupModal("Create Directory", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal(
+            "Create Directory",
+            nullptr,
+            ImGuiWindowFlags_AlwaysAutoResize
+        )) {
             ImGui::InputText("Directory Name", &mNewDirectoryName);
 
             if (ImGui::Button("Create", ImVec2(120, 0))) {
@@ -209,9 +280,8 @@ namespace CE::Editor::UI {
 
             ImGui::SameLine();
 
-            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
                 ImGui::CloseCurrentPopup();
-            }
 
             ImGui::EndPopup();
         }

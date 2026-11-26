@@ -11,7 +11,7 @@
 namespace CE::Editor::Assets {
     std::string ImageViewer::GetWindowName() {
         if (mImagePath.empty()) return "ImageViewer - No image loaded";
-        return "ImageViewer" + mImagePath;
+        return "ImageViewer - " + mImagePath;
     }
 
     ImageViewer::~ImageViewer() {
@@ -23,11 +23,12 @@ namespace CE::Editor::Assets {
 
         if (!handle) {
             CE_LOG(CECommon::LogLevel::Error, "[ImageViewer] Failed to open image or create texture on file: {}", vfs_path);
-            return; 
+            return;
         }
 
         mTexture = std::move(handle);
         mImagePath = vfs_path;
+        mShouldResizeToImage = true;
     }
 
     void ImageViewer::Close() {
@@ -38,6 +39,42 @@ namespace CE::Editor::Assets {
     }
 
     void ImageViewer::Draw() {
+        if (mShouldResizeToImage && mTexture) {
+            constexpr float toolbar_height = 45.0f;
+            constexpr float window_padding = 16.0f;
+            constexpr float screen_margin = 40.0f;
+
+            const ImVec2 display_size = ImGui::GetIO().DisplaySize;
+
+            const float image_width = static_cast<float>(mTexture.GetTextureWidth());
+            const float image_height = static_cast<float>(mTexture.GetTextureHeight());
+
+            // Maximum available window dimensions.
+            const float max_width = display_size.x - screen_margin;
+            const float max_height = display_size.y - screen_margin;
+
+            // Account for toolbar and window padding.
+            const float available_width = max_width - window_padding;
+            const float available_height = max_height - toolbar_height - window_padding;
+
+            // Calculate scale needed to fit the image on screen.
+            const float scale = std::min({
+                1.0f,
+                available_width / image_width,
+                available_height / image_height
+            });
+
+            // Calculate final window dimensions.
+            const ImVec2 window_size(
+                (image_width * scale) + window_padding,
+                (image_height * scale) + toolbar_height + window_padding
+            );
+
+            ImGui::SetNextWindowSize(window_size, ImGuiCond_Always);
+
+            mShouldResizeToImage = false;
+        }
+
         if (!ImGui::Begin(GetWindowName().c_str(), &mWindowOpen)) {
             ImGui::End();
             return;
@@ -244,7 +281,7 @@ namespace CE::Editor::Assets {
         ImGui::SetCursorScreenPos(image_pos);
 
         ImGui::Image(
-            static_cast<ImTextureRef>(mTexture.GetTexture()->handle),
+            static_cast<ImTextureRef>(mEditorInstance.GetRenderer().GetNativeTextureHandle(mTexture.GetTexture())),
             final_size
         );
 

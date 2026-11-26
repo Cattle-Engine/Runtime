@@ -27,6 +27,12 @@ namespace CE::Editor::UI {
             std::vector<FSNode> children;
         };
 
+        enum class PendingOperation {
+            None,
+            Refresh,
+            Delete,
+        };
+
         FSNode mRoot;
         bool mInitialized = false;
         std::string mCurrentProjectRoot; // tracks which project root we're showing
@@ -34,6 +40,10 @@ namespace CE::Editor::UI {
         bool mCreateDirectoryPopup = false;
         std::string mNewDirectoryName;
         std::string mCreateDirectoryParent;
+
+        PendingOperation mPendingOperation = PendingOperation::None;
+        std::string mPendingPath;
+        bool mPendingIsDirectory = false;
 
         void SetRoot(std::string_view vfs_root);
         void Refresh();

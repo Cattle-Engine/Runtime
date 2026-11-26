@@ -97,7 +97,7 @@ namespace CE::Renderer::Resources {
         };
 
         MaterialEntry* GetMaterialEntry(MaterialHandle handle);
-        uint64_t mNextHandleID = 0;
+        uint64_t mNextHandleID = 1;
         TextureManager& mTextureManager;
         ShaderManager& mShaderManager;
         IRenderer& mRenderer;

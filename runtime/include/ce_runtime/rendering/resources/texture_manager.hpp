@@ -177,7 +177,7 @@ namespace CE::Renderer::Resources {
 
         IRenderer& mRenderer;
         Common::FS::VFS::VFS& mVFS;
-        uint64_t mNextHandleID = 0;
+        uint64_t mNextHandleID = 1;
         std::unordered_map<TextureHandle, TextureEntry, TextureHandleHash> mTextureCache;
         std::unordered_map<std::string, TextureHandle> mPathCache;
         std::vector<TextureHandle> mPendingUnload;

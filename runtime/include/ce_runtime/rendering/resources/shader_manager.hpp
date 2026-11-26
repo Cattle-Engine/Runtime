@@ -149,7 +149,7 @@ namespace CE::Renderer::Resources {
         Common::FS::VFS::VFS& mVFS;
         IRenderer& mRenderer;
         TextureManager& mTextureManager;
-        uint64_t mNextShaderHandleID = 0;
+        uint64_t mNextShaderHandleID = 1;
         ShaderHandle mBoundShaderID;
         std::unordered_map<ShaderHandle, ShaderEntry, ShaderHandleHash> mShaders;
         std::vector<ShaderHandle> mPendingUnloads;
